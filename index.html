@@ -128,12 +128,6 @@ box-shadow:0 12px 24px rgba(11,42,90,.18);
 }
 .btn.primary:hover{background:var(--accent2);border-color:var(--accent2)}
 .btn.small{padding:10px 12px;font-size:13px;border-radius:12px}
-.btn.link{
-border-color:transparent;
-background:transparent;
-padding:10px 10px;
-}
-.btn.link:hover{background:rgba(238,242,247,.85);border-color:transparent}
 
 /* Hero */
 .hero{
@@ -433,7 +427,7 @@ position:relative;
 overflow:hidden;
 display:flex;
 flex-direction:column;
-gap:14px;
+gap:12px;
 }
 .plan.featured{
 border-color:rgba(11,42,90,.28);
@@ -455,11 +449,12 @@ font-size:12px;
 .price{
 display:flex;
 align-items:flex-end;
-gap:8px;
+gap:10px;
 margin-top:2px;
+flex-wrap:wrap;
 }
 .price strong{
-font-size:32px;
+font-size:34px;
 line-height:1;
 letter-spacing:-.8px;
 }
@@ -468,6 +463,23 @@ color:var(--muted);
 font-weight:800;
 font-size:13px;
 padding-bottom:4px;
+}
+.strike{
+color:#6b7a90;
+text-decoration:line-through;
+font-weight:900;
+font-size:13px;
+}
+.save{
+display:inline-flex;
+align-items:center;
+padding:6px 10px;
+border-radius:999px;
+background:rgba(15,118,110,.08);
+border:1px solid rgba(15,118,110,.18);
+color:var(--good);
+font-weight:900;
+font-size:12px;
 }
 .features{
 margin:0;
@@ -502,7 +514,8 @@ display:flex;
 gap:10px;
 flex-wrap:wrap;
 }
-.note{
+.fineprint{
+margin:0;
 color:var(--muted);
 font-size:12px;
 font-weight:700;
@@ -639,7 +652,7 @@ You get consistent outreach without spending your evenings applying.
 <div class="trust" aria-label="Trust signals">
 <span><span class="check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Zero manual effort</span>
 <span><span class="check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Tailored per role</span>
-<span><span class="check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Sent from your email</span>
+<span><span class="check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></spanSent from your email</span>
 </div>
 </div>
 
@@ -726,9 +739,9 @@ You set the direction once. We run the daily workflow and keep it consistent.
 <div class="container">
 <div class="section-head">
 <div class="kicker">Pricing</div>
-<h2 class="section-title">Plans based on daily output.</h2>
+<h2 class="section-title">Start from $20. Save more as you scale.</h2>
 <p class="section-desc">
-Subscription plans with a clear promise: applications executed per day.
+Launch offer pricing. Higher plans include bigger savings per application.
 </p>
 </div>
 
@@ -736,9 +749,14 @@ Subscription plans with a clear promise: applications executed per day.
 <div class="card plan">
 <h3>Starter</h3>
 <p class="section-desc" style="font-size:14px;margin:0">For steady progress.</p>
-<div class="price"><strong>2</strong><span>applications / day</span></div>
+<div class="price">
+<div class="strike">$29</div>
+<strong>$20</strong>
+<span>/ month</span>
+<span class="save">Save 31%</span>
+</div>
 <ul class="features">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Relevant job research</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><strong>2</strong> applications / day</li>
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Tailored CV + cover letter</li>
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Sent from your Gmail</li>
 </ul>
@@ -747,14 +765,19 @@ Subscription plans with a clear promise: applications executed per day.
 </div>
 </div>
 
-<div class="card plan featured" aria-label="Most popular plan">
-<div class="ribbon">Most chosen</div>
+<div class="card plan featured" aria-label="Best value plan">
+<div class="ribbon">Best value</div>
 <h3>Growth</h3>
 <p class="section-desc" style="font-size:14px;margin:0">For active searches.</p>
-<div class="price"><strong>5</strong><span>applications / day</span></div>
+<div class="price">
+<div class="strike">$59</div>
+<strong>$45</strong>
+<span>/ month</span>
+<span class="save">Save 24%</span>
+</div>
 <ul class="features">
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><strong>5</strong> applications / day</li>
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Better matching & shortlisting</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Stronger tailoring per company</li>
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Weekly progress summary</li>
 </ul>
 <div class="actions">
@@ -765,12 +788,17 @@ Subscription plans with a clear promise: applications executed per day.
 
 <div class="card plan">
 <h3>Pro</h3>
-<p class="section-desc" style="font-size:14px;margin:0">For speed and breadth.</p>
-<div class="price"><strong>10</strong><span>applications / day</span></div>
+<p class="section-desc" style="font-size:14px;margin:0">For faster outreach.</p>
+<div class="price">
+<div class="strike">$119</div>
+<strong>$89</strong>
+<span>/ month</span>
+<span class="save">Save 25%</span>
+</div>
 <ul class="features">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Deeper company research</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><strong>10</strong> applications / day</li>
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Priority turnaround</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Follow-up draft templates</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Follow-up templates</li>
 </ul>
 <div class="actions">
 <a class="btn" href="#contact">Contact</a>
@@ -778,7 +806,7 @@ Subscription plans with a clear promise: applications executed per day.
 </div>
 </div>
 
-<p class="note" style="margin-top:14px">You can add exact pricing later. The website emphasizes the clear daily output promise.</p>
+<p class="fineprint" style="margin-top:14px">Prices are promotional and may change after launch. Subscription renews monthly. Cancel anytime.</p>
 </div>
 </section>
 
@@ -788,7 +816,7 @@ Subscription plans with a clear promise: applications executed per day.
 <div class="kicker">Why this works</div>
 <h2 class="section-title">More interviews come from consistent, relevant outreach.</h2>
 <p class="section-desc">
-JobApply-AI combines volume with quality control. We avoid mass spam by tailoring each application and documenting what’s sent.
+We combine daily volume with a quality-first process. Each application is tailored and sent from your email for credibility.
 </p>
 </div>
 
@@ -798,17 +826,14 @@ JobApply-AI combines volume with quality control. We avoid mass spam by tailorin
 <div class="why-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8 10L4 11"></path></svg></div>
 <div class="why-text"><strong>Zero manual effort</strong><span>You set the direction once. We execute daily applications for you.</span></div>
 </div>
-
 <div class="why-item">
 <div class="why-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg></div>
 <div class="why-text"><strong>Daily consistency</strong><span>Continuous outreach increases your chance of replies and interviews.</span></div>
 </div>
-
 <div class="why-item">
 <div class="why-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h16"></path></svg></div>
-<div class="why-text"><strong>Tailored per role and company</strong><span>Each application reflects the job requirements and your real experience.</span></div>
+<div class="why-text"><strong>Tailored per role and company</strong><span>Each application matches the job requirements and your experience.</span></div>
 </div>
-
 <div class="why-item">
 <div class="why-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"></path><path d="M21 8l-9 6-9-6"></path></svg></div>
 <div class="why-text"><strong>Sent from your email</strong><span>Applications look like they came directly from you, improving credibility.</span></div>
@@ -838,9 +863,7 @@ JobApply-AI combines volume with quality control. We avoid mass spam by tailorin
 <div class="cta-box">
 <div>
 <h2>Join the waitlist</h2>
-<p>
-Tell us your target role and location. We will reach out with next steps and early access.
-</p>
+<p>Tell us your target role and location. We will reach out with next steps and early access.</p>
 </div>
 
 <form action="#" method="post" aria-label="Waitlist form">
@@ -879,7 +902,7 @@ Tell us your target role and location. We will reach out with next steps and ear
 <div style="margin-top:10px">© <span id="year"></span> JobApply-AI. All rights reserved.</div>
 </div>
 <script>
-document.getElementById("year").textContent=new Date().getFullYear();
+document.getElementById("year").textContent = new Date().getFullYear();
 </script>
 </footer>
 </body>
