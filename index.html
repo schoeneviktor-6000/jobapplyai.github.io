@@ -25,6 +25,7 @@
 --ink2:#1a1a1a;
 
 --grad:linear-gradient(135deg, rgba(0,166,63,.95), rgba(102,255,138,.9));
+--gradBtn:linear-gradient(135deg, #00a63f 0%, #4dff92 45%, #00a63f 100%);
 --ring:0 0 0 4px rgba(0,166,63,.18);
 }
 
@@ -56,6 +57,7 @@ border-radius:12px;
 @keyframes riseFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes shimmer{0%{transform:translateX(-120%)}100%{transform:translateX(140%)}}
 @keyframes floatSlow{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes gradMove{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 
 /* Header */
 header{
@@ -133,7 +135,7 @@ color:var(--text);
 font-weight:950;
 font-size:14px;
 cursor:pointer;
-transition:transform .10s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease;
+transition:transform .10s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease, filter .15s ease;
 user-select:none;
 white-space:nowrap;
 position:relative;
@@ -155,16 +157,22 @@ transform:translateY(-1px);
 box-shadow:0 16px 38px rgba(0,0,0,.18);
 }
 .btn.primary:active{transform:translateY(0)}
+
+/* Updated: gradient/fade button */
 .btn.lime{
-background:var(--brand);
-border-color:var(--brand);
+background:linear-gradient(135deg, #00a63f, #66ff8a, #00a63f);
+background-size:220% 220%;
+animation:gradMove 5.5s ease-in-out infinite;
+border-color:rgba(0,166,63,.55);
 color:#061208;
-box-shadow:0 12px 28px rgba(0,166,63,.18);
+box-shadow:0 12px 28px rgba(0,166,63,.20);
 }
 .btn.lime:hover{
 transform:translateY(-1px);
-box-shadow:0 16px 40px rgba(0,166,63,.22);
+box-shadow:0 16px 44px rgba(0,166,63,.26);
+filter:saturate(1.05);
 }
+.btn.lime:active{transform:translateY(0)}
 .btn.small{padding:10px 12px;font-size:13px}
 
 /* Hero */
@@ -239,45 +247,47 @@ animation:riseFade .72s ease both;
 display:flex;
 flex-wrap:wrap;
 gap:12px;
-margin-bottom:16px;
+margin-bottom:10px;
 animation:riseFade .80s ease both;
 }
-.trust{
+
+/* 1) Removed/moved the trust pill row.
+   We keep the messages but integrate them into a tighter "proof" line
+   to avoid the “misplaced” look. */
+.proofLine{
 display:flex;
-flex-wrap:wrap;
+align-items:center;
 gap:10px;
+flex-wrap:wrap;
 color:var(--muted2);
 font-size:13px;
 font-weight:850;
+padding-top:2px;
 animation:riseFade .88s ease both;
 }
-.trust span{
+.proofDot{
+width:7px;
+height:7px;
+border-radius:999px;
+background:rgba(0,0,0,.18);
+}
+.proofItem{
 display:inline-flex;
 align-items:center;
 gap:8px;
-padding:10px 12px;
-border-radius:999px;
-background:rgba(255,255,255,.92);
-border:1px solid rgba(215,218,220,.92);
-transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease;
 }
-.trust span:hover{
-transform:translateY(-1px);
-box-shadow:var(--shadow);
-border-color:rgba(0,166,63,.22);
-}
-.check{
-width:18px;
-height:18px;
+.proofCheck{
+width:16px;
+height:16px;
 border-radius:6px;
 display:inline-flex;
 align-items:center;
 justify-content:center;
-background:rgba(0,166,63,.10);
-border:1px solid rgba(0,166,63,.22);
+background:#e9f7ee;
+border:1px solid rgba(0,166,63,.28);
 color:#0a3a1c;
 }
-.check svg{width:12px;height:12px}
+.proofCheck svg{width:11px;height:11px}
 
 .heroCard{
 background:rgba(255,255,255,.94);
@@ -343,8 +353,8 @@ color:var(--ink2);
 flex:0 0 auto;
 }
 .miniIcon.lime{
-background:rgba(0,166,63,.12);
-border-color:rgba(0,166,63,.22);
+background:#e9f7ee;
+border-color:rgba(0,166,63,.28);
 color:#0a3a1c;
 }
 .miniIcon svg{width:18px;height:18px}
@@ -427,11 +437,6 @@ border-radius:99px;
 background:linear-gradient(180deg, rgba(0,166,63,.55), rgba(0,0,0,.18));
 opacity:.55;
 }
-
-/* IMPORTANT FIX:
-   Make the button background fully opaque (not rgba),
-   and move the "active highlight" to an internal overlay layer.
-   That way you will NOT see the line behind the step. */
 .stepBtn{
 width:100%;
 display:grid;
@@ -442,7 +447,7 @@ text-align:left;
 padding:14px 14px 14px 10px;
 border-radius:18px;
 border:1px solid rgba(215,218,220,.95);
-background:#ffffff;              /* solid */
+background:#ffffff;
 cursor:pointer;
 transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease;
 position:relative;
@@ -453,7 +458,7 @@ content:"";
 position:absolute;
 inset:0;
 border-radius:inherit;
-background:transparent;          /* default: none */
+background:transparent;
 pointer-events:none;
 }
 .stepBtn:hover{
@@ -471,7 +476,7 @@ box-shadow:0 18px 44px rgba(0,166,63,.14);
 .stepBtn[aria-current="step"]:before{
 background:linear-gradient(135deg, rgba(0,166,63,.10), rgba(0,0,0,.02));
 }
-.stepBtn > *{position:relative}  /* keep content above overlay */
+.stepBtn > *{position:relative}
 
 .stepDot{
 width:40px;
@@ -480,7 +485,7 @@ border-radius:999px;
 display:flex;
 align-items:center;
 justify-content:center;
-background:#ffffff;              /* solid */
+background:#ffffff;
 border:1px solid rgba(215,218,220,.95);
 font-weight:1000;
 color:var(--ink2);
@@ -488,7 +493,7 @@ position:relative;
 z-index:2;
 }
 .stepBtn[aria-current="step"] .stepDot{
-background:#e9f7ee;              /* solid light green */
+background:#e9f7ee;
 border-color:rgba(0,166,63,.28);
 color:#0a3a1c;
 }
@@ -511,14 +516,14 @@ border-radius:16px;
 display:flex;
 align-items:center;
 justify-content:center;
-background:#f4f4f4;              /* solid */
+background:#f4f4f4;
 border:1px solid rgba(0,0,0,.10);
 color:var(--ink2);
 transition:transform .12s ease, background .15s ease, border-color .15s ease;
 }
 .stepBtn:hover .stepIco{transform:rotate(-2deg) scale(1.02)}
 .stepBtn[aria-current="step"] .stepIco{
-background:#e9f7ee;              /* solid light green */
+background:#e9f7ee;
 border-color:rgba(0,166,63,.28);
 color:#0a3a1c;
 }
@@ -668,38 +673,81 @@ flex:0 0 auto;
 .whyText strong{display:block;font-size:14px;font-weight:1000;margin-bottom:4px}
 .whyText span{display:block;color:var(--muted);font-size:14px}
 
-.sidePanel{
-border:1px solid rgba(215,218,220,.95);
-background:#ffffff;
-border-radius:calc(var(--radius) + 4px);
-box-shadow:var(--shadow);
+/* 3) Reworked "Quality principle" into a distinct banner style (not another card) */
+.qpWrap{
+border-radius:24px;
+background:linear-gradient(135deg, rgba(0,166,63,.12), rgba(0,0,0,.03));
+border:1px solid rgba(0,166,63,.22);
 padding:18px;
 position:relative;
 overflow:hidden;
+box-shadow:0 18px 44px rgba(0,0,0,.08);
 }
-.sidePanel:before{
+.qpWrap:before{
 content:"";
 position:absolute;
 inset:-40%;
-background:radial-gradient(circle at 30% 30%, rgba(0,166,63,.22), transparent 55%);
-transform:rotate(12deg);
-opacity:.22;
+background:radial-gradient(circle at 25% 25%, rgba(0,166,63,.28), transparent 58%);
+transform:rotate(14deg);
+opacity:.7;
 pointer-events:none;
 }
-.sidePanel h3{margin:0 0 10px;font-size:15px;letter-spacing:-.2px;font-weight:1000;position:relative}
-.sidePanel p{margin:0;color:var(--muted);font-size:14px;position:relative}
-.pillGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;position:relative}
-.pill{
-padding:12px;
+.qpHeader{
+display:flex;
+align-items:flex-start;
+gap:12px;
+position:relative;
+}
+.qpIcon{
+width:44px;
+height:44px;
 border-radius:16px;
-background:#f6f7f8;
-border:1px solid rgba(215,218,220,.92);
+display:flex;
+align-items:center;
+justify-content:center;
+background:rgba(0,0,0,.07);
+border:1px solid rgba(0,0,0,.10);
+color:var(--ink2);
+flex:0 0 auto;
+}
+.qpIcon svg{width:20px;height:20px}
+.qpHeader h3{
+margin:0 0 6px;
+font-size:15px;
+letter-spacing:-.2px;
+font-weight:1000;
+}
+.qpHeader p{
+margin:0;
+color:var(--muted);
+font-size:14px;
+max-width:64ch;
+}
+.qpPills{
+margin-top:14px;
+display:flex;
+flex-wrap:wrap;
+gap:10px;
+position:relative;
+}
+.qpPill{
+padding:10px 12px;
+border-radius:999px;
+background:rgba(255,255,255,.86);
+border:1px solid rgba(215,218,220,.95);
 color:var(--muted);
 font-size:13px;
 font-weight:950;
-transition:transform .12s ease, border-color .15s ease, box-shadow .18s ease;
+display:inline-flex;
+align-items:center;
+gap:8px;
 }
-.pill:hover{transform:translateY(-2px);border-color:rgba(0,166,63,.22);box-shadow:0 14px 28px rgba(0,0,0,.08)}
+.qpPill .mini{
+width:16px;height:16px;border-radius:6px;
+display:inline-flex;align-items:center;justify-content:center;
+background:#e9f7ee;border:1px solid rgba(0,166,63,.28);color:#0a3a1c;
+}
+.qpPill .mini svg{width:11px;height:11px}
 
 /* CTA */
 .cta{
@@ -797,7 +845,6 @@ color:var(--text);
 @media (max-width:640px){
 .navlinks{display:none}
 .two{grid-template-columns:1fr}
-.pillGrid{grid-template-columns:1fr}
 .stepList:before{left:18px}
 .stepBtn{grid-template-columns:50px 1fr auto}
 }
@@ -833,6 +880,7 @@ color:var(--text);
 <div class="eyebrow"><span class="badgeDot" aria-hidden="true"></span>AI-supported, human-reviewed, sent from your own email</div>
 <h1>Daily job applications, done for you.</h1>
 <p class="subtitle">JobApply-AI handles job research, CV adaptation, cover letters, and sending applications from your Gmail. You get consistent outreach without spending your evenings applying.</p>
+
 <div class="hero-actions">
 <a class="btn lime" href="#contact">
 <span aria-hidden="true">
@@ -844,17 +892,18 @@ Join the waitlist
 </a>
 <a class="btn primary" href="#how">
 <span aria-hidden="true">
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-<path d="M8 5v14l11-7z"></path>
-</svg>
+<svg width="18" height="18"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5v14l11-7z"></path></svg> </svg>
 </span>
 See how it works
 </a>
 </div>
-<div class="trust" aria-label="Trust signals">
-<span><span class="check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Zero manual effort</span>
-<span><span class="check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Tailored per role</span>
-<span><span class="check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Sent from your email</span>
+
+<div class="proofLine" aria-label="Key points">
+<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Zero manual effort</span>
+<span class="proofDot" aria-hidden="true"></span>
+<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Tailored per role</span>
+<span class="proofDot" aria-hidden="true"></span>
+<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Sent from your email</span>
 </div>
 </div>
 
@@ -1082,20 +1131,33 @@ See how it works
 </div>
 </div>
 
-<aside class="sidePanel">
+<div class="qpWrap" aria-label="Quality principle">
+<div class="qpHeader">
+<div class="qpIcon" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path>
+<path d="M9 12l2 2 4-4"></path>
+</svg>
+</div>
+<div>
 <h3>Quality principle</h3>
 <p>We focus on relevant and personalized outreach. The goal is daily volume without harming your reputation.</p>
-<div class="pillGrid" aria-label="Differentiators">
-<div class="pill">Not mass spam</div>
-<div class="pill">Human review step</div>
-<div class="pill">Clear application log</div>
-<div class="pill">Role-specific narrative</div>
 </div>
+</div>
+
+<div class="qpPills" aria-label="Quality checks">
+<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Not mass spam</div>
+<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Human review step</div>
+<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Clear application log</div>
+<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Role-specific narrative</div>
+</div>
+
 <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;position:relative">
 <a class="btn primary small" href="#how">See workflow</a>
 <a class="btn lime small" href="#contact">Join waitlist</a>
 </div>
-</aside>
+</div>
+
 </div>
 </div>
 </section>
