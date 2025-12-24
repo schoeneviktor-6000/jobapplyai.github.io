@@ -25,7 +25,6 @@
 --ink2:#1a1a1a;
 
 --grad:linear-gradient(135deg, rgba(0,166,63,.95), rgba(102,255,138,.9));
---gradDark:linear-gradient(135deg, rgba(0,0,0,.95), rgba(20,20,20,.95));
 --ring:0 0 0 4px rgba(0,166,63,.18);
 }
 
@@ -58,7 +57,7 @@ border-radius:12px;
 @keyframes shimmer{0%{transform:translateX(-120%)}100%{transform:translateX(140%)}}
 @keyframes floatSlow{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 
-/* Header (GoDaddy-ish: dark, clean, strong CTAs) */
+/* Header */
 header{
 position:sticky;
 top:0;
@@ -168,7 +167,7 @@ box-shadow:0 16px 40px rgba(0,166,63,.22);
 }
 .btn.small{padding:10px 12px;font-size:13px}
 
-/* Hero (bold headline, clean blocks, strong contrast) */
+/* Hero */
 .hero{
 padding:66px 0 44px;
 background:
@@ -192,7 +191,7 @@ filter:blur(10px);
 animation:floatSlow 7.2s ease-in-out infinite;
 opacity:.75;
 }
-.hero-grid{
+.heroGrid{
 display:grid;
 grid-template-columns:1.15fr .85fr;
 gap:18px;
@@ -387,9 +386,9 @@ font-size:15px;
 max-width:74ch;
 }
 
-/* GoDaddy-ish cards: clear borders, bold, clean */
+/* Cards */
 .card{
-background:rgba(255,255,255,.96);
+background:#fff;
 border:1px solid rgba(215,218,220,.95);
 border-radius:var(--radius);
 box-shadow:0 10px 22px rgba(0,0,0,.05);
@@ -402,7 +401,7 @@ box-shadow:var(--shadow2);
 border-color:rgba(0,166,63,.22);
 }
 
-/* How it works: stepper (clean + obvious sequence) */
+/* How it works: stepper */
 .stepper{
 display:grid;
 grid-template-columns:1fr 1fr;
@@ -428,6 +427,11 @@ border-radius:99px;
 background:linear-gradient(180deg, rgba(0,166,63,.55), rgba(0,0,0,.18));
 opacity:.55;
 }
+
+/* IMPORTANT FIX:
+   Make the button background fully opaque (not rgba),
+   and move the "active highlight" to an internal overlay layer.
+   That way you will NOT see the line behind the step. */
 .stepBtn{
 width:100%;
 display:grid;
@@ -438,22 +442,37 @@ text-align:left;
 padding:14px 14px 14px 10px;
 border-radius:18px;
 border:1px solid rgba(215,218,220,.95);
-background:rgba(255,255,255,.96);
+background:#ffffff;              /* solid */
 cursor:pointer;
-transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease, background .15s ease;
+transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease;
 position:relative;
+overflow:hidden;
+}
+.stepBtn:before{
+content:"";
+position:absolute;
+inset:0;
+border-radius:inherit;
+background:transparent;          /* default: none */
+pointer-events:none;
 }
 .stepBtn:hover{
 transform:translateY(-2px);
 box-shadow:var(--shadow2);
 border-color:rgba(0,166,63,.22);
-background:rgba(246,247,248,.96);
+}
+.stepBtn:hover:before{
+background:linear-gradient(135deg, rgba(0,166,63,.06), rgba(0,0,0,.02));
 }
 .stepBtn[aria-current="step"]{
-border-color:rgba(0,166,63,.32);
+border-color:rgba(0,166,63,.40);
 box-shadow:0 18px 44px rgba(0,166,63,.14);
-background:linear-gradient(135deg, rgba(0,166,63,.08), rgba(0,0,0,.02));
 }
+.stepBtn[aria-current="step"]:before{
+background:linear-gradient(135deg, rgba(0,166,63,.10), rgba(0,0,0,.02));
+}
+.stepBtn > *{position:relative}  /* keep content above overlay */
+
 .stepDot{
 width:40px;
 height:40px;
@@ -461,7 +480,7 @@ border-radius:999px;
 display:flex;
 align-items:center;
 justify-content:center;
-background:rgba(246,247,248,.98);
+background:#ffffff;              /* solid */
 border:1px solid rgba(215,218,220,.95);
 font-weight:1000;
 color:var(--ink2);
@@ -469,8 +488,8 @@ position:relative;
 z-index:2;
 }
 .stepBtn[aria-current="step"] .stepDot{
-background:rgba(0,166,63,.12);
-border-color:rgba(0,166,63,.22);
+background:#e9f7ee;              /* solid light green */
+border-color:rgba(0,166,63,.28);
 color:#0a3a1c;
 }
 .stepMeta strong{
@@ -492,22 +511,22 @@ border-radius:16px;
 display:flex;
 align-items:center;
 justify-content:center;
-background:rgba(0,0,0,.06);
+background:#f4f4f4;              /* solid */
 border:1px solid rgba(0,0,0,.10);
 color:var(--ink2);
 transition:transform .12s ease, background .15s ease, border-color .15s ease;
 }
 .stepBtn:hover .stepIco{transform:rotate(-2deg) scale(1.02)}
 .stepBtn[aria-current="step"] .stepIco{
-background:rgba(0,166,63,.12);
-border-color:rgba(0,166,63,.22);
+background:#e9f7ee;              /* solid light green */
+border-color:rgba(0,166,63,.28);
 color:#0a3a1c;
 }
 .stepIco svg{width:18px;height:18px}
 
 .stepPanel{
 border:1px solid rgba(215,218,220,.95);
-background:rgba(255,255,255,.96);
+background:#ffffff;
 border-radius:calc(var(--radius) + 4px);
 box-shadow:var(--shadow);
 padding:18px;
@@ -560,8 +579,8 @@ border-radius:6px;
 display:flex;
 align-items:center;
 justify-content:center;
-background:rgba(0,166,63,.12);
-border:1px solid rgba(0,166,63,.22);
+background:#e9f7ee;
+border:1px solid rgba(0,166,63,.28);
 color:#0a3a1c;
 flex:0 0 auto;
 margin-top:2px;
@@ -578,8 +597,8 @@ top:14px;
 right:14px;
 padding:8px 12px;
 border-radius:999px;
-background:rgba(0,166,63,.12);
-border:1px solid rgba(0,166,63,.22);
+background:#e9f7ee;
+border:1px solid rgba(0,166,63,.28);
 color:#0a3a1c;
 font-weight:1000;
 font-size:12px;
@@ -593,7 +612,7 @@ display:inline-flex;
 align-items:center;
 padding:8px 12px;
 border-radius:999px;
-background:rgba(0,0,0,.06);
+background:#f4f4f4;
 border:1px solid rgba(0,0,0,.10);
 color:var(--ink2);
 font-weight:950;
@@ -604,8 +623,8 @@ font-size:12px;
 .tick{
 width:18px;height:18px;border-radius:6px;
 display:flex;align-items:center;justify-content:center;
-background:rgba(0,166,63,.12);
-border:1px solid rgba(0,166,63,.22);
+background:#e9f7ee;
+border:1px solid rgba(0,166,63,.28);
 color:#0a3a1c;
 flex:0 0 auto;
 margin-top:2px;
@@ -628,7 +647,7 @@ gap:12px;
 padding:16px;
 border-radius:var(--radius);
 border:1px solid rgba(215,218,220,.95);
-background:rgba(255,255,255,.96);
+background:#ffffff;
 box-shadow:0 10px 22px rgba(0,0,0,.05);
 transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease;
 }
@@ -640,8 +659,8 @@ border-radius:16px;
 display:flex;
 align-items:center;
 justify-content:center;
-background:rgba(0,166,63,.12);
-border:1px solid rgba(0,166,63,.22);
+background:#e9f7ee;
+border:1px solid rgba(0,166,63,.28);
 color:#0a3a1c;
 flex:0 0 auto;
 }
@@ -651,7 +670,7 @@ flex:0 0 auto;
 
 .sidePanel{
 border:1px solid rgba(215,218,220,.95);
-background:rgba(255,255,255,.96);
+background:#ffffff;
 border-radius:calc(var(--radius) + 4px);
 box-shadow:var(--shadow);
 padding:18px;
@@ -673,7 +692,7 @@ pointer-events:none;
 .pill{
 padding:12px;
 border-radius:16px;
-background:rgba(246,247,248,.96);
+background:#f6f7f8;
 border:1px solid rgba(215,218,220,.92);
 color:var(--muted);
 font-size:13px;
@@ -682,7 +701,7 @@ transition:transform .12s ease, border-color .15s ease, box-shadow .18s ease;
 }
 .pill:hover{transform:translateY(-2px);border-color:rgba(0,166,63,.22);box-shadow:0 14px 28px rgba(0,0,0,.08)}
 
-/* CTA (GoDaddy-ish: strong block, bold) */
+/* CTA */
 .cta{
 padding:62px 0;
 background:linear-gradient(180deg, var(--surface), var(--bg));
@@ -809,7 +828,7 @@ color:var(--text);
 <main id="top">
 <section class="hero">
 <div class="container">
-<div class="hero-grid heroGrid">
+<div class="heroGrid">
 <div>
 <div class="eyebrow"><span class="badgeDot" aria-hidden="true"></span>AI-supported, human-reviewed, sent from your own email</div>
 <h1>Daily job applications, done for you.</h1>
@@ -902,6 +921,7 @@ See how it works
 </div>
 </button>
 </li>
+
 <li>
 <button class="stepBtn" type="button" data-step="2" aria-controls="how-panel" aria-expanded="false">
 <div class="stepDot">2</div>
@@ -916,6 +936,7 @@ See how it works
 </div>
 </button>
 </li>
+
 <li>
 <button class="stepBtn" type="button" data-step="3" aria-controls="how-panel" aria-expanded="false">
 <div class="stepDot">3</div>
@@ -930,6 +951,7 @@ See how it works
 </div>
 </button>
 </li>
+
 <li>
 <button class="stepBtn" type="button" data-step="4" aria-controls="how-panel" aria-expanded="false">
 <div class="stepDot">4</div>
