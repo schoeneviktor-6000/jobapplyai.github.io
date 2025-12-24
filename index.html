@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>JobApply-AI — Continuous, Professional Job Applications</title>
-<meta name="description" content="JobApply-AI applies for jobs for you — continuously, professionally, and at scale. AI-supported, human-reviewed, sent from your own email.">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>JobApply-AI — We apply for jobs for you</title>
+<meta name="description" content="JobApply-AI applies for jobs for you — continuously, professionally, and at scale. AI-supported, human-reviewed, sent from your own email." />
 <style>
 :root{
 --bg:#ffffff;
@@ -43,118 +43,270 @@ position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;cli
 
 /* Header */
 header{
-position:sticky;top:0;z-index:50;
+position:sticky;
+top:0;
+z-index:50;
 background:rgba(255,255,255,.86);
 backdrop-filter:blur(10px);
 border-bottom:1px solid rgba(219,227,238,.8);
 }
-.nav{display:flex;align-items:center;justify-content:space-between;height:64px;gap:14px}
-.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px}
+.nav{
+display:flex;
+align-items:center;
+justify-content:space-between;
+height:64px;
+gap:14px;
+}
+.brand{
+display:flex;
+align-items:center;
+gap:10px;
+font-weight:800;
+letter-spacing:.2px;
+}
 .logo{
-width:34px;height:34px;border-radius:10px;
+width:34px;
+height:34px;
+border-radius:10px;
 background:linear-gradient(135deg,var(--accent),var(--accent2));
 box-shadow:0 10px 20px rgba(11,42,90,.18);
-position:relative;overflow:hidden;
+position:relative;
+overflow:hidden;
 }
 .logo:before{
-content:"";position:absolute;inset:-20%;
+content:"";
+position:absolute;
+inset:-20%;
 background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.55),transparent 55%);
 transform:rotate(15deg);
 }
-.navlinks{display:flex;align-items:center;gap:18px;color:var(--muted);font-weight:700;font-size:14px}
-.navlinks a{padding:10px 8px;border-radius:12px}
-.navlinks a:hover{color:var(--text);background:rgba(238,242,247,.85)}
-.navcta{display:flex;align-items:center;gap:10px}
+.navlinks{
+display:flex;
+align-items:center;
+gap:18px;
+color:var(--muted);
+font-weight:700;
+font-size:14px;
+}
+.navlinks a{
+padding:10px 8px;
+border-radius:12px;
+}
+.navlinks a:hover{
+color:var(--text);
+background:rgba(238,242,247,.85);
+}
+.navcta{
+display:flex;
+align-items:center;
+gap:10px;
+}
 .btn{
-display:inline-flex;align-items:center;justify-content:center;gap:10px;
-padding:11px 14px;border-radius:14px;border:1px solid var(--border);
-background:var(--bg);color:var(--text);
-font-weight:800;font-size:14px;cursor:pointer;
+display:inline-flex;
+align-items:center;
+justify-content:center;
+gap:10px;
+padding:11px 14px;
+border-radius:14px;
+border:1px solid var(--border);
+background:var(--bg);
+color:var(--text);
+font-weight:800;
+font-size:14px;
+cursor:pointer;
 transition:transform .08s ease,background .15s ease,border-color .15s ease,box-shadow .15s ease;
-user-select:none;white-space:nowrap;
+user-select:none;
+white-space:nowrap;
 }
 .btn:hover{background:var(--surface);border-color:#cfd9e6}
 .btn:active{transform:translateY(1px)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 12px 24px rgba(11,42,90,.18)}
+.btn.primary{
+background:var(--accent);
+border-color:var(--accent);
+color:#fff;
+box-shadow:0 12px 24px rgba(11,42,90,.18);
+}
 .btn.primary:hover{background:var(--accent2);border-color:var(--accent2)}
 .btn.small{padding:10px 12px;font-size:13px;border-radius:12px}
+.btn.link{
+border-color:transparent;
+background:transparent;
+padding:10px 10px;
+}
+.btn.link:hover{background:rgba(238,242,247,.85);border-color:transparent}
 
 /* Hero */
 .hero{
-padding:64px 0 44px;
+padding:64px 0 40px;
 background:
 radial-gradient(900px 480px at 25% -10%,rgba(11,42,90,.10),transparent 60%),
 radial-gradient(800px 380px at 85% 10%,rgba(18,58,122,.08),transparent 55%),
 linear-gradient(180deg,var(--surface),transparent 55%);
 border-bottom:1px solid rgba(219,227,238,.75);
 }
-.hero-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:26px;align-items:stretch}
+.hero-grid{
+display:grid;
+grid-template-columns:1.25fr .75fr;
+gap:28px;
+align-items:stretch;
+}
 .eyebrow{
-display:inline-flex;align-items:center;gap:10px;
-padding:8px 12px;border-radius:999px;
+display:inline-flex;
+align-items:center;
+gap:10px;
+padding:8px 12px;
+border-radius:999px;
 background:rgba(238,242,247,.92);
 border:1px solid rgba(219,227,238,.92);
-color:var(--muted);font-weight:800;font-size:12px;letter-spacing:.2px;width:fit-content;
+color:var(--muted);
+font-weight:800;
+font-size:12px;
+letter-spacing:.2px;
+width:fit-content;
 }
-.dot{width:8px;height:8px;border-radius:99px;background:var(--good);box-shadow:0 0 0 6px rgba(15,118,110,.12)}
-h1{margin:14px 0 12px;font-size:clamp(30px,3.4vw,46px);line-height:1.08;letter-spacing:-.7px}
-.subtitle{color:var(--muted);font-size:16px;max-width:62ch;margin:0 0 22px}
-.hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px}
-.hero-facts{
-display:flex;flex-wrap:wrap;gap:10px;
-color:var(--muted);font-size:13px;font-weight:700;align-items:center;
+.dot{
+width:8px;
+height:8px;
+border-radius:99px;
+background:var(--good);
+box-shadow:0 0 0 6px rgba(15,118,110,.12);
 }
-.fact{
-display:inline-flex;align-items:center;gap:8px;
-padding:8px 10px;border-radius:999px;
+h1{
+margin:14px 0 12px;
+font-size:clamp(30px,3.4vw,46px);
+line-height:1.08;
+letter-spacing:-.7px;
+}
+.subtitle{
+color:var(--muted);
+font-size:16px;
+max-width:60ch;
+margin:0 0 22px;
+}
+.hero-actions{
+display:flex;
+flex-wrap:wrap;
+gap:12px;
+margin-bottom:18px;
+}
+.trust{
+display:flex;
+flex-wrap:wrap;
+gap:12px;
+color:var(--muted);
+font-size:13px;
+font-weight:700;
+align-items:center;
+}
+.trust span{
+display:inline-flex;
+align-items:center;
+gap:8px;
+padding:8px 10px;
 background:rgba(255,255,255,.92);
 border:1px solid rgba(219,227,238,.92);
+border-radius:999px;
 }
-.iconbox{
-width:18px;height:18px;border-radius:6px;
+.check{
+width:18px;
+height:18px;
+border-radius:6px;
 background:rgba(11,42,90,.08);
+display:inline-flex;
+align-items:center;
+justify-content:center;
 border:1px solid rgba(11,42,90,.15);
-display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
+flex:0 0 auto;
 }
-.iconbox svg{width:12px;height:12px}
+.check svg{width:12px;height:12px}
 
+/* Hero side card */
 .hero-card{
 background:rgba(255,255,255,.88);
 border:1px solid rgba(219,227,238,.96);
 border-radius:var(--radius);
 box-shadow:var(--shadow);
 padding:18px;
-display:flex;flex-direction:column;justify-content:space-between;gap:14px;
-min-height:270px;
+display:flex;
+flex-direction:column;
+justify-content:space-between;
+min-height:260px;
+gap:14px;
 }
-.hero-card h3{margin:0;font-size:16px;letter-spacing:-.2px}
-.hero-card p{margin:0;color:var(--muted);font-size:14px}
-.mini-list{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.hero-card h3{
+margin:0;
+font-size:16px;
+letter-spacing:-.2px;
+}
+.hero-card p{
+margin:0;
+color:var(--muted);
+font-size:14px;
+}
+.mini-list{
+display:grid;
+gap:10px;
+margin:0;
+padding:0;
+list-style:none;
+}
 .mini-item{
-display:flex;gap:10px;padding:12px;border-radius:14px;
+display:flex;
+gap:10px;
+padding:12px;
+border-radius:14px;
 border:1px solid rgba(219,227,238,.96);
 background:var(--surface);
 }
 .mini-ic{
-width:38px;height:38px;border-radius:14px;
+width:38px;
+height:38px;
+border-radius:14px;
 background:rgba(11,42,90,.10);
 border:1px solid rgba(11,42,90,.16);
-display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+display:flex;
+align-items:center;
+justify-content:center;
+flex:0 0 auto;
 }
 .mini-ic svg{width:18px;height:18px}
 .mini-text strong{display:block;font-size:13px;margin-bottom:2px}
 .mini-text span{display:block;color:var(--muted);font-size:13px}
 
-/* Section shared */
+/* Sections */
 section{padding:56px 0}
-.section-head{display:flex;flex-direction:column;gap:10px;margin-bottom:22px}
-.kicker{color:var(--accent);font-weight:900;letter-spacing:.2px;font-size:12px;text-transform:uppercase}
-.section-title{margin:0;font-size:clamp(22px,2.2vw,30px);letter-spacing:-.4px;line-height:1.2}
-.section-desc{margin:0;color:var(--muted);max-width:78ch;font-size:15px}
+.section-head{
+display:flex;
+flex-direction:column;
+gap:10px;
+margin-bottom:22px;
+}
+.kicker{
+color:var(--accent);
+font-weight:900;
+letter-spacing:.2px;
+font-size:12px;
+text-transform:uppercase;
+}
+.section-title{
+margin:0;
+font-size:clamp(22px,2.2vw,30px);
+letter-spacing:-.4px;
+line-height:1.2;
+}
+.section-desc{
+margin:0;
+color:var(--muted);
+max-width:72ch;
+font-size:15px;
+}
 
-/* Cards / grids */
-.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+/* How it works */
+.steps{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:14px;
+}
 .card{
 background:var(--bg);
 border:1px solid var(--border);
@@ -162,82 +314,198 @@ border-radius:var(--radius);
 padding:18px;
 box-shadow:0 10px 22px rgba(2,8,23,.05);
 }
-.card h3{margin:0 0 8px;font-size:15px;letter-spacing:-.2px}
-.card p{margin:0;color:var(--muted);font-size:14px}
-.list{margin:10px 0 0;padding:0;list-style:none;display:grid;gap:10px}
-.list li{display:flex;gap:10px;color:var(--muted);font-size:14px}
-.tick{
-width:18px;height:18px;border-radius:6px;
-background:rgba(15,118,110,.08);
-border:1px solid rgba(15,118,110,.18);
-display:flex;align-items:center;justify-content:center;flex:0 0 auto;margin-top:2px;
+.step-top{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:12px;
+margin-bottom:10px;
 }
-.tick svg{width:12px;height:12px}
-
-/* How it works steps */
-.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-.step-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
 .badge{
-display:inline-flex;align-items:center;justify-content:center;
-min-width:34px;height:34px;padding:0 10px;border-radius:999px;
+display:inline-flex;
+align-items:center;
+justify-content:center;
+min-width:34px;
+height:34px;
+padding:0 10px;
+border-radius:999px;
 background:rgba(11,42,90,.10);
 border:1px solid rgba(11,42,90,.16);
-color:var(--accent);font-weight:900;font-size:13px;
+color:var(--accent);
+font-weight:900;
+font-size:13px;
 }
 .step-ic{
-width:34px;height:34px;border-radius:14px;
-background:var(--surface);border:1px solid var(--border);
-display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+width:34px;
+height:34px;
+border-radius:14px;
+background:var(--surface);
+border:1px solid var(--border);
+display:flex;
+align-items:center;
+justify-content:center;
+flex:0 0 auto;
 }
 .step-ic svg{width:18px;height:18px}
+.card h3{margin:0 0 8px;font-size:15px;letter-spacing:-.2px}
+.card p{margin:0;color:var(--muted);font-size:14px}
 
-/* Pricing */
-.pricing{
+/* Benefits */
+.benefits{
 background:linear-gradient(180deg,transparent,var(--surface));
 border-top:1px solid rgba(219,227,238,.75);
 border-bottom:1px solid rgba(219,227,238,.75);
 }
-.price-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:stretch}
-.plan{position:relative;overflow:hidden;display:flex;flex-direction:column;gap:14px}
+.benefit-grid{
+display:grid;
+grid-template-columns:1.05fr .95fr;
+gap:14px;
+align-items:start;
+}
+.why-list{display:grid;gap:12px}
+.why-item{
+display:flex;
+gap:12px;
+padding:16px;
+border-radius:var(--radius);
+border:1px solid var(--border);
+background:var(--bg);
+box-shadow:0 10px 20px rgba(2,8,23,.05);
+}
+.why-ic{
+width:42px;
+height:42px;
+border-radius:16px;
+background:rgba(11,42,90,.10);
+border:1px solid rgba(11,42,90,.16);
+display:flex;
+align-items:center;
+justify-content:center;
+flex:0 0 auto;
+}
+.why-ic svg{width:20px;height:20px}
+.why-text strong{
+display:block;
+font-size:14px;
+margin-bottom:4px;
+letter-spacing:-.2px;
+}
+.why-text span{
+display:block;
+color:var(--muted);
+font-size:14px;
+}
+.panel{
+background:rgba(255,255,255,.9);
+border:1px solid rgba(219,227,238,.96);
+border-radius:var(--radius);
+padding:18px;
+box-shadow:0 10px 20px rgba(2,8,23,.05);
+}
+.panel h3{margin:0 0 10px;font-size:15px;letter-spacing:-.2px}
+.panel p{margin:0;color:var(--muted);font-size:14px}
+.pill-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+margin-top:12px;
+}
+.pill{
+padding:12px;
+border-radius:14px;
+background:rgba(238,242,247,.9);
+border:1px solid rgba(219,227,238,.9);
+color:var(--muted);
+font-size:13px;
+font-weight:800;
+}
+
+/* Pricing */
+.pricing{padding:56px 0}
+.price-grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:14px;
+align-items:stretch;
+}
+.plan{
+position:relative;
+overflow:hidden;
+display:flex;
+flex-direction:column;
+gap:14px;
+}
 .plan.featured{
 border-color:rgba(11,42,90,.28);
 box-shadow:0 18px 40px rgba(11,42,90,.14);
 transform:translateY(-2px);
 }
 .ribbon{
-position:absolute;top:14px;right:14px;
-padding:6px 10px;border-radius:999px;
+position:absolute;
+top:14px;
+right:14px;
+padding:6px 10px;
+border-radius:999px;
 background:rgba(11,42,90,.10);
 border:1px solid rgba(11,42,90,.18);
-color:var(--accent);font-weight:900;font-size:12px;
+color:var(--accent);
+font-weight:900;
+font-size:12px;
 }
-.price{display:flex;align-items:flex-end;gap:8px;margin-top:2px}
-.price strong{font-size:30px;line-height:1;letter-spacing:-.8px}
-.price span{color:var(--muted);font-weight:800;font-size:13px;padding-bottom:4px}
-.plan .actions{margin-top:auto;display:flex;gap:10px;flex-wrap:wrap}
-.note{color:var(--muted);font-size:12px;font-weight:700}
-
-/* Comparison strip */
-.strip{
-background:rgba(255,255,255,.9);
-border:1px solid rgba(219,227,238,.96);
-border-radius:calc(var(--radius) + 6px);
-box-shadow:var(--shadow);
-padding:16px;
-display:grid;
-grid-template-columns:1.2fr .8fr;
-gap:14px;
-align-items:center;
+.price{
+display:flex;
+align-items:flex-end;
+gap:8px;
+margin-top:2px;
 }
-.strip strong{font-size:14px;letter-spacing:-.2px}
-.strip p{margin:6px 0 0;color:var(--muted);font-size:13px}
-.pills{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
-.pill{
-padding:10px 12px;border-radius:999px;
-background:rgba(238,242,247,.9);
-border:1px solid rgba(219,227,238,.9);
+.price strong{
+font-size:32px;
+line-height:1;
+letter-spacing:-.8px;
+}
+.price span{
 color:var(--muted);
-font-size:13px;font-weight:800;
+font-weight:800;
+font-size:13px;
+padding-bottom:4px;
+}
+.features{
+margin:0;
+padding:0;
+list-style:none;
+display:grid;
+gap:10px;
+}
+.features li{
+display:flex;
+align-items:flex-start;
+gap:10px;
+color:var(--muted);
+font-size:14px;
+}
+.tick{
+width:18px;
+height:18px;
+border-radius:6px;
+background:rgba(15,118,110,.08);
+border:1px solid rgba(15,118,110,.18);
+display:flex;
+align-items:center;
+justify-content:center;
+flex:0 0 auto;
+margin-top:2px;
+}
+.tick svg{width:12px;height:12px}
+.plan .actions{
+margin-top:auto;
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+.note{
+color:var(--muted);
+font-size:12px;
+font-weight:700;
 }
 
 /* CTA */
@@ -254,13 +522,22 @@ border-radius:calc(var(--radius) + 6px);
 box-shadow:var(--shadow);
 padding:22px;
 display:grid;
-grid-template-columns:1.1fr .9fr;
+grid-template-columns:1.15fr .85fr;
 gap:16px;
 align-items:center;
 }
-.cta-box h2{margin:0 0 8px;font-size:22px;letter-spacing:-.4px;line-height:1.2}
-.cta-box p{margin:0;color:var(--muted);font-size:14px;max-width:70ch}
-
+.cta-box h2{
+margin:0 0 8px;
+font-size:22px;
+letter-spacing:-.4px;
+line-height:1.2;
+}
+.cta-box p{
+margin:0;
+color:var(--muted);
+font-size:14px;
+max-width:70ch;
+}
 form{display:grid;gap:10px;width:100%}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 input,textarea{
@@ -275,7 +552,10 @@ outline:none;
 transition:border-color .15s ease,box-shadow .15s ease;
 }
 input::placeholder,textarea::placeholder{color:#7a8799}
-input:focus,textarea:focus{border-color:rgba(11,42,90,.55);box-shadow:0 0 0 4px rgba(11,42,90,.10)}
+input:focus,textarea:focus{
+border-color:rgba(11,42,90,.55);
+box-shadow:0 0 0 4px rgba(11,42,90,.10);
+}
 .form-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 
 /* Footer */
@@ -285,33 +565,40 @@ padding:18px 0;
 color:var(--muted);
 font-size:13px;
 }
-.footer-row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+.footer-row{
+display:flex;
+justify-content:space-between;
+gap:12px;
+flex-wrap:wrap;
+align-items:center;
+}
 .footer-links{display:flex;gap:14px;flex-wrap:wrap}
-.footer-links a{color:var(--muted);font-weight:800;padding:6px 8px;border-radius:10px}
+.footer-links a{
+color:var(--muted);
+font-weight:800;
+padding:6px 8px;
+border-radius:10px;
+}
 .footer-links a:hover{background:rgba(238,242,247,.85);color:var(--text)}
 
 /* Responsive */
-@media (max-width:1100px){
-.price-grid{grid-template-columns:1fr 1fr}
-}
 @media (max-width:980px){
 .hero-grid{grid-template-columns:1fr}
 .steps{grid-template-columns:1fr 1fr}
-.grid-3{grid-template-columns:1fr}
-.grid-2{grid-template-columns:1fr}
-.strip{grid-template-columns:1fr}
-.pills{justify-content:flex-start}
+.benefit-grid{grid-template-columns:1fr}
+.price-grid{grid-template-columns:1fr}
 .cta-box{grid-template-columns:1fr}
 .plan.featured{transform:none}
 }
 @media (max-width:640px){
 .navlinks{display:none}
 .steps{grid-template-columns:1fr}
-.price-grid{grid-template-columns:1fr}
 .two{grid-template-columns:1fr}
+.pill-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
+
 <body>
 <header>
 <div class="container">
@@ -321,11 +608,9 @@ font-size:13px;
 <span>JobApply-AI</span>
 </a>
 <div class="navlinks" aria-label="Site links">
-<a href="#problem">Problem</a>
 <a href="#how">How it works</a>
 <a href="#pricing">Pricing</a>
-<a href="#ops">Operations</a>
-<a href="#roadmap">Roadmap</a>
+<a href="#why">Why this works</a>
 <a href="#contact">Contact</a>
 </div>
 <div class="navcta">
@@ -342,98 +627,47 @@ font-size:13px;
 <div class="hero-grid">
 <div>
 <div class="eyebrow"><span class="dot" aria-hidden="true"></span>AI-supported, human-reviewed, sent from your own email</div>
-<h1>JobApply-AI applies for jobs for you — continuously, professionally, and at scale.</h1>
+<h1>Daily job applications — done for you.</h1>
 <p class="subtitle">
-You stay employed and focused. We deliver daily applications that are tailored to each role and company, then send them from your Gmail so it looks like you applied yourself.
+JobApply-AI handles job research, CV adaptation, cover letters, and sending applications from your Gmail.
+You get consistent outreach without spending your evenings applying.
 </p>
 <div class="hero-actions">
 <a class="btn primary" href="#contact">Join the waitlist</a>
-<a class="btn" href="#how">See the workflow</a>
+<a class="btn" href="#how">See how it works</a>
 </div>
-<div class="hero-facts" aria-label="Key benefits">
-<span class="fact"><span class="iconbox" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Zero manual effort</span>
-<span class="fact"><span class="iconbox" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Daily consistency</span>
-<span class="fact"><span class="iconbox" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Volume + relevance</span>
-<span class="fact"><span class="iconbox" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Not mass spam</span>
+<div class="trust" aria-label="Trust signals">
+<span><span class="check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Zero manual effort</span>
+<span><span class="check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Tailored per role</span>
+<span><span class="check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Sent from your email</span>
 </div>
 </div>
 
 <aside class="hero-card" aria-label="Service snapshot">
 <div>
-<h3>What we deliver every day</h3>
-<p>A controlled pipeline of high-quality applications designed to increase interview chances.</p>
+<h3>What happens behind the scenes</h3>
+<p>A quality-first workflow that increases your interview chances through volume and relevance.</p>
 <ul class="mini-list">
 <li class="mini-item">
 <div class="mini-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 21l-4.3-4.3"></path><circle cx="11" cy="11" r="7"></circle></svg></div>
-<div class="mini-text"><strong>Relevant role research</strong><span>We shortlist jobs that match your goals.</span></div>
+<div class="mini-text"><strong>Research & shortlist</strong><span>We find roles that match your goals.</span></div>
 </li>
 <li class="mini-item">
 <div class="mini-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg></div>
-<div class="mini-text"><strong>CV + cover letter tailoring</strong><span>Role-specific, honest, consistent.</span></div>
+<div class="mini-text"><strong>Tailor CV & letter</strong><span>Role-specific and consistent.</span></div>
 </li>
 <li class="mini-item">
 <div class="mini-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12l-8-8v5H2v6h12v5z"></path></svg></div>
-<div class="mini-text"><strong>Sent from your Gmail</strong><span>Applications look like they came from you.</span></div>
+<div class="mini-text"><strong>Send from Gmail</strong><span>Looks like you applied yourself.</span></div>
 </li>
 </ul>
 </div>
 <div style="display:flex;gap:10px;flex-wrap:wrap">
-<a class="btn small" href="#problem">Why this exists</a>
 <a class="btn small" href="#pricing">Plans</a>
+<a class="btn small" href="#why">Why it works</a>
 <a class="btn primary small" href="#contact">Get started</a>
 </div>
 </aside>
-</div>
-</div>
-</section>
-
-<section id="problem" class="anchor">
-<div class="container">
-<div class="section-head">
-<div class="kicker">Purpose & problem</div>
-<h2 class="section-title">Most professionals know “apply more” works — but consistency is the hard part.</h2>
-<p class="section-desc">JobApply-AI removes the friction by applying for jobs on your behalf, every day, while keeping quality and relevance high.</p>
-</div>
-<div class="grid-3">
-<div class="card">
-<h3>Time is the bottleneck</h3>
-<p>Daily applications take hours: searching roles, tailoring documents, and sending messages.</p>
-<ul class="list">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Lack time for daily applications</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Too many repetitive steps</li>
-</ul>
-</div>
-<div class="card">
-<h3>Parallel search is difficult</h3>
-<p>Many people want to keep searching while employed, but effort drops after a few days.</p>
-<ul class="list">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Employed and searching in parallel</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Inconsistent execution</li>
-</ul>
-</div>
-<div class="card">
-<h3>Volume must stay relevant</h3>
-<p>More applications help, but low-quality mass applying damages credibility and results.</p>
-<ul class="list">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Tailored to role + company</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>No spam approach</li>
-</ul>
-</div>
-</div>
-
-<div style="margin-top:16px">
-<div class="strip">
-<div>
-<strong>Positioning</strong>
-<p>“JobApply-AI applies for jobs for you – continuously, professionally, and at scale.”</p>
-</div>
-<div class="pills" aria-label="Value highlights">
-<div class="pill">Zero manual effort</div>
-<div class="pill">Daily applications</div>
-<div class="pill">Tailored per role</div>
-<div class="pill">Sent from your email</div>
-</div>
-</div>
 </div>
 </div>
 </section>
@@ -442,8 +676,10 @@ You stay employed and focused. We deliver daily applications that are tailored t
 <div class="container">
 <div class="section-head">
 <div class="kicker">How it works</div>
-<h2 class="section-title">A quality-first workflow designed for consistency.</h2>
-<p class="section-desc">Phase 1 is manually executed behind the scenes, with AI support to improve speed and consistency. Every application is reviewed before sending.</p>
+<h2 class="section-title">A simple process built for daily execution.</h2>
+<p class="section-desc">
+You set the direction once. We run the daily workflow and keep it consistent.
+</p>
 </div>
 
 <div class="steps" role="list">
@@ -452,8 +688,8 @@ You stay employed and focused. We deliver daily applications that are tailored t
 <div class="badge">1</div>
 <div class="step-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Z"></path><path d="M3 22a9 9 0 0 1 18 0"></path></svg></div>
 </div>
-<h3>Signup & access</h3>
-<p>Login with Google and grant Gmail access so emails can be sent from your account.</p>
+<h3>Connect your account</h3>
+<p>Login with Google so we can send applications from your Gmail.</p>
 </div>
 
 <div class="card" role="listitem">
@@ -461,8 +697,8 @@ You stay employed and focused. We deliver daily applications that are tailored t
 <div class="badge">2</div>
 <div class="step-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg></div>
 </div>
-<h3>Profile setup</h3>
-<p>Upload your CV and select job title(s), industry, country, city, and radius.</p>
+<h3>Set your preferences</h3>
+<p>Upload your CV and choose titles, industry, location, and radius.</p>
 </div>
 
 <div class="card" role="listitem">
@@ -471,7 +707,7 @@ You stay employed and focused. We deliver daily applications that are tailored t
 <div class="step-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path></svg></div>
 </div>
 <h3>Pick a plan</h3>
-<p>Choose your daily application quota and pay monthly via Stripe.</p>
+<p>Choose a daily application quota that fits your urgency.</p>
 </div>
 
 <div class="card" role="listitem">
@@ -479,31 +715,8 @@ You stay employed and focused. We deliver daily applications that are tailored t
 <div class="badge">4</div>
 <div class="step-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13"></path><path d="M22 2 15 22 11 13 2 9 22 2Z"></path></svg></div>
 </div>
-<h3>We execute daily</h3>
-<p>We research roles, tailor CV + cover letter, and send unsolicited applications from your Gmail.</p>
-</div>
-</div>
-
-<div style="margin-top:16px">
-<div class="grid-2">
-<div class="card">
-<h3>Why unsolicited emails first</h3>
-<p>We start with direct outreach to company emails to keep execution fast and scalable in Phase 1.</p>
-<ul class="list">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>No email OTP issues</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>No ATS account limitations</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Faster execution and manual scaling</li>
-</ul>
-</div>
-<div class="card">
-<h3>Quality principle</h3>
-<p>We are not trying to “spray and pray.” We aim for daily volume with relevance and credibility.</p>
-<ul class="list">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Relevant and personalized outreach</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Clear SOP per application</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Applications documented for transparency</li>
-</ul>
-</div>
+<h3>We apply daily</h3>
+<p>We research, tailor, and send relevant applications every day.</p>
 </div>
 </div>
 </div>
@@ -513,17 +726,19 @@ You stay employed and focused. We deliver daily applications that are tailored t
 <div class="container">
 <div class="section-head">
 <div class="kicker">Pricing</div>
-<h2 class="section-title">Subscription plans with a clear output promise.</h2>
-<p class="section-desc">Pick the number of applications executed per day. Monthly recurring subscription. Tailored per role and company.</p>
+<h2 class="section-title">Plans based on daily output.</h2>
+<p class="section-desc">
+Subscription plans with a clear promise: applications executed per day.
+</p>
 </div>
 
 <div class="price-grid">
 <div class="card plan">
 <h3>Starter</h3>
-<p class="section-desc" style="font-size:14px;margin:0">For steady, consistent searches.</p>
+<p class="section-desc" style="font-size:14px;margin:0">For steady progress.</p>
 <div class="price"><strong>2</strong><span>applications / day</span></div>
-<ul class="list">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Daily role research + shortlisting</li>
+<ul class="features">
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Relevant job research</li>
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Tailored CV + cover letter</li>
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Sent from your Gmail</li>
 </ul>
@@ -535,12 +750,12 @@ You stay employed and focused. We deliver daily applications that are tailored t
 <div class="card plan featured" aria-label="Most popular plan">
 <div class="ribbon">Most chosen</div>
 <h3>Growth</h3>
-<p class="section-desc" style="font-size:14px;margin:0">For active job searches.</p>
+<p class="section-desc" style="font-size:14px;margin:0">For active searches.</p>
 <div class="price"><strong>5</strong><span>applications / day</span></div>
-<ul class="list">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Prioritized matching + relevance checks</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Stronger tailoring and positioning</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Weekly summary of progress</li>
+<ul class="features">
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Better matching & shortlisting</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Stronger tailoring per company</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Weekly progress summary</li>
 </ul>
 <div class="actions">
 <a class="btn primary" href="#contact">Join waitlist</a>
@@ -550,133 +765,70 @@ You stay employed and focused. We deliver daily applications that are tailored t
 
 <div class="card plan">
 <h3>Pro</h3>
-<p class="section-desc" style="font-size:14px;margin:0">For fast progress and senior roles.</p>
+<p class="section-desc" style="font-size:14px;margin:0">For speed and breadth.</p>
 <div class="price"><strong>10</strong><span>applications / day</span></div>
-<ul class="list">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Deeper company context research</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Senior-level narrative consistency</li>
+<ul class="features">
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Deeper company research</li>
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Priority turnaround</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Follow-up draft templates</li>
 </ul>
 <div class="actions">
 <a class="btn" href="#contact">Contact</a>
 </div>
 </div>
-
-<div class="card plan">
-<h3>Scale</h3>
-<p class="section-desc" style="font-size:14px;margin:0">For maximum daily output.</p>
-<div class="price"><strong>20</strong><span>applications / day</span></div>
-<ul class="list">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>High-volume with relevance controls</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Strict SOP and daily quotas</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Best for broad role coverage</li>
-</ul>
-<div class="actions">
-<a class="btn" href="#contact">Talk to us</a>
-</div>
-</div>
 </div>
 
-<p class="note" style="margin-top:14px">Plan labels and pricing can be added later. The core promise is “applications executed per day.”</p>
+<p class="note" style="margin-top:14px">You can add exact pricing later. The website emphasizes the clear daily output promise.</p>
 </div>
 </section>
 
-<section id="ops" class="anchor">
+<section id="why" class="benefits anchor">
 <div class="container">
 <div class="section-head">
-<div class="kicker">Lean MVP setup</div>
-<h2 class="section-title">Built to validate quickly, then automate step by step.</h2>
-<p class="section-desc">Phase 1 is designed for speed, quality control, and manual scalability with a small team.</p>
+<div class="kicker">Why this works</div>
+<h2 class="section-title">More interviews come from consistent, relevant outreach.</h2>
+<p class="section-desc">
+JobApply-AI combines volume with quality control. We avoid mass spam by tailoring each application and documenting what’s sent.
+</p>
 </div>
 
-<div class="grid-3">
-<div class="card">
-<h3>Frontend</h3>
-<p>A simple product flow that converts and captures the right user inputs.</p>
-<ul class="list">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Marketing site + pricing</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Signup/login + CV upload</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Preference form (role, location, radius)</li>
-</ul>
+<div class="benefit-grid">
+<div class="why-list">
+<div class="why-item">
+<div class="why-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8 10L4 11"></path></svg></div>
+<div class="why-text"><strong>Zero manual effort</strong><span>You set the direction once. We execute daily applications for you.</span></div>
 </div>
 
-<div class="card">
-<h3>Backend</h3>
-<p>Just enough to run operations without overbuilding.</p>
-<ul class="list">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>User profile + preferences</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>CV storage</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Basic application log</li>
-</ul>
+<div class="why-item">
+<div class="why-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg></div>
+<div class="why-text"><strong>Daily consistency</strong><span>Continuous outreach increases your chance of replies and interviews.</span></div>
 </div>
 
-<div class="card">
-<h3>Integrations</h3>
-<p>Core integrations for credibility and smooth execution.</p>
-<ul class="list">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Google OAuth</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Gmail API for sending</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Stripe billing</li>
-</ul>
+<div class="why-item">
+<div class="why-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h16"></path></svg></div>
+<div class="why-text"><strong>Tailored per role and company</strong><span>Each application reflects the job requirements and your real experience.</span></div>
+</div>
+
+<div class="why-item">
+<div class="why-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"></path><path d="M21 8l-9 6-9-6"></path></svg></div>
+<div class="why-text"><strong>Sent from your email</strong><span>Applications look like they came directly from you, improving credibility.</span></div>
 </div>
 </div>
 
-<div style="margin-top:16px">
-<div class="card">
-<h3>Validation milestone</h3>
-<p>Automation investment starts after a clear demand signal.</p>
-<ul class="list">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><strong>Target: 20 paying customers</strong></li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Proven demand and pricing validation</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Real application data (roles, regions, responses)</li>
-</ul>
+<aside class="panel">
+<h3>Quality principle</h3>
+<p>We focus on relevant and personalized outreach. The goal is daily volume without harming your reputation.</p>
+<div class="pill-grid" aria-label="Differentiators">
+<div class="pill">Not mass spam</div>
+<div class="pill">Human review step</div>
+<div class="pill">Clear application log</div>
+<div class="pill">Role-specific narrative</div>
 </div>
+<div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+<a class="btn small" href="#how">See workflow</a>
+<a class="btn primary small" href="#contact">Join waitlist</a>
 </div>
-</div>
-</section>
-
-<section id="roadmap" class="anchor">
-<div class="container">
-<div class="section-head">
-<div class="kicker">Roadmap</div>
-<h2 class="section-title">From human execution to AI automation — without losing quality.</h2>
-<p class="section-desc">We will automate carefully and gradually, keeping a human-in-the-loop until the system proves reliability.</p>
-</div>
-
-<div class="grid-2">
-<div class="card">
-<h3>Phase 1 — Manual execution (MVP)</h3>
-<p>Externally positioned as AI-powered, internally executed by trained freelancers with SOPs.</p>
-<ul class="list">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>1–2 freelancers run daily quotas</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Internal tracking via dashboard or spreadsheet</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Strong focus: relevance and personalization</li>
-</ul>
-</div>
-
-<div class="card">
-<h3>Phase 2 — AI automation (after validation)</h3>
-<p>Automate step by step, starting with the highest-leverage parts of the workflow.</p>
-<ul class="list">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Job scraping by role and location</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Relevance scoring and ranking</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>CV tailoring + cover letter generation</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Human-in-the-loop review at first</li>
-</ul>
-</div>
-</div>
-
-<div style="margin-top:14px">
-<div class="card">
-<h3>Long-term vision</h3>
-<p>JobApply-AI becomes a fully AI-driven job application platform.</p>
-<ul class="list">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Personal job agents per user</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Application + interview analytics</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>B2B offerings (outplacement, recruiters, enterprises)</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Strong AI positioning for fundraising or acquisition</li>
-</ul>
-</div>
+</aside>
 </div>
 </div>
 </section>
@@ -686,15 +838,17 @@ You stay employed and focused. We deliver daily applications that are tailored t
 <div class="cta-box">
 <div>
 <h2>Join the waitlist</h2>
-<p>Tell us your target role and location. We will reach out with next steps and availability. No spam, no pressure.</p>
+<p>
+Tell us your target role and location. We will reach out with next steps and early access.
+</p>
 </div>
 
 <form action="#" method="post" aria-label="Waitlist form">
 <div class="two">
 <label class="sr-only" for="name">Name</label>
-<input id="name" name="name" type="text" placeholder="Name" autocomplete="name">
+<input id="name" name="name" type="text" placeholder="Name" autocomplete="name" />
 <label class="sr-only" for="email">Email</label>
-<input id="email" name="email" type="email" placeholder="Email" autocomplete="email" required>
+<input id="email" name="email" type="email" placeholder="Email" autocomplete="email" required />
 </div>
 
 <label class="sr-only" for="goals">Preferences</label>
@@ -718,7 +872,7 @@ You stay employed and focused. We deliver daily applications that are tailored t
 <div class="footer-links" aria-label="Footer links">
 <a href="#how">How it works</a>
 <a href="#pricing">Pricing</a>
-<a href="#roadmap">Roadmap</a>
+<a href="#why">Why it works</a>
 <a href="#contact">Contact</a>
 </div>
 </div>
