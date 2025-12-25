@@ -1,5 +1,8 @@
 <!-- =========================
 FILE 1: index.html
+Marketing website (restored + improved)
+Adds a CUSTOMER JOURNEY section that links into the new profile setup page.
+Waitlist removed. Contact points to schonv2@gmail.com.
 ========================= -->
 <!doctype html>
 <html lang="en">
@@ -12,6 +15,7 @@ FILE 1: index.html
 :root{
 --bg:#ffffff;
 --surface:#f6f7f8;
+--surface2:#f0f2f3;
 --text:#0b0b0b;
 --muted:#3f3f3f;
 --muted2:#6a6a6a;
@@ -22,9 +26,12 @@ FILE 1: index.html
 --max:1160px;
 
 --brand:#00a63f;
+--brand2:#66ff8a;
 --ink:#111111;
+--ink2:#1a1a1a;
 
 --grad:linear-gradient(135deg, rgba(0,166,63,.95), rgba(102,255,138,.9));
+--gradBtn:linear-gradient(135deg, #00a63f, #66ff8a, #00a63f);
 }
 
 *{box-sizing:border-box}
@@ -37,6 +44,11 @@ background:var(--bg);
 line-height:1.45;
 }
 a{color:inherit;text-decoration:none}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
+outline:3px solid rgba(0,166,63,.28);
+outline-offset:2px;
+border-radius:12px;
+}
 .container{max-width:var(--max);margin:0 auto;padding:0 20px}
 .anchor{scroll-margin-top:84px}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
@@ -51,7 +63,9 @@ a{color:inherit;text-decoration:none}
 @keyframes gradMove{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 
 header{
-position:sticky;top:0;z-index:50;
+position:sticky;
+top:0;
+z-index:50;
 background:rgba(255,255,255,.92);
 backdrop-filter:blur(10px);
 border-bottom:1px solid rgba(215,218,220,.85);
@@ -64,30 +78,46 @@ justify-content:space-between;
 gap:14px;
 }
 .brand{
-display:flex;align-items:center;gap:10px;
-font-weight:950;letter-spacing:.2px;
+display:flex;
+align-items:center;
+gap:10px;
+font-weight:950;
+letter-spacing:.2px;
 }
 .logo{
-width:34px;height:34px;border-radius:12px;
+width:34px;
+height:34px;
+border-radius:12px;
 background:var(--grad);
 box-shadow:0 12px 24px rgba(0,166,63,.18);
-position:relative;overflow:hidden;
+position:relative;
+overflow:hidden;
 }
 .logo:after{
 content:"";
-position:absolute;inset:0;
+position:absolute;
+inset:0;
 background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);
 transform:translateX(-120%);
 animation:shimmer 3.6s ease-in-out infinite;
 opacity:.85;
 }
 .navlinks{
-display:flex;align-items:center;gap:18px;
+display:flex;
+align-items:center;
+gap:18px;
 color:var(--muted);
-font-weight:850;font-size:14px;
+font-weight:850;
+font-size:14px;
 }
-.navlinks a{padding:10px 10px;border-radius:12px}
-.navlinks a:hover{background:rgba(246,247,248,.95);color:var(--text)}
+.navlinks a{
+padding:10px 10px;
+border-radius:12px;
+}
+.navlinks a:hover{
+background:rgba(240,242,243,.95);
+color:var(--text);
+}
 .navcta{display:flex;align-items:center;gap:10px}
 
 .btn{
@@ -100,8 +130,22 @@ border-radius:999px;
 border:1px solid var(--border);
 background:var(--bg);
 color:var(--text);
+font-weight:950;
+font-size:14px;
+cursor:pointer;
+transition:transform .10s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease, filter .15s ease;
+user-select:none;
+white-space:nowrap;
+position:relative;
+overflow:hidden;
+text-align:center;
+line-height:1;
 }
-.btn:hover{background:rgba(246,247,248,.95);border-color:#c9cdcf}
+.btn > span{display:inline-flex;align-items:center;justify-content:center}
+.btn:hover{
+background:rgba(240,242,243,.95);
+border-color:#c9cdcf;
+}
 .btn:active{transform:translateY(1px)}
 .btn.primary{
 background:var(--ink);
@@ -109,7 +153,10 @@ border-color:var(--ink);
 color:#fff;
 box-shadow:0 12px 26px rgba(0,0,0,.14);
 }
-.btn.primary:hover{transform:translateY(-1px);box-shadow:0 16px 38px rgba(0,0,0,.18)}
+.btn.primary:hover{
+transform:translateY(-1px);
+box-shadow:0 16px 38px rgba(0,0,0,.18);
+}
 .btn.primary:active{transform:translateY(0)}
 .btn.lime{
 background:linear-gradient(135deg, #00a63f, #66ff8a, #00a63f);
@@ -119,11 +166,22 @@ border-color:rgba(0,166,63,.55);
 color:#061208;
 box-shadow:0 12px 28px rgba(0,166,63,.20);
 }
-.btn.lime:hover{transform:translateY(-1px);box-shadow:0 16px 44px rgba(0,166,63,.26);filter:saturate(1.05)}
+.btn.lime:hover{
+transform:translateY(-1px);
+box-shadow:0 16px 44px rgba(0,166,63,.26);
+filter:saturate(1.05);
+}
 .btn.lime:active{transform:translateY(0)}
-.btn.small{padding:10px 12px;font-size:13px;font-weight:950}
-.btn .btnLabel{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;font-weight:950}
+.btn.small{padding:10px 12px;font-size:13px}
+.btn .btnLabel{
+display:inline-flex;
+align-items:center;
+justify-content:center;
+gap:10px;
+width:100%;
+}
 
+/* Hero */
 .hero{
 padding:66px 0 44px;
 background:
@@ -131,12 +189,17 @@ radial-gradient(900px 520px at 15% -10%, rgba(0,166,63,.14), transparent 60%),
 radial-gradient(900px 520px at 85% 10%, rgba(0,0,0,.08), transparent 62%),
 linear-gradient(180deg, var(--surface), transparent 55%);
 border-bottom:1px solid rgba(215,218,220,.85);
-position:relative;overflow:hidden;
+position:relative;
+overflow:hidden;
 }
 .hero:before{
 content:"";
-position:absolute;right:-180px;top:-160px;
-width:520px;height:520px;border-radius:999px;
+position:absolute;
+right:-180px;
+top:-160px;
+width:520px;
+height:520px;
+border-radius:999px;
 background:radial-gradient(circle at 30% 30%, rgba(0,166,63,.20), transparent 62%);
 filter:blur(10px);
 animation:floatSlow 7.2s ease-in-out infinite;
@@ -145,16 +208,22 @@ opacity:.75;
 .heroGrid{
 display:grid;
 grid-template-columns:1.15fr .85fr;
-gap:18px;align-items:stretch;
+gap:18px;
+align-items:stretch;
 position:relative;
 }
 .eyebrow{
-display:inline-flex;align-items:center;gap:10px;
-padding:10px 12px;border-radius:999px;
+display:inline-flex;
+align-items:center;
+gap:10px;
+padding:10px 12px;
+border-radius:999px;
 background:rgba(255,255,255,.92);
 border:1px solid rgba(215,218,220,.95);
 color:var(--muted);
-font-weight:900;font-size:12px;letter-spacing:.25px;
+font-weight:900;
+font-size:12px;
+letter-spacing:.25px;
 width:fit-content;
 animation:riseFade .55s ease both;
 }
@@ -179,14 +248,20 @@ max-width:64ch;
 animation:riseFade .72s ease both;
 }
 .hero-actions{
-display:flex;flex-wrap:wrap;gap:12px;
-margin-bottom:12px;
+display:flex;
+flex-wrap:wrap;
+gap:12px;
+margin-bottom:10px;
 animation:riseFade .80s ease both;
 }
 .proofLine{
-display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+display:flex;
+align-items:center;
+gap:10px;
+flex-wrap:wrap;
 color:var(--muted2);
-font-size:13px;font-weight:850;
+font-size:13px;
+font-weight:850;
 padding-top:2px;
 animation:riseFade .88s ease both;
 }
@@ -200,6 +275,71 @@ color:#0a3a1c;
 }
 .proofCheck svg{width:11px;height:11px}
 
+.heroCard{
+background:rgba(255,255,255,.94);
+border:1px solid rgba(215,218,220,.95);
+border-radius:var(--radius);
+box-shadow:var(--shadow);
+padding:18px;
+position:relative;
+overflow:hidden;
+animation:riseFade .85s ease both;
+}
+.heroCard:before{
+content:"";
+position:absolute;
+inset:-2px;
+background:linear-gradient(135deg, rgba(0,166,63,.10), rgba(0,0,0,.04));
+opacity:.75;
+pointer-events:none;
+}
+.heroCard > *{position:relative}
+.heroCard h3{margin:0 0 6px;font-size:15px;letter-spacing:-.2px;font-weight:950}
+.heroCard p{margin:0 0 12px;color:var(--muted);font-size:14px}
+.miniList{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.miniItem{
+display:flex;gap:10px;
+padding:12px;
+border-radius:16px;
+background:rgba(246,247,248,.92);
+border:1px solid rgba(215,218,220,.9);
+transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease;
+}
+.miniItem:hover{transform:translateY(-2px);box-shadow:var(--shadow2);border-color:rgba(0,166,63,.22)}
+.miniIcon{
+width:40px;height:40px;border-radius:16px;
+display:flex;align-items:center;justify-content:center;
+background:rgba(0,0,0,.06);
+border:1px solid rgba(0,0,0,.10);
+color:var(--ink2);
+flex:0 0 auto;
+}
+.miniIcon.lime{background:#e9f7ee;border-color:rgba(0,166,63,.28);color:#0a3a1c}
+.miniIcon svg{width:18px;height:18px}
+.miniText strong{display:block;font-size:13px;font-weight:950;margin-bottom:2px}
+.miniText span{display:block;font-size:13px;color:var(--muted2)}
+.heroCardActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+
+/* Sections */
+section{padding:58px 0}
+.sectionHead{display:flex;flex-direction:column;gap:10px;margin-bottom:22px}
+.kicker{
+font-weight:950;font-size:12px;letter-spacing:.24px;
+text-transform:uppercase;color:var(--muted2);
+}
+.sectionTitle{
+margin:0;
+font-size:clamp(22px,2.5vw,32px);
+letter-spacing:-.5px;
+line-height:1.15;
+font-weight:1000;
+}
+.sectionDesc{
+margin:0;
+color:var(--muted);
+font-size:15px;
+max-width:74ch;
+}
 .card{
 background:#fff;
 border:1px solid rgba(215,218,220,.95);
@@ -210,78 +350,318 @@ transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease;
 }
 .card:hover{transform:translateY(-2px);box-shadow:var(--shadow2);border-color:rgba(0,166,63,.22)}
 
-.heroCard{
-background:rgba(255,255,255,.94);
+/* How it works stepper */
+.stepper{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch}
+.stepList{
+margin:0;padding:0;list-style:none;
+display:grid;gap:10px;position:relative;
+}
+.stepList:before{
+content:"";
+position:absolute;
+left:20px;top:20px;bottom:20px;
+width:2px;border-radius:99px;
+background:linear-gradient(180deg, rgba(0,166,63,.55), rgba(0,0,0,.18));
+opacity:.55;
+}
+.stepBtn{
+width:100%;
+display:grid;
+grid-template-columns:52px 1fr auto;
+gap:12px;
+align-items:center;
+text-align:left;
+padding:14px 14px 14px 10px;
+border-radius:18px;
 border:1px solid rgba(215,218,220,.95);
-border-radius:var(--radius);
+background:#ffffff;
+cursor:pointer;
+transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease;
+position:relative;
+overflow:hidden;
+}
+.stepBtn:hover{transform:translateY(-2px);box-shadow:var(--shadow2);border-color:rgba(0,166,63,.22)}
+.stepBtn[aria-current="step"]{
+border-color:rgba(0,166,63,.40);
+box-shadow:0 18px 44px rgba(0,166,63,.14);
+}
+.stepDot{
+width:40px;height:40px;border-radius:999px;
+display:flex;align-items:center;justify-content:center;
+background:#ffffff;border:1px solid rgba(215,218,220,.95);
+font-weight:1000;color:var(--ink2);
+position:relative;z-index:2;
+}
+.stepBtn[aria-current="step"] .stepDot{
+background:#e9f7ee;border-color:rgba(0,166,63,.28);color:#0a3a1c;
+}
+.stepMeta strong{display:block;font-size:15px;letter-spacing:-.2px;font-weight:1000}
+.stepMeta span{display:block;margin-top:3px;color:var(--muted2);font-size:13px}
+.stepIco{
+width:44px;height:44px;border-radius:16px;
+display:flex;align-items:center;justify-content:center;
+background:#f4f4f4;border:1px solid rgba(0,0,0,.10);
+color:var(--ink2);
+}
+.stepBtn[aria-current="step"] .stepIco{
+background:#e9f7ee;border-color:rgba(0,166,63,.28);color:#0a3a1c;
+}
+.stepIco svg{width:18px;height:18px}
+.stepPanel{
+border:1px solid rgba(215,218,220,.95);
+background:#ffffff;
+border-radius:calc(var(--radius) + 4px);
 box-shadow:var(--shadow);
 padding:18px;
-position:relative;overflow:hidden;
-animation:riseFade .85s ease both;
+position:relative;
+overflow:hidden;
+min-height:280px;
 }
-.heroCard:before{
+.stepPanel:before{
 content:"";
-position:absolute;inset:-2px;
-background:linear-gradient(135deg, rgba(0,166,63,.10), rgba(0,0,0,.04));
-opacity:.75;pointer-events:none;
+position:absolute;
+inset:-40%;
+background:radial-gradient(circle at 30% 30%, rgba(0,166,63,.22), transparent 55%);
+transform:rotate(12deg);
+opacity:.25;
+pointer-events:none;
 }
-.heroCard > *{position:relative}
-.heroCard h3{margin:0 0 6px;font-size:15px;letter-spacing:-.2px;font-weight:950}
-.heroCard p{margin:0 0 12px;color:var(--muted);font-size:14px}
-.miniList{margin:0;padding:0;list-style:none;display:grid;gap:10px}
-.miniItem{
-display:flex;gap:10px;
-padding:12px;border-radius:16px;
-background:rgba(246,247,248,.92);
-border:1px solid rgba(215,218,220,.9);
-}
-.miniIcon{
-width:40px;height:40px;border-radius:16px;
+.panelTitle{margin:0;font-size:18px;letter-spacing:-.2px;font-weight:1000;position:relative}
+.panelSub{margin:8px 0 0 0;color:var(--muted);font-size:14px;max-width:72ch;position:relative}
+.panelBullets{margin:14px 0 0 0;padding:0;list-style:none;display:grid;gap:10px;position:relative}
+.panelBullets li{display:flex;gap:10px;align-items:flex-start;color:var(--muted);font-size:14px}
+.bulletIco{
+width:18px;height:18px;border-radius:6px;
 display:flex;align-items:center;justify-content:center;
-background:rgba(0,0,0,.06);
-border:1px solid rgba(0,0,0,.10);
-color:#1a1a1a;flex:0 0 auto;
+background:#e9f7ee;border:1px solid rgba(0,166,63,.28);
+color:#0a3a1c;flex:0 0 auto;margin-top:2px;
 }
-.miniIcon.lime{background:#e9f7ee;border-color:rgba(0,166,63,.28);color:#0a3a1c}
-.miniIcon svg{width:18px;height:18px}
-.miniText strong{display:block;font-size:13px;font-weight:950;margin-bottom:2px}
-.miniText span{display:block;font-size:13px;color:var(--muted2)}
-.heroCardActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.bulletIco svg{width:12px;height:12px}
 
-section{padding:58px 0}
-.sectionHead{display:flex;flex-direction:column;gap:10px;margin-bottom:22px}
-.kicker{
-font-weight:950;font-size:12px;letter-spacing:.24px;
-text-transform:uppercase;color:var(--muted2);
+/* Dashboard section */
+.dashBand{
+padding:64px 0;
+background:
+radial-gradient(880px 420px at 15% 0%, rgba(0,166,63,.12), transparent 62%),
+linear-gradient(180deg, var(--surface), var(--bg));
+border-top:1px solid rgba(215,218,220,.85);
+border-bottom:1px solid rgba(215,218,220,.85);
 }
-.sectionTitle{
-margin:0;
-font-size:clamp(22px,2.5vw,32px);
+.dashGrid{display:grid;grid-template-columns:1.05fr .95fr;gap:14px;align-items:center}
+.dashCopy h3{
+margin:0 0 10px;
+font-size:clamp(20px,2.2vw,28px);
 letter-spacing:-.5px;line-height:1.15;font-weight:1000;
 }
-.sectionDesc{margin:0;color:var(--muted);font-size:15px;max-width:74ch}
+.dashCopy p{margin:0 0 14px;color:var(--muted);font-size:15px;max-width:72ch}
+.dashPoints{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.dashPoints li{display:flex;gap:10px;align-items:flex-start;color:var(--muted);font-size:14px}
+.tick{
+width:18px;height:18px;border-radius:6px;
+display:flex;align-items:center;justify-content:center;
+background:#e9f7ee;border:1px solid rgba(0,166,63,.28);
+color:#0a3a1c;flex:0 0 auto;margin-top:2px;
+}
+.tick svg{width:12px;height:12px}
+.dashActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 
-/* CUSTOMER JOURNEY (new on marketing site) */
-.journeyBand{
+.dashFrame{
+border-radius:24px;
+background:#ffffff;
+border:1px solid rgba(215,218,220,.95);
+box-shadow:0 22px 58px rgba(0,0,0,.12);
+overflow:hidden;
+position:relative;
+transition:transform .15s ease, box-shadow .2s ease, border-color .15s ease;
+}
+.dashFrame:hover{transform:translateY(-2px);box-shadow:0 26px 70px rgba(0,0,0,.14);border-color:rgba(0,166,63,.22)}
+.dashTop{
+display:flex;align-items:center;justify-content:space-between;gap:10px;
+padding:12px 14px;
+background:linear-gradient(180deg, rgba(246,247,248,.96), rgba(255,255,255,.96));
+border-bottom:1px solid rgba(215,218,220,.9);
+}
+.dashDots{display:flex;gap:7px;align-items:center}
+.dashDots span{width:10px;height:10px;border-radius:999px;background:rgba(0,0,0,.16)}
+.dashDots span:nth-child(2){background:rgba(0,0,0,.12)}
+.dashDots span:nth-child(3){background:rgba(0,0,0,.08)}
+.dashLabel{display:flex;align-items:center;gap:10px;font-weight:950;color:var(--ink2);font-size:13px}
+.dashChip{
+display:inline-flex;align-items:center;gap:8px;
+padding:8px 10px;border-radius:999px;
+background:#e9f7ee;border:1px solid rgba(0,166,63,.28);
+color:#0a3a1c;font-weight:950;font-size:12px;
+}
+.dashBody{
+padding:14px;
+display:grid;
+gap:12px;
+background:radial-gradient(560px 220px at 75% 0%, rgba(0,166,63,.10), transparent 60%), #ffffff;
+}
+.dashRow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dashCard{border-radius:18px;border:1px solid rgba(215,218,220,.9);background:rgba(246,247,248,.72);padding:12px}
+.dashCard h4{margin:0 0 8px;font-size:12px;font-weight:1000;letter-spacing:.2px;text-transform:uppercase;color:var(--muted2)}
+.kpi{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.kpi strong{font-size:22px;font-weight:1000;letter-spacing:-.3px}
+.kpi span{font-size:12px;font-weight:950;color:var(--muted2)}
+.kpiBadge{
+display:inline-flex;align-items:center;gap:6px;
+padding:6px 10px;border-radius:999px;
+background:#ffffff;border:1px solid rgba(215,218,220,.9);
+font-size:12px;font-weight:950;color:var(--muted);
+}
+.kpiBadge i{width:8px;height:8px;border-radius:999px;background:var(--brand);display:inline-block}
+.spark{margin-top:10px;width:100%;height:54px;border-radius:14px;background:#ffffff;border:1px solid rgba(215,218,220,.9);overflow:hidden}
+.spark svg{width:100%;height:100%;display:block}
+.log{border-radius:18px;border:1px solid rgba(215,218,220,.9);background:#ffffff;overflow:hidden}
+.logHead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;background:rgba(246,247,248,.9);border-bottom:1px solid rgba(215,218,220,.9)}
+.logHead strong{font-size:12px;letter-spacing:.2px;text-transform:uppercase;font-weight:1000;color:var(--muted2)}
+.logFilter{
+display:inline-flex;align-items:center;gap:8px;
+padding:8px 10px;border-radius:999px;border:1px solid rgba(215,218,220,.9);
+background:#fff;font-size:12px;font-weight:950;color:var(--muted);
+}
+.logList{display:grid}
+.logItem{display:grid;grid-template-columns:1fr auto;gap:10px;padding:12px;border-top:1px solid rgba(215,218,220,.75);align-items:center}
+.logItem:first-child{border-top:none}
+.logLeft{display:grid;gap:4px}
+.logTitle{font-weight:950;font-size:13px;color:var(--ink2)}
+.logMeta{font-size:12px;color:var(--muted2)}
+.status{
+display:inline-flex;align-items:center;gap:8px;
+padding:8px 10px;border-radius:999px;font-size:12px;font-weight:1000;
+border:1px solid rgba(215,218,220,.9);background:#f6f7f8;color:var(--muted);
+}
+.status i{width:8px;height:8px;border-radius:999px;background:rgba(0,0,0,.18);display:inline-block}
+.status.sent{background:#e9f7ee;border-color:rgba(0,166,63,.26);color:#0a3a1c}
+.status.sent i{background:var(--brand)}
+.status.draft{background:#fff}
+.status.review{background:rgba(0,0,0,.06)}
+.noteSmall{font-size:12px;color:var(--muted2);margin:10px 2px 0;font-weight:850}
+
+/* Pricing */
+.pricingWrap{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:stretch}
+.plan{display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden}
+.plan.featured{border-color:rgba(0,166,63,.32);box-shadow:0 18px 48px rgba(0,166,63,.16);transform:translateY(-2px)}
+.ribbon{
+position:absolute;top:14px;right:14px;
+padding:8px 12px;border-radius:999px;
+background:#e9f7ee;border:1px solid rgba(0,166,63,.28);
+color:#0a3a1c;font-weight:1000;font-size:12px;
+}
+.priceRow{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.priceRow strong{font-size:36px;line-height:1;letter-spacing:-.9px;font-weight:1000}
+.priceRow span{font-size:13px;color:var(--muted2);font-weight:900;padding-bottom:5px}
+.strike{font-size:13px;color:var(--muted2);text-decoration:line-through;font-weight:950}
+.save{
+display:inline-flex;align-items:center;
+padding:8px 12px;border-radius:999px;
+background:#f4f4f4;border:1px solid rgba(0,0,0,.10);
+color:var(--ink2);font-weight:950;font-size:12px;
+}
+.valueRow{
+display:flex;align-items:center;justify-content:space-between;gap:10px;
+padding:12px;border-radius:18px;
+background:rgba(246,247,248,.72);
+border:1px solid rgba(215,218,220,.9);
+}
+.valueRow strong{font-weight:1000;color:var(--ink2);font-size:13px}
+.valueRow span{color:var(--muted);font-size:13px;font-weight:900}
+.valueBadge{
+display:inline-flex;align-items:center;gap:8px;
+padding:8px 10px;border-radius:999px;
+background:#e9f7ee;border:1px solid rgba(0,166,63,.28);
+color:#0a3a1c;font-weight:1000;font-size:12px;white-space:nowrap;
+}
+.valueBadge i{width:8px;height:8px;border-radius:999px;background:var(--brand);display:inline-block}
+.features{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.features li{display:flex;gap:10px;align-items:flex-start;color:var(--muted);font-size:14px}
+.planActions{margin-top:auto;display:flex;gap:10px;flex-wrap:wrap}
+.fineprint{margin:14px 0 0 0;color:var(--muted2);font-size:12px;font-weight:850}
+
+/* Why this works + Quality principle */
+.whyBand{
 background:linear-gradient(180deg, transparent, var(--surface));
 border-top:1px solid rgba(215,218,220,.85);
 border-bottom:1px solid rgba(215,218,220,.85);
 }
-.journeyGrid{
-display:grid;
-grid-template-columns:1.05fr .95fr;
-gap:14px;
-align-items:start;
+.whyGrid{display:grid;grid-template-columns:1.05fr .95fr;gap:14px;align-items:start}
+.whyList{display:grid;gap:12px}
+.whyItem{
+display:flex;gap:12px;
+padding:16px;border-radius:var(--radius);
+border:1px solid rgba(215,218,220,.95);
+background:#ffffff;
+box-shadow:0 10px 22px rgba(0,0,0,.05);
+transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease;
 }
-.journeySteps{
-display:grid;
-gap:12px;
+.whyItem:hover{transform:translateY(-2px);box-shadow:var(--shadow2);border-color:rgba(0,166,63,.22)}
+.whyIco{
+width:44px;height:44px;border-radius:16px;
+display:flex;align-items:center;justify-content:center;
+background:#e9f7ee;border:1px solid rgba(0,166,63,.28);
+color:#0a3a1c;flex:0 0 auto;
 }
+.whyIco svg{width:20px;height:20px}
+.whyText strong{display:block;font-size:14px;font-weight:1000;margin-bottom:4px}
+.whyText span{display:block;color:var(--muted);font-size:14px}
+
+.qpWrap{
+border-radius:24px;
+background:linear-gradient(135deg, rgba(0,166,63,.12), rgba(0,0,0,.03));
+border:1px solid rgba(0,166,63,.22);
+padding:18px;
+position:relative;
+overflow:hidden;
+box-shadow:0 18px 44px rgba(0,0,0,.08);
+}
+.qpWrap:before{
+content:"";
+position:absolute;
+inset:-40%;
+background:radial-gradient(circle at 25% 25%, rgba(0,166,63,.28), transparent 58%);
+transform:rotate(14deg);
+opacity:.7;
+pointer-events:none;
+}
+.qpHeader{display:flex;align-items:flex-start;gap:12px;position:relative}
+.qpIcon{
+width:44px;height:44px;border-radius:16px;
+display:flex;align-items:center;justify-content:center;
+background:rgba(0,0,0,.07);
+border:1px solid rgba(0,0,0,.10);
+color:var(--ink2);flex:0 0 auto;
+}
+.qpIcon svg{width:20px;height:20px}
+.qpHeader h3{margin:0 0 6px;font-size:15px;letter-spacing:-.2px;font-weight:1000}
+.qpHeader p{margin:0;color:var(--muted);font-size:14px;max-width:64ch}
+.qpPills{margin-top:14px;display:flex;flex-wrap:wrap;gap:10px;position:relative}
+.qpPill{
+padding:10px 12px;border-radius:999px;
+background:rgba(255,255,255,.86);
+border:1px solid rgba(215,218,220,.95);
+color:var(--muted);
+font-size:13px;font-weight:950;
+display:inline-flex;align-items:center;gap:8px;
+}
+.qpPill .mini{
+width:16px;height:16px;border-radius:6px;
+display:inline-flex;align-items:center;justify-content:center;
+background:#e9f7ee;border:1px solid rgba(0,166,63,.28);color:#0a3a1c;
+}
+.qpPill .mini svg{width:11px;height:11px}
+
+/* CUSTOMER JOURNEY (new additional section) */
+.journeyBand{
+background:linear-gradient(180deg, var(--surface2), var(--bg));
+border-top:1px solid rgba(215,218,220,.85);
+border-bottom:1px solid rgba(215,218,220,.85);
+}
+.journeyGrid{display:grid;grid-template-columns:1.05fr .95fr;gap:14px;align-items:start}
+.journeySteps{display:grid;gap:12px}
 .jStep{
-display:flex;
-gap:12px;
-padding:16px;
-border-radius:18px;
+display:flex;gap:12px;
+padding:16px;border-radius:18px;
 border:1px solid rgba(215,218,220,.95);
 background:#fff;
 box-shadow:0 10px 22px rgba(0,0,0,.05);
@@ -290,28 +670,22 @@ box-shadow:0 10px 22px rgba(0,0,0,.05);
 width:44px;height:44px;border-radius:16px;
 display:flex;align-items:center;justify-content:center;
 background:#e9f7ee;border:1px solid rgba(0,166,63,.28);
-color:#0a3a1c;
-font-weight:1000;
-flex:0 0 auto;
+color:#0a3a1c;font-weight:1000;flex:0 0 auto;
 }
 .jText strong{display:block;font-weight:1000;letter-spacing:-.2px;margin-bottom:4px}
 .jText span{display:block;color:var(--muted);font-size:14px}
 .journeyCard{
-border-radius:24px;
-background:#fff;
+border-radius:24px;background:#fff;
 border:1px solid rgba(215,218,220,.95);
 box-shadow:var(--shadow);
-padding:18px;
-position:relative;
-overflow:hidden;
+padding:18px;position:relative;overflow:hidden;
 }
 .journeyCard:before{
 content:"";
 position:absolute;inset:-40%;
 background:radial-gradient(circle at 20% 20%, rgba(0,166,63,.18), transparent 60%);
 transform:rotate(12deg);
-opacity:.6;
-pointer-events:none;
+opacity:.6;pointer-events:none;
 }
 .journeyCard > *{position:relative}
 .callout{
@@ -332,52 +706,14 @@ flex:0 0 auto;
 .callText span{display:block;color:var(--muted);font-size:14px}
 .callActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 
-/* Pricing (kept) */
-.pricingWrap{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:stretch}
-.plan{display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden}
-.plan.featured{border-color:rgba(0,166,63,.32);box-shadow:0 18px 48px rgba(0,166,63,.16);transform:translateY(-2px)}
-.ribbon{
-position:absolute;top:14px;right:14px;
-padding:8px 12px;border-radius:999px;
-background:#e9f7ee;border:1px solid rgba(0,166,63,.28);
-color:#0a3a1c;font-weight:1000;font-size:12px;
+/* Contact section (simple) */
+.contactCard{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:12px;
+flex-wrap:wrap;
 }
-.priceRow{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
-.priceRow strong{font-size:36px;line-height:1;letter-spacing:-.9px;font-weight:1000}
-.priceRow span{font-size:13px;color:var(--muted2);font-weight:900;padding-bottom:5px}
-.strike{font-size:13px;color:var(--muted2);text-decoration:line-through;font-weight:950}
-.save{
-display:inline-flex;align-items:center;
-padding:8px 12px;border-radius:999px;
-background:#f4f4f4;border:1px solid rgba(0,0,0,.10);
-color:#1a1a1a;font-weight:950;font-size:12px;
-}
-.valueRow{
-display:flex;align-items:center;justify-content:space-between;gap:10px;
-padding:12px;border-radius:18px;
-background:rgba(246,247,248,.72);
-border:1px solid rgba(215,218,220,.9);
-}
-.valueRow strong{font-weight:1000;color:#1a1a1a;font-size:13px}
-.valueRow span{color:var(--muted);font-size:13px;font-weight:900}
-.valueBadge{
-display:inline-flex;align-items:center;gap:8px;
-padding:8px 10px;border-radius:999px;
-background:#e9f7ee;border:1px solid rgba(0,166,63,.28);
-color:#0a3a1c;font-weight:1000;font-size:12px;white-space:nowrap;
-}
-.valueBadge i{width:8px;height:8px;border-radius:999px;background:var(--brand);display:inline-block}
-.features{margin:0;padding:0;list-style:none;display:grid;gap:10px}
-.features li{display:flex;gap:10px;align-items:flex-start;color:var(--muted);font-size:14px}
-.tick{
-width:18px;height:18px;border-radius:6px;
-display:flex;align-items:center;justify-content:center;
-background:#e9f7ee;border:1px solid rgba(0,166,63,.28);
-color:#0a3a1c;flex:0 0 auto;margin-top:2px;
-}
-.tick svg{width:12px;height:12px}
-.planActions{margin-top:auto;display:flex;gap:10px;flex-wrap:wrap}
-.fineprint{margin:14px 0 0 0;color:var(--muted2);font-size:12px;font-weight:850}
 
 /* Footer */
 footer{
@@ -387,22 +723,38 @@ color:var(--muted2);
 font-size:13px;
 }
 .footerRow{
-display:flex;justify-content:space-between;gap:12px;
-flex-wrap:wrap;align-items:center;
+display:flex;
+justify-content:space-between;
+gap:12px;
+flex-wrap:wrap;
+align-items:center;
 }
 .footerLinks{display:flex;gap:14px;flex-wrap:wrap}
 .footerLinks a{
-color:var(--muted2);font-weight:900;
-padding:8px 10px;border-radius:12px;
+color:var(--muted2);
+font-weight:900;
+padding:8px 10px;
+border-radius:12px;
 }
-.footerLinks a:hover{background:rgba(246,247,248,.95);color:var(--text)}
+.footerLinks a:hover{
+background:rgba(240,242,243,.95);
+color:var(--text);
+}
 
 @media (max-width:980px){
 .heroGrid{grid-template-columns:1fr}
+.stepper{grid-template-columns:1fr}
+.dashGrid{grid-template-columns:1fr}
 .pricingWrap{grid-template-columns:1fr}
+.whyGrid{grid-template-columns:1fr}
 .journeyGrid{grid-template-columns:1fr}
 .plan.featured{transform:none}
+.dashRow{grid-template-columns:1fr}
+}
+@media (max-width:640px){
 .navlinks{display:none}
+.stepList:before{left:18px}
+.stepBtn{grid-template-columns:50px 1fr auto}
 }
 </style>
 </head>
@@ -416,14 +768,17 @@ padding:8px 10px;border-radius:12px;
 </a>
 
 <div class="navlinks" aria-label="Site links">
+<a href="#how">How it works</a>
 <a href="#journey">Customer journey</a>
+<a href="#dashboard">Dashboard</a>
 <a href="#pricing">Pricing</a>
+<a href="#why">Why this works</a>
 <a href="#contact">Contact</a>
 </div>
 
 <div class="navcta">
-<a class="btn small" href="profile-setup.html"><span class="btnLabel">Get started</span></a>
-<a class="btn primary small" href="#contact"><span class="btnLabel">Email us</span></a>
+<a class="btn small" href="profile-setup.html"><span class="btnLabel">Profile setup</span></a>
+<a class="btn primary small" href="#contact"><span class="btnLabel">Email</span></a>
 </div>
 </nav>
 </div>
@@ -447,12 +802,12 @@ padding:8px 10px;border-radius:12px;
 <span>Start profile setup</span>
 </span>
 </a>
-<a class="btn primary" href="#journey">
+<a class="btn primary" href="#how">
 <span class="btnLabel">
 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
 <path d="M8 5v14l11-7z"></path>
 </svg>
-<span>See customer journey</span>
+<span>See how it works</span>
 </span>
 </a>
 </div>
@@ -496,6 +851,7 @@ padding:8px 10px;border-radius:12px;
 </li>
 </ul>
 <div class="heroCardActions">
+<a class="btn small" href="#pricing"><span class="btnLabel">Plans</span></a>
 <a class="btn small" href="profile-setup.html"><span class="btnLabel">Profile setup</span></a>
 <a class="btn primary small" href="#contact"><span class="btnLabel">Contact</span></a>
 </div>
@@ -504,12 +860,103 @@ padding:8px 10px;border-radius:12px;
 </div>
 </section>
 
+<!-- HOW IT WORKS (interactive stepper stays) -->
+<section id="how" class="anchor">
+<div class="container">
+<div class="sectionHead">
+<div class="kicker">How it works</div>
+<h2 class="sectionTitle">A simple process built for daily execution.</h2>
+<p class="sectionDesc">You set the direction once. We run the daily workflow and keep it consistent.</p>
+</div>
+
+<div class="stepper" aria-label="How it works stepper">
+<ol class="stepList" aria-label="Steps">
+<li>
+<button class="stepBtn" type="button" data-step="1" aria-current="step" aria-controls="how-panel" aria-expanded="true">
+<div class="stepDot">1</div>
+<div class="stepMeta">
+<strong>Connect your account</strong>
+<span>Login with Google so applications can be sent from your Gmail.</span>
+</div>
+<div class="stepIco" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Z"></path><path d="M3 22a9 9 0 0 1 18 0"></path>
+</svg>
+</div>
+</button>
+</li>
+
+<li>
+<button class="stepBtn" type="button" data-step="2" aria-controls="how-panel" aria-expanded="false">
+<div class="stepDot">2</div>
+<div class="stepMeta">
+<strong>Set your preferences</strong>
+<span>Upload your CV and choose titles, industry, and location.</span>
+</div>
+<div class="stepIco" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path>
+</svg>
+</div>
+</button>
+</li>
+
+<li>
+<button class="stepBtn" type="button" data-step="3" aria-controls="how-panel" aria-expanded="false">
+<div class="stepDot">3</div>
+<div class="stepMeta">
+<strong>Pick a plan</strong>
+<span>Choose a daily quota that fits your urgency.</span>
+</div>
+<div class="stepIco" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M12 1v22"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path>
+</svg>
+</div>
+</button>
+</li>
+
+<li>
+<button class="stepBtn" type="button" data-step="4" aria-controls="how-panel" aria-expanded="false">
+<div class="stepDot">4</div>
+<div class="stepMeta">
+<strong>We apply daily</strong>
+<span>We research, tailor, and send every day.</span>
+</div>
+<div class="stepIco" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M22 2 11 13"></path><path d="M22 2 15 22 11 13 2 9 22 2Z"></path>
+</svg>
+</div>
+</button>
+</li>
+</ol>
+
+<div class="stepPanel" id="how-panel" role="region" aria-label="Step details">
+<h3 class="panelTitle" id="panelTitle">Connect your account</h3>
+<p class="panelSub" id="panelSub">We use Google login so your applications can be sent from your own Gmail account, which makes outreach look natural and credible.</p>
+<ul class="panelBullets" id="panelBullets">
+<li><span class="bulletIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Login with Google and grant permission for sending emails.</li>
+<li><span class="bulletIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Your applications are sent from your email to keep trust high.</li>
+<li><span class="bulletIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>You can revoke access anytime.</li>
+</ul>
+
+<div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;position:relative">
+<a class="btn lime" href="profile-setup.html"><span class="btnLabel">Open profile setup</span></a>
+<a class="btn primary" href="#pricing"><span class="btnLabel">View pricing</span></a>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- CUSTOMER JOURNEY (new additional section, not replacing anything) -->
 <section id="journey" class="journeyBand anchor">
 <div class="container">
 <div class="sectionHead">
 <div class="kicker">Customer journey</div>
-<h2 class="sectionTitle">From signup to daily execution.</h2>
-<p class="sectionDesc">The flow is simple: you connect Google once, set your preferences, then we run the daily workflow and track what gets sent.</p>
+<h2 class="sectionTitle">A clear path from signup to daily execution.</h2>
+<p class="sectionDesc">We keep friction low: connect Google, set your profile once, then we execute daily and show proof of work in a simple log.</p>
 </div>
 
 <div class="journeyGrid">
@@ -526,23 +973,23 @@ padding:8px 10px;border-radius:12px;
 <div class="jNum">2</div>
 <div class="jText">
 <strong>Profile setup</strong>
-<span>Upload your CV and define titles, industry, locations, salary range, and job type.</span>
+<span>Upload your CV and define job preferences so we can target the right roles.</span>
 </div>
 </div>
 
 <div class="jStep">
 <div class="jNum">3</div>
 <div class="jText">
-<strong>Select a plan</strong>
-<span>Choose your daily quota. Monthly value is shown as total applications per month.</span>
+<strong>Choose a plan</strong>
+<span>Pick a daily quota. The monthly value is transparent (total applications per month).</span>
 </div>
 </div>
 
 <div class="jStep">
 <div class="jNum">4</div>
 <div class="jText">
-<strong>Daily applications + tracking</strong>
-<span>We research, tailor, and send. You can view a simple log of what was done.</span>
+<strong>Daily execution + tracking</strong>
+<span>We research, tailor, and send. You get a basic log view so you always know what was done.</span>
 </div>
 </div>
 </div>
@@ -556,30 +1003,142 @@ padding:8px 10px;border-radius:12px;
 </svg>
 </div>
 <div class="callText">
-<strong>Start with a real profile</strong>
-<span>To keep quality high, we use your CV and preferences to tailor each application.</span>
+<strong>Start with a strong profile</strong>
+<span>Your CV and preferences are the foundation for personalization. It’s how we keep quality high while applying daily.</span>
 </div>
 </div>
 
 <div class="callActions">
-<a class="btn lime" href="profile-setup.html"><span class="btnLabel">Open profile setup</span></a>
-<a class="btn primary" href="#pricing"><span class="btnLabel">View pricing</span></a>
+<a class="btn lime" href="profile-setup.html"><span class="btnLabel">Go to profile setup</span></a>
+<a class="btn primary" href="#dashboard"><span class="btnLabel">See tracking</span></a>
 </div>
 
 <p style="margin:12px 0 0;color:var(--muted2);font-size:12px;font-weight:850">
-Note: Google sign-in and Gmail sending require backend/OAuth setup. This page shows the intended product flow.
+Note: Google OAuth + Gmail sending require backend configuration. This is the intended product flow.
 </p>
 </div>
 </div>
 </div>
 </section>
 
+<!-- DASHBOARD (kept) -->
+<section id="dashboard" class="dashBand anchor">
+<div class="container">
+<div class="dashGrid">
+<div class="dashCopy">
+<div class="kicker">Dashboard</div>
+<h3>See what gets done — every day.</h3>
+<p>Customers get a simple view of what was sent and what is in progress. This builds trust and makes the service feel like a full end-to-end job application workflow.</p>
+<ul class="dashPoints">
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Daily count of applications sent vs. plan quota</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Basic log view: company, role, date, and status</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Clear proof of execution (not just drafts)</li>
+</ul>
+<div class="dashActions">
+<a class="btn primary" href="#pricing"><span class="btnLabel">Pick a plan</span></a>
+<a class="btn lime" href="profile-setup.html"><span class="btnLabel">Start setup</span></a>
+</div>
+</div>
+
+<div class="dashFrame" aria-label="Dashboard preview visualization">
+<div class="dashTop">
+<div class="dashDots" aria-hidden="true"><span></span><span></span><span></span></div>
+<div class="dashLabel">
+<span>Application Tracker</span>
+<span class="dashChip" aria-hidden="true">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block">
+<path d="M20 6 9 17l-5-5"></path>
+</svg>
+Live log
+</span>
+</div>
+</div>
+
+<div class="dashBody">
+<div class="dashRow">
+<div class="dashCard">
+<h4>Today</h4>
+<div class="kpi">
+<strong>5</strong>
+<span>sent</span>
+</div>
+<div style="margin-top:8px" class="kpiBadge"><i aria-hidden="true"></i>On track (5 / 5)</div>
+<div class="spark" aria-hidden="true">
+<svg viewBox="0 0 300 70" preserveAspectRatio="none">
+<path d="M0 50 C 35 42, 55 44, 80 36 S 125 28, 150 34 S 195 46, 220 30 S 265 18, 300 24" fill="none" stroke="rgba(0,166,63,.85)" stroke-width="4" stroke-linecap="round"/>
+<path d="M0 60 L300 60" stroke="rgba(0,0,0,.06)" stroke-width="2"/>
+</svg>
+</div>
+</div>
+
+<div class="dashCard">
+<h4>This week</h4>
+<div class="kpi">
+<strong>23</strong>
+<span>sent</span>
+</div>
+<div style="margin-top:8px" class="kpiBadge"><i aria-hidden="true"></i>Consistency streak: 7 days</div>
+<div class="spark" aria-hidden="true">
+<svg viewBox="0 0 300 70" preserveAspectRatio="none">
+<path d="M0 44 C 38 40, 60 48, 90 40 S 135 26, 160 32 S 200 52, 230 36 S 270 24, 300 30" fill="none" stroke="rgba(17,17,17,.75)" stroke-width="4" stroke-linecap="round"/>
+<path d="M0 60 L300 60" stroke="rgba(0,0,0,.06)" stroke-width="2"/>
+</svg>
+</div>
+</div>
+</div>
+
+<div class="log" aria-label="Application log preview">
+<div class="logHead">
+<strong>Recent activity</strong>
+<span class="logFilter" aria-hidden="true">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block">
+<path d="M4 6h16"></path><path d="M7 12h10"></path><path d="M10 18h4"></path>
+</svg>
+Last 7 days
+</span>
+</div>
+
+<div class="logList">
+<div class="logItem">
+<div class="logLeft">
+<div class="logTitle">Operations Analyst — Via Physio</div>
+<div class="logMeta">Berlin · Unsolicited email · Today 09:18</div>
+</div>
+<div class="status sent"><i aria-hidden="true"></i>Sent</div>
+</div>
+
+<div class="logItem">
+<div class="logLeft">
+<div class="logTitle">Business Analyst — Healthcare Group</div>
+<div class="logMeta">Remote · Draft prepared · Today 08:41</div>
+</div>
+<div class="status review"><i aria-hidden="true"></i>Review</div>
+</div>
+
+<div class="logItem">
+<div class="logLeft">
+<div class="logTitle">Ops Manager — Clinic Network</div>
+<div class="logMeta">Munich · Tailoring CV · Yesterday 17:22</div>
+</div>
+<div class="status draft"><i aria-hidden="true"></i>Draft</div>
+</div>
+</div>
+</div>
+
+<div class="noteSmall">Preview only. Final version can include search, filters, and downloads of sent emails.</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- PRICING (kept) -->
 <section id="pricing" class="anchor">
 <div class="container">
 <div class="sectionHead">
 <div class="kicker">Pricing</div>
 <h2 class="sectionTitle">Start from $20. Save more as you scale.</h2>
-<p class="sectionDesc">Plans are based on daily output. Monthly value is shown as total applications per month.</p>
+<p class="sectionDesc">Plans are based on daily output. The monthly value is shown as total applications per month.</p>
 </div>
 
 <div class="pricingWrap">
@@ -607,7 +1166,8 @@ Note: Google sign-in and Gmail sending require backend/OAuth setup. This page sh
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Simple application log</li>
 </ul>
 <div class="planActions">
-<a class="btn primary" href="profile-setup.html"><span class="btnLabel">Start setup</span></a>
+<a class="btn lime" href="profile-setup.html"><span class="btnLabel">Start setup</span></a>
+<a class="btn primary" href="#contact"><span class="btnLabel">Email</span></a>
 </div>
 </div>
 
@@ -637,6 +1197,7 @@ Note: Google sign-in and Gmail sending require backend/OAuth setup. This page sh
 </ul>
 <div class="planActions">
 <a class="btn lime" href="profile-setup.html"><span class="btnLabel">Start setup</span></a>
+<a class="btn primary" href="#contact"><span class="btnLabel">Email</span></a>
 </div>
 </div>
 
@@ -664,7 +1225,8 @@ Note: Google sign-in and Gmail sending require backend/OAuth setup. This page sh
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Enhanced tracking view</li>
 </ul>
 <div class="planActions">
-<a class="btn primary" href="profile-setup.html"><span class="btnLabel">Start setup</span></a>
+<a class="btn lime" href="profile-setup.html"><span class="btnLabel">Start setup</span></a>
+<a class="btn primary" href="#contact"><span class="btnLabel">Email</span></a>
 </div>
 </div>
 </div>
@@ -673,6 +1235,66 @@ Note: Google sign-in and Gmail sending require backend/OAuth setup. This page sh
 </div>
 </section>
 
+<!-- WHY THIS WORKS (kept) -->
+<section id="why" class="whyBand anchor">
+<div class="container">
+<div class="sectionHead">
+<div class="kicker">Why this works</div>
+<h2 class="sectionTitle">More interviews come from consistent, relevant outreach.</h2>
+<p class="sectionDesc">We combine daily volume with a quality-first process. Each application is tailored and sent from your email for credibility.</p>
+</div>
+
+<div class="whyGrid">
+<div class="whyList">
+<div class="whyItem">
+<div class="whyIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8 10L4 11"></path></svg></div>
+<div class="whyText"><strong>Zero manual effort</strong><span>You set the direction once. We execute daily applications for you.</span></div>
+</div>
+<div class="whyItem">
+<div class="whyIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg></div>
+<div class="whyText"><strong>Daily consistency</strong><span>Continuous outreach increases your chance of replies and interviews.</span></div>
+</div>
+<div class="whyItem">
+<div class="whyIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h16"></path></svg></div>
+<div class="whyText"><strong>Tailored per role and company</strong><span>Each application matches the job requirements and your experience.</span></div>
+</div>
+<div class="whyItem">
+<div class="whyIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"></path><path d="M21 8l-9 6-9-6"></path></svg></div>
+<div class="whyText"><strong>Sent from your email</strong><span>Applications look like they came directly from you, improving credibility.</span></div>
+</div>
+</div>
+
+<div class="qpWrap" aria-label="Quality principle">
+<div class="qpHeader">
+<div class="qpIcon" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path>
+<path d="M9 12l2 2 4-4"></path>
+</svg>
+</div>
+<div>
+<h3>Quality principle</h3>
+<p>We focus on relevant and personalized outreach. The goal is daily volume without harming your reputation.</p>
+</div>
+</div>
+
+<div class="qpPills" aria-label="Quality checks">
+<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Not mass spam</div>
+<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Human review step</div>
+<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Clear application log</div>
+<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Role-specific narrative</div>
+</div>
+
+<div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;position:relative">
+<a class="btn lime" href="profile-setup.html"><span class="btnLabel">Start profile setup</span></a>
+<a class="btn primary" href="#contact"><span class="btnLabel">Email</span></a>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- CONTACT (waitlist removed, email kept) -->
 <section id="contact" class="anchor">
 <div class="container">
 <div class="sectionHead">
@@ -681,7 +1303,7 @@ Note: Google sign-in and Gmail sending require backend/OAuth setup. This page sh
 <p class="sectionDesc">Email us and we’ll reply as soon as possible.</p>
 </div>
 
-<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+<div class="card contactCard">
 <div>
 <div style="font-weight:1000;letter-spacing:-.2px">Email</div>
 <div style="color:var(--muted);font-size:14px">schonv2@gmail.com</div>
@@ -704,16 +1326,49 @@ Note: Google sign-in and Gmail sending require backend/OAuth setup. This page sh
 <div class="footerRow">
 <div><strong style="color:var(--text);font-weight:1000">JobApply-AI</strong><span> · </span><span>Continuous, professional job applications</span></div>
 <div class="footerLinks" aria-label="Footer links">
+<a href="#how">How it works</a>
 <a href="#journey">Customer journey</a>
+<a href="#dashboard">Dashboard</a>
 <a href="#pricing">Pricing</a>
+<a href="#why">Why it works</a>
 <a href="#contact">Contact</a>
 <a href="profile-setup.html">Profile setup</a>
 </div>
 </div>
 <div style="margin-top:10px">© <span id="year"></span> JobApply-AI. All rights reserved.</div>
 </div>
+
 <script>
+(function(){
+var steps={
+1:{title:"Connect your account",sub:"We use Google login so your applications can be sent from your own Gmail account, which makes outreach look natural and credible.",bullets:["Login with Google and grant permission for sending emails.","Your applications are sent from your email to keep trust high.","You can revoke access anytime."]},
+2:{title:"Set your preferences",sub:"Tell us exactly what to apply for. We use your CV and preferences to focus daily outreach on roles you actually want.",bullets:["Upload your CV (PDF or DOC).","Choose job titles, industry, country, city, and radius.","We use these settings to filter and prioritize opportunities."]},
+3:{title:"Pick a plan",sub:"Select the daily application quota that matches your timeline. Higher plans increase coverage and reduce cost per application.",bullets:["Choose 1, 5, or 10 applications per day.","Change plans anytime as your search evolves.","Billing is monthly and transparent."]},
+4:{title:"We apply daily",sub:"Each day we research, tailor, and send applications. The goal is consistent volume with a quality-first approach.",bullets:["Research roles and identify the right contacts.","Tailor CV and cover letter per role and company.","Send applications from your Gmail and keep a simple log."]}
+};
+
+function setActive(step){
+var btns=document.querySelectorAll(".stepBtn");
+btns.forEach(function(b){
+var isActive=b.getAttribute("data-step")==String(step);
+if(isActive){b.setAttribute("aria-current","step");b.setAttribute("aria-expanded","true");}
+else{b.removeAttribute("aria-current");b.setAttribute("aria-expanded","false");}
+});
+document.getElementById("panelTitle").textContent=steps[step].title;
+document.getElementById("panelSub").textContent=steps[step].sub;
+var ul=document.getElementById("panelBullets");
+ul.innerHTML="";
+steps[step].bullets.forEach(function(text){
+var li=document.createElement("li");
+li.innerHTML='<span class="bulletIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>'+text;
+ul.appendChild(li);
+});
+}
+document.querySelectorAll(".stepBtn").forEach(function(btn){
+btn.addEventListener("click",function(){setActive(btn.getAttribute("data-step"));});
+});
 document.getElementById("year").textContent=new Date().getFullYear();
+})();
 </script>
 </footer>
 </body>
