@@ -142,6 +142,8 @@ background:#fff;border:1px solid rgba(215,218,220,.9);
 font-weight:950;
 }
 .step.done .dot{background:var(--grad);border-color:transparent;color:#fff}
+.step.current{border-color:rgba(0,166,63,.22);background:rgba(0,166,63,.08)}
+.step.current .dot{background:var(--grad);border-color:transparent;color:#fff;box-shadow:0 10px 24px rgba(0,166,63,.18)}
 .card{
 background:rgba(255,255,255,.9);
 border:1px solid rgba(215,218,220,.85);
@@ -246,7 +248,7 @@ font-weight:750;
 <h1 class="h1">Signup</h1>
 <p class="sub">Step 1 of 3. Sign in with Google, then grant Gmail access so we can send applications from your mailbox (with your approval).</p>
 <div class="stepper" aria-label="Steps">
-<div class="step"><span class="dot">1</span><span>Signup</span></div>
+<div class="step current" aria-current="step"><span class="dot">1</span><span>Signup</span></div>
 <div class="step" id="step2"><span class="dot">2</span><span>Profile</span></div>
 <div class="step" id="step3"><span class="dot">3</span><span>Plan</span></div>
 </div>
