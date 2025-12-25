@@ -1,365 +1,376 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>JobApply-AI | Profile setup</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Profile setup • JobApply-AI</title>
 <style>
 :root{
---bg:#ffffff;
---surface:#f6f7f8;
---surface2:#eef1f2;
---text:#0b0b0b;
---muted:#4a4a4a;
---muted2:#6c6c6c;
---border:#d7dadc;
---shadow:0 12px 30px rgba(0,0,0,.08);
---shadow2:0 10px 26px rgba(0,0,0,.10);
---green:#00a63f;
---green2:#00c853;
---radius:22px;
---grad:linear-gradient(135deg,var(--green),var(--green2));
---max:1120px;
+  --bg:#f6f7f9;
+  --card:#ffffffcc;
+  --cardSolid:#fff;
+  --text:#0b0b0c;
+  --muted:rgba(0,0,0,.62);
+  --border:rgba(0,0,0,.10);
+  --shadow:0 14px 40px rgba(0,0,0,.08);
+  --radius:22px;
+  --radius2:999px;
+  --black:#0b0b0c;
+  --lime:#22c55e;
+  --lime2:#16a34a;
+  --warn:#f59e0b;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
-margin:0;
-font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
-color:var(--text);
-background:
-radial-gradient(1100px 600px at 8% 0%, rgba(0,166,63,.12), transparent 60%),
-radial-gradient(900px 520px at 92% 6%, rgba(0,200,83,.10), transparent 55%),
-var(--bg);
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  color:var(--text);
+  background:
+    radial-gradient(900px 500px at 15% 0%, rgba(34,197,94,.18), transparent 60%),
+    radial-gradient(700px 500px at 90% 10%, rgba(34,197,94,.12), transparent 55%),
+    var(--bg);
 }
-a{color:inherit}
-.shell{min-height:100%;display:flex;flex-direction:column}
-.topbar{
-position:sticky;
-top:0;
-z-index:20;
-backdrop-filter:saturate(1.4) blur(10px);
-background:rgba(255,255,255,.72);
-border-bottom:1px solid rgba(215,218,220,.7);
-}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1180px;margin:0 auto;padding:18px 18px 56px}
 .nav{
-max-width:var(--max);
-margin:0 auto;
-padding:14px 18px;
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:14px;
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:10px 6px;margin-bottom:18px;
 }
-.brand{
-display:flex;
-align-items:center;
-gap:10px;
-font-weight:950;
-letter-spacing:.2px;
-text-decoration:none;
+.brand{display:flex;align-items:center;gap:10px;font-weight:800}
+.logo{width:28px;height:18px;border-radius:7px;background:linear-gradient(135deg, #a7f3d0, #22c55e)}
+.navlinks{display:flex;gap:16px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.navlinks a:hover{color:var(--text)}
+.navcta{display:flex;gap:10px;align-items:center}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:10px 14px;border-radius:var(--radius2);
+  border:1px solid rgba(0,0,0,.12);
+  background:#fff; cursor:pointer;
+  font-weight:700;font-size:13px; line-height:1;
+  transition:transform .15s ease, box-shadow .15s ease, opacity .15s ease;
 }
-.logo{
-width:34px;
-height:34px;
-border-radius:12px;
-background:var(--grad);
-box-shadow:0 10px 24px rgba(0,166,63,.22);
-}
-.navlinks{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.btn:hover{box-shadow:0 8px 24px rgba(0,0,0,.10)}
+.btn:active{transform:translateY(1px)}
+.btn.black{background:var(--black);border-color:var(--black);color:#fff}
+.btn.lime{background:linear-gradient(135deg,#a7f3d0,#22c55e);border-color:rgba(34,197,94,.35)}
+.btn.disabled, .btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
 .pill{
-display:inline-flex;
-align-items:center;
-gap:8px;
-padding:9px 12px;
-border-radius:999px;
-border:1px solid rgba(215,218,220,.9);
-background:rgba(246,247,248,.92);
-font-weight:800;
-font-size:13px;
-text-decoration:none;
-transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease, background .15s ease;
+  display:inline-flex;align-items:center;gap:8px;
+  border:1px solid rgba(0,0,0,.10); background:#fff;
+  padding:8px 12px;border-radius:999px;font-size:13px;color:var(--muted)
 }
-.pill:hover{transform:translateY(-1px);box-shadow:var(--shadow);border-color:rgba(0,166,63,.22)}
-.pill.primary{
-border-color:transparent;
-background:var(--text);
-color:#fff;
+.dot{width:8px;height:8px;border-radius:99px;background:rgba(0,0,0,.25)}
+.dot.ok{background:var(--lime)}
+.dot.warn{background:var(--warn)}
+.page{
+  display:grid;grid-template-columns: 1.05fr .95fr; gap:22px; align-items:start;
 }
-.pill.primary:hover{transform:translateY(-1px);box-shadow:0 14px 36px rgba(0,0,0,.22)}
-.main{
-max-width:var(--max);
-width:100%;
-margin:0 auto;
-padding:34px 18px 26px;
+@media (max-width:980px){ .page{grid-template-columns:1fr} }
+.left{
+  padding:10px 6px;
 }
-.grid{
-display:grid;
-grid-template-columns:1.05fr .95fr;
-gap:28px;
-align-items:start;
+.h1{font-size:64px;letter-spacing:-.04em;line-height:1.02;margin:18px 0 8px}
+@media (max-width:680px){ .h1{font-size:44px} }
+.sub{font-size:18px;color:var(--muted);line-height:1.5;max-width:56ch}
+.card{
+  background:var(--cardSolid); border:1px solid rgba(0,0,0,.10);
+  border-radius:var(--radius); box-shadow:var(--shadow);
+  padding:18px;
 }
-@media (max-width:980px){
-.grid{grid-template-columns:1fr;gap:18px}
-.nav{padding:12px 14px}
-.main{padding:26px 14px 22px}
-}
-.h1{
-font-size:52px;
-line-height:1.02;
-letter-spacing:-1.2px;
-margin:0 0 10px 0;
-}
-@media (max-width:560px){.h1{font-size:40px}}
-.sub{
-margin:0 0 18px 0;
-color:var(--muted);
-font-weight:650;
-max-width:62ch;
-}
-.stepper{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-align-items:center;
-margin:10px 0 16px 0;
+.card.soft{background:var(--card)}
+.steps{
+  display:flex; gap:10px; flex-wrap:wrap; margin:14px 0 0;
 }
 .step{
-display:flex;
-align-items:center;
-gap:8px;
-padding:8px 12px;
-border-radius:999px;
-border:1px solid rgba(215,218,220,.9);
-background:rgba(246,247,248,.92);
-font-weight:850;
-font-size:13px;
+  display:flex;align-items:center;gap:10px;
+  border:1px solid rgba(0,0,0,.10); background:#fff;
+  border-radius:999px; padding:10px 12px; font-size:14px;
 }
-.dot{
-width:22px;height:22px;border-radius:999px;
-display:grid;place-items:center;
-background:#fff;border:1px solid rgba(215,218,220,.9);
-font-weight:950;
+.stepNum{
+  width:26px;height:26px;border-radius:999px;
+  display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid rgba(0,0,0,.14);
+  background:rgba(0,0,0,.04);
+  font-weight:800;
 }
-.step.done .dot{background:var(--grad);border-color:transparent;color:#fff}
-.card{
-background:rgba(255,255,255,.9);
-border:1px solid rgba(215,218,220,.85);
-border-radius:var(--radius);
-box-shadow:var(--shadow);
-padding:18px;
+.step[aria-current="step"]{
+  border-color:rgba(34,197,94,.40);
+  box-shadow:0 10px 30px rgba(34,197,94,.16);
 }
-.card h2{margin:0 0 10px 0;font-size:18px}
-.card p{margin:0 0 12px 0;color:var(--muted);font-weight:650}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media (max-width:560px){.row{grid-template-columns:1fr}}
-label{display:block;font-size:13px;font-weight:850;margin:10px 0 6px 0}
-input,select{
-width:100%;
-padding:12px 12px;
-border-radius:14px;
-border:1px solid rgba(215,218,220,.95);
-background:#fff;
-font-size:15px;
-outline:none;
-transition:border-color .15s ease, box-shadow .18s ease, transform .12s ease;
+.step[aria-current="step"] .stepNum{
+  background:linear-gradient(135deg,#a7f3d0,#22c55e);
+  border-color:rgba(34,197,94,.45);
 }
-input:focus,select:focus{border-color:rgba(0,166,63,.4);box-shadow:0 0 0 4px rgba(0,166,63,.12)}
-.actions{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-margin-top:14px;
-align-items:center;
+.step.muted{opacity:.55}
+.hr{height:1px;background:rgba(0,0,0,.08);margin:14px 0}
+.h3{font-size:16px;margin:0 0 10px}
+.help{font-size:13px;color:var(--muted);line-height:1.5;margin:0 0 12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:680px){ .grid2{grid-template-columns:1fr} }
+.field label{display:block;font-size:12px;color:var(--muted);margin:2px 0 6px;font-weight:700}
+.input, select{
+  width:100%; padding:12px 12px; border-radius:14px;
+  border:1px solid rgba(0,0,0,.12);
+  background:#fff; font-size:14px;
 }
-.btn{
-appearance:none;
-border:0;
-cursor:pointer;
-padding:11px 14px;
-border-radius:999px;
-font-weight:900;
-font-size:13px;
-letter-spacing:.2px;
-display:inline-flex;
-align-items:center;
-gap:8px;
-transition:transform .12s ease, box-shadow .18s ease, opacity .15s ease;
-text-decoration:none;
+.input:focus, select:focus{outline:2px solid rgba(34,197,94,.25);border-color:rgba(34,197,94,.45)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.toast{
+  position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
+  background:#0b0b0c;color:#fff;padding:10px 12px;border-radius:999px;
+  font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s ease, transform .2s ease;
+  box-shadow:0 12px 30px rgba(0,0,0,.22);
 }
-.btn:disabled{cursor:not-allowed;opacity:.55}
-.btn.primary{background:var(--grad);color:#fff;box-shadow:0 14px 34px rgba(0,166,63,.20)}
-.btn.primary:hover{transform:translateY(-1px);box-shadow:0 18px 40px rgba(0,166,63,.25)}
-.btn.ghost{background:var(--text);color:#fff}
-.btn.ghost:hover{transform:translateY(-1px);box-shadow:0 14px 36px rgba(0,0,0,.22)}
-.badge{
-display:inline-flex;align-items:center;gap:8px;
-padding:8px 12px;border-radius:14px;
-border:1px solid rgba(215,218,220,.9);
-background:rgba(246,247,248,.92);
-font-weight:850;font-size:13px;color:var(--muted);
-}
-.badge.good{border-color:rgba(0,166,63,.25);color:#075b24}
-.badge.warn{border-color:rgba(255,176,0,.35);color:#7a4d00}
-.hr{height:1px;background:rgba(215,218,220,.8);margin:14px 0}
-.footer{
-max-width:var(--max);
-margin:0 auto;
-padding:18px 18px 30px;
-color:var(--muted2);
-font-size:13px;
-}
-.fadeIn{animation:fadeIn .34s ease both}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-body.leaving .shell{animation:fadeOut .22s ease both}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(-2px)}
+.fadeOut{animation:fadeOut .28s ease forwards}
 @keyframes fadeOut{to{opacity:0;transform:translateY(6px)}}
-.helper{font-size:12px;color:var(--muted2);font-weight:650;margin-top:6px}
-.small{font-size:12px;color:var(--muted2);font-weight:650}
-.notice{
-border-radius:18px;
-padding:12px 12px;
-border:1px solid rgba(255,176,0,.35);
-background:rgba(255,244,214,.7);
-color:#5a3a00;
-font-weight:750;
+.footer{margin-top:18px;color:var(--muted);font-size:12px}
+.small{font-size:12px;color:var(--muted)}
+.badge{
+  display:inline-flex;align-items:center;gap:8px;
+  border:1px solid rgba(0,0,0,.10);background:#fff;border-radius:999px;
+  padding:8px 10px;font-size:12px;color:var(--muted);font-weight:700
 }
+.badge strong{color:var(--text)}
 </style>
+
 </head>
 <body>
-<div class="shell fadeIn">
-<header class="topbar">
-<nav class="nav">
-<a class="brand" href="index.html" data-nav="1"><span class="logo" aria-hidden="true"></span><span>JobApply-AI</span></a>
-<div class="navlinks">
-<a class="pill" href="index.html" data-nav="1">Home</a>
-<a class="pill" href="signup.html" data-nav="1">Signup</a>
-<a class="pill primary" href="profile.html" data-nav="1">Profile</a>
-<a class="pill" href="plan.html" data-nav="1">Plans</a>
-<a class="pill" href="mailto:schonv2@gmail.com">Contact</a>
-</div>
+<div class="wrap" id="top">
+
+
+<nav class="nav" aria-label="Primary navigation">
+  <a class="brand" href="index.html#top" aria-label="JobApply-AI Home">
+    <div class="logo" aria-hidden="true"></div>
+    <span>JobApply-AI</span>
+  </a>
+  <div class="navlinks" aria-label="Site links">
+    <a href="index.html#how">How it works</a>
+    <a href="index.html#dashboard">Dashboard</a>
+    <a href="index.html#pricing">Pricing</a>
+    <a href="index.html#why">Why this works</a>
+    <a href="index.html#contact">Contact</a>
+  </div>
+  <div class="navcta">
+    <span class="pill" id="authPill"><span class="dot"></span><span id="authText">Not signed in</span></span>
+  </div>
 </nav>
-</header>
-<main class="main">
-<div class="grid">
-<section>
-<h1 class="h1">Profile setup</h1>
-<p class="sub">Step 2 of 3. Upload your CV and set your job preferences so we can apply consistently.</p>
-<div class="stepper" aria-label="Steps">
-<div class="step done"><span class="dot">1</span><span>Signup</span></div>
-<div class="step"><span class="dot">2</span><span>Profile</span></div>
-<div class="step" id="step3"><span class="dot">3</span><span>Plan</span></div>
+
+<div class="page" id="page">
+  <div class="left">
+    <div class="h1">Profile setup</div>
+    <div class="sub">Step 2 of 3. Upload your CV and set job preferences so we can apply consistently.</div>
+    
+<div class="steps" aria-label="Onboarding steps">
+  <a class="step" href="signup.html"  onclick="JA.nav('signup.html');return false;"><span class="stepNum">1</span><span>Signup</span></a>
+  <a class="step" href="profile.html" aria-current="step" onclick="JA.nav('profile.html');return false;"><span class="stepNum">2</span><span>Profile</span></a>
+  <a class="step" href="plan.html"  onclick="JA.nav('plan.html');return false;"><span class="stepNum">3</span><span>Plan</span></a>
 </div>
-<div class="card" id="gateCard" style="display:none">
-<h2>Complete signup first</h2>
-<p>To protect your journey flow, profile setup is unlocked after Google sign-in.</p>
-<div class="actions">
-<button class="btn primary" type="button" id="backToSignup">Go to signup</button>
+
+    <div class="footer">Tip: you can edit this later. Your data is saved in your browser for now.</div>
+  </div>
+
+  <div class="card" id="card">
+    <div class="grid2" style="align-items:center">
+      <div>
+        <div class="h3">Your profile</div>
+        <p class="help" style="margin-bottom:0">Required fields are marked. CV upload stores only the file name in this demo.</p>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap">
+        <button class="btn" type="button" id="backBtn">Back</button>
+        <button class="btn black" type="button" id="continueBtn">Continue to plan</button>
+      </div>
+    </div>
+
+    <div class="hr"></div>
+
+    <div id="locked" class="card soft" style="display:none;margin-bottom:12px">
+      <div class="h3" style="margin-bottom:6px">Signup required</div>
+      <p class="help">Please complete Step 1 first (Google sign-in) before setting up your profile.</p>
+      <button class="btn lime" type="button" onclick="JA.nav('signup.html')">Go to signup</button>
+    </div>
+
+    <form id="form" novalidate>
+      <div class="field" style="margin-bottom:10px">
+        <label>Upload CV <span class="small">(PDF/DOCX recommended)</span></label>
+        <input class="input" type="file" id="cv" accept=".pdf,.doc,.docx" />
+        <div class="small" id="cvHint" style="margin-top:6px"></div>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label>Preferred job title(s) <span class="small">* (comma separated)</span></label>
+          <input class="input" id="titles" placeholder="e.g., Business Analyst, Operations Manager" required />
+        </div>
+        <div class="field">
+          <label>Industry <span class="small">*</span></label>
+          <input class="input" id="industry" placeholder="e.g., Healthcare, Tech, Consulting" required />
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:12px">
+        <div class="field">
+          <label>Country <span class="small">*</span></label>
+          <input class="input" id="country" placeholder="e.g., Germany" required />
+        </div>
+        <div class="field">
+          <label>City <span class="small">*</span></label>
+          <input class="input" id="city" placeholder="e.g., Berlin" required />
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:12px">
+        <label>Radius (km) <span class="small">*</span></label>
+        <input class="input" id="radius" type="number" min="0" step="1" placeholder="e.g., 20" required />
+      </div>
+
+      <div class="actions">
+        <button class="btn" type="button" id="saveBtn">Save profile</button>
+        <span class="small" id="saveStatus"></span>
+      </div>
+    </form>
+  </div>
 </div>
-</div>
-</section>
-<section>
-<div class="card">
-<h2>Your preferences</h2>
-<p>This information helps us target the right jobs and keep your applications consistent.</p>
-<form id="profileForm">
-<label for="cv">Upload CV</label>
-<input id="cv" name="cv" type="file" accept=".pdf,.doc,.docx">
-<div class="helper" id="cvHint">For now, this demo stores only the file name locally.</div>
-<div class="row">
-<div>
-<label for="jobTitles">Preferred job title(s)</label>
-<input id="jobTitles" name="jobTitles" type="text" placeholder="e.g., Operations Manager, Business Analyst">
-</div>
-<div>
-<label for="industry">Industry</label>
-<input id="industry" name="industry" type="text" placeholder="e.g., Healthcare, SaaS, Logistics">
-</div>
-</div>
-<div class="row">
-<div>
-<label for="country">Country</label>
-<input id="country" name="country" type="text" placeholder="e.g., Germany">
-</div>
-<div>
-<label for="city">City</label>
-<input id="city" name="city" type="text" placeholder="e.g., Berlin">
-</div>
-</div>
-<label for="radius">Radius (km)</label>
-<input id="radius" name="radius" type="number" min="0" step="1" placeholder="e.g., 25">
-<div class="actions">
-<button class="btn ghost" type="submit">Save profile</button>
-<button class="btn primary" type="button" id="toPlan">Continue to plan</button>
-<span class="badge" id="saveStatus">Not saved yet</span>
-</div>
-</form>
-</div>
-</section>
-</div>
+
 <script>
-function guard(){
-const email=localStorage.getItem("ja_user_email");
-if(!email){
-document.getElementById("gateCard").style.display="block";
-document.getElementById("profileForm").querySelectorAll("input,button").forEach(el=>el.disabled=true);
-document.getElementById("backToSignup").addEventListener("click",()=>go("signup.html"));
-}
-}
-function load(){
-guard();
-const data=JSON.parse(localStorage.getItem("ja_profile")||"{}");
-["jobTitles","industry","country","city","radius"].forEach(k=>{
-const el=document.getElementById(k);
-if(el && data[k]!=null)el.value=data[k];
-});
-const cvName=localStorage.getItem("ja_cv_name");
-if(cvName)document.getElementById("cvHint").textContent="Saved CV: "+cvName;
-if(localStorage.getItem("ja_profile"))document.getElementById("saveStatus").className="badge good";
-}
-document.getElementById("profileForm").addEventListener("submit",(e)=>{
-e.preventDefault();
-const cv=document.getElementById("cv").files[0];
-if(cv)localStorage.setItem("ja_cv_name",cv.name);
-const profile={
-jobTitles:document.getElementById("jobTitles").value.trim(),
-industry:document.getElementById("industry").value.trim(),
-country:document.getElementById("country").value.trim(),
-city:document.getElementById("city").value.trim(),
-radius:document.getElementById("radius").value.trim()
-};
-localStorage.setItem("ja_profile",JSON.stringify(profile));
-const st=document.getElementById("saveStatus");
-st.className="badge good";
-st.textContent="Saved";
-document.getElementById("step3").classList.toggle("done",!!localStorage.getItem("ja_plan"));
-});
-document.getElementById("toPlan").addEventListener("click",()=>{
-if(!localStorage.getItem("ja_profile")){
-const st=document.getElementById("saveStatus");
-st.className="badge warn";
-st.textContent="Save first";
-return;
-}
-go("plan.html");
-});
-window.addEventListener("load",load);
+(function(){
+  const authText = document.getElementById('authText');
+  const authPill = document.getElementById('authPill');
+  const locked = document.getElementById('locked');
+  const form = document.getElementById('form');
+  const saveBtn = document.getElementById('saveBtn');
+  const continueBtn = document.getElementById('continueBtn');
+  const backBtn = document.getElementById('backBtn');
+  const saveStatus = document.getElementById('saveStatus');
+  const cv = document.getElementById('cv');
+  const cvHint = document.getElementById('cvHint');
+
+  const titles = document.getElementById('titles');
+  const industry = document.getElementById('industry');
+  const country = document.getElementById('country');
+  const city = document.getElementById('city');
+  const radius = document.getElementById('radius');
+
+  function setAuthPill(){
+    const email = JA.get('ja_user_email');
+    const signed = JA.get('ja_signed_in') === 'true' && !!email;
+    authText.textContent = signed ? email : "Not signed in";
+    authPill.querySelector('.dot').className = "dot " + (signed ? "ok" : "");
+  }
+
+  function lockIfNeeded(){
+    const signed = JA.get('ja_signed_in') === 'true';
+    if(!signed){
+      locked.style.display = "block";
+      form.style.opacity = ".45";
+      form.style.pointerEvents = "none";
+      continueBtn.classList.add('disabled');
+      continueBtn.disabled = true;
+    }
+  }
+
+  function load(){
+    titles.value = JA.get('ja_titles') || "";
+    industry.value = JA.get('ja_industry') || "";
+    country.value = JA.get('ja_country') || "";
+    city.value = JA.get('ja_city') || "";
+    radius.value = JA.get('ja_radius') || "";
+    const cvName = JA.get('ja_cv_name');
+    if(cvName){
+      cvHint.textContent = "Saved: " + cvName;
+    }
+  }
+
+  function validate(){
+    const errs = [];
+    if(!titles.value.trim()) errs.push("job title(s)");
+    if(!industry.value.trim()) errs.push("industry");
+    if(!country.value.trim()) errs.push("country");
+    if(!city.value.trim()) errs.push("city");
+    const r = Number(radius.value);
+    if(!Number.isFinite(r) || r < 0) errs.push("radius");
+    if(errs.length){
+      JA.showToast("Please fill: " + errs.join(", "));
+      return false;
+    }
+    return true;
+  }
+
+  function save(){
+    if(!validate()) return false;
+    JA.set('ja_titles', titles.value.trim());
+    JA.set('ja_industry', industry.value.trim());
+    JA.set('ja_country', country.value.trim());
+    JA.set('ja_city', city.value.trim());
+    JA.set('ja_radius', String(Math.round(Number(radius.value))));
+    JA.set('ja_profile_complete', 'true');
+    JA.showToast('Profile saved');
+    saveStatus.textContent = "Saved ✓";
+    window.setTimeout(()=> saveStatus.textContent = "", 1800);
+    return true;
+  }
+
+  cv.addEventListener('change', function(){
+    if(cv.files && cv.files[0]){
+      JA.set('ja_cv_name', cv.files[0].name);
+      cvHint.textContent = "Selected: " + cv.files[0].name;
+      JA.showToast('CV selected');
+    }
+  });
+
+  saveBtn.addEventListener('click', save);
+
+  continueBtn.addEventListener('click', function(){
+    if(JA.get('ja_signed_in') !== 'true'){ JA.showToast('Complete signup first'); return; }
+    if(save()){
+      JA.nav('plan.html');
+    }
+  });
+
+  backBtn.addEventListener('click', function(){ JA.nav('signup.html'); });
+
+  document.querySelectorAll('.steps a').forEach(a=>{
+    a.addEventListener('click', (e)=>{
+      const href = a.getAttribute('href');
+      if(href === 'plan.html' && JA.get('ja_profile_complete') !== 'true'){
+        e.preventDefault();
+        JA.showToast('Save your profile first');
+      }
+    });
+  });
+
+  setAuthPill();
+  lockIfNeeded();
+  load();
+})();
 </script>
-<script>
-function go(url){
-document.body.classList.add("leaving");
-setTimeout(()=>{window.location.href=url;},180);
-}
-document.addEventListener("click",(e)=>{
-const a=e.target.closest("a[data-nav='1']");
-if(!a)return;
-const url=a.getAttribute("href");
-if(!url || url.startsWith("#"))return;
-e.preventDefault();
-go(url);
-});
-</script>
-</main>
-<footer class="footer">Need help? Email <a href="mailto:schonv2@gmail.com">schonv2@gmail.com</a>.</footer>
+
 </div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  const toast = document.getElementById('toast');
+  function showToast(msg){
+    if(!toast) return;
+    toast.textContent = msg;
+    toast.classList.add('show');
+    window.clearTimeout(showToast._t);
+    showToast._t = window.setTimeout(()=>toast.classList.remove('show'), 2200);
+  }
+  window.JA = {
+    showToast,
+    nav(url){
+      document.body.classList.add('fadeOut');
+      setTimeout(()=>{ window.location.href = url; }, 220);
+    },
+    get(key){ try{return localStorage.getItem(key);}catch(e){return null;} },
+    set(key,val){ try{ localStorage.setItem(key,val);}catch(e){} },
+    del(key){ try{ localStorage.removeItem(key);}catch(e){} },
+  };
+})();
+</script>
+
 </body>
 </html>
