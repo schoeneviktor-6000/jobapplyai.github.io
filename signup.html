@@ -1,368 +1,363 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>JobApply-AI | Signup</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Signup • JobApply-AI</title>
 <style>
 :root{
---bg:#ffffff;
---surface:#f6f7f8;
---surface2:#eef1f2;
---text:#0b0b0b;
---muted:#4a4a4a;
---muted2:#6c6c6c;
---border:#d7dadc;
---shadow:0 12px 30px rgba(0,0,0,.08);
---shadow2:0 10px 26px rgba(0,0,0,.10);
---green:#00a63f;
---green2:#00c853;
---radius:22px;
---grad:linear-gradient(135deg,var(--green),var(--green2));
---max:1120px;
+  --bg:#f6f7f9;
+  --card:#ffffffcc;
+  --cardSolid:#fff;
+  --text:#0b0b0c;
+  --muted:rgba(0,0,0,.62);
+  --border:rgba(0,0,0,.10);
+  --shadow:0 14px 40px rgba(0,0,0,.08);
+  --radius:22px;
+  --radius2:999px;
+  --black:#0b0b0c;
+  --lime:#22c55e;
+  --lime2:#16a34a;
+  --warn:#f59e0b;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
-margin:0;
-font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
-color:var(--text);
-background:
-radial-gradient(1100px 600px at 8% 0%, rgba(0,166,63,.12), transparent 60%),
-radial-gradient(900px 520px at 92% 6%, rgba(0,200,83,.10), transparent 55%),
-var(--bg);
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  color:var(--text);
+  background:
+    radial-gradient(900px 500px at 15% 0%, rgba(34,197,94,.18), transparent 60%),
+    radial-gradient(700px 500px at 90% 10%, rgba(34,197,94,.12), transparent 55%),
+    var(--bg);
 }
-a{color:inherit}
-.shell{min-height:100%;display:flex;flex-direction:column}
-.topbar{
-position:sticky;
-top:0;
-z-index:20;
-backdrop-filter:saturate(1.4) blur(10px);
-background:rgba(255,255,255,.72);
-border-bottom:1px solid rgba(215,218,220,.7);
-}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1180px;margin:0 auto;padding:18px 18px 56px}
 .nav{
-max-width:var(--max);
-margin:0 auto;
-padding:14px 18px;
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:14px;
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:10px 6px;margin-bottom:18px;
 }
-.brand{
-display:flex;
-align-items:center;
-gap:10px;
-font-weight:950;
-letter-spacing:.2px;
-text-decoration:none;
+.brand{display:flex;align-items:center;gap:10px;font-weight:800}
+.logo{width:28px;height:18px;border-radius:7px;background:linear-gradient(135deg, #a7f3d0, #22c55e)}
+.navlinks{display:flex;gap:16px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.navlinks a:hover{color:var(--text)}
+.navcta{display:flex;gap:10px;align-items:center}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:10px 14px;border-radius:var(--radius2);
+  border:1px solid rgba(0,0,0,.12);
+  background:#fff; cursor:pointer;
+  font-weight:700;font-size:13px; line-height:1;
+  transition:transform .15s ease, box-shadow .15s ease, opacity .15s ease;
 }
-.logo{
-width:34px;
-height:34px;
-border-radius:12px;
-background:var(--grad);
-box-shadow:0 10px 24px rgba(0,166,63,.22);
-}
-.navlinks{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.btn:hover{box-shadow:0 8px 24px rgba(0,0,0,.10)}
+.btn:active{transform:translateY(1px)}
+.btn.black{background:var(--black);border-color:var(--black);color:#fff}
+.btn.lime{background:linear-gradient(135deg,#a7f3d0,#22c55e);border-color:rgba(34,197,94,.35)}
+.btn.disabled, .btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
 .pill{
-display:inline-flex;
-align-items:center;
-gap:8px;
-padding:9px 12px;
-border-radius:999px;
-border:1px solid rgba(215,218,220,.9);
-background:rgba(246,247,248,.92);
-font-weight:800;
-font-size:13px;
-text-decoration:none;
-transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease, background .15s ease;
+  display:inline-flex;align-items:center;gap:8px;
+  border:1px solid rgba(0,0,0,.10); background:#fff;
+  padding:8px 12px;border-radius:999px;font-size:13px;color:var(--muted)
 }
-.pill:hover{transform:translateY(-1px);box-shadow:var(--shadow);border-color:rgba(0,166,63,.22)}
-.pill.primary{
-border-color:transparent;
-background:var(--text);
-color:#fff;
+.dot{width:8px;height:8px;border-radius:99px;background:rgba(0,0,0,.25)}
+.dot.ok{background:var(--lime)}
+.dot.warn{background:var(--warn)}
+.page{
+  display:grid;grid-template-columns: 1.05fr .95fr; gap:22px; align-items:start;
 }
-.pill.primary:hover{transform:translateY(-1px);box-shadow:0 14px 36px rgba(0,0,0,.22)}
-.main{
-max-width:var(--max);
-width:100%;
-margin:0 auto;
-padding:34px 18px 26px;
+@media (max-width:980px){ .page{grid-template-columns:1fr} }
+.left{
+  padding:10px 6px;
 }
-.grid{
-display:grid;
-grid-template-columns:1.05fr .95fr;
-gap:28px;
-align-items:start;
+.h1{font-size:64px;letter-spacing:-.04em;line-height:1.02;margin:18px 0 8px}
+@media (max-width:680px){ .h1{font-size:44px} }
+.sub{font-size:18px;color:var(--muted);line-height:1.5;max-width:56ch}
+.card{
+  background:var(--cardSolid); border:1px solid rgba(0,0,0,.10);
+  border-radius:var(--radius); box-shadow:var(--shadow);
+  padding:18px;
 }
-@media (max-width:980px){
-.grid{grid-template-columns:1fr;gap:18px}
-.nav{padding:12px 14px}
-.main{padding:26px 14px 22px}
-}
-.h1{
-font-size:52px;
-line-height:1.02;
-letter-spacing:-1.2px;
-margin:0 0 10px 0;
-}
-@media (max-width:560px){.h1{font-size:40px}}
-.sub{
-margin:0 0 18px 0;
-color:var(--muted);
-font-weight:650;
-max-width:62ch;
-}
-.stepper{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-align-items:center;
-margin:10px 0 16px 0;
+.card.soft{background:var(--card)}
+.steps{
+  display:flex; gap:10px; flex-wrap:wrap; margin:14px 0 0;
 }
 .step{
-display:flex;
-align-items:center;
-gap:8px;
-padding:8px 12px;
-border-radius:999px;
-border:1px solid rgba(215,218,220,.9);
-background:rgba(246,247,248,.92);
-font-weight:850;
-font-size:13px;
+  display:flex;align-items:center;gap:10px;
+  border:1px solid rgba(0,0,0,.10); background:#fff;
+  border-radius:999px; padding:10px 12px; font-size:14px;
 }
-.dot{
-width:22px;height:22px;border-radius:999px;
-display:grid;place-items:center;
-background:#fff;border:1px solid rgba(215,218,220,.9);
-font-weight:950;
+.stepNum{
+  width:26px;height:26px;border-radius:999px;
+  display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid rgba(0,0,0,.14);
+  background:rgba(0,0,0,.04);
+  font-weight:800;
 }
-.step.done .dot{background:var(--grad);border-color:transparent;color:#fff}
-.card{
-background:rgba(255,255,255,.9);
-border:1px solid rgba(215,218,220,.85);
-border-radius:var(--radius);
-box-shadow:var(--shadow);
-padding:18px;
+.step[aria-current="step"]{
+  border-color:rgba(34,197,94,.40);
+  box-shadow:0 10px 30px rgba(34,197,94,.16);
 }
-.card h2{margin:0 0 10px 0;font-size:18px}
-.card p{margin:0 0 12px 0;color:var(--muted);font-weight:650}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media (max-width:560px){.row{grid-template-columns:1fr}}
-label{display:block;font-size:13px;font-weight:850;margin:10px 0 6px 0}
-input,select{
-width:100%;
-padding:12px 12px;
-border-radius:14px;
-border:1px solid rgba(215,218,220,.95);
-background:#fff;
-font-size:15px;
-outline:none;
-transition:border-color .15s ease, box-shadow .18s ease, transform .12s ease;
+.step[aria-current="step"] .stepNum{
+  background:linear-gradient(135deg,#a7f3d0,#22c55e);
+  border-color:rgba(34,197,94,.45);
 }
-input:focus,select:focus{border-color:rgba(0,166,63,.4);box-shadow:0 0 0 4px rgba(0,166,63,.12)}
-.actions{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-margin-top:14px;
-align-items:center;
+.step.muted{opacity:.55}
+.hr{height:1px;background:rgba(0,0,0,.08);margin:14px 0}
+.h3{font-size:16px;margin:0 0 10px}
+.help{font-size:13px;color:var(--muted);line-height:1.5;margin:0 0 12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:680px){ .grid2{grid-template-columns:1fr} }
+.field label{display:block;font-size:12px;color:var(--muted);margin:2px 0 6px;font-weight:700}
+.input, select{
+  width:100%; padding:12px 12px; border-radius:14px;
+  border:1px solid rgba(0,0,0,.12);
+  background:#fff; font-size:14px;
 }
-.btn{
-appearance:none;
-border:0;
-cursor:pointer;
-padding:11px 14px;
-border-radius:999px;
-font-weight:900;
-font-size:13px;
-letter-spacing:.2px;
-display:inline-flex;
-align-items:center;
-gap:8px;
-transition:transform .12s ease, box-shadow .18s ease, opacity .15s ease;
-text-decoration:none;
+.input:focus, select:focus{outline:2px solid rgba(34,197,94,.25);border-color:rgba(34,197,94,.45)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.toast{
+  position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
+  background:#0b0b0c;color:#fff;padding:10px 12px;border-radius:999px;
+  font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s ease, transform .2s ease;
+  box-shadow:0 12px 30px rgba(0,0,0,.22);
 }
-.btn:disabled{cursor:not-allowed;opacity:.55}
-.btn.primary{background:var(--grad);color:#fff;box-shadow:0 14px 34px rgba(0,166,63,.20)}
-.btn.primary:hover{transform:translateY(-1px);box-shadow:0 18px 40px rgba(0,166,63,.25)}
-.btn.ghost{background:var(--text);color:#fff}
-.btn.ghost:hover{transform:translateY(-1px);box-shadow:0 14px 36px rgba(0,0,0,.22)}
-.badge{
-display:inline-flex;align-items:center;gap:8px;
-padding:8px 12px;border-radius:14px;
-border:1px solid rgba(215,218,220,.9);
-background:rgba(246,247,248,.92);
-font-weight:850;font-size:13px;color:var(--muted);
-}
-.badge.good{border-color:rgba(0,166,63,.25);color:#075b24}
-.badge.warn{border-color:rgba(255,176,0,.35);color:#7a4d00}
-.hr{height:1px;background:rgba(215,218,220,.8);margin:14px 0}
-.footer{
-max-width:var(--max);
-margin:0 auto;
-padding:18px 18px 30px;
-color:var(--muted2);
-font-size:13px;
-}
-.fadeIn{animation:fadeIn .34s ease both}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-body.leaving .shell{animation:fadeOut .22s ease both}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(-2px)}
+.fadeOut{animation:fadeOut .28s ease forwards}
 @keyframes fadeOut{to{opacity:0;transform:translateY(6px)}}
-.helper{font-size:12px;color:var(--muted2);font-weight:650;margin-top:6px}
-.small{font-size:12px;color:var(--muted2);font-weight:650}
-.notice{
-border-radius:18px;
-padding:12px 12px;
-border:1px solid rgba(255,176,0,.35);
-background:rgba(255,244,214,.7);
-color:#5a3a00;
-font-weight:750;
+.footer{margin-top:18px;color:var(--muted);font-size:12px}
+.small{font-size:12px;color:var(--muted)}
+.badge{
+  display:inline-flex;align-items:center;gap:8px;
+  border:1px solid rgba(0,0,0,.10);background:#fff;border-radius:999px;
+  padding:8px 10px;font-size:12px;color:var(--muted);font-weight:700
 }
+.badge strong{color:var(--text)}
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
-<div class="shell fadeIn">
-<header class="topbar">
-<nav class="nav">
-<a class="brand" href="index.html" data-nav="1"><span class="logo" aria-hidden="true"></span><span>JobApply-AI</span></a>
-<div class="navlinks">
-<a class="pill" href="index.html" data-nav="1">Home</a>
-<a class="pill primary" href="signup.html" data-nav="1">Signup</a>
-<a class="pill" href="profile.html" data-nav="1">Profile</a>
-<a class="pill" href="plan.html" data-nav="1">Plans</a>
-<a class="pill" href="mailto:schonv2@gmail.com">Contact</a>
-</div>
+<div class="wrap" id="top">
+
+
+<nav class="nav" aria-label="Primary navigation">
+  <a class="brand" href="index.html#top" aria-label="JobApply-AI Home">
+    <div class="logo" aria-hidden="true"></div>
+    <span>JobApply-AI</span>
+  </a>
+  <div class="navlinks" aria-label="Site links">
+    <a href="index.html#how">How it works</a>
+    <a href="index.html#dashboard">Dashboard</a>
+    <a href="index.html#pricing">Pricing</a>
+    <a href="index.html#why">Why this works</a>
+    <a href="index.html#contact">Contact</a>
+  </div>
+  <div class="navcta">
+    <span class="pill" id="authPill"><span class="dot"></span><span id="authText">Not signed in</span></span>
+  </div>
 </nav>
-</header>
-<main class="main">
-<div class="grid">
-<section>
-<h1 class="h1">Signup</h1>
-<p class="sub">Step 1 of 3. Sign in with Google, then grant Gmail access so we can send applications from your mailbox (with your approval).</p>
-<div class="stepper" aria-label="Steps">
-<div class="step"><span class="dot">1</span><span>Signup</span></div>
-<div class="step" id="step2"><span class="dot">2</span><span>Profile</span></div>
-<div class="step" id="step3"><span class="dot">3</span><span>Plan</span></div>
+
+<div class="page" id="page">
+  <div class="left">
+    <div class="h1">Signup</div>
+    <div class="sub">Step 1 of 3. Sign in with Google, then grant Gmail access so we can send applications from your mailbox (with your approval).</div>
+    
+<div class="steps" aria-label="Onboarding steps">
+  <a class="step" href="signup.html" aria-current="step" onclick="JA.nav('signup.html');return false;"><span class="stepNum">1</span><span>Signup</span></a>
+  <a class="step" href="profile.html"  onclick="JA.nav('profile.html');return false;"><span class="stepNum">2</span><span>Profile</span></a>
+  <a class="step" href="plan.html"  onclick="JA.nav('plan.html');return false;"><span class="stepNum">3</span><span>Plan</span></a>
 </div>
-<div class="card">
-<h2>What happens here</h2>
-<p>We only unlock the next steps after you complete Google sign-in. Gmail access is requested separately and can be skipped for now.</p>
-<div class="hr"></div>
-<div class="badge" id="authBadge">Not signed in</div>
-<div style="height:10px"></div>
-<div class="badge" id="gmailBadge">Gmail access not granted</div>
-<div class="hr"></div>
-<div class="notice" id="clientNotice" style="display:none">Google login is not configured yet. Add your Google OAuth Client ID in this file (search for YOUR_GOOGLE_CLIENT_ID).</div>
-<div class="actions">
-<button class="btn ghost" id="googleBtn" type="button">Sign in with Google</button>
-<button class="btn primary" id="gmailBtn" type="button" disabled>Grant Gmail access</button>
+
+    <div class="footer">Need help? Email <a href="mailto:schonv2@gmail.com"><strong>schonv2@gmail.com</strong></a>.</div>
+  </div>
+
+  <div class="card" id="card">
+    <div class="h3">1) Google login</div>
+    <p class="help">This uses Google Identity Services. Add your Google OAuth Client ID in the code (placeholder below) to enable sign-in.</p>
+
+    <div class="grid2">
+      <div class="badge" id="signedBadge"><span class="dot" id="signedDot"></span><span>Status: <strong id="signedText">Not signed in</strong></span></div>
+      <div class="badge" id="gmailBadge"><span class="dot" id="gmailDot"></span><span>Gmail access: <strong id="gmailText">Not granted</strong></span></div>
+    </div>
+
+    <div class="hr"></div>
+
+    <div id="gBtnWrap"></div>
+    <div class="actions">
+      <button class="btn" id="mockSignBtn" type="button">Mock sign-in (demo)</button>
+      <button class="btn lime disabled" id="grantBtn" type="button" disabled>Grant Gmail access</button>
+      <button class="btn black disabled" id="continueBtn" type="button" disabled>Continue to profile</button>
+    </div>
+
+    <p class="small" style="margin-top:10px">
+      For production: you will need a secure backend (or Firebase) to store refresh tokens. Otherwise access expires.
+    </p>
+  </div>
 </div>
-<div class="helper">You can revoke Gmail permissions anytime in your Google Account settings.</div>
-</div>
-<div style="height:14px"></div>
-<div class="card">
-<h2>Continue</h2>
-<p>After sign-in, move to profile setup.</p>
-<div class="actions">
-<button class="btn primary" id="toProfile" type="button" disabled>Continue to profile</button>
-</div>
-<div class="small" id="continueHint">Tip: sign in first.</div>
-</div>
-</section>
-<section>
-<div class="card">
-<h2>Setup checklist</h2>
-<p>Before this works, configure Google OAuth for your GitHub Pages domain.</p>
-<div class="hr"></div>
-<div class="small"><strong>1)</strong> Create OAuth Client ID (Web)</div>
-<div class="small"><strong>2)</strong> Add Authorized JavaScript origin: your GitHub Pages domain</div>
-<div class="small"><strong>3)</strong> Add Authorized redirect URI: your signup page URL</div>
-<div class="small"><strong>4)</strong> Publish consent screen and add test users if needed</div>
-<div class="hr"></div>
-<div class="small">For a demo, this page stores status locally in your browser (localStorage). For production, use a backend or Firebase for secure token storage.</div>
-</div>
-</section>
-</div>
+
 <script>
-const APP={
-clientId:"YOUR_GOOGLE_CLIENT_ID",
-scopes:["https://www.googleapis.com/auth/gmail.send","openid","email","profile"]
-};
-function safeText(el,t){if(el)el.textContent=t;}
-function setBadge(el,type,text){if(!el)return;el.className="badge "+type;el.textContent=text;}
-function setStatus(){
-const email=localStorage.getItem("ja_user_email");
-const gmail=localStorage.getItem("ja_gmail_connected")==="1";
-if(email){setBadge(document.getElementById("authBadge"),"good","Signed in: "+email);}
-else{setBadge(document.getElementById("authBadge"),"warn","Not signed in");}
-if(gmail){setBadge(document.getElementById("gmailBadge"),"good","Gmail access granted");}
-else{setBadge(document.getElementById("gmailBadge"),"warn","Gmail access not granted");}
-document.getElementById("gmailBtn").disabled=!email;
-document.getElementById("toProfile").disabled=!email;
-safeText(document.getElementById("continueHint"),email?"Ready to set up your profile.":"Tip: sign in first.");
-document.getElementById("step2").classList.toggle("done",!!localStorage.getItem("ja_profile"));
-document.getElementById("step3").classList.toggle("done",!!localStorage.getItem("ja_plan"));
-}
-function initGoogle(){
-const hasClient=APP.clientId && !APP.clientId.includes("YOUR_GOOGLE_CLIENT_ID");
-document.getElementById("clientNotice").style.display=hasClient?"none":"block";
-if(!hasClient){document.getElementById("googleBtn").disabled=true;return;}
-document.getElementById("googleBtn").addEventListener("click",()=>{
-google.accounts.id.initialize({
-client_id:APP.clientId,
-callback:(resp)=>{
-try{
-const payload=JSON.parse(atob(resp.credential.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")));
-if(payload && payload.email){localStorage.setItem("ja_user_email",payload.email);}
-localStorage.setItem("ja_signed_in","1");
-setStatus();
-}catch(e){}
-}
-});
-google.accounts.id.prompt();
-});
-document.getElementById("gmailBtn").addEventListener("click",()=>{
-const email=localStorage.getItem("ja_user_email");
-if(!email){alert("Please sign in first.");return;}
-const tokenClient=google.accounts.oauth2.initTokenClient({
-client_id:APP.clientId,
-scope:"https://www.googleapis.com/auth/gmail.send",
-callback:(tokenResponse)=>{
-if(tokenResponse && tokenResponse.access_token){
-sessionStorage.setItem("ja_access_token",tokenResponse.access_token);
-localStorage.setItem("ja_gmail_connected","1");
-setStatus();
-}else{alert("No access token received.");}
-}
-});
-tokenClient.requestAccessToken({prompt:"consent"});
-});
-document.getElementById("toProfile").addEventListener("click",()=>go("profile.html"));
-}
-window.addEventListener("load",()=>{setStatus();initGoogle();});
+(function(){
+  const CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID"; // TODO: replace
+  const SCOPES = "https://www.googleapis.com/auth/gmail.send";
+
+  const signedDot = document.getElementById('signedDot');
+  const gmailDot = document.getElementById('gmailDot');
+  const signedText = document.getElementById('signedText');
+  const gmailText = document.getElementById('gmailText');
+  const authPill = document.getElementById('authPill');
+  const authText = document.getElementById('authText');
+  const grantBtn = document.getElementById('grantBtn');
+  const continueBtn = document.getElementById('continueBtn');
+  const mockSignBtn = document.getElementById('mockSignBtn');
+  const gBtnWrap = document.getElementById('gBtnWrap');
+
+  function setDot(dotEl, state){
+    dotEl.className = "dot " + (state === "ok" ? "ok" : state === "warn" ? "warn" : "");
+  }
+  function setEnabled(btn, enabled){
+    btn.disabled = !enabled;
+    btn.classList.toggle('disabled', !enabled);
+  }
+  function refreshUI(){
+    const email = JA.get('ja_user_email');
+    const signedIn = !!email;
+    const gmailGranted = JA.get('ja_gmail_granted') === 'true';
+
+    signedText.textContent = signedIn ? ("Signed in (" + email + ")") : "Not signed in";
+    gmailText.textContent = gmailGranted ? "Granted" : "Not granted";
+
+    setDot(signedDot, signedIn ? "ok" : "");
+    setDot(gmailDot, gmailGranted ? "ok" : "");
+
+    authText.textContent = signedIn ? email : "Not signed in";
+    authPill.querySelector('.dot').className = "dot " + (signedIn ? "ok" : "");
+
+    setEnabled(grantBtn, signedIn);
+    setEnabled(continueBtn, signedIn && gmailGranted);
+  }
+
+  function markSignedIn(email){
+    JA.set('ja_user_email', email);
+    JA.set('ja_signed_in', 'true');
+    JA.showToast('Signed in');
+    refreshUI();
+  }
+
+  mockSignBtn.addEventListener('click', function(){
+    markSignedIn('demo.user@gmail.com');
+  });
+
+  function initGIS(){
+    if(!window.google || !google.accounts || !google.accounts.id){
+      return;
+    }
+    if(!CLIENT_ID || CLIENT_ID === "YOUR_GOOGLE_CLIENT_ID"){
+      const hint = document.createElement('div');
+      hint.className = "pill";
+      hint.style.marginBottom = "10px";
+      hint.innerHTML = '<span class="dot warn"></span><span>Add your Google Client ID to enable real sign-in.</span>';
+      gBtnWrap.appendChild(hint);
+      return;
+    }
+    google.accounts.id.initialize({
+      client_id: CLIENT_ID,
+      callback: (response) => {
+        JA.set('ja_google_id_token', response.credential || '');
+        markSignedIn('signed-in@gmail.com');
+      }
+    });
+    google.accounts.id.renderButton(gBtnWrap, {
+      theme: "outline",
+      size: "large",
+      shape: "pill",
+      text: "continue_with",
+      width: 260
+    });
+  }
+
+  let tokenClient = null;
+  function initTokenClient(){
+    if(!window.google || !google.accounts || !google.accounts.oauth2) return;
+    if(!CLIENT_ID || CLIENT_ID === "YOUR_GOOGLE_CLIENT_ID") return;
+
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: (tokenResponse) => {
+        if(tokenResponse && tokenResponse.access_token){
+          JA.set('ja_gmail_granted', 'true');
+          JA.set('ja_gmail_access_token', tokenResponse.access_token);
+          JA.showToast('Gmail access granted');
+          refreshUI();
+        } else {
+          JA.showToast('Could not grant Gmail access');
+        }
+      }
+    });
+  }
+
+  grantBtn.addEventListener('click', function(){
+    if(!JA.get('ja_user_email')){
+      JA.showToast('Sign in first');
+      return;
+    }
+    if(!tokenClient){
+      JA.showToast('Add Client ID to enable Gmail permission');
+      return;
+    }
+    tokenClient.requestAccessToken({ prompt: "consent" });
+  });
+
+  continueBtn.addEventListener('click', function(){
+    if(continueBtn.disabled) return;
+    JA.nav('profile.html');
+  });
+
+  document.querySelectorAll('.steps a').forEach(a=>{
+    a.addEventListener('click', (e)=>{
+      const href = a.getAttribute('href');
+      if(href === 'profile.html' && JA.get('ja_signed_in') !== 'true'){
+        e.preventDefault(); JA.showToast('Complete signup first');
+      }
+      if(href === 'plan.html' && JA.get('ja_profile_complete') !== 'true'){
+        e.preventDefault(); JA.showToast('Complete profile first');
+      }
+    });
+  });
+
+  refreshUI();
+  window.addEventListener('load', ()=>{
+    initGIS();
+    initTokenClient();
+  });
+})();
 </script>
-<script>
-function go(url){
-document.body.classList.add("leaving");
-setTimeout(()=>{window.location.href=url;},180);
-}
-document.addEventListener("click",(e)=>{
-const a=e.target.closest("a[data-nav='1']");
-if(!a)return;
-const url=a.getAttribute("href");
-if(!url || url.startsWith("#"))return;
-e.preventDefault();
-go(url);
-});
-</script>
-</main>
-<footer class="footer">Need help? Email <a href="mailto:schonv2@gmail.com">schonv2@gmail.com</a>.</footer>
+
 </div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  const toast = document.getElementById('toast');
+  function showToast(msg){
+    if(!toast) return;
+    toast.textContent = msg;
+    toast.classList.add('show');
+    window.clearTimeout(showToast._t);
+    showToast._t = window.setTimeout(()=>toast.classList.remove('show'), 2200);
+  }
+  window.JA = {
+    showToast,
+    nav(url){
+      document.body.classList.add('fadeOut');
+      setTimeout(()=>{ window.location.href = url; }, 220);
+    },
+    get(key){ try{return localStorage.getItem(key);}catch(e){return null;} },
+    set(key,val){ try{ localStorage.setItem(key,val);}catch(e){} },
+    del(key){ try{ localStorage.removeItem(key);}catch(e){} },
+  };
+})();
+</script>
+
 </body>
 </html>
