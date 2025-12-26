@@ -226,6 +226,36 @@ color:#5a3a00;
 font-weight:750;
 }
 </style>
+<script>
+function getCustomerId(){
+const direct=localStorage.getItem("ja_customer_id");
+if(direct && direct.length>10) return direct;
+const raw=localStorage.getItem("jobapplyai_workplace");
+if(!raw) return null;
+try{
+const obj=JSON.parse(raw);
+const id=obj.customerId || obj.customer_id || null;
+if(id){
+localStorage.setItem("ja_customer_id",id);
+return id;
+}
+}catch(e){}
+return null;
+}
+function isProfileComplete(){
+return localStorage.getItem("ja_profile_complete")==="true";
+}
+(function guardProfile(){
+const cid=getCustomerId();
+if(!cid){
+window.location.replace("./signup.html");
+return;
+}
+if(isProfileComplete()){
+window.location.replace("./plan.html");
+}
+})();
+</script>
 </head>
 <body>
 <div class="shell fadeIn">
@@ -251,22 +281,6 @@ font-weight:750;
 <div class="step current" aria-current="step"><span class="dot">2</span><span>Profile</span></div>
 <div class="step" id="step3"><span class="dot">3</span><span>Plan</span></div>
 </div>
-<div class="card" id="gateCard" style="display:none">
-<h2>Complete signup first</h2>
-<p>To protect your journey flow, profile setup is unlocked after Google sign-in.</p>
-<div class="actions">
-<button class="btn primary" type="button" id="backToSignup">Go to signup</button>
-</div>
-</div>
-
-<div class="card" id="missingIdCard" style="display:none;margin-top:14px">
-<h2>Account not linked</h2>
-<p>Your browser has an email but no customer_id. Please go back to signup and sign in again.</p>
-<div class="actions">
-<button class="btn primary" type="button" id="backToSignup2">Go to signup</button>
-</div>
-</div>
-
 </section>
 
 <section>
@@ -322,19 +336,14 @@ setTimeout(()=>{window.location.href=url;},180);
 }
 
 function parseCsvList(s){
-return (s||"")
-.split(",")
-.map(x=>x.trim())
-.filter(Boolean);
+return (s||"").split(",").map(x=>x.trim()).filter(Boolean);
 }
 
-function getCustomerId(){
+function getCustomerIdLocal(){
 const direct=localStorage.getItem("ja_customer_id");
 if(direct) return direct;
-
 const raw=localStorage.getItem("jobapplyai_workplace");
 if(!raw) return null;
-
 try{
 const obj=JSON.parse(raw);
 const id=obj.customerId || obj.customer_id || null;
@@ -360,46 +369,31 @@ throw new Error(`Profile upsert failed: ${res.status} ${text}`);
 return await res.json();
 }
 
-function guard(){
-const email=localStorage.getItem("ja_user_email");
-if(!email){
-document.getElementById("gateCard").style.display="block";
-document.getElementById("profileForm").querySelectorAll("input,button").forEach(el=>el.disabled=true);
-document.getElementById("backToSignup").addEventListener("click",()=>go("signup.html"));
-return false;
-}
-const customerId=getCustomerId();
-if(!customerId){
-document.getElementById("missingIdCard").style.display="block";
-document.getElementById("profileForm").querySelectorAll("input,button").forEach(el=>el.disabled=true);
-document.getElementById("backToSignup2").addEventListener("click",()=>go("signup.html"));
-return false;
-}
-return true;
-}
-
 function load(){
-if(!guard()) return;
-
 const data=JSON.parse(localStorage.getItem("ja_profile")||"{}");
 ["jobTitles","industry","country","city","radius"].forEach(k=>{
 const el=document.getElementById(k);
-if(el && data[k]!=null)el.value=data[k];
+if(el && data[k]!=null) el.value=data[k];
 });
-
 const cvName=localStorage.getItem("ja_cv_name");
-if(cvName)document.getElementById("cvHint").textContent="Saved CV: "+cvName;
+if(cvName) document.getElementById("cvHint").textContent="Saved CV: "+cvName;
 
-if(localStorage.getItem("ja_profile")){
 const st=document.getElementById("saveStatus");
+if(localStorage.getItem("ja_profile_complete")==="true"){
 st.className="badge good";
-st.textContent="Saved (local)";
+st.textContent="Saved (backend)";
+}else if(localStorage.getItem("ja_profile")){
+st.className="badge warn";
+st.textContent="Saved (local only)";
+}else{
+st.className="badge";
+st.textContent="Not saved yet";
 }
+document.getElementById("step3").classList.toggle("done",!!localStorage.getItem("ja_plan"));
 }
 
 document.getElementById("profileForm").addEventListener("submit", async (e)=>{
 e.preventDefault();
-if(!guard()) return;
 
 const saveBtn=document.getElementById("saveBtn");
 const st=document.getElementById("saveStatus");
@@ -421,14 +415,17 @@ radius:document.getElementById("radius").value.trim()
 };
 localStorage.setItem("ja_profile",JSON.stringify(profileLocal));
 
-const customer_id=getCustomerId();
+const customer_id=getCustomerIdLocal();
+if(!customer_id){
+localStorage.removeItem("ja_profile_complete");
+throw new Error("Missing customer_id in browser");
+}
 
 const desired_titles=parseCsvList(profileLocal.jobTitles);
 const industries=parseCsvList(profileLocal.industry);
 const countries_allowed=parseCsvList(profileLocal.country);
 const locations=parseCsvList(profileLocal.city);
-
-const radius_km = profileLocal.radius ? Number(profileLocal.radius) : null;
+const radius_km=profileLocal.radius ? Number(profileLocal.radius) : null;
 
 await upsertCustomerProfile({
 customer_id,
@@ -439,24 +436,26 @@ locations,
 radius_km
 });
 
+localStorage.setItem("ja_profile_complete","true");
+
 st.className="badge good";
-st.textContent="Saved";
+st.textContent="Saved (backend)";
 }catch(err){
 console.error(err);
+localStorage.removeItem("ja_profile_complete");
 st.className="badge warn";
 st.textContent="Save failed";
 alert("Could not save profile to backend. Check console for details.");
 }finally{
 saveBtn.disabled=false;
-document.getElementById("step3").classList.toggle("done",!!localStorage.getItem("ja_plan"));
 }
 });
 
 document.getElementById("toPlan").addEventListener("click",()=>{
-if(!localStorage.getItem("ja_profile")){
+if(localStorage.getItem("ja_profile_complete")!=="true"){
 const st=document.getElementById("saveStatus");
 st.className="badge warn";
-st.textContent="Save first";
+st.textContent="Save to backend first";
 return;
 }
 go("plan.html");
