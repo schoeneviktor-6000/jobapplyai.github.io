@@ -227,6 +227,35 @@ font-weight:750;
 }
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+function getCustomerId(){
+const direct=localStorage.getItem("ja_customer_id");
+if(direct && direct.length>10) return direct;
+const raw=localStorage.getItem("jobapplyai_workplace");
+if(!raw) return null;
+try{
+const obj=JSON.parse(raw);
+const id=obj.customerId || obj.customer_id || null;
+if(id){
+localStorage.setItem("ja_customer_id",id);
+return id;
+}
+}catch(e){}
+return null;
+}
+function isProfileComplete(){
+return localStorage.getItem("ja_profile_complete")==="true";
+}
+(function guardSignup(){
+const cid=getCustomerId();
+if(!cid) return;
+if(isProfileComplete()){
+window.location.replace("./plan.html");
+return;
+}
+window.location.replace("./profile.html");
+})();
+</script>
 </head>
 <body>
 <div class="shell fadeIn">
@@ -325,7 +354,7 @@ else{setBadge(document.getElementById("gmailBadge"),"warn","Gmail access not gra
 document.getElementById("gmailBtn").disabled=!email;
 document.getElementById("toProfile").disabled=!email;
 safeText(document.getElementById("continueHint"),email?"Ready to set up your profile.":"Tip: sign in first.");
-document.getElementById("step2").classList.toggle("done",!!localStorage.getItem("ja_profile"));
+document.getElementById("step2").classList.toggle("done",!!localStorage.getItem("ja_profile_complete"));
 document.getElementById("step3").classList.toggle("done",!!localStorage.getItem("ja_plan"));
 }
 
@@ -341,15 +370,12 @@ return JSON.parse(atob(normalized));
 function syncWorkplaceCustomer(customerId,email){
 try{
 localStorage.setItem("ja_customer_id",customerId);
-
 const raw=localStorage.getItem("jobapplyai_workplace");
 let obj={};
 try{ obj=raw ? JSON.parse(raw) : {}; }catch{ obj={}; }
-
 obj.customerId=customerId;
 obj.customerEmail=email;
 obj.apiBase=obj.apiBase || API_BASE;
-
 localStorage.setItem("jobapplyai_workplace",JSON.stringify(obj));
 }catch(e){
 console.warn("Failed to sync workplace storage",e);
@@ -373,7 +399,6 @@ try{
 const payload=decodeJwtPayload(resp.credential);
 if(payload && payload.email){
 localStorage.setItem("ja_user_email",payload.email);
-
 const data=await upsertCustomerByEmail(payload.email);
 if(data && data.customer_id){
 syncWorkplaceCustomer(data.customer_id,payload.email);
@@ -383,6 +408,7 @@ throw new Error("No customer_id returned from API");
 }
 localStorage.setItem("ja_signed_in","1");
 setStatus();
+window.location.replace("./profile.html");
 }catch(e){
 console.error(e);
 alert("Sign-in failed. Check console for details.");
@@ -393,12 +419,9 @@ alert("Sign-in failed. Check console for details.");
 document.getElementById("googleBtn").addEventListener("click",()=>{
 if(signInInProgress) return;
 signInInProgress=true;
-
 const btn=document.getElementById("googleBtn");
 btn.disabled=true;
-
 try{google.accounts.id.cancel();}catch(e){}
-
 google.accounts.id.prompt((notification)=>{
 if(notification.isNotDisplayed && (notification.isNotDisplayed() || notification.isSkippedMoment())){
 signInInProgress=false;
