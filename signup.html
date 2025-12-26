@@ -338,6 +338,24 @@ const normalized=part.replace(/-/g,"+").replace(/_/g,"/");
 return JSON.parse(atob(normalized));
 }
 
+function syncWorkplaceCustomer(customerId,email){
+try{
+localStorage.setItem("ja_customer_id",customerId);
+
+const raw=localStorage.getItem("jobapplyai_workplace");
+let obj={};
+try{ obj=raw ? JSON.parse(raw) : {}; }catch{ obj={}; }
+
+obj.customerId=customerId;
+obj.customerEmail=email;
+obj.apiBase=obj.apiBase || API_BASE;
+
+localStorage.setItem("jobapplyai_workplace",JSON.stringify(obj));
+}catch(e){
+console.warn("Failed to sync workplace storage",e);
+}
+}
+
 function initGoogleOnce(){
 const hasClient=APP.clientId && !APP.clientId.includes("YOUR_GOOGLE_CLIENT_ID");
 document.getElementById("clientNotice").style.display=hasClient?"none":"block";
@@ -358,7 +376,7 @@ localStorage.setItem("ja_user_email",payload.email);
 
 const data=await upsertCustomerByEmail(payload.email);
 if(data && data.customer_id){
-localStorage.setItem("ja_customer_id",data.customer_id);
+syncWorkplaceCustomer(data.customer_id,payload.email);
 }else{
 throw new Error("No customer_id returned from API");
 }
