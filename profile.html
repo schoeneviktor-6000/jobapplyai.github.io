@@ -328,6 +328,25 @@ return (s||"")
 .filter(Boolean);
 }
 
+function getCustomerId(){
+const direct=localStorage.getItem("ja_customer_id");
+if(direct) return direct;
+
+const raw=localStorage.getItem("jobapplyai_workplace");
+if(!raw) return null;
+
+try{
+const obj=JSON.parse(raw);
+const id=obj.customerId || obj.customer_id || null;
+if(id){
+localStorage.setItem("ja_customer_id",id);
+}
+return id || null;
+}catch{
+return null;
+}
+}
+
 async function upsertCustomerProfile(payload){
 const res=await fetch(`${API_BASE}/customer-profiles/upsert`,{
 method:"POST",
@@ -349,7 +368,7 @@ document.getElementById("profileForm").querySelectorAll("input,button").forEach(
 document.getElementById("backToSignup").addEventListener("click",()=>go("signup.html"));
 return false;
 }
-const customerId=localStorage.getItem("ja_customer_id");
+const customerId=getCustomerId();
 if(!customerId){
 document.getElementById("missingIdCard").style.display="block";
 document.getElementById("profileForm").querySelectorAll("input,button").forEach(el=>el.disabled=true);
@@ -402,7 +421,7 @@ radius:document.getElementById("radius").value.trim()
 };
 localStorage.setItem("ja_profile",JSON.stringify(profileLocal));
 
-const customer_id=localStorage.getItem("ja_customer_id");
+const customer_id=getCustomerId();
 
 const desired_titles=parseCsvList(profileLocal.jobTitles);
 const industries=parseCsvList(profileLocal.industry);
