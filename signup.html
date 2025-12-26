@@ -291,11 +291,30 @@ font-weight:750;
 </div>
 </section>
 </div>
+
 <script>
 const APP={
 clientId:"149621916894-g8mcg8tgqdisdfgdoetkl5sedqpcb153.apps.googleusercontent.com",
 scopes:["https://www.googleapis.com/auth/gmail.send","openid","email","profile"]
 };
+
+const API_BASE = "https://jobapplyai-api.schoene-viktor.workers.dev";
+
+async function upsertCustomerByEmail(email) {
+  const res = await fetch(`${API_BASE}/customers/upsert`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email })
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Customer upsert failed: ${res.status} ${text}`);
+  }
+
+  return await res.json();
+}
+
 function safeText(el,t){if(el)el.textContent=t;}
 function setBadge(el,type,text){if(!el)return;el.className="badge "+type;el.textContent=text;}
 function setStatus(){
@@ -311,38 +330,40 @@ safeText(document.getElementById("continueHint"),email?"Ready to set up your pro
 document.getElementById("step2").classList.toggle("done",!!localStorage.getItem("ja_profile"));
 document.getElementById("step3").classList.toggle("done",!!localStorage.getItem("ja_plan"));
 }
+
 function initGoogle(){
 const hasClient=APP.clientId && !APP.clientId.includes("YOUR_GOOGLE_CLIENT_ID");
 document.getElementById("clientNotice").style.display=hasClient?"none":"block";
 if(!hasClient){document.getElementById("googleBtn").disabled=true;return;}
+
 document.getElementById("googleBtn").addEventListener("click",()=>{
 google.accounts.id.initialize({
 client_id:APP.clientId,
-callback:(resp)=>{
+callback: async (resp)=>{
 try{
 const payload=JSON.parse(atob(resp.credential.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")));
-if(payload && payload.email){localStorage.setItem("ja_user_email",payload.email);}
-try {
-  const data = await upsertCustomerByEmail(payload.email);
+if(payload && payload.email){
+  localStorage.setItem("ja_user_email",payload.email);
 
-  if (data && data.customer_id) {
+  const data = await upsertCustomerByEmail(payload.email);
+  if(data && data.customer_id){
     localStorage.setItem("ja_customer_id", data.customer_id);
   } else {
     throw new Error("No customer_id returned from API");
   }
-} catch (err) {
-  console.error(err);
-  alert("Signed in, but could not create your account. Please try again.");
-  return;
 }
 
 localStorage.setItem("ja_signed_in","1");
 setStatus();
-}catch(e){}
+}catch(e){
+console.error(e);
+alert("Sign-in failed. Please try again.");
+}
 }
 });
 google.accounts.id.prompt();
 });
+
 document.getElementById("gmailBtn").addEventListener("click",()=>{
 const email=localStorage.getItem("ja_user_email");
 if(!email){alert("Please sign in first.");return;}
@@ -359,28 +380,13 @@ setStatus();
 });
 tokenClient.requestAccessToken({prompt:"consent"});
 });
+
 document.getElementById("toProfile").addEventListener("click",()=>go("profile.html"));
 }
+
 window.addEventListener("load",()=>{setStatus();initGoogle();});
 </script>
-<script>
-  const API_BASE = "https://jobapplyai-api.schoene-viktor.workers.dev";
 
-  async function upsertCustomerByEmail(email) {
-    const res = await fetch(`${API_BASE}/customers/upsert`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email })
-    });
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`Customer upsert failed: ${res.status} ${text}`);
-    }
-
-    return await res.json();
-  }
-</script>
 <script>
 function go(url){
 document.body.classList.add("leaving");
