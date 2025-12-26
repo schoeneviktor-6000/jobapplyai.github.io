@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>JobApply-AI | Profile setup</title>
+<title>JobApply-AI | Profile</title>
 <style>
 :root{
 --bg:#ffffff;
@@ -156,7 +156,7 @@ padding:18px;
 .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media (max-width:560px){.row{grid-template-columns:1fr}}
 label{display:block;font-size:13px;font-weight:850;margin:10px 0 6px 0}
-input,select{
+input{
 width:100%;
 padding:12px 12px;
 border-radius:14px;
@@ -166,7 +166,7 @@ font-size:15px;
 outline:none;
 transition:border-color .15s ease, box-shadow .18s ease, transform .12s ease;
 }
-input:focus,select:focus{border-color:rgba(0,166,63,.4);box-shadow:0 0 0 4px rgba(0,166,63,.12)}
+input:focus{border-color:rgba(0,166,63,.4);box-shadow:0 0 0 4px rgba(0,166,63,.12)}
 .actions{
 display:flex;
 gap:10px;
@@ -258,39 +258,53 @@ font-weight:750;
 <button class="btn primary" type="button" id="backToSignup">Go to signup</button>
 </div>
 </div>
+
+<div class="card" id="missingIdCard" style="display:none;margin-top:14px">
+<h2>Account not linked</h2>
+<p>Your browser has an email but no customer_id. Please go back to signup and sign in again.</p>
+<div class="actions">
+<button class="btn primary" type="button" id="backToSignup2">Go to signup</button>
+</div>
+</div>
+
 </section>
+
 <section>
 <div class="card">
 <h2>Your preferences</h2>
 <p>This information helps us target the right jobs and keep your applications consistent.</p>
 <form id="profileForm">
 <label for="cv">Upload CV</label>
-<input id="cv" name="cv" type="file" accept=".pdf,.doc,.docx">
+<input id="cv" name="cv" type="file" accept=".pdf,doc,docx">
 <div class="helper" id="cvHint">For now, this demo stores only the file name locally.</div>
+
 <div class="row">
 <div>
 <label for="jobTitles">Preferred job title(s)</label>
-<input id="jobTitles" name="jobTitles" type="text" placeholder="e.g., Operations Manager, Business Analyst">
+<input id="jobTitles" name="jobTitles" type="text" placeholder="e.g. Software Engineer, Backend Engineer">
 </div>
 <div>
 <label for="industry">Industry</label>
-<input id="industry" name="industry" type="text" placeholder="e.g., Healthcare, SaaS, Logistics">
+<input id="industry" name="industry" type="text" placeholder="e.g. SaaS, FinTech, HealthTech">
 </div>
 </div>
+
 <div class="row">
 <div>
 <label for="country">Country</label>
-<input id="country" name="country" type="text" placeholder="e.g., Germany">
+<input id="country" name="country" type="text" placeholder="e.g. Germany">
 </div>
 <div>
 <label for="city">City</label>
-<input id="city" name="city" type="text" placeholder="e.g., Berlin">
+<input id="city" name="city" type="text" placeholder="e.g. Berlin">
 </div>
 </div>
+
 <label for="radius">Radius (km)</label>
-<input id="radius" name="radius" type="number" min="0" step="1" placeholder="e.g., 25">
+<input id="radius" name="radius" type="number" min="0" step="1" placeholder="e.g. 30">
+
 <div class="actions">
-<button class="btn ghost" type="submit">Save profile</button>
+<button class="btn ghost" type="submit" id="saveBtn">Save profile</button>
 <button class="btn primary" type="button" id="toPlan">Continue to plan</button>
 <span class="badge" id="saveStatus">Not saved yet</span>
 </div>
@@ -298,43 +312,127 @@ font-weight:750;
 </div>
 </section>
 </div>
+
 <script>
+const API_BASE="https://jobapplyai-api.schoene-viktor.workers.dev";
+
+function go(url){
+document.body.classList.add("leaving");
+setTimeout(()=>{window.location.href=url;},180);
+}
+
+function parseCsvList(s){
+return (s||"")
+.split(",")
+.map(x=>x.trim())
+.filter(Boolean);
+}
+
+async function upsertCustomerProfile(payload){
+const res=await fetch(`${API_BASE}/customer-profiles/upsert`,{
+method:"POST",
+headers:{ "content-type":"application/json" },
+body:JSON.stringify(payload)
+});
+if(!res.ok){
+const text=await res.text().catch(()=> "");
+throw new Error(`Profile upsert failed: ${res.status} ${text}`);
+}
+return await res.json();
+}
+
 function guard(){
 const email=localStorage.getItem("ja_user_email");
 if(!email){
 document.getElementById("gateCard").style.display="block";
 document.getElementById("profileForm").querySelectorAll("input,button").forEach(el=>el.disabled=true);
 document.getElementById("backToSignup").addEventListener("click",()=>go("signup.html"));
+return false;
 }
+const customerId=localStorage.getItem("ja_customer_id");
+if(!customerId){
+document.getElementById("missingIdCard").style.display="block";
+document.getElementById("profileForm").querySelectorAll("input,button").forEach(el=>el.disabled=true);
+document.getElementById("backToSignup2").addEventListener("click",()=>go("signup.html"));
+return false;
 }
+return true;
+}
+
 function load(){
-guard();
+if(!guard()) return;
+
 const data=JSON.parse(localStorage.getItem("ja_profile")||"{}");
 ["jobTitles","industry","country","city","radius"].forEach(k=>{
 const el=document.getElementById(k);
 if(el && data[k]!=null)el.value=data[k];
 });
+
 const cvName=localStorage.getItem("ja_cv_name");
 if(cvName)document.getElementById("cvHint").textContent="Saved CV: "+cvName;
-if(localStorage.getItem("ja_profile"))document.getElementById("saveStatus").className="badge good";
+
+if(localStorage.getItem("ja_profile")){
+const st=document.getElementById("saveStatus");
+st.className="badge good";
+st.textContent="Saved (local)";
 }
-document.getElementById("profileForm").addEventListener("submit",(e)=>{
+}
+
+document.getElementById("profileForm").addEventListener("submit", async (e)=>{
 e.preventDefault();
+if(!guard()) return;
+
+const saveBtn=document.getElementById("saveBtn");
+const st=document.getElementById("saveStatus");
+
+saveBtn.disabled=true;
+st.className="badge warn";
+st.textContent="Saving...";
+
+try{
 const cv=document.getElementById("cv").files[0];
-if(cv)localStorage.setItem("ja_cv_name",cv.name);
-const profile={
+if(cv) localStorage.setItem("ja_cv_name",cv.name);
+
+const profileLocal={
 jobTitles:document.getElementById("jobTitles").value.trim(),
 industry:document.getElementById("industry").value.trim(),
 country:document.getElementById("country").value.trim(),
 city:document.getElementById("city").value.trim(),
 radius:document.getElementById("radius").value.trim()
 };
-localStorage.setItem("ja_profile",JSON.stringify(profile));
-const st=document.getElementById("saveStatus");
+localStorage.setItem("ja_profile",JSON.stringify(profileLocal));
+
+const customer_id=localStorage.getItem("ja_customer_id");
+
+const desired_titles=parseCsvList(profileLocal.jobTitles);
+const industries=parseCsvList(profileLocal.industry);
+const countries_allowed=parseCsvList(profileLocal.country);
+const locations=parseCsvList(profileLocal.city);
+
+const radius_km = profileLocal.radius ? Number(profileLocal.radius) : null;
+
+await upsertCustomerProfile({
+customer_id,
+desired_titles,
+industries,
+countries_allowed,
+locations,
+radius_km
+});
+
 st.className="badge good";
 st.textContent="Saved";
+}catch(err){
+console.error(err);
+st.className="badge warn";
+st.textContent="Save failed";
+alert("Could not save profile to backend. Check console for details.");
+}finally{
+saveBtn.disabled=false;
 document.getElementById("step3").classList.toggle("done",!!localStorage.getItem("ja_plan"));
+}
 });
+
 document.getElementById("toPlan").addEventListener("click",()=>{
 if(!localStorage.getItem("ja_profile")){
 const st=document.getElementById("saveStatus");
@@ -344,13 +442,9 @@ return;
 }
 go("plan.html");
 });
+
 window.addEventListener("load",load);
-</script>
-<script>
-function go(url){
-document.body.classList.add("leaving");
-setTimeout(()=>{window.location.href=url;},180);
-}
+
 document.addEventListener("click",(e)=>{
 const a=e.target.closest("a[data-nav='1']");
 if(!a)return;
@@ -360,6 +454,7 @@ e.preventDefault();
 go(url);
 });
 </script>
+
 </main>
 <footer class="footer">Need help? Email <a href="mailto:schonv2@gmail.com">schonv2@gmail.com</a>.</footer>
 </div>
