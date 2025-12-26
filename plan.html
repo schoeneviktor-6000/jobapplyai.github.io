@@ -229,6 +229,36 @@ cursor:pointer;
 .kpi{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .kpi span{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;border:1px solid rgba(215,218,220,.85);background:rgba(246,247,248,.92);font-weight:850;font-size:12px}
 </style>
+<script>
+function getCustomerId(){
+const direct=localStorage.getItem("ja_customer_id");
+if(direct && direct.length>10) return direct;
+const raw=localStorage.getItem("jobapplyai_workplace");
+if(!raw) return null;
+try{
+const obj=JSON.parse(raw);
+const id=obj.customerId || obj.customer_id || null;
+if(id){
+localStorage.setItem("ja_customer_id",id);
+return id;
+}
+}catch(e){}
+return null;
+}
+function isProfileComplete(){
+return localStorage.getItem("ja_profile_complete")==="true";
+}
+(function guardPlan(){
+const cid=getCustomerId();
+if(!cid){
+window.location.replace("./signup.html");
+return;
+}
+if(!isProfileComplete()){
+window.location.replace("./profile.html");
+}
+})();
+</script>
 </head>
 <body>
 <div class="shell fadeIn">
@@ -253,21 +283,6 @@ cursor:pointer;
 <div class="step done"><span class="dot">1</span><span>Signup</span></div>
 <div class="step done"><span class="dot">2</span><span>Profile</span></div>
 <div class="step current" aria-current="step"><span class="dot">3</span><span>Plan</span></div>
-</div>
-<div class="card" id="gateCard" style="display:none">
-<h2>Complete the previous steps</h2>
-<p>Please complete Signup and Profile setup before choosing a plan.</p>
-<div class="actions">
-<button class="btn ghost" type="button" id="toSignup">Go to signup</button>
-<button class="btn primary" type="button" id="toProfile">Go to profile</button>
-</div>
-</div>
-<div class="card" id="missingIdCard" style="display:none;margin-top:14px">
-<h2>Account not linked</h2>
-<p>Your browser has an email but no customer_id. Please go back to signup and sign in again.</p>
-<div class="actions">
-<button class="btn primary" type="button" id="backToSignup">Go to signup</button>
-</div>
 </div>
 </section>
 <section>
@@ -297,13 +312,11 @@ const PLANS=[
 
 function monthly(appsPerDay){return appsPerDay*30;}
 
-function getCustomerId(){
+function getCustomerIdLocal(){
 const direct=localStorage.getItem("ja_customer_id");
 if(direct) return direct;
-
 const raw=localStorage.getItem("jobapplyai_workplace");
 if(!raw) return null;
-
 try{
 const obj=JSON.parse(raw);
 const id=obj.customerId || obj.customer_id || null;
@@ -330,26 +343,6 @@ throw new Error(`Plan save failed: ${res.status} ${text}`);
 try{ return JSON.parse(text); }catch{ return { ok:true }; }
 }
 
-function guard(){
-const hasAuth=!!localStorage.getItem("ja_user_email");
-const hasProfile=!!localStorage.getItem("ja_profile");
-const customerId=getCustomerId();
-
-document.getElementById("toSignup").addEventListener("click",()=>go("signup.html"));
-document.getElementById("toProfile").addEventListener("click",()=>go("profile.html"));
-document.getElementById("backToSignup").addEventListener("click",()=>go("signup.html"));
-
-if(!hasAuth || !hasProfile){
-document.getElementById("gateCard").style.display="block";
-document.getElementById("continue").disabled=true;
-}
-
-if(hasAuth && hasProfile && !customerId){
-document.getElementById("missingIdCard").style.display="block";
-document.getElementById("continue").disabled=true;
-}
-}
-
 let selected=null;
 
 function render(){
@@ -372,7 +365,7 @@ div.addEventListener("keydown",(e)=>{if(e.key==="Enter"||e.key===" "){e.preventD
 wrap.appendChild(div);
 });
 const saved=localStorage.getItem("ja_plan");
-if(saved)select(saved,false);
+if(saved) select(saved,false);
 }
 
 function setSummary(plan){
@@ -401,7 +394,7 @@ saveHint.textContent="Loaded saved plan from this browser.";
 return;
 }
 
-const customer_id=getCustomerId();
+const customer_id=getCustomerIdLocal();
 if(!customer_id){
 saveHint.textContent="Saved locally, but missing customer_id. Please sign in again.";
 return;
@@ -413,7 +406,7 @@ await savePlanToBackend(customer_id,id);
 saveHint.textContent="Plan saved (backend + browser).";
 }catch(err){
 console.warn(err);
-saveHint.textContent="Saved locally (backend not connected yet).";
+saveHint.textContent="Saved locally (backend save failed).";
 }
 }
 
@@ -422,7 +415,7 @@ if(!selected) return;
 alert("Plan selected: "+selected+"\nNext step: connect checkout (Stripe).");
 });
 
-window.addEventListener("load",()=>{guard();render();});
+window.addEventListener("load",()=>{render();});
 </script>
 
 <script>
