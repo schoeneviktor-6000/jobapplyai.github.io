@@ -153,20 +153,6 @@ padding:18px;
 }
 .card h2{margin:0 0 10px 0;font-size:18px}
 .card p{margin:0 0 12px 0;color:var(--muted);font-weight:650}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media (max-width:560px){.row{grid-template-columns:1fr}}
-label{display:block;font-size:13px;font-weight:850;margin:10px 0 6px 0}
-input,select{
-width:100%;
-padding:12px 12px;
-border-radius:14px;
-border:1px solid rgba(215,218,220,.95);
-background:#fff;
-font-size:15px;
-outline:none;
-transition:border-color .15s ease, box-shadow .18s ease, transform .12s ease;
-}
-input:focus,select:focus{border-color:rgba(0,166,63,.4);box-shadow:0 0 0 4px rgba(0,166,63,.12)}
 .actions{
 display:flex;
 gap:10px;
@@ -215,7 +201,6 @@ font-size:13px;
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 body.leaving .shell{animation:fadeOut .22s ease both}
 @keyframes fadeOut{to{opacity:0;transform:translateY(6px)}}
-.helper{font-size:12px;color:var(--muted2);font-weight:650;margin-top:6px}
 .small{font-size:12px;color:var(--muted2);font-weight:650}
 .notice{
 border-radius:18px;
@@ -225,8 +210,6 @@ background:rgba(255,244,214,.7);
 color:#5a3a00;
 font-weight:750;
 }
-</style>
-<style>
 .plans{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
 @media (max-width:980px){.plans{grid-template-columns:1fr;}}
 .planCard{
@@ -279,6 +262,13 @@ cursor:pointer;
 <button class="btn primary" type="button" id="toProfile">Go to profile</button>
 </div>
 </div>
+<div class="card" id="missingIdCard" style="display:none;margin-top:14px">
+<h2>Account not linked</h2>
+<p>Your browser has an email but no customer_id. Please go back to signup and sign in again.</p>
+<div class="actions">
+<button class="btn primary" type="button" id="backToSignup">Go to signup</button>
+</div>
+</div>
 </section>
 <section>
 <div class="card">
@@ -290,28 +280,78 @@ cursor:pointer;
 <button class="btn primary" id="continue" type="button" disabled>Continue</button>
 <span class="badge" id="summary">Select a plan to continue</span>
 </div>
-<div class="small">Checkout is a placeholder. Next step is Stripe (or another payment provider).</div>
+<div class="small" id="saveHint">Checkout is a placeholder. Next step is Stripe (or another payment provider).</div>
 </div>
 </section>
 </div>
+
 <script>
+const API_BASE="https://jobapplyai-api.schoene-viktor.workers.dev";
+const PLAN_ENDPOINT="/customer-plans/upsert";
+
 const PLANS=[
 {id:"starter",name:"Starter",price:20,appsPerDay:1},
 {id:"pro",name:"Pro",price:59,appsPerDay:5},
 {id:"max",name:"Max",price:129,appsPerDay:20}
 ];
+
 function monthly(appsPerDay){return appsPerDay*30;}
+
+function getCustomerId(){
+const direct=localStorage.getItem("ja_customer_id");
+if(direct) return direct;
+
+const raw=localStorage.getItem("jobapplyai_workplace");
+if(!raw) return null;
+
+try{
+const obj=JSON.parse(raw);
+const id=obj.customerId || obj.customer_id || null;
+if(id){
+localStorage.setItem("ja_customer_id",id);
+}
+return id || null;
+}catch{
+return null;
+}
+}
+
+async function savePlanToBackend(customer_id, plan_id){
+const payload={ customer_id, plan_id };
+const res=await fetch(`${API_BASE}${PLAN_ENDPOINT}`,{
+method:"POST",
+headers:{ "content-type":"application/json" },
+body:JSON.stringify(payload)
+});
+const text=await res.text().catch(()=> "");
+if(!res.ok){
+throw new Error(`Plan save failed: ${res.status} ${text}`);
+}
+try{ return JSON.parse(text); }catch{ return { ok:true }; }
+}
+
 function guard(){
 const hasAuth=!!localStorage.getItem("ja_user_email");
 const hasProfile=!!localStorage.getItem("ja_profile");
+const customerId=getCustomerId();
+
+document.getElementById("toSignup").addEventListener("click",()=>go("signup.html"));
+document.getElementById("toProfile").addEventListener("click",()=>go("profile.html"));
+document.getElementById("backToSignup").addEventListener("click",()=>go("signup.html"));
+
 if(!hasAuth || !hasProfile){
 document.getElementById("gateCard").style.display="block";
 document.getElementById("continue").disabled=true;
 }
-document.getElementById("toSignup").addEventListener("click",()=>go("signup.html"));
-document.getElementById("toProfile").addEventListener("click",()=>go("profile.html"));
+
+if(hasAuth && hasProfile && !customerId){
+document.getElementById("missingIdCard").style.display="block";
+document.getElementById("continue").disabled=true;
 }
+}
+
 let selected=null;
+
 function render(){
 const wrap=document.getElementById("plans");
 wrap.innerHTML="";
@@ -327,30 +367,64 @@ div.innerHTML=
 '<div class="meta">'+monthly(p.appsPerDay)+' applications/month</div>'+
 '<ul class="ul"><li>CV tailoring + cover letter</li><li>Manual review before sending</li><li>Weekly progress summary</li></ul>'+
 '<div class="kpi"><span>Speed</span><span>Quality</span><span>Consistency</span></div>';
-div.addEventListener("click",()=>select(p.id));
-div.addEventListener("keydown",(e)=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();select(p.id);}});
+div.addEventListener("click",()=>select(p.id,true));
+div.addEventListener("keydown",(e)=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();select(p.id,true);}});
 wrap.appendChild(div);
 });
 const saved=localStorage.getItem("ja_plan");
 if(saved)select(saved,false);
 }
-function select(id){
+
+function setSummary(plan){
+const sum=document.getElementById("summary");
+if(!plan){
+sum.className="badge";
+sum.textContent="Select a plan to continue";
+return;
+}
+sum.className="badge good";
+sum.textContent=plan.name+" · $"+plan.price+" · "+plan.appsPerDay+"/day ("+monthly(plan.appsPerDay)+"/month)";
+}
+
+async function select(id, doSave){
 selected=id;
 document.querySelectorAll(".planCard").forEach(el=>el.classList.toggle("selected",el.dataset.planId===id));
 localStorage.setItem("ja_plan",id);
 document.getElementById("continue").disabled=false;
-const plan=PLANS.find(p=>p.id===id);
-const text=plan?plan.name+" · $"+plan.price+" · "+plan.appsPerDay+"/day ("+monthly(plan.appsPerDay)+"/month)":"Select a plan to continue";
-const sum=document.getElementById("summary");
-sum.className="badge good";
-sum.textContent=text;
+
+const plan=PLANS.find(p=>p.id===id) || null;
+setSummary(plan);
+
+const saveHint=document.getElementById("saveHint");
+if(!doSave){
+saveHint.textContent="Loaded saved plan from this browser.";
+return;
 }
+
+const customer_id=getCustomerId();
+if(!customer_id){
+saveHint.textContent="Saved locally, but missing customer_id. Please sign in again.";
+return;
+}
+
+saveHint.textContent="Saving plan...";
+try{
+await savePlanToBackend(customer_id,id);
+saveHint.textContent="Plan saved (backend + browser).";
+}catch(err){
+console.warn(err);
+saveHint.textContent="Saved locally (backend not connected yet).";
+}
+}
+
 document.getElementById("continue").addEventListener("click",()=>{
-if(!selected)return;
+if(!selected) return;
 alert("Plan selected: "+selected+"\nNext step: connect checkout (Stripe).");
 });
+
 window.addEventListener("load",()=>{guard();render();});
 </script>
+
 <script>
 function go(url){
 document.body.classList.add("leaving");
@@ -365,6 +439,7 @@ e.preventDefault();
 go(url);
 });
 </script>
+
 </main>
 <footer class="footer">Need help? Email <a href="mailto:schonv2@gmail.com">schonv2@gmail.com</a>.</footer>
 </div>
