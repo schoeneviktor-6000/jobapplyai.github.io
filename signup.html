@@ -298,21 +298,19 @@ clientId:"149621916894-g8mcg8tgqdisdfgdoetkl5sedqpcb153.apps.googleusercontent.c
 scopes:["https://www.googleapis.com/auth/gmail.send","openid","email","profile"]
 };
 
-const API_BASE = "https://jobapplyai-api.schoene-viktor.workers.dev";
+const API_BASE="https://jobapplyai-api.schoene-viktor.workers.dev";
 
-async function upsertCustomerByEmail(email) {
-  const res = await fetch(`${API_BASE}/customers/upsert`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ email })
-  });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`Customer upsert failed: ${res.status} ${text}`);
-  }
-
-  return await res.json();
+async function upsertCustomerByEmail(email){
+const res=await fetch(`${API_BASE}/customers/upsert`,{
+method:"POST",
+headers:{ "content-type":"application/json" },
+body:JSON.stringify({ email })
+});
+if(!res.ok){
+const text=await res.text().catch(()=> "");
+throw new Error(`Customer upsert failed: ${res.status} ${text}`);
+}
+return await res.json();
 }
 
 function safeText(el,t){if(el)el.textContent=t;}
@@ -331,39 +329,71 @@ document.getElementById("step2").classList.toggle("done",!!localStorage.getItem(
 document.getElementById("step3").classList.toggle("done",!!localStorage.getItem("ja_plan"));
 }
 
-function initGoogle(){
+let gsiInitialized=false;
+let signInInProgress=false;
+
+function decodeJwtPayload(credential){
+const part=credential.split(".")[1];
+const normalized=part.replace(/-/g,"+").replace(/_/g,"/");
+return JSON.parse(atob(normalized));
+}
+
+function initGoogleOnce(){
 const hasClient=APP.clientId && !APP.clientId.includes("YOUR_GOOGLE_CLIENT_ID");
 document.getElementById("clientNotice").style.display=hasClient?"none":"block";
 if(!hasClient){document.getElementById("googleBtn").disabled=true;return;}
+if(gsiInitialized) return;
+gsiInitialized=true;
 
-document.getElementById("googleBtn").addEventListener("click",()=>{
 google.accounts.id.initialize({
 client_id:APP.clientId,
 callback: async (resp)=>{
+signInInProgress=false;
+document.getElementById("googleBtn").disabled=false;
+
 try{
-const payload=JSON.parse(atob(resp.credential.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")));
+const payload=decodeJwtPayload(resp.credential);
 if(payload && payload.email){
-  localStorage.setItem("ja_user_email",payload.email);
+localStorage.setItem("ja_user_email",payload.email);
 
-  const data = await upsertCustomerByEmail(payload.email);
-  if(data && data.customer_id){
-    localStorage.setItem("ja_customer_id", data.customer_id);
-  } else {
-    throw new Error("No customer_id returned from API");
-  }
+const data=await upsertCustomerByEmail(payload.email);
+if(data && data.customer_id){
+localStorage.setItem("ja_customer_id",data.customer_id);
+}else{
+throw new Error("No customer_id returned from API");
 }
-
+}
 localStorage.setItem("ja_signed_in","1");
 setStatus();
 }catch(e){
 console.error(e);
-alert("Sign-in failed. Please try again.");
+alert("Sign-in failed. Check console for details.");
 }
 }
-});
-google.accounts.id.prompt();
 });
 
+document.getElementById("googleBtn").addEventListener("click",()=>{
+if(signInInProgress) return;
+signInInProgress=true;
+
+const btn=document.getElementById("googleBtn");
+btn.disabled=true;
+
+try{google.accounts.id.cancel();}catch(e){}
+
+google.accounts.id.prompt((notification)=>{
+if(notification.isNotDisplayed && (notification.isNotDisplayed() || notification.isSkippedMoment())){
+signInInProgress=false;
+btn.disabled=false;
+const reason1=notification.getNotDisplayedReason ? notification.getNotDisplayedReason() : "";
+const reason2=notification.getSkippedReason ? notification.getSkippedReason() : "";
+console.log("GSI prompt not displayed/skipped:",reason1,reason2);
+}
+});
+});
+}
+
+function initGmailButton(){
 document.getElementById("gmailBtn").addEventListener("click",()=>{
 const email=localStorage.getItem("ja_user_email");
 if(!email){alert("Please sign in first.");return;}
@@ -375,16 +405,25 @@ if(tokenResponse && tokenResponse.access_token){
 sessionStorage.setItem("ja_access_token",tokenResponse.access_token);
 localStorage.setItem("ja_gmail_connected","1");
 setStatus();
-}else{alert("No access token received.");}
+}else{
+alert("No access token received.");
+}
 }
 });
 tokenClient.requestAccessToken({prompt:"consent"});
 });
+}
 
+function initNav(){
 document.getElementById("toProfile").addEventListener("click",()=>go("profile.html"));
 }
 
-window.addEventListener("load",()=>{setStatus();initGoogle();});
+window.addEventListener("load",()=>{
+setStatus();
+initGoogleOnce();
+initGmailButton();
+initNav();
+});
 </script>
 
 <script>
