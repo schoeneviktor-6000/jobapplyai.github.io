@@ -226,27 +226,57 @@ color:#5a3a00;
 font-weight:750;
 }
 </style>
+
 <script>
-function getCustomerId(){
-const direct=localStorage.getItem("ja_customer_id");
-if(direct && direct.length>10) return direct;
+const API_BASE="https://jobapplyai-api.schoene-viktor.workers.dev";
+
+function readWorkplace(){
 const raw=localStorage.getItem("jobapplyai_workplace");
-if(!raw) return null;
-try{
-const obj=JSON.parse(raw);
-const id=obj.customerId || obj.customer_id || null;
-if(id){
-localStorage.setItem("ja_customer_id",id);
-return id;
+if(!raw) return {};
+try{ return JSON.parse(raw)||{}; }catch{ return {}; }
 }
-}catch(e){}
-return null;
+
+function writeWorkplace(patch){
+const obj=readWorkplace();
+const next={...obj,...patch};
+localStorage.setItem("jobapplyai_workplace",JSON.stringify(next));
+return next;
 }
+
+function syncIdentityFromWorkplace(){
+const wp=readWorkplace();
+const wpId=wp.customerId || wp.customer_id || null;
+const wpEmail=wp.customerEmail || null;
+const jaId=localStorage.getItem("ja_customer_id");
+const jaEmail=localStorage.getItem("ja_user_email");
+
+if(wpId && (!jaId || jaId !== wpId)) localStorage.setItem("ja_customer_id",wpId);
+if(wpEmail && (!jaEmail || jaEmail !== wpEmail)) localStorage.setItem("ja_user_email",wpEmail);
+
+if(!wp.apiBase) writeWorkplace({ apiBase: API_BASE });
+
+return { customerId: wpId || (jaId && jaId.length>10 ? jaId : null) , email: wpEmail || jaEmail || null };
+}
+
+function getActiveCustomerId(){
+const wp=readWorkplace();
+const wpId=wp.customerId || wp.customer_id || null;
+const jaId=localStorage.getItem("ja_customer_id");
+
+if(wpId && jaId && wpId !== jaId){
+localStorage.setItem("ja_customer_id",wpId);
+return wpId;
+}
+return wpId || (jaId && jaId.length>10 ? jaId : null);
+}
+
 function isProfileComplete(){
 return localStorage.getItem("ja_profile_complete")==="true";
 }
+
 (function guardProfile(){
-const cid=getCustomerId();
+syncIdentityFromWorkplace();
+const cid=getActiveCustomerId();
 if(!cid){
 window.location.replace("./signup.html");
 return;
@@ -328,8 +358,6 @@ window.location.replace("./plan.html");
 </div>
 
 <script>
-const API_BASE="https://jobapplyai-api.schoene-viktor.workers.dev";
-
 function go(url){
 document.body.classList.add("leaving");
 setTimeout(()=>{window.location.href=url;},180);
@@ -340,20 +368,7 @@ return (s||"").split(",").map(x=>x.trim()).filter(Boolean);
 }
 
 function getCustomerIdLocal(){
-const direct=localStorage.getItem("ja_customer_id");
-if(direct) return direct;
-const raw=localStorage.getItem("jobapplyai_workplace");
-if(!raw) return null;
-try{
-const obj=JSON.parse(raw);
-const id=obj.customerId || obj.customer_id || null;
-if(id){
-localStorage.setItem("ja_customer_id",id);
-}
-return id || null;
-}catch{
-return null;
-}
+return getActiveCustomerId();
 }
 
 async function upsertCustomerProfile(payload){
@@ -370,6 +385,8 @@ return await res.json();
 }
 
 function load(){
+syncIdentityFromWorkplace();
+
 const data=JSON.parse(localStorage.getItem("ja_profile")||"{}");
 ["jobTitles","industry","country","city","radius"].forEach(k=>{
 const el=document.getElementById(k);
