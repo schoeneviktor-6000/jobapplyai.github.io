@@ -227,27 +227,53 @@ font-weight:750;
 }
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+
 <script>
-function getCustomerId(){
-const direct=localStorage.getItem("ja_customer_id");
-if(direct && direct.length>10) return direct;
+const API_BASE="https://jobapplyai-api.schoene-viktor.workers.dev";
+
+function readWorkplace(){
 const raw=localStorage.getItem("jobapplyai_workplace");
-if(!raw) return null;
-try{
-const obj=JSON.parse(raw);
-const id=obj.customerId || obj.customer_id || null;
-if(id){
-localStorage.setItem("ja_customer_id",id);
-return id;
+if(!raw) return {};
+try{ return JSON.parse(raw)||{}; }catch{ return {}; }
 }
-}catch(e){}
-return null;
+
+function writeWorkplace(patch){
+const obj=readWorkplace();
+const next={...obj,...patch};
+localStorage.setItem("jobapplyai_workplace",JSON.stringify(next));
+return next;
 }
+
+function syncIdentity({customerId,email}){
+if(customerId) localStorage.setItem("ja_customer_id",customerId);
+if(email) localStorage.setItem("ja_user_email",email);
+
+const wp=readWorkplace();
+writeWorkplace({
+apiBase: wp.apiBase || API_BASE,
+customerId: customerId || wp.customerId || wp.customer_id || null,
+customerEmail: email || wp.customerEmail || null
+});
+}
+
+function getActiveCustomerId(){
+const wp=readWorkplace();
+const wpId=wp.customerId || wp.customer_id || null;
+const jaId=localStorage.getItem("ja_customer_id");
+
+if(wpId && jaId && wpId !== jaId){
+localStorage.setItem("ja_customer_id",wpId);
+return wpId;
+}
+return wpId || (jaId && jaId.length>10 ? jaId : null);
+}
+
 function isProfileComplete(){
 return localStorage.getItem("ja_profile_complete")==="true";
 }
+
 (function guardSignup(){
-const cid=getCustomerId();
+const cid=getActiveCustomerId();
 if(!cid) return;
 if(isProfileComplete()){
 window.location.replace("./plan.html");
@@ -327,8 +353,6 @@ clientId:"149621916894-g8mcg8tgqdisdfgdoetkl5sedqpcb153.apps.googleusercontent.c
 scopes:["https://www.googleapis.com/auth/gmail.send","openid","email","profile"]
 };
 
-const API_BASE="https://jobapplyai-api.schoene-viktor.workers.dev";
-
 async function upsertCustomerByEmail(email){
 const res=await fetch(`${API_BASE}/customers/upsert`,{
 method:"POST",
@@ -345,12 +369,22 @@ return await res.json();
 function safeText(el,t){if(el)el.textContent=t;}
 function setBadge(el,type,text){if(!el)return;el.className="badge "+type;el.textContent=text;}
 function setStatus(){
-const email=localStorage.getItem("ja_user_email");
+const wp=readWorkplace();
+const email=(wp.customerEmail || localStorage.getItem("ja_user_email") || "").trim();
 const gmail=localStorage.getItem("ja_gmail_connected")==="1";
-if(email){setBadge(document.getElementById("authBadge"),"good","Signed in: "+email);}
-else{setBadge(document.getElementById("authBadge"),"warn","Not signed in");}
-if(gmail){setBadge(document.getElementById("gmailBadge"),"good","Gmail access granted");}
-else{setBadge(document.getElementById("gmailBadge"),"warn","Gmail access not granted");}
+
+if(email){
+setBadge(document.getElementById("authBadge"),"good","Signed in: "+email);
+}else{
+setBadge(document.getElementById("authBadge"),"warn","Not signed in");
+}
+
+if(gmail){
+setBadge(document.getElementById("gmailBadge"),"good","Gmail access granted");
+}else{
+setBadge(document.getElementById("gmailBadge"),"warn","Gmail access not granted");
+}
+
 document.getElementById("gmailBtn").disabled=!email;
 document.getElementById("toProfile").disabled=!email;
 safeText(document.getElementById("continueHint"),email?"Ready to set up your profile.":"Tip: sign in first.");
@@ -368,18 +402,7 @@ return JSON.parse(atob(normalized));
 }
 
 function syncWorkplaceCustomer(customerId,email){
-try{
-localStorage.setItem("ja_customer_id",customerId);
-const raw=localStorage.getItem("jobapplyai_workplace");
-let obj={};
-try{ obj=raw ? JSON.parse(raw) : {}; }catch{ obj={}; }
-obj.customerId=customerId;
-obj.customerEmail=email;
-obj.apiBase=obj.apiBase || API_BASE;
-localStorage.setItem("jobapplyai_workplace",JSON.stringify(obj));
-}catch(e){
-console.warn("Failed to sync workplace storage",e);
-}
+syncIdentity({customerId,email});
 }
 
 function initGoogleOnce(){
@@ -436,7 +459,8 @@ console.log("GSI prompt not displayed/skipped:",reason1,reason2);
 
 function initGmailButton(){
 document.getElementById("gmailBtn").addEventListener("click",()=>{
-const email=localStorage.getItem("ja_user_email");
+const wp=readWorkplace();
+const email=(wp.customerEmail || localStorage.getItem("ja_user_email") || "").trim();
 if(!email){alert("Please sign in first.");return;}
 const tokenClient=google.accounts.oauth2.initTokenClient({
 client_id:APP.clientId,
@@ -460,6 +484,7 @@ document.getElementById("toProfile").addEventListener("click",()=>go("profile.ht
 }
 
 window.addEventListener("load",()=>{
+syncIdentity({customerId:getActiveCustomerId(),email:(readWorkplace().customerEmail||localStorage.getItem("ja_user_email")||"")});
 setStatus();
 initGoogleOnce();
 initGmailButton();
