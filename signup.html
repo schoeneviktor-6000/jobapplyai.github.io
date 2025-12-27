@@ -507,6 +507,66 @@ go(url);
 });
 </script>
 </main>
+  <div id="accountBar" style="max-width:1120px;margin:14px auto 0;padding:0 18px;">
+<div style="border:1px solid #d7dadc;background:#fff;border-radius:14px;padding:12px 12px;font-family:system-ui;font-weight:700;">
+<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;">
+<div>
+<div style="font-size:12px;opacity:.7;font-weight:800;">Signed in as</div>
+<div id="accountEmail" style="font-size:14px;">-</div>
+<div id="accountCustomerId" style="font-size:12px;opacity:.75;word-break:break-all;">-</div>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;">
+<button id="copyAccount" style="border:1px solid #d7dadc;background:#f6f7f8;border-radius:12px;padding:8px 10px;font-weight:900;cursor:pointer;">Copy</button>
+<button id="resetAccount" style="border:0;background:#0b0b0b;color:#fff;border-radius:12px;padding:8px 10px;font-weight:900;cursor:pointer;">Reset session</button>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+function readWorkplace(){
+const raw=localStorage.getItem("jobapplyai_workplace");
+if(!raw) return {};
+try{ return JSON.parse(raw)||{}; }catch{ return {}; }
+}
+
+function getActiveIdentity(){
+const wp=readWorkplace();
+const wpId=wp.customerId || wp.customer_id || null;
+const wpEmail=wp.customerEmail || null;
+
+const jaId=localStorage.getItem("ja_customer_id");
+const jaEmail=localStorage.getItem("ja_user_email");
+
+return {
+customerId: wpId || jaId || "",
+email: wpEmail || jaEmail || ""
+};
+}
+
+function renderAccountBar(){
+const id=getActiveIdentity();
+document.getElementById("accountEmail").textContent=id.email || "(not signed in)";
+document.getElementById("accountCustomerId").textContent=id.customerId ? ("customer_id: "+id.customerId) : "customer_id: -";
+}
+
+document.getElementById("copyAccount").addEventListener("click",()=>{
+const id=getActiveIdentity();
+const text=`${id.email}\n${id.customerId}`;
+navigator.clipboard.writeText(text);
+});
+
+document.getElementById("resetAccount").addEventListener("click",()=>{
+const keys=[
+"ja_customer_id","ja_user_email","ja_profile_complete","ja_profile","ja_plan","ja_cv_name","ja_signed_in","ja_gmail_connected","jobapplyai_workplace"
+];
+keys.forEach(k=>localStorage.removeItem(k));
+location.href="./signup.html";
+});
+
+window.addEventListener("load",renderAccountBar);
+</script>
+
 <footer class="footer">Need help? Email <a href="mailto:schonv2@gmail.com">schonv2@gmail.com</a>.</footer>
 </div>
 </body>
