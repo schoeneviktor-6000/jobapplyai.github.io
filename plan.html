@@ -272,6 +272,20 @@ const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 const supabaseClient=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 window.supabaseClient=supabaseClient;
 
+function resetLocalStateForNewUser(currentEmail){
+const last=(localStorage.getItem("ja_user_email")||"").trim().toLowerCase();
+const now=(currentEmail||"").trim().toLowerCase();
+if(!now) return;
+
+if(last && last!==now){
+Object.keys(localStorage).forEach(k=>{
+if(k.startsWith("ja_") || k.startsWith("jobapplyai_")) localStorage.removeItem(k);
+});
+sessionStorage.removeItem("sb_access_token");
+}
+localStorage.setItem("ja_user_email", now);
+}
+
 const PLAN_ENDPOINT="/customer-plans/upsert";
 
 const PLANS=[
@@ -293,6 +307,8 @@ if(!session || !session.user || !session.user.email){
 window.location.replace("./signup.html");
 return null;
 }
+const email=session.user.email.trim().toLowerCase();
+resetLocalStateForNewUser(email);
 return session;
 }
 
