@@ -271,7 +271,7 @@ word-break:break-all;
 <div class="grid">
 <section class="card">
 <h2>Queue preview</h2>
-<p class="small">This is your true queue: applications with status=new, joined to jobs_normalized.</p>
+<p class="small">Top 15 items from /me/jobs/queue.</p>
 <div class="actions">
 <button class="btn primary" id="btnRefresh" type="button">Refresh</button>
 <button class="btn light" id="btnCopyToken" type="button">Copy access token</button>
@@ -317,7 +317,9 @@ word-break:break-all;
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
 const API_BASE = "https://jobapplyai-api.schoene-viktor.workers.dev";
-const SUPABASE_URL = "https://https://awlzvhcnjegfhjedswko.supabase.co";
+
+// These are your real values (same as profile.html / plan.html)
+const SUPABASE_URL = "https://awlzvhcnjegfhjedswko.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -411,4 +413,85 @@ return '' +
 }
 
 function renderAppsBreakdown(summary){
-const counts
+const counts = summary && summary.counts ? summary.counts : null;
+if(!counts || typeof counts !== "object"){
+return '<span class="badge warn">Not available</span>';
+}
+const entries = Object.entries(counts);
+if(entries.length === 0){
+return '<span class="badge warn">No applications yet</span>';
+}
+entries.sort((a,b)=>String(a[0]).localeCompare(String(b[0])));
+const rows = entries.map(([k,v]) => {
+return "<tr><td>" + escapeHtml(k) + "</td><td>" + escapeHtml(v) + "</td></tr>";
+}).join("");
+return '' +
+'<table class="table">' +
+'<thead><tr><th>Status</th><th>Count</th></tr></thead>' +
+'<tbody>' + rows + '</tbody>' +
+'</table>';
+}
+
+async function loadDashboard(){
+setText("errorBox", "");
+setText("lastCheck", nowStamp());
+
+setBadge("badgeQueue", "", "Loading");
+setBadge("badgeApps", "", "Loading");
+
+const session = await requireSession();
+if(!session) return;
+
+const email = session.user && session.user.email ? session.user.email : "—";
+setText("meEmail", email);
+setText("subLine", "Signed in as " + email);
+
+const plan = getLocalPlan();
+setText("kpiPlan", plan ? plan : "–");
+setBadge("badgePlan", plan ? "good" : "warn", plan ? "Selected" : "Not selected");
+
+const queue = await apiGet("/me/jobs/queue", session.access_token);
+setText("meCustomerId", queue && queue.customer_id ? queue.customer_id : "—");
+const qCount = typeof queue.count === "number" ? queue.count : (Array.isArray(queue.data) ? queue.data.length : 0);
+setText("kpiQueue", String(qCount));
+setBadge("badgeQueue", "good", "OK");
+document.getElementById("queueWrap").innerHTML = renderQueueTable(queue);
+
+try{
+const apps = await apiGet("/me/applications/summary", session.access_token);
+setText("kpiAppsTotal", (typeof apps.total === "number") ? String(apps.total) : "0");
+setBadge("badgeApps", "good", "OK");
+document.getElementById("appsBreakdown").innerHTML = renderAppsBreakdown(apps);
+}catch(e){
+setText("kpiAppsTotal", "–");
+setBadge("badgeApps", "warn", "Not ready");
+document.getElementById("appsBreakdown").innerHTML = '<span class="badge warn">Endpoint not available</span>';
+}
+}
+
+document.getElementById("btnRefresh").addEventListener("click", async () => {
+try{ await loadDashboard(); }
+catch(e){ setText("errorBox", e.message); setBadge("badgeQueue","warn","Error"); }
+});
+
+document.getElementById("btnCopyToken").addEventListener("click", async () => {
+const { data } = await supabaseClient.auth.getSession();
+const token = data && data.session ? data.session.access_token : "";
+if(!token){ alert("No session token found. Please sign in again."); return; }
+await navigator.clipboard.writeText(token);
+alert("Access token copied.");
+});
+
+document.getElementById("btnLogout").addEventListener("click", async () => {
+await supabaseClient.auth.signOut();
+window.location.replace("./index.html");
+});
+
+window.addEventListener("load", async () => {
+try{ await loadDashboard(); }
+catch(e){ setText("errorBox", e.message); setBadge("badgeQueue","warn","Error"); setBadge("badgeApps","warn","Error"); }
+});
+</script>
+
+</body>
+</html>
