@@ -13,7 +13,6 @@
 --muted2:#6c6c6c;
 --border:#d7dadc;
 --shadow:0 12px 30px rgba(0,0,0,.08);
---shadow2:0 10px 26px rgba(0,0,0,.10);
 --green:#00a63f;
 --green2:#00c853;
 --amber:#ffb000;
@@ -98,7 +97,6 @@ white-space:nowrap;
 .pill.primary{border-color:transparent;background:var(--text);color:#fff}
 .pill.primary:hover{transform:translateY(-1px);box-shadow:0 14px 36px rgba(0,0,0,.22)}
 .pill.iconOnly{padding:9px 10px}
-.pill .hideOnMobile{display:inline}
 
 .main{
 max-width:var(--max);
@@ -218,7 +216,6 @@ text-decoration:none;
 .nav{padding:10px 12px}
 .main{padding:16px 12px calc(16px + var(--safeBottom))}
 .h1{font-size:32px}
-.pill .hideOnMobile{display:none}
 .actions{flex-direction:column;align-items:stretch}
 .btn{justify-content:center;width:100%}
 .card{padding:14px}
@@ -291,6 +288,16 @@ transition:width .25s ease;
 }
 .healthNote{margin-top:10px}
 .healthNote .mono{white-space:normal;word-break:break-word}
+.error{
+margin-top:10px;
+padding:10px 12px;
+border-radius:14px;
+border:1px solid rgba(217,45,32,.25);
+background:rgba(217,45,32,.06);
+color:#7a1a12;
+font-weight:750;
+font-size:13px;
+}
 </style>
 </head>
 <body>
@@ -299,10 +306,10 @@ transition:width .25s ease;
 <nav class="nav">
 <a class="brand" href="index.html"><span class="logo" aria-hidden="true"></span><span>JobApply-AI</span></a>
 <div class="navlinks">
-<a class="pill" href="index.html"><span class="hideOnMobile">Home</span>Home</a>
-<a class="pill" href="profile.html"><span class="hideOnMobile">Profile</span>Profile</a>
-<a class="pill" href="plan.html"><span class="hideOnMobile">Plan</span>Plan</a>
-<a class="pill primary" href="dashboard.html"><span class="hideOnMobile">Dashboard</span>Dashboard</a>
+<a class="pill" href="index.html">Home</a>
+<a class="pill" href="profile.html">Profile</a>
+<a class="pill" href="plan.html">Plan</a>
+<a class="pill primary" href="dashboard.html">Dashboard</a>
 <button class="pill iconOnly" id="btnLogout" type="button" aria-label="Logout">Logout</button>
 </div>
 </nav>
@@ -316,12 +323,10 @@ transition:width .25s ease;
 <div class="card healthTop">
 <h2>Health status <span class="badge" id="badgeHealth">Loading</span></h2>
 <div class="healthRow">
-<div>
 <div class="kpi">
 <div>
 <div class="value" id="kpiHealthLabel">–</div>
 <div class="label">job supply vs your plan</div>
-</div>
 </div>
 </div>
 <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
@@ -378,6 +383,7 @@ transition:width .25s ease;
 </div>
 <div class="hr"></div>
 <div id="queueWrap"><span class="badge" id="queueState">Loading queue…</span></div>
+<div id="queueError"></div>
 </section>
 
 <aside class="card">
@@ -419,21 +425,23 @@ transition:width .25s ease;
 const API_BASE = "https://jobapplyai-api.schoene-viktor.workers.dev";
 const SUPABASE_URL = "https://awlzvhcnjegfhjedswko.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
+
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-window.supabaseClient = supabaseClient;
 
 function setText(id, text){
 const el = document.getElementById(id);
 if(el) el.textContent = text;
 }
-
+function setHtml(id, html){
+const el = document.getElementById(id);
+if(el) el.innerHTML = html;
+}
 function setBadge(id, type, text){
 const el = document.getElementById(id);
 if(!el) return;
 el.className = "badge" + (type ? (" " + type) : "");
 el.textContent = text;
 }
-
 function escapeHtml(s){
 return String(s ?? "")
 .replaceAll("&","&amp;")
@@ -442,7 +450,6 @@ return String(s ?? "")
 .replaceAll('"',"&quot;")
 .replaceAll("'","&#039;");
 }
-
 function nowStamp(){
 return new Date().toISOString().replace("T"," ").replace("Z"," UTC");
 }
@@ -453,7 +460,6 @@ const n=Number(raw);
 if([1,5,10].includes(n)) return n;
 return 0;
 }
-
 function planInfo(planDaily){
 if(planDaily === 1) return { name:"Starter", meta:"1 application/day", short:"Starter (1/day)" };
 if(planDaily === 5) return { name:"Plus", meta:"5 applications/day", short:"Plus (5/day)" };
@@ -585,15 +591,15 @@ setBadge("badgeHealthCap", "", "Today cap: " + s.cap + "/day");
 const meter = document.getElementById("healthMeterFill");
 if(meter) meter.style.width = Math.round(s.ratio * 100) + "%";
 
-const noteHtml = '' +
+setHtml("healthNote",
 '<div class="mono">Recommended cap based on supply: ' + s.cap + '/day</div>' +
-'<div class="mono" style="margin-top:6px">' + escapeHtml(s.note) + '</div>';
-const hn = document.getElementById("healthNote");
-if(hn) hn.innerHTML = noteHtml;
+'<div class="mono" style="margin-top:6px">' + escapeHtml(s.note) + '</div>'
+);
 }
 
 async function loadDashboard(){
 setText("errorBox", "");
+setHtml("queueError", "");
 setText("lastCheck", nowStamp());
 
 setBadge("badgeQueue", "", "Loading");
@@ -610,83 +616,47 @@ setText("subLine", "Signed in as " + email);
 
 const planDaily = getPlanDaily();
 const p = planInfo(planDaily);
-
 setText("kpiPlanName", p.name);
 setText("kpiPlanMeta", planDaily ? p.meta : "no plan selected");
 setBadge("badgePlan", planDaily ? "good" : "warn", planDaily ? "Selected" : "Not selected");
 
-const queue = await apiGet("/me/jobs/queue", remember: session.access_token);
-}
-
-</script>
-<script>
-async function apiGet(path, accessToken){
-const res = await fetch(API_BASE + path, {
-method: "GET",
-headers: { "Authorization": "Bearer " + accessToken }
-});
-const text = await res.text().catch(()=> "");
-let json = null;
-try{ json = JSON.parse(text); }catch{ json = { raw: text }; }
-if(!res.ok){
-const msg = (json && (json.error || json.details)) ? (json.error || json.details) : text;
-throw new Error(path + " failed: " + res.status + " " + msg);
-}
-return json;
-}
-
-async function loadDashboard(){
-setText("errorBox", "");
-setText("lastCheck", nowStamp());
-
-setBadge("badgeQueue", "", "Loading");
-setBadge("badgeApps", "", "Loading");
-setBadge("badgePlan", "", "Loading");
-setBadge("badgeHealth", "", "Loading");
-
-const session = await requireSession();
-if(!session) return;
-
-const email = session.user && session.user.email ? session.user.email : "—";
-setText("meEmail", email);
-setText("subLine", "Signed in as " + email);
-
-const planDaily = getPlanDaily();
-const p = planInfo(planDaily);
-
-setText("kpiPlanName", p.name);
-setText("kpiPlanMeta", planDaily ? p.meta : "no plan selected");
-setBadge("badgePlan", planDaily ? "good" : "warn", planDaily ? "Selected" : "Not selected");
-
+try{
 const queue = await apiGet("/me/jobs/queue", session.access_token);
 setText("meCustomerId", queue && queue.customer_id ? queue.customer_id : "—");
-const qCount = typeof queue.count === "number" ? queue.count : (Array.isArray(queue.data) ? queue.data.length : 0);
+
+const qCount = typeof queue.count === "number"
+? queue.count
+: (Array.isArray(queue.data) ? queue.data.length : 0);
 
 setText("kpiQueue", String(qCount));
 setBadge("badgeQueue", qCount > 0 ? "good" : "warn", qCount > 0 ? "OK" : "Empty");
 
-const qw = document.getElementById("queueWrap");
-if(qw) qw.innerHTML = renderQueueTable(queue);
-
+setHtml("queueWrap", renderQueueTable(queue));
 renderHealthTop(qCount, planDaily);
+}catch(e){
+setText("kpiQueue", "–");
+setBadge("badgeQueue", "bad", "Error");
+setBadge("badgeHealth", "bad", "Error");
+setHtml("queueWrap", '<span class="badge bad">Queue failed</span>');
+setHtml("queueError", '<div class="error">' + escapeHtml(e.message) + '</div>');
+setText("errorBox", e.message);
+}
 
 try{
 const apps = await apiGet("/me/applications/summary", session.access_token);
 setText("kpiAppsTotal", (typeof apps.total === "number") ? String(apps.total) : "0");
 setBadge("badgeApps", "good", "OK");
-const ab = document.getElementById("appsBreakdown");
-if(ab) ab.innerHTML = renderAppsBreakdown(apps);
+setHtml("appsBreakdown", renderAppsBreakdown(apps));
 }catch(e){
 setText("kpiAppsTotal", "–");
 setBadge("badgeApps", "warn", "Not ready");
-const ab = document.getElementById("appsBreakdown");
-if(ab) ab.innerHTML = '<span class="badge warn">Endpoint not available</span>';
+setHtml("appsBreakdown", '<span class="badge warn">Endpoint not available</span>');
 }
 }
 
 document.getElementById("btnRefresh").addEventListener("click", async () => {
 try{ await loadDashboard(); }
-catch(e){ setText("errorBox", e.message); setBadge("badgeQueue","warn","Error"); }
+catch(e){ setText("errorBox", e.message); }
 });
 
 document.getElementById("btnCopyToken").addEventListener("click", async () => {
@@ -706,10 +676,10 @@ window.addEventListener("load", async () => {
 try{ await loadDashboard(); }
 catch(e){
 setText("errorBox", e.message);
-setBadge("badgeQueue","warn","Error");
-setBadge("badgeApps","warn","Error");
-setBadge("badgePlan","warn","Error");
-setBadge("badgeHealth","warn","Error");
+setBadge("badgeQueue","bad","Error");
+setBadge("badgeApps","bad","Error");
+setBadge("badgePlan","bad","Error");
+setBadge("badgeHealth","bad","Error");
 }
 });
 </script>
