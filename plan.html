@@ -268,6 +268,7 @@ const API_BASE="https://jobapplyai-api.schoene-viktor.workers.dev";
 const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
 const supabaseClient=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+window.supabaseClient=supabaseClient;
 
 const PLAN_ENDPOINT="/customer-plans/upsert";
 
@@ -343,4 +344,95 @@ div.innerHTML=
 '<div class="price">$'+p.price+'</div>'+
 '<div class="meta">'+monthly(p.appsPerDay)+' applications/month</div>'+
 '<ul class="ul"><li>CV tailoring + cover letter</li><li>Manual review before sending</li><li>Weekly progress summary</li></ul>'+
-'<div class="
+'<div class="kpi"><span>Speed</span><span>Quality</span><span>Consistency</span></div>';
+div.addEventListener("click",()=>select(p.id,true));
+div.addEventListener("keydown",(e)=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();select(p.id,true);}});
+wrap.appendChild(div);
+});
+const saved=localStorage.getItem("ja_plan");
+if(saved) select(saved,false);
+}
+
+function setSummary(plan){
+const sum=document.getElementById("summary");
+if(!plan){
+sum.className="badge";
+sum.textContent="Select a plan to continue";
+return;
+}
+sum.className="badge good";
+sum.textContent=plan.name+" · $"+plan.price+" · "+plan.appsPerDay+"/day ("+monthly(plan.appsPerDay)+"/month)";
+}
+
+async function select(id, doSave){
+selected=id;
+document.querySelectorAll(".planCard").forEach(el=>el.classList.toggle("selected",el.dataset.planId===id));
+localStorage.setItem("ja_plan",id);
+document.getElementById("continue").disabled=false;
+
+const plan=PLANS.find(p=>p.id===id) || null;
+setSummary(plan);
+
+const saveHint=document.getElementById("saveHint");
+if(!doSave){
+saveHint.textContent="Loaded saved plan from this browser.";
+return;
+}
+
+const session=await requireAuth();
+if(!session) return;
+
+const customer_id=getCustomerIdLocal();
+if(!customer_id){
+saveHint.textContent="Missing customer_id. Please go to signup again.";
+return;
+}
+
+saveHint.textContent="Saving plan...";
+try{
+await savePlanToBackend(customer_id,id);
+saveHint.textContent="Plan saved (backend + browser).";
+}catch(err){
+console.warn(err);
+saveHint.textContent="Saved locally (backend save failed).";
+}
+}
+
+document.getElementById("continue").addEventListener("click",async ()=>{
+const session=await requireAuth();
+if(!session) return;
+if(!selected) return;
+alert("Plan selected: "+selected+"\nNext step: connect checkout (Stripe).");
+});
+
+function go(url){
+document.body.classList.add("leaving");
+setTimeout(()=>{window.location.href=url;},180);
+}
+
+window.addEventListener("load",async ()=>{
+const session=await requireAuth();
+if(!session) return;
+if(!isProfileComplete()){
+window.location.replace("./profile.html");
+return;
+}
+render();
+});
+
+document.addEventListener("click",(e)=>{
+const a=e.target.closest("a[data-nav='1']");
+if(!a)return;
+const url=a.getAttribute("href");
+if(!url || url.startsWith("#"))return;
+e.preventDefault();
+go(url);
+});
+</script>
+
+</main>
+
+<footer class="footer">Need help? Email <a href="mailto:schonv2@gmail.com">schonv2@gmail.com</a>.</footer>
+</div>
+</body>
+</html>
