@@ -216,76 +216,7 @@ font-size:13px;
 body.leaving .shell{animation:fadeOut .22s ease both}
 @keyframes fadeOut{to{opacity:0;transform:translateY(6px)}}
 .helper{font-size:12px;color:var(--muted2);font-weight:650;margin-top:6px}
-.small{font-size:12px;color:var(--muted2);font-weight:650}
-.notice{
-border-radius:18px;
-padding:12px 12px;
-border:1px solid rgba(255,176,0,.35);
-background:rgba(255,244,214,.7);
-color:#5a3a00;
-font-weight:750;
-}
 </style>
-
-<script>
-const API_BASE="https://jobapplyai-api.schoene-viktor.workers.dev";
-
-function readWorkplace(){
-const raw=localStorage.getItem("jobapplyai_workplace");
-if(!raw) return {};
-try{ return JSON.parse(raw)||{}; }catch{ return {}; }
-}
-
-function writeWorkplace(patch){
-const obj=readWorkplace();
-const next={...obj,...patch};
-localStorage.setItem("jobapplyai_workplace",JSON.stringify(next));
-return next;
-}
-
-function syncIdentityFromWorkplace(){
-const wp=readWorkplace();
-const wpId=wp.customerId || wp.customer_id || null;
-const wpEmail=wp.customerEmail || null;
-const jaId=localStorage.getItem("ja_customer_id");
-const jaEmail=localStorage.getItem("ja_user_email");
-
-if(wpId && (!jaId || jaId !== wpId)) localStorage.setItem("ja_customer_id",wpId);
-if(wpEmail && (!jaEmail || jaEmail !== wpEmail)) localStorage.setItem("ja_user_email",wpEmail);
-
-if(!wp.apiBase) writeWorkplace({ apiBase: API_BASE });
-
-return { customerId: wpId || (jaId && jaId.length>10 ? jaId : null) , email: wpEmail || jaEmail || null };
-}
-
-function getActiveCustomerId(){
-const wp=readWorkplace();
-const wpId=wp.customerId || wp.customer_id || null;
-const jaId=localStorage.getItem("ja_customer_id");
-
-if(wpId && jaId && wpId !== jaId){
-localStorage.setItem("ja_customer_id",wpId);
-return wpId;
-}
-return wpId || (jaId && jaId.length>10 ? jaId : null);
-}
-
-function isProfileComplete(){
-return localStorage.getItem("ja_profile_complete")==="true";
-}
-
-(function guardProfile(){
-syncIdentityFromWorkplace();
-const cid=getActiveCustomerId();
-if(!cid){
-window.location.replace("./signup.html");
-return;
-}
-if(isProfileComplete()){
-window.location.replace("./plan.html");
-}
-})();
-</script>
 </head>
 <body>
 <div class="shell fadeIn">
@@ -301,6 +232,7 @@ window.location.replace("./plan.html");
 </div>
 </nav>
 </header>
+
 <main class="main">
 <div class="grid">
 <section>
@@ -357,18 +289,79 @@ window.location.replace("./plan.html");
 </section>
 </div>
 
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
 <script>
-function go(url){
-document.body.classList.add("leaving");
-setTimeout(()=>{window.location.href=url;},180);
+const API_BASE="https://jobapplyai-api.schoene-viktor.workers.dev";
+const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
+const supabaseClient=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function readWorkplace(){
+const raw=localStorage.getItem("jobapplyai_workplace");
+if(!raw) return {};
+try{ return JSON.parse(raw)||{}; }catch{ return {}; }
+}
+
+function writeWorkplace(patch){
+const obj=readWorkplace();
+const next={...obj,...patch};
+localStorage.setItem("jobapplyai_workplace",JSON.stringify(next));
+return next;
+}
+
+function syncIdentity({customerId,email}){
+if(customerId) localStorage.setItem("ja_customer_id",customerId);
+if(email) localStorage.setItem("ja_user_email",email);
+const wp=readWorkplace();
+writeWorkplace({
+apiBase: wp.apiBase || API_BASE,
+customerId: customerId || wp.customerId || wp.customer_id || null,
+customerEmail: email || wp.customerEmail || null
+});
 }
 
 function parseCsvList(s){
 return (s||"").split(",").map(x=>x.trim()).filter(Boolean);
 }
 
-function getCustomerIdLocal(){
-return getActiveCustomerId();
+async function getSession(){
+const { data }=await supabaseClient.auth.getSession();
+return data && data.session ? data.session : null;
+}
+
+async function upsertCustomerByEmail(email){
+const res=await fetch(`${API_BASE}/customers/upsert`,{
+method:"POST",
+headers:{ "content-type":"application/json" },
+body:JSON.stringify({ email })
+});
+if(!res.ok){
+const text=await res.text().catch(()=> "");
+throw new Error(`Customer upsert failed: ${res.status} ${text}`);
+}
+return await res.json();
+}
+
+async function requireAuthAndCustomer(){
+const session=await getSession();
+if(!session || !session.user || !session.user.email){
+window.location.replace("./signup.html");
+return null;
+}
+const email=session.user.email.trim().toLowerCase();
+const existingId=localStorage.getItem("ja_customer_id") || "";
+if(existingId && existingId.length>10){
+syncIdentity({ customerId:existingId, email });
+return { session, email, customerId:existingId };
+}
+const data=await upsertCustomerByEmail(email);
+if(data && data.customer_id){
+syncIdentity({ customerId:data.customer_id, email });
+return { session, email, customerId:data.customer_id };
+}
+alert("Signed in, but could not create customer. Check console.");
+return null;
 }
 
 async function upsertCustomerProfile(payload){
@@ -384,9 +377,7 @@ throw new Error(`Profile upsert failed: ${res.status} ${text}`);
 return await res.json();
 }
 
-function load(){
-syncIdentityFromWorkplace();
-
+function loadLocalUi(){
 const data=JSON.parse(localStorage.getItem("ja_profile")||"{}");
 ["jobTitles","industry","country","city","radius"].forEach(k=>{
 const el=document.getElementById(k);
@@ -409,8 +400,21 @@ st.textContent="Not saved yet";
 document.getElementById("step3").classList.toggle("done",!!localStorage.getItem("ja_plan"));
 }
 
-document.getElementById("profileForm").addEventListener("submit", async (e)=>{
+function go(url){
+document.body.classList.add("leaving");
+setTimeout(()=>{window.location.href=url;},180);
+}
+
+window.addEventListener("load",async ()=>{
+const auth=await requireAuthAndCustomer();
+if(!auth) return;
+loadLocalUi();
+});
+
+document.getElementById("profileForm").addEventListener("submit",async (e)=>{
 e.preventDefault();
+const auth=await requireAuthAndCustomer();
+if(!auth) return;
 
 const saveBtn=document.getElementById("saveBtn");
 const st=document.getElementById("saveStatus");
@@ -432,12 +436,6 @@ radius:document.getElementById("radius").value.trim()
 };
 localStorage.setItem("ja_profile",JSON.stringify(profileLocal));
 
-const customer_id=getCustomerIdLocal();
-if(!customer_id){
-localStorage.removeItem("ja_profile_complete");
-throw new Error("Missing customer_id in browser");
-}
-
 const desired_titles=parseCsvList(profileLocal.jobTitles);
 const industries=parseCsvList(profileLocal.industry);
 const countries_allowed=parseCsvList(profileLocal.country);
@@ -445,7 +443,7 @@ const locations=parseCsvList(profileLocal.city);
 const radius_km=profileLocal.radius ? Number(profileLocal.radius) : null;
 
 await upsertCustomerProfile({
-customer_id,
+customer_id: auth.customerId,
 desired_titles,
 industries,
 countries_allowed,
@@ -454,7 +452,6 @@ radius_km
 });
 
 localStorage.setItem("ja_profile_complete","true");
-
 st.className="badge good";
 st.textContent="Saved (backend)";
 }catch(err){
@@ -478,8 +475,6 @@ return;
 go("plan.html");
 });
 
-window.addEventListener("load",load);
-
 document.addEventListener("click",(e)=>{
 const a=e.target.closest("a[data-nav='1']");
 if(!a)return;
@@ -491,6 +486,7 @@ go(url);
 </script>
 
 </main>
+
 <footer class="footer">Need help? Email <a href="mailto:schonv2@gmail.com">schonv2@gmail.com</a>.</footer>
 </div>
 </body>
