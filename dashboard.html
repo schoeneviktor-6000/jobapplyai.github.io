@@ -297,6 +297,10 @@ word-break:break-all;
 <div id="appsBreakdown"><span class="badge">Loading…</span></div>
 
 <div class="hr"></div>
+<div class="hr"></div>
+<div class="small">Job supply status</div>
+<div id="supplyBox"><span class="badge">Loading…</span></div>
+
 <div class="small">Last refresh</div>
 <div class="mono" id="lastCheck">–</div>
 
@@ -350,8 +354,15 @@ function nowStamp(){
 return new Date().toISOString().replace("T"," ").replace("Z"," UTC");
 }
 
-function getLocalPlan(){
-return localStorage.getItem("ja_plan") || "";
+function getPlanDaily(){
+const raw=(localStorage.getItem("ja_plan") || "").trim();
+const n=Number(raw);
+if([1,5,10].includes(n)) return n;
+return 0;
+}
+
+function getLocalPlanString(){
+return (localStorage.getItem("ja_plan") || "").trim();
 }
 
 async function requireSession(){
@@ -432,6 +443,36 @@ return '' +
 '</table>';
 }
 
+function renderSupplyStatus(queueCount, planDaily){
+let healthLabel = "Low";
+let cap = 1;
+if(queueCount >= 25){ healthLabel = "Healthy"; cap = 10; }
+else if(queueCount >= 5){ healthLabel = "Medium"; cap = 5; }
+
+let planText = planDaily ? (planDaily + "/day") : "No plan";
+let badgeType = healthLabel === "Healthy" ? "good" : (healthLabel === "Medium" ? "" : "warn");
+
+let note = "";
+if(!planDaily){
+note = "Select a plan (1 / 5 / 10) to start.";
+} else if(queueCount === 0){
+note = "No jobs in your queue yet. Ask the team to fetch jobs once in Workplace.";
+} else if(queueCount < planDaily){
+note = "Your queue is below your plan. Add more titles and/or increase radius to avoid 0 applications.";
+} else {
+note = "You have enough supply for today.";
+}
+
+return '' +
+'<span class="badge ' + badgeType + '">' + healthLabel + '</span> ' +
+'<span class="badge">Plan: ' + escapeHtml(planText) + '</span> ' +
+'<span class="badge">Today cap: ' + cap + '/day</span>' +
+'<div class="hr"></div>' +
+'<div class="mono">Queue: ' + queueCount + ' | Recommended cap based on supply: ' + cap + '/day</div>' +
+'<div class="mono" style="margin-top:6px">' + escapeHtml(note) + '</div>';
+}
+
+
 async function loadDashboard(){
 setText("errorBox", "");
 setText("lastCheck", nowStamp());
@@ -446,16 +487,18 @@ const email = session.user && session.user.email ? session.user.email : "—";
 setText("meEmail", email);
 setText("subLine", "Signed in as " + email);
 
-const plan = getLocalPlan();
-setText("kpiPlan", plan ? plan : "–");
-setBadge("badgePlan", plan ? "good" : "warn", plan ? "Selected" : "Not selected");
+const planDaily = getPlanDaily();
+const planStr = getLocalPlanString();
+setText("kpiPlan", planDaily ? String(planDaily) : "–");
+setBadge("badgePlan", planDaily ? "good" : "warn", planDaily ? "Selected" : "Not selected");
 
 const queue = await apiGet("/me/jobs/queue", session.access_token);
 setText("meCustomerId", queue && queue.customer_id ? queue.customer_id : "—");
 const qCount = typeof queue.count === "number" ? queue.count : (Array.isArray(queue.data) ? queue.data.length : 0);
 setText("kpiQueue", String(qCount));
-setBadge("badgeQueue", "good", "OK");
+setBadge("badgeQueue", qCount > 0 ? "good" : "warn", qCount > 0 ? "OK" : "Empty");
 document.getElementById("queueWrap").innerHTML = renderQueueTable(queue);
+document.getElementById("supplyBox").innerHTML = renderSupplyStatus(qCount, planDaily);
 
 try{
 const apps = await apiGet("/me/applications/summary", session.access_token);
