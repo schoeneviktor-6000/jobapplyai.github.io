@@ -178,8 +178,6 @@ text-decoration:none;
 .btn:disabled{cursor:not-allowed;opacity:.55}
 .btn.primary{background:var(--grad);color:#fff;box-shadow:0 14px 34px rgba(0,166,63,.20)}
 .btn.primary:hover{transform:translateY(-1px);box-shadow:0 18px 40px rgba(0,166,63,.25)}
-.btn.ghost{background:var(--text);color:#fff}
-.btn.ghost:hover{transform:translateY(-1px);box-shadow:0 14px 36px rgba(0,0,0,.22)}
 .badge{
 display:inline-flex;align-items:center;gap:8px;
 padding:8px 12px;border-radius:14px;
@@ -188,7 +186,6 @@ background:rgba(246,247,248,.92);
 font-weight:850;font-size:13px;color:var(--muted);
 }
 .badge.good{border-color:rgba(0,166,63,.25);color:#075b24}
-.badge.warn{border-color:rgba(255,176,0,.35);color:#7a4d00}
 .hr{height:1px;background:rgba(215,218,220,.8);margin:14px 0}
 .footer{
 max-width:var(--max);
@@ -202,14 +199,6 @@ font-size:13px;
 body.leaving .shell{animation:fadeOut .22s ease both}
 @keyframes fadeOut{to{opacity:0;transform:translateY(6px)}}
 .small{font-size:12px;color:var(--muted2);font-weight:650}
-.notice{
-border-radius:18px;
-padding:12px 12px;
-border:1px solid rgba(255,176,0,.35);
-background:rgba(255,244,214,.7);
-color:#5a3a00;
-font-weight:750;
-}
 .plans{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
 @media (max-width:980px){.plans{grid-template-columns:1fr;}}
 .planCard{
@@ -229,36 +218,6 @@ cursor:pointer;
 .kpi{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .kpi span{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;border:1px solid rgba(215,218,220,.85);background:rgba(246,247,248,.92);font-weight:850;font-size:12px}
 </style>
-<script>
-function getCustomerId(){
-const direct=localStorage.getItem("ja_customer_id");
-if(direct && direct.length>10) return direct;
-const raw=localStorage.getItem("jobapplyai_workplace");
-if(!raw) return null;
-try{
-const obj=JSON.parse(raw);
-const id=obj.customerId || obj.customer_id || null;
-if(id){
-localStorage.setItem("ja_customer_id",id);
-return id;
-}
-}catch(e){}
-return null;
-}
-function isProfileComplete(){
-return localStorage.getItem("ja_profile_complete")==="true";
-}
-(function guardPlan(){
-const cid=getCustomerId();
-if(!cid){
-window.location.replace("./signup.html");
-return;
-}
-if(!isProfileComplete()){
-window.location.replace("./profile.html");
-}
-})();
-</script>
 </head>
 <body>
 <div class="shell fadeIn">
@@ -274,6 +233,7 @@ window.location.replace("./profile.html");
 </div>
 </nav>
 </header>
+
 <main class="main">
 <div class="grid">
 <section>
@@ -285,6 +245,7 @@ window.location.replace("./profile.html");
 <div class="step current" aria-current="step"><span class="dot">3</span><span>Plan</span></div>
 </div>
 </section>
+
 <section>
 <div class="card">
 <h2>Plans</h2>
@@ -300,8 +261,14 @@ window.location.replace("./profile.html");
 </section>
 </div>
 
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
 <script>
 const API_BASE="https://jobapplyai-api.schoene-viktor.workers.dev";
+const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
+const supabaseClient=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 const PLAN_ENDPOINT="/customer-plans/upsert";
 
 const PLANS=[
@@ -312,9 +279,23 @@ const PLANS=[
 
 function monthly(appsPerDay){return appsPerDay*30;}
 
+async function getSession(){
+const { data }=await supabaseClient.auth.getSession();
+return data && data.session ? data.session : null;
+}
+
+async function requireAuth(){
+const session=await getSession();
+if(!session || !session.user || !session.user.email){
+window.location.replace("./signup.html");
+return null;
+}
+return session;
+}
+
 function getCustomerIdLocal(){
 const direct=localStorage.getItem("ja_customer_id");
-if(direct) return direct;
+if(direct && direct.length>10) return direct;
 const raw=localStorage.getItem("jobapplyai_workplace");
 if(!raw) return null;
 try{
@@ -322,11 +303,14 @@ const obj=JSON.parse(raw);
 const id=obj.customerId || obj.customer_id || null;
 if(id){
 localStorage.setItem("ja_customer_id",id);
+return id;
 }
-return id || null;
-}catch{
+}catch(e){}
 return null;
 }
+
+function isProfileComplete(){
+return localStorage.getItem("ja_profile_complete")==="true";
 }
 
 async function savePlanToBackend(customer_id, plan_id){
@@ -359,142 +343,4 @@ div.innerHTML=
 '<div class="price">$'+p.price+'</div>'+
 '<div class="meta">'+monthly(p.appsPerDay)+' applications/month</div>'+
 '<ul class="ul"><li>CV tailoring + cover letter</li><li>Manual review before sending</li><li>Weekly progress summary</li></ul>'+
-'<div class="kpi"><span>Speed</span><span>Quality</span><span>Consistency</span></div>';
-div.addEventListener("click",()=>select(p.id,true));
-div.addEventListener("keydown",(e)=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();select(p.id,true);}});
-wrap.appendChild(div);
-});
-const saved=localStorage.getItem("ja_plan");
-if(saved) select(saved,false);
-}
-
-function setSummary(plan){
-const sum=document.getElementById("summary");
-if(!plan){
-sum.className="badge";
-sum.textContent="Select a plan to continue";
-return;
-}
-sum.className="badge good";
-sum.textContent=plan.name+" · $"+plan.price+" · "+plan.appsPerDay+"/day ("+monthly(plan.appsPerDay)+"/month)";
-}
-
-async function select(id, doSave){
-selected=id;
-document.querySelectorAll(".planCard").forEach(el=>el.classList.toggle("selected",el.dataset.planId===id));
-localStorage.setItem("ja_plan",id);
-document.getElementById("continue").disabled=false;
-
-const plan=PLANS.find(p=>p.id===id) || null;
-setSummary(plan);
-
-const saveHint=document.getElementById("saveHint");
-if(!doSave){
-saveHint.textContent="Loaded saved plan from this browser.";
-return;
-}
-
-const customer_id=getCustomerIdLocal();
-if(!customer_id){
-saveHint.textContent="Saved locally, but missing customer_id. Please sign in again.";
-return;
-}
-
-saveHint.textContent="Saving plan...";
-try{
-await savePlanToBackend(customer_id,id);
-saveHint.textContent="Plan saved (backend + browser).";
-}catch(err){
-console.warn(err);
-saveHint.textContent="Saved locally (backend save failed).";
-}
-}
-
-document.getElementById("continue").addEventListener("click",()=>{
-if(!selected) return;
-alert("Plan selected: "+selected+"\nNext step: connect checkout (Stripe).");
-});
-
-window.addEventListener("load",()=>{render();});
-</script>
-
-<script>
-function go(url){
-document.body.classList.add("leaving");
-setTimeout(()=>{window.location.href=url;},180);
-}
-document.addEventListener("click",(e)=>{
-const a=e.target.closest("a[data-nav='1']");
-if(!a)return;
-const url=a.getAttribute("href");
-if(!url || url.startsWith("#"))return;
-e.preventDefault();
-go(url);
-});
-</script>
-
-</main>
-  <div id="accountBar" style="max-width:1120px;margin:14px auto 0;padding:0 18px;">
-<div style="border:1px solid #d7dadc;background:#fff;border-radius:14px;padding:12px 12px;font-family:system-ui;font-weight:700;">
-<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;">
-<div>
-<div style="font-size:12px;opacity:.7;font-weight:800;">Signed in as</div>
-<div id="accountEmail" style="font-size:14px;">-</div>
-<div id="accountCustomerId" style="font-size:12px;opacity:.75;word-break:break-all;">-</div>
-</div>
-<div style="display:flex;gap:8px;flex-wrap:wrap;">
-<button id="copyAccount" style="border:1px solid #d7dadc;background:#f6f7f8;border-radius:12px;padding:8px 10px;font-weight:900;cursor:pointer;">Copy</button>
-<button id="resetAccount" style="border:0;background:#0b0b0b;color:#fff;border-radius:12px;padding:8px 10px;font-weight:900;cursor:pointer;">Reset session</button>
-</div>
-</div>
-</div>
-</div>
-
-<script>
-function readWorkplace(){
-const raw=localStorage.getItem("jobapplyai_workplace");
-if(!raw) return {};
-try{ return JSON.parse(raw)||{}; }catch{ return {}; }
-}
-
-function getActiveIdentity(){
-const wp=readWorkplace();
-const wpId=wp.customerId || wp.customer_id || null;
-const wpEmail=wp.customerEmail || null;
-
-const jaId=localStorage.getItem("ja_customer_id");
-const jaEmail=localStorage.getItem("ja_user_email");
-
-return {
-customerId: wpId || jaId || "",
-email: wpEmail || jaEmail || ""
-};
-}
-
-function renderAccountBar(){
-const id=getActiveIdentity();
-document.getElementById("accountEmail").textContent=id.email || "(not signed in)";
-document.getElementById("accountCustomerId").textContent=id.customerId ? ("customer_id: "+id.customerId) : "customer_id: -";
-}
-
-document.getElementById("copyAccount").addEventListener("click",()=>{
-const id=getActiveIdentity();
-const text=`${id.email}\n${id.customerId}`;
-navigator.clipboard.writeText(text);
-});
-
-document.getElementById("resetAccount").addEventListener("click",()=>{
-const keys=[
-"ja_customer_id","ja_user_email","ja_profile_complete","ja_profile","ja_plan","ja_cv_name","ja_signed_in","ja_gmail_connected","jobapplyai_workplace"
-];
-keys.forEach(k=>localStorage.removeItem(k));
-location.href="./signup.html";
-});
-
-window.addEventListener("load",renderAccountBar);
-</script>
-
-<footer class="footer">Need help? Email <a href="mailto:schonv2@gmail.com">schonv2@gmail.com</a>.</footer>
-</div>
-</body>
-</html>
+'<div class="
