@@ -79,6 +79,7 @@ font-weight:800;
 font-size:13px;
 text-decoration:none;
 transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease, background .15s ease;
+cursor:pointer;
 }
 .pill:hover{transform:translateY(-1px);box-shadow:var(--shadow);border-color:rgba(0,166,63,.22)}
 .pill.primary{
@@ -228,8 +229,9 @@ cursor:pointer;
 <a class="pill" href="index.html" data-nav="1">Home</a>
 <a class="pill" href="signup.html" data-nav="1">Signup</a>
 <a class="pill" href="profile.html" data-nav="1">Profile</a>
-<a class="pill primary" href="plan.html" data-nav="1">Plans</a>
-<a class="pill" href="mailto:schonv2@gmail.com">Contact</a>
+<a class="pill primary" href="plan.html" data-nav="1">Plan</a>
+<a class="pill" href="dashboard.html" data-nav="1">Dashboard</a>
+<button class="pill" id="btnLogout" type="button">Logout</button>
 </div>
 </nav>
 </header>
@@ -398,17 +400,24 @@ saveHint.textContent="Saved locally (backend save failed).";
 }
 }
 
-document.getElementById("continue").addEventListener("click",async ()=>{
-const session=await requireAuth();
-if(!session) return;
-if(!selected) return;
-alert("Plan selected: "+selected+"\nNext step: connect checkout (Stripe).");
-});
-
 function go(url){
 document.body.classList.add("leaving");
 setTimeout(()=>{window.location.href=url;},180);
 }
+
+document.getElementById("continue").addEventListener("click", async ()=>{
+const session=await requireAuth();
+if(!session) return;
+if(!selected) return;
+go("./dashboard.html");
+});
+
+document.getElementById("btnLogout").addEventListener("click", async ()=>{
+await supabaseClient.auth.signOut();
+localStorage.removeItem("ja_user_email");
+sessionStorage.removeItem("sb_access_token");
+window.location.replace("./index.html");
+});
 
 window.addEventListener("load",async ()=>{
 const session=await requireAuth();
