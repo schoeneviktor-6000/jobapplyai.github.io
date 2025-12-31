@@ -79,6 +79,7 @@ font-weight:800;
 font-size:13px;
 text-decoration:none;
 transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease, background .15s ease;
+cursor:pointer;
 }
 .pill:hover{transform:translateY(-1px);box-shadow:var(--shadow);border-color:rgba(0,166,63,.22)}
 .pill.primary{
@@ -227,8 +228,9 @@ body.leaving .shell{animation:fadeOut .22s ease both}
 <a class="pill" href="index.html" data-nav="1">Home</a>
 <a class="pill" href="signup.html" data-nav="1">Signup</a>
 <a class="pill primary" href="profile.html" data-nav="1">Profile</a>
-<a class="pill" href="plan.html" data-nav="1">Plans</a>
-<a class="pill" href="mailto:schonv2@gmail.com">Contact</a>
+<a class="pill" href="plan.html" data-nav="1">Plan</a>
+<a class="pill" href="dashboard.html" data-nav="1">Dashboard</a>
+<button class="pill" id="btnLogout" type="button">Logout</button>
 </div>
 </nav>
 </header>
@@ -281,7 +283,7 @@ body.leaving .shell{animation:fadeOut .22s ease both}
 
 <div class="actions">
 <button class="btn ghost" type="submit" id="saveBtn">Save profile</button>
-<button class="btn primary" type="button" id="toPlan">Continue to plan</button>
+<button class="btn primary" type="button" id="toNext">Continue to plan</button>
 <span class="badge" id="saveStatus">Not saved yet</span>
 </div>
 </form>
@@ -297,6 +299,10 @@ const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
 const supabaseClient=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 window.supabaseClient=supabaseClient;
+
+function hasPlan(){
+return !!localStorage.getItem("ja_plan");
+}
 
 function readWorkplace(){
 const raw=localStorage.getItem("jobapplyai_workplace");
@@ -398,7 +404,19 @@ st.textContent="Saved (local only)";
 st.className="badge";
 st.textContent="Not saved yet";
 }
-document.getElementById("step3").classList.toggle("done",!!localStorage.getItem("ja_plan"));
+
+document.getElementById("step3").classList.toggle("done",hasPlan());
+updateContinueCta();
+}
+
+function updateContinueCta(){
+const btn=document.getElementById("toNext");
+if(!btn) return;
+if(hasPlan()){
+btn.textContent="Continue to dashboard";
+}else{
+btn.textContent="Continue to plan";
+}
 }
 
 function go(url){
@@ -455,6 +473,7 @@ radius_km
 localStorage.setItem("ja_profile_complete","true");
 st.className="badge good";
 st.textContent="Saved (backend)";
+updateContinueCta();
 }catch(err){
 console.error(err);
 localStorage.removeItem("ja_profile_complete");
@@ -466,14 +485,25 @@ saveBtn.disabled=false;
 }
 });
 
-document.getElementById("toPlan").addEventListener("click",()=>{
+document.getElementById("toNext").addEventListener("click",()=>{
 if(localStorage.getItem("ja_profile_complete")!=="true"){
 const st=document.getElementById("saveStatus");
 st.className="badge warn";
 st.textContent="Save to backend first";
 return;
 }
+if(hasPlan()){
+go("dashboard.html");
+}else{
 go("plan.html");
+}
+});
+
+document.getElementById("btnLogout").addEventListener("click", async ()=>{
+await supabaseClient.auth.signOut();
+localStorage.removeItem("ja_user_email");
+sessionStorage.removeItem("sb_access_token");
+window.location.replace("./index.html");
 });
 
 document.addEventListener("click",(e)=>{
