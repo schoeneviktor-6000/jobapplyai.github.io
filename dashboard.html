@@ -13,6 +13,7 @@
 --muted2:#6c6c6c;
 --border:#d7dadc;
 --shadow:0 12px 30px rgba(0,0,0,.08);
+--shadow2:0 14px 36px rgba(0,0,0,.22);
 --green:#00a63f;
 --green2:#00c853;
 --amber:#ffb000;
@@ -95,7 +96,7 @@ white-space:nowrap;
 }
 .pill:hover{transform:translateY(-1px);box-shadow:var(--shadow);border-color:rgba(0,166,63,.22)}
 .pill.primary{border-color:transparent;background:var(--text);color:#fff}
-.pill.primary:hover{transform:translateY(-1px);box-shadow:0 14px 36px rgba(0,0,0,.22)}
+.pill.primary:hover{transform:translateY(-1px);box-shadow:var(--shadow2)}
 .pill.iconOnly{padding:9px 10px}
 
 .main{
@@ -110,29 +111,6 @@ letter-spacing:-1px;
 margin:10px 0 8px 0;
 }
 .sub{margin:0 0 14px 0;color:var(--muted);font-weight:650}
-
-.cards{
-display:grid;
-grid-template-columns:repeat(4, 1fr);
-gap:12px;
-margin:12px 0 16px 0;
-}
-@media (max-width:1100px){
-.cards{grid-template-columns:repeat(2, 1fr)}
-}
-@media (max-width:620px){
-.cards{grid-template-columns:1fr}
-}
-
-.grid{
-display:grid;
-grid-template-columns:1.2fr .8fr;
-gap:16px;
-align-items:start;
-}
-@media (max-width:980px){
-.grid{grid-template-columns:1fr}
-}
 
 .card{
 background:rgba(255,255,255,.92);
@@ -208,7 +186,7 @@ text-decoration:none;
 .btn.primary{background:var(--grad);color:#fff;box-shadow:0 14px 34px rgba(0,166,63,.20)}
 .btn.primary:hover{transform:translateY(-1px);box-shadow:0 18px 40px rgba(0,166,63,.25)}
 .btn.ghost{background:var(--text);color:#fff}
-.btn.ghost:hover{transform:translateY(-1px);box-shadow:0 14px 36px rgba(0,0,0,.22)}
+.btn.ghost:hover{transform:translateY(-1px);box-shadow:var(--shadow2)}
 .btn.light{border:1px solid rgba(215,218,220,.95);background:rgba(246,247,248,.92);color:var(--text)}
 .btn.light:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
 
@@ -298,6 +276,82 @@ color:#7a1a12;
 font-weight:750;
 font-size:13px;
 }
+
+/* Desktop-first grid (fix wasted space) */
+.cards{
+display:grid;
+gap:14px;
+margin:12px 0 16px 0;
+grid-template-columns:repeat(12, minmax(0,1fr));
+}
+.cards > .card:nth-child(1){grid-column:span 4;}
+.cards > .card:nth-child(2){grid-column:span 2;}
+.cards > .card:nth-child(3){grid-column:span 2;}
+.cards > .card:nth-child(4){grid-column:span 4;}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(12, minmax(0,1fr));
+gap:16px;
+align-items:start;
+}
+.grid > section.card{grid-column:span 8;}
+.grid > aside.card{grid-column:span 4;position:sticky;top:88px;}
+
+@media (max-width:1100px){
+.cards{grid-template-columns:repeat(2, 1fr)}
+.cards > .card:nth-child(1),
+.cards > .card:nth-child(2),
+.cards > .card:nth-child(3),
+.cards > .card:nth-child(4){grid-column:auto}
+.grid{grid-template-columns:1fr}
+.grid > section.card{grid-column:auto}
+.grid > aside.card{grid-column:auto;position:static}
+}
+
+@media (max-width:620px){
+.cards{grid-template-columns:1fr}
+}
+
+@media (min-width:1400px){
+.main{max-width:1320px}
+.grid > section.card{grid-column:span 9}
+.grid > aside.card{grid-column:span 3}
+}
+
+/* Animations + skeleton */
+@keyframes cardIn{
+from{opacity:0;transform:translateY(10px)}
+to{opacity:1;transform:translateY(0)}
+}
+.card{animation:cardIn .22s ease-out both}
+.cards .card:nth-child(1){animation-delay:.02s}
+.cards .card:nth-child(2){animation-delay:.05s}
+.cards .card:nth-child(3){animation-delay:.08s}
+.cards .card:nth-child(4){animation-delay:.11s}
+.grid .card{animation-delay:.14s}
+
+@keyframes shimmer{
+0%{background-position:200% 0}
+100%{background-position:-200% 0}
+}
+.skeleton{
+border-radius:12px;
+height:12px;
+background:linear-gradient(90deg, rgba(0,0,0,.06), rgba(0,0,0,.02), rgba(0,0,0,.06));
+background-size:200% 100%;
+animation:shimmer 1.2s linear infinite;
+}
+.skeleton.big{height:32px;border-radius:14px}
+.skeleton.row{height:14px}
+.skeleton.block{height:140px;border-radius:16px}
+
+@media (prefers-reduced-motion: reduce){
+.card{animation:none}
+.skeleton{animation:none}
+.btn,.pill{transition:none}
+.meter > div{transition:none}
+}
 </style>
 </head>
 <body>
@@ -382,7 +436,7 @@ font-size:13px;
 <button class="btn light" id="btnCopyToken" type="button">Copy access token</button>
 </div>
 <div class="hr"></div>
-<div id="queueWrap"><span class="badge" id="queueState">Loading queue…</span></div>
+<div id="queueWrap"><div class="skeleton block"></div></div>
 <div id="queueError"></div>
 </section>
 
@@ -400,7 +454,7 @@ font-size:13px;
 
 <div class="hr"></div>
 <div class="small">Applications breakdown</div>
-<div id="appsBreakdown"><span class="badge">Loading…</span></div>
+<div id="appsBreakdown"><div class="skeleton row" style="width:80%"></div><div style="height:8px"></div><div class="skeleton row" style="width:60%"></div></div>
 
 <div class="hr"></div>
 <div class="small">Last refresh</div>
@@ -454,12 +508,40 @@ function nowStamp(){
 return new Date().toISOString().replace("T"," ").replace("Z"," UTC");
 }
 
+function animateNumber(el, to){
+if(!el) return;
+const prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+if(prefersReduced){
+el.textContent = String(to);
+return;
+}
+const from = Number(String(el.textContent || "").replace(/[^\d.-]/g,"")) || 0;
+const start = performance.now();
+const dur = 420;
+function tick(t){
+const p = Math.min(1, (t - start) / dur);
+const eased = 1 - Math.pow(1 - p, 3);
+const v = Math.round(from + (to - from) * eased);
+el.textContent = String(v);
+if(p < 1) requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+}
+
 function getPlanDaily(){
 const raw=(localStorage.getItem("ja_plan") || "").trim();
 const n=Number(raw);
 if([1,5,10].includes(n)) return n;
 return 0;
 }
+function planInfo(planDaily){
+if(planDaily === 1) return { name'string:"Starter", meta:"1 application/day", short:"Starter (1/day)" };
+if(planDaily === 5) return { name:"Plus", meta:"5 applications/day", short:"Plus (5/day)" };
+if(planDaily === 10) return { name:"Pro", meta:"10 applications/day", short:"Pro (10/day)" };
+return { name:"No plan", meta:"Select Starter / Plus / Pro", short:"No plan" };
+}
+</script>
+<script>
 function planInfo(planDaily){
 if(planDaily === 1) return { name:"Starter", meta:"1 application/day", short:"Starter (1/day)" };
 if(planDaily === 5) return { name:"Plus", meta:"5 applications/day", short:"Plus (5/day)" };
@@ -597,6 +679,15 @@ setHtml("healthNote",
 );
 }
 
+function renderQueueSkeleton(){
+return '<div class="skeleton big" style="width:220px"></div>' +
+'<div style="height:10px"></div>' +
+'<div class="skeleton row" style="width:96%"></div><div style="height:8px"></div>' +
+'<div class="skeleton row" style="width:92%"></div><div style="height:8px"></div>' +
+'<div class="skeleton row" style="width:88%"></div><div style="height:8px"></div>' +
+'<div class="skeleton row" style="width:84%"></div>';
+}
+
 async function loadDashboard(){
 setText("errorBox", "");
 setHtml("queueError", "");
@@ -606,6 +697,9 @@ setBadge("badgeQueue", "", "Loading");
 setBadge("badgeApps", "", "Loading");
 setBadge("badgePlan", "", "Loading");
 setBadge("badgeHealth", "", "Loading");
+
+setHtml("queueWrap", renderQueueSkeleton());
+setHtml("appsBreakdown", '<div class="skeleton row" style="width:80%"></div><div style="height:8px"></div><div class="skeleton row" style="width:60%"></div>');
 
 const session = await requireSession();
 if(!session) return;
@@ -628,7 +722,7 @@ const qCount = typeof queue.count === "number"
 ? queue.count
 : (Array.isArray(queue.data) ? queue.data.length : 0);
 
-setText("kpiQueue", String(qCount));
+animateNumber(document.getElementById("kpiQueue"), qCount);
 setBadge("badgeQueue", qCount > 0 ? "good" : "warn", qCount > 0 ? "OK" : "Empty");
 
 setHtml("queueWrap", renderQueueTable(queue));
@@ -644,7 +738,8 @@ setText("errorBox", e.message);
 
 try{
 const apps = await apiGet("/me/applications/summary", session.access_token);
-setText("kpiAppsTotal", (typeof apps.total === "number") ? String(apps.total) : "0");
+const total = (typeof apps.total === "number") ? apps.total : 0;
+animateNumber(document.getElementById("kpiAppsTotal"), total);
 setBadge("badgeApps", "good", "OK");
 setHtml("appsBreakdown", renderAppsBreakdown(apps));
 }catch(e){
