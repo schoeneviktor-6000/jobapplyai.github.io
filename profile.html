@@ -195,6 +195,8 @@ text-decoration:none;
 .btn.primary:hover{transform:translateY(-1px);box-shadow:0 18px 40px rgba(0,166,63,.25)}
 .btn.ghost{background:var(--text);color:#fff}
 .btn.ghost:hover{transform:translateY(-1px);box-shadow:0 14px 36px rgba(0,0,0,.22)}
+.btn.light{border:1px solid rgba(215,218,220,.95);background:rgba(246,247,248,.92);color:var(--text)}
+.btn.light:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
 .badge{
 display:inline-flex;align-items:center;gap:8px;
 padding:8px 12px;border-radius:14px;
@@ -260,6 +262,9 @@ body.leaving .shell{animation:fadeOut .22s ease both}
 <div>
 <label for="jobTitles">Preferred job title(s)</label>
 <input id="jobTitles" name="jobTitles" type="text" placeholder="e.g. Software Engineer, Backend Engineer">
+<div class="helper" id="titlesHint">Add at least 2 titles (comma separated) to avoid zero results. Example: “Facharzt HNO, HNO Arzt”.</div>
+<div class="actions" id="titleSuggestions" style="margin-top:10px"></div>
+
 </div>
 <div>
 <label for="industry">Industry</label>
@@ -345,6 +350,36 @@ customerEmail: email || wp.customerEmail || null
 function parseCsvList(s){
 return (s||"").split(",").map(x=>x.trim()).filter(Boolean);
 }
+
+function renderTitleSuggestions(){
+const wrap=document.getElementById("titleSuggestions");
+if(!wrap) return;
+wrap.innerHTML="";
+const raw=(document.getElementById("jobTitles")?.value||"").trim();
+const titles=parseCsvList(raw);
+const base=(titles[0]||"").trim();
+const suggestions=new Set();
+if(base){
+suggestions.add(base);
+if(base.toLowerCase().includes("facharzt")) suggestions.add(base.replace(/facharzt/i,"arzt"));
+if(base.toLowerCase().includes("arzt")) suggestions.add(base.replace(/arzt/i,"facharzt"));
+}
+["Facharzt HNO","HNO Arzt","Hals-Nasen-Ohren","Assistenzarzt HNO","Oberarzt HNO","Front Desk Agent","Receptionist"].forEach(t=>suggestions.add(t));
+[...suggestions].slice(0,10).forEach(t=>{
+const b=document.createElement("button");
+b.type="button";
+b.className="btn light";
+b.textContent="Add: " + t;
+b.addEventListener("click",()=>{
+const cur=parseCsvList(document.getElementById("jobTitles").value);
+if(!cur.map(x=>x.toLowerCase()).includes(t.toLowerCase())) cur.push(t);
+document.getElementById("jobTitles").value=cur.join(", ");
+renderTitleSuggestions();
+});
+wrap.appendChild(b);
+});
+}
+
 
 async function getSession(){
 const { data }=await supabaseClient.auth.getSession();
@@ -441,6 +476,7 @@ setTimeout(()=>{window.location.href=url;},180);
 }
 
 window.addEventListener("load",async ()=>{
+document.addEventListener("input",(e)=>{ if(e.target && e.target.id==="jobTitles"){ renderTitleSuggestions(); } });
 const auth=await requireAuthAndCustomer();
 if(!auth) return;
 loadLocalUi();
@@ -472,10 +508,18 @@ radius:document.getElementById("radius").value.trim()
 localStorage.setItem("ja_profile",JSON.stringify(profileLocal));
 
 const desired_titles=parseCsvList(profileLocal.jobTitles);
+if(desired_titles.length < 2){
+alert("Please add at least 2 job titles (comma separated). This prevents zero results.");
+st.className="badge warn";
+st.textContent="Need more titles";
+saveBtn.disabled=false;
+return;
+}
 const industries=parseCsvList(profileLocal.industry);
 const countries_allowed=parseCsvList(profileLocal.country);
 const locations=parseCsvList(profileLocal.city);
-const radius_km=profileLocal.radius ? Number(profileLocal.radius) : null;
+let radius_km=profileLocal.radius ? Number(profileLocal.radius) : null;
+if(radius_km===null || Number.isNaN(radius_km)) radius_km=30;
 
 await upsertCustomerProfile({
 customer_id: auth.customerId,
