@@ -153,20 +153,6 @@ padding:18px;
 }
 .card h2{margin:0 0 10px 0;font-size:18px}
 .card p{margin:0 0 12px 0;color:var(--muted);font-weight:650}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media (max-width:560px){.row{grid-template-columns:1fr}}
-label{display:block;font-size:13px;font-weight:850;margin:10px 0 6px 0}
-input,select{
-width:100%;
-padding:12px 12px;
-border-radius:14px;
-border:1px solid rgba(215,218,220,.95);
-background:#fff;
-font-size:15px;
-outline:none;
-transition:border-color .15s ease, box-shadow .18s ease, transform .12s ease;
-}
-input:focus,select:focus{border-color:rgba(0,166,63,.4);box-shadow:0 0 0 4px rgba(0,166,63,.12)}
 .actions{
 display:flex;
 gap:10px;
@@ -226,10 +212,66 @@ color:#5a3a00;
 font-weight:750;
 }
 </style>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+<div class="shell fadeIn">
+<header class="topbar">
+<nav class="nav">
+<a class="brand" href="index.html" data-nav="1"><span class="logo" aria-hidden="true"></span><span>JobApply-AI</span></a>
+<div class="navlinks">
+<a class="pill" href="index.html" data-nav="1">Home</a>
+<a class="pill primary" href="signup.html" data-nav="1">Signup</a>
+<a class="pill" href="profile.html" data-nav="1">Profile</a>
+<a class="pill" href="plan.html" data-nav="1">Plans</a>
+<a class="pill" href="mailto:schonv2@gmail.com">Contact</a>
+</div>
+</nav>
+</header>
+
+<main class="main">
+<div class="grid">
+<section>
+<h1 class="h1">Signup</h1>
+<p class="sub">Step 1 of 3. Sign in with Google via Supabase. This creates a real access token that we can use to secure /me endpoints.</p>
+
+<div class="stepper" aria-label="Steps">
+<div class="step current" aria-current="step"><span class="dot">1</span><span>Signup</span></div>
+<div class="step" id="step2"><span class="dot">2</span><span>Profile</span></div>
+<div class="step" id="step3"><span class="dot">3</span><span>Plan</span></div>
+</div>
+
+<div class="card">
+<h2>Status</h2>
+<p>After sign-in, we create your customer record in the backend and unlock the next step.</p>
+<div class="hr"></div>
+<div class="badge" id="authBadge">Not signed in</div>
+<div class="hr"></div>
+<div class="actions">
+<button class="btn ghost" id="googleBtn" type="button">Sign in with Google</button>
+<button class="btn primary" id="toProfile" type="button" disabled>Continue to profile</button>
+<button class="btn" id="copyToken" type="button" disabled style="border:1px solid #d7dadc;background:#f6f7f8;">Copy access token</button>
+</div>
+<div class="helper" id="hint">Tip: sign in first.</div>
+</div>
+</section>
+
+<section>
+<div class="card">
+<h2>Why you didn’t see auth/v1/token before</h2>
+<p>Your old pages used Google sign-in directly, but not Supabase Auth. Now the browser will call Supabase Auth and you will see /auth/v1/token in Network after login.</p>
+<div class="hr"></div>
+<div class="notice">Make sure Supabase Auth redirect URLs include this page URL.</div>
+</div>
+</section>
+</div>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
 <script>
 const API_BASE="https://jobapplyai-api.schoene-viktor.workers.dev";
+const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
+const supabaseClient=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 function readWorkplace(){
 const raw=localStorage.getItem("jobapplyai_workplace");
@@ -247,7 +289,6 @@ return next;
 function syncIdentity({customerId,email}){
 if(customerId) localStorage.setItem("ja_customer_id",customerId);
 if(email) localStorage.setItem("ja_user_email",email);
-
 const wp=readWorkplace();
 writeWorkplace({
 apiBase: wp.apiBase || API_BASE,
@@ -256,102 +297,8 @@ customerEmail: email || wp.customerEmail || null
 });
 }
 
-function getActiveCustomerId(){
-const wp=readWorkplace();
-const wpId=wp.customerId || wp.customer_id || null;
-const jaId=localStorage.getItem("ja_customer_id");
-
-if(wpId && jaId && wpId !== jaId){
-localStorage.setItem("ja_customer_id",wpId);
-return wpId;
-}
-return wpId || (jaId && jaId.length>10 ? jaId : null);
-}
-
-function isProfileComplete(){
-return localStorage.getItem("ja_profile_complete")==="true";
-}
-
-(function guardSignup(){
-const cid=getActiveCustomerId();
-if(!cid) return;
-if(isProfileComplete()){
-window.location.replace("./plan.html");
-return;
-}
-window.location.replace("./profile.html");
-})();
-</script>
-</head>
-<body>
-<div class="shell fadeIn">
-<header class="topbar">
-<nav class="nav">
-<a class="brand" href="index.html" data-nav="1"><span class="logo" aria-hidden="true"></span><span>JobApply-AI</span></a>
-<div class="navlinks">
-<a class="pill" href="index.html" data-nav="1">Home</a>
-<a class="pill primary" href="signup.html" data-nav="1">Signup</a>
-<a class="pill" href="profile.html" data-nav="1">Profile</a>
-<a class="pill" href="plan.html" data-nav="1">Plans</a>
-<a class="pill" href="mailto:schonv2@gmail.com">Contact</a>
-</div>
-</nav>
-</header>
-<main class="main">
-<div class="grid">
-<section>
-<h1 class="h1">Signup</h1>
-<p class="sub">Step 1 of 3. Sign in with Google, then grant Gmail access so we can send applications from your mailbox (with your approval).</p>
-<div class="stepper" aria-label="Steps">
-<div class="step current" aria-current="step"><span class="dot">1</span><span>Signup</span></div>
-<div class="step" id="step2"><span class="dot">2</span><span>Profile</span></div>
-<div class="step" id="step3"><span class="dot">3</span><span>Plan</span></div>
-</div>
-<div class="card">
-<h2>What happens here</h2>
-<p>We only unlock the next steps after you complete Google sign-in. Gmail access is requested separately and can be skipped for now.</p>
-<div class="hr"></div>
-<div class="badge" id="authBadge">Not signed in</div>
-<div style="height:10px"></div>
-<div class="badge" id="gmailBadge">Gmail access not granted</div>
-<div class="hr"></div>
-<div class="notice" id="clientNotice" style="display:none">Google login is not configured yet. Add your Google OAuth Client ID in this file (search for YOUR_GOOGLE_CLIENT_ID).</div>
-<div class="actions">
-<button class="btn ghost" id="googleBtn" type="button">Sign in with Google</button>
-<button class="btn primary" id="gmailBtn" type="button" disabled>Grant Gmail access</button>
-</div>
-<div class="helper">You can revoke Gmail permissions anytime in your Google Account settings.</div>
-</div>
-<div style="height:14px"></div>
-<div class="card">
-<h2>Continue</h2>
-<p>After sign-in, move to profile setup.</p>
-<div class="actions">
-<button class="btn primary" id="toProfile" type="button" disabled>Continue to profile</button>
-</div>
-<div class="small" id="continueHint">Tip: sign in first.</div>
-</div>
-</section>
-<section>
-<div class="card">
-<h2>Setup checklist</h2>
-<p>Before this works, configure Google OAuth for your GitHub Pages domain.</p>
-<div class="hr"></div>
-<div class="small"><strong>1)</strong> Create OAuth Client ID (Web)</div>
-<div class="small"><strong>2)</strong> Add Authorized JavaScript origin: your GitHub Pages domain</div>
-<div class="small"><strong>3)</strong> Add Authorized redirect URI: your signup page URL</div>
-<div class="small"><strong>4)</strong> Publish consent screen and add test users if needed</div>
-<div class="hr"></div>
-<div class="small">For a demo, this page stores status locally in your browser (localStorage). For production, use a backend or Firebase for secure token storage.</div>
-</div>
-</section>
-</div>
-
-<script>
-const APP={
-clientId:"149621916894-g8mcg8tgqdisdfgdoetkl5sedqpcb153.apps.googleusercontent.com",
-scopes:["https://www.googleapis.com/auth/gmail.send","openid","email","profile"]
-};
+function safeText(el,t){if(el)el.textContent=t;}
+function setBadge(el,type,text){if(!el)return;el.className="badge "+type;el.textContent=text;}
 
 async function upsertCustomerByEmail(email){
 const res=await fetch(`${API_BASE}/customers/upsert`,{
@@ -366,129 +313,75 @@ throw new Error(`Customer upsert failed: ${res.status} ${text}`);
 return await res.json();
 }
 
-function safeText(el,t){if(el)el.textContent=t;}
-function setBadge(el,type,text){if(!el)return;el.className="badge "+type;el.textContent=text;}
-function setStatus(){
-const wp=readWorkplace();
-const email=(wp.customerEmail || localStorage.getItem("ja_user_email") || "").trim();
-const gmail=localStorage.getItem("ja_gmail_connected")==="1";
-
-if(email){
-setBadge(document.getElementById("authBadge"),"good","Signed in: "+email);
-}else{
-setBadge(document.getElementById("authBadge"),"warn","Not signed in");
+async function loginWithGoogle(){
+await supabaseClient.auth.signInWithOAuth({
+provider:"google",
+options:{ redirectTo: window.location.href }
+});
 }
 
-if(gmail){
-setBadge(document.getElementById("gmailBadge"),"good","Gmail access granted");
-}else{
-setBadge(document.getElementById("gmailBadge"),"warn","Gmail access not granted");
+async function getSession(){
+const { data }=await supabaseClient.auth.getSession();
+return data && data.session ? data.session : null;
 }
 
-document.getElementById("gmailBtn").disabled=!email;
-document.getElementById("toProfile").disabled=!email;
-safeText(document.getElementById("continueHint"),email?"Ready to set up your profile.":"Tip: sign in first.");
+async function hydrate(){
+const session=await getSession();
+const authBadge=document.getElementById("authBadge");
+const toProfile=document.getElementById("toProfile");
+const copyToken=document.getElementById("copyToken");
+const hint=document.getElementById("hint");
+
+if(!session || !session.user || !session.user.email){
+setBadge(authBadge,"warn","Not signed in");
+toProfile.disabled=true;
+copyToken.disabled=true;
+safeText(hint,"Tip: sign in first.");
+return;
+}
+
+const email=session.user.email.trim().toLowerCase();
+sessionStorage.setItem("sb_access_token",session.access_token);
+
+setBadge(authBadge,"good","Signed in: "+email);
+copyToken.disabled=false;
+
+const data=await upsertCustomerByEmail(email);
+if(data && data.customer_id){
+syncIdentity({ customerId:data.customer_id, email });
+toProfile.disabled=false;
+safeText(hint,"Ready to set up your profile.");
 document.getElementById("step2").classList.toggle("done",!!localStorage.getItem("ja_profile_complete"));
 document.getElementById("step3").classList.toggle("done",!!localStorage.getItem("ja_plan"));
-}
-
-let gsiInitialized=false;
-let signInInProgress=false;
-
-function decodeJwtPayload(credential){
-const part=credential.split(".")[1];
-const normalized=part.replace(/-/g,"+").replace(/_/g,"/");
-return JSON.parse(atob(normalized));
-}
-
-function syncWorkplaceCustomer(customerId,email){
-syncIdentity({customerId,email});
-}
-
-function initGoogleOnce(){
-const hasClient=APP.clientId && !APP.clientId.includes("YOUR_GOOGLE_CLIENT_ID");
-document.getElementById("clientNotice").style.display=hasClient?"none":"block";
-if(!hasClient){document.getElementById("googleBtn").disabled=true;return;}
-if(gsiInitialized) return;
-gsiInitialized=true;
-
-google.accounts.id.initialize({
-client_id:APP.clientId,
-callback: async (resp)=>{
-signInInProgress=false;
-document.getElementById("googleBtn").disabled=false;
-
-try{
-const payload=decodeJwtPayload(resp.credential);
-if(payload && payload.email){
-localStorage.setItem("ja_user_email",payload.email);
-const data=await upsertCustomerByEmail(payload.email);
-if(data && data.customer_id){
-syncWorkplaceCustomer(data.customer_id,payload.email);
 }else{
-throw new Error("No customer_id returned from API");
+setBadge(authBadge,"warn","Signed in, but customer_id missing");
+toProfile.disabled=true;
+safeText(hint,"Customer creation failed. Check console.");
 }
 }
-localStorage.setItem("ja_signed_in","1");
-setStatus();
-window.location.replace("./profile.html");
+
+document.getElementById("googleBtn").addEventListener("click",async ()=>{
+try{ await loginWithGoogle(); }catch(e){ console.error(e); alert("Login failed. Check console."); }
+});
+
+document.getElementById("toProfile").addEventListener("click",()=>{
+window.location.href="./profile.html";
+});
+
+document.getElementById("copyToken").addEventListener("click",async ()=>{
+const token=sessionStorage.getItem("sb_access_token") || "";
+if(!token){ alert("No token found yet."); return; }
+await navigator.clipboard.writeText(token);
+alert("Access token copied. You can now test curl /me/jobs/queue.");
+});
+
+window.addEventListener("load",async ()=>{
+try{
+await hydrate();
 }catch(e){
 console.error(e);
-alert("Sign-in failed. Check console for details.");
+alert("Signup init failed. Check console.");
 }
-}
-});
-
-document.getElementById("googleBtn").addEventListener("click",()=>{
-if(signInInProgress) return;
-signInInProgress=true;
-const btn=document.getElementById("googleBtn");
-btn.disabled=true;
-try{google.accounts.id.cancel();}catch(e){}
-google.accounts.id.prompt((notification)=>{
-if(notification.isNotDisplayed && (notification.isNotDisplayed() || notification.isSkippedMoment())){
-signInInProgress=false;
-btn.disabled=false;
-const reason1=notification.getNotDisplayedReason ? notification.getNotDisplayedReason() : "";
-const reason2=notification.getSkippedReason ? notification.getSkippedReason() : "";
-console.log("GSI prompt not displayed/skipped:",reason1,reason2);
-}
-});
-});
-}
-
-function initGmailButton(){
-document.getElementById("gmailBtn").addEventListener("click",()=>{
-const wp=readWorkplace();
-const email=(wp.customerEmail || localStorage.getItem("ja_user_email") || "").trim();
-if(!email){alert("Please sign in first.");return;}
-const tokenClient=google.accounts.oauth2.initTokenClient({
-client_id:APP.clientId,
-scope:"https://www.googleapis.com/auth/gmail.send",
-callback:(tokenResponse)=>{
-if(tokenResponse && tokenResponse.access_token){
-sessionStorage.setItem("ja_access_token",tokenResponse.access_token);
-localStorage.setItem("ja_gmail_connected","1");
-setStatus();
-}else{
-alert("No access token received.");
-}
-}
-});
-tokenClient.requestAccessToken({prompt:"consent"});
-});
-}
-
-function initNav(){
-document.getElementById("toProfile").addEventListener("click",()=>go("profile.html"));
-}
-
-window.addEventListener("load",()=>{
-syncIdentity({customerId:getActiveCustomerId(),email:(readWorkplace().customerEmail||localStorage.getItem("ja_user_email")||"")});
-setStatus();
-initGoogleOnce();
-initGmailButton();
-initNav();
 });
 </script>
 
@@ -506,66 +399,8 @@ e.preventDefault();
 go(url);
 });
 </script>
+
 </main>
-  <div id="accountBar" style="max-width:1120px;margin:14px auto 0;padding:0 18px;">
-<div style="border:1px solid #d7dadc;background:#fff;border-radius:14px;padding:12px 12px;font-family:system-ui;font-weight:700;">
-<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;">
-<div>
-<div style="font-size:12px;opacity:.7;font-weight:800;">Signed in as</div>
-<div id="accountEmail" style="font-size:14px;">-</div>
-<div id="accountCustomerId" style="font-size:12px;opacity:.75;word-break:break-all;">-</div>
-</div>
-<div style="display:flex;gap:8px;flex-wrap:wrap;">
-<button id="copyAccount" style="border:1px solid #d7dadc;background:#f6f7f8;border-radius:12px;padding:8px 10px;font-weight:900;cursor:pointer;">Copy</button>
-<button id="resetAccount" style="border:0;background:#0b0b0b;color:#fff;border-radius:12px;padding:8px 10px;font-weight:900;cursor:pointer;">Reset session</button>
-</div>
-</div>
-</div>
-</div>
-
-<script>
-function readWorkplace(){
-const raw=localStorage.getItem("jobapplyai_workplace");
-if(!raw) return {};
-try{ return JSON.parse(raw)||{}; }catch{ return {}; }
-}
-
-function getActiveIdentity(){
-const wp=readWorkplace();
-const wpId=wp.customerId || wp.customer_id || null;
-const wpEmail=wp.customerEmail || null;
-
-const jaId=localStorage.getItem("ja_customer_id");
-const jaEmail=localStorage.getItem("ja_user_email");
-
-return {
-customerId: wpId || jaId || "",
-email: wpEmail || jaEmail || ""
-};
-}
-
-function renderAccountBar(){
-const id=getActiveIdentity();
-document.getElementById("accountEmail").textContent=id.email || "(not signed in)";
-document.getElementById("accountCustomerId").textContent=id.customerId ? ("customer_id: "+id.customerId) : "customer_id: -";
-}
-
-document.getElementById("copyAccount").addEventListener("click",()=>{
-const id=getActiveIdentity();
-const text=`${id.email}\n${id.customerId}`;
-navigator.clipboard.writeText(text);
-});
-
-document.getElementById("resetAccount").addEventListener("click",()=>{
-const keys=[
-"ja_customer_id","ja_user_email","ja_profile_complete","ja_profile","ja_plan","ja_cv_name","ja_signed_in","ja_gmail_connected","jobapplyai_workplace"
-];
-keys.forEach(k=>localStorage.removeItem(k));
-location.href="./signup.html";
-});
-
-window.addEventListener("load",renderAccountBar);
-</script>
 
 <footer class="footer">Need help? Email <a href="mailto:schonv2@gmail.com">schonv2@gmail.com</a>.</footer>
 </div>
