@@ -79,6 +79,7 @@ font-weight:800;
 font-size:13px;
 text-decoration:none;
 transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease, background .15s ease;
+cursor:pointer;
 }
 .pill:hover{transform:translateY(-1px);box-shadow:var(--shadow);border-color:rgba(0,166,63,.22)}
 .pill.primary{
@@ -222,8 +223,9 @@ font-weight:750;
 <a class="pill" href="index.html" data-nav="1">Home</a>
 <a class="pill primary" href="signup.html" data-nav="1">Signup</a>
 <a class="pill" href="profile.html" data-nav="1">Profile</a>
-<a class="pill" href="plan.html" data-nav="1">Plans</a>
-<a class="pill" href="mailto:schonv2@gmail.com">Contact</a>
+<a class="pill" href="plan.html" data-nav="1">Plan</a>
+<a class="pill" href="dashboard.html" data-nav="1">Dashboard</a>
+<button class="pill" id="btnLogout" type="button">Logout</button>
 </div>
 </nav>
 </header>
@@ -248,7 +250,7 @@ font-weight:750;
 <div class="hr"></div>
 <div class="actions">
 <button class="btn ghost" id="googleBtn" type="button">Sign in with Google</button>
-<button class="btn primary" id="toProfile" type="button" disabled>Continue to profile</button>
+<button class="btn primary" id="btnContinue" type="button" disabled>Continue</button>
 <button class="btn" id="copyToken" type="button" disabled style="border:1px solid #d7dadc;background:#f6f7f8;">Copy access token</button>
 </div>
 <div class="helper" id="hint">Tip: sign in first.</div>
@@ -272,6 +274,19 @@ const API_BASE="https://jobapplyai-api.schoene-viktor.workers.dev";
 const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
 const supabaseClient=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+window.supabaseClient=supabaseClient;
+
+function hasProfile(){
+return localStorage.getItem("ja_profile_complete")==="true";
+}
+function hasPlan(){
+return !!localStorage.getItem("ja_plan");
+}
+function nextStep(){
+if(!hasProfile()) return { url:"./profile.html", label:"Continue to profile" };
+if(!hasPlan()) return { url:"./plan.html", label:"Continue to plan" };
+return { url:"./dashboard.html", label:"Go to dashboard" };
+}
 
 function readWorkplace(){
 const raw=localStorage.getItem("jobapplyai_workplace");
@@ -328,15 +343,16 @@ return data && data.session ? data.session : null;
 async function hydrate(){
 const session=await getSession();
 const authBadge=document.getElementById("authBadge");
-const toProfile=document.getElementById("toProfile");
+const btnContinue=document.getElementById("btnContinue");
 const copyToken=document.getElementById("copyToken");
 const hint=document.getElementById("hint");
 
 if(!session || !session.user || !session.user.email){
 setBadge(authBadge,"warn","Not signed in");
-toProfile.disabled=true;
+btnContinue.disabled=true;
 copyToken.disabled=true;
 safeText(hint,"Tip: sign in first.");
+btnContinue.textContent="Continue";
 return;
 }
 
@@ -349,13 +365,19 @@ copyToken.disabled=false;
 const data=await upsertCustomerByEmail(email);
 if(data && data.customer_id){
 syncIdentity({ customerId:data.customer_id, email });
-toProfile.disabled=false;
-safeText(hint,"Ready to set up your profile.");
-document.getElementById("step2").classList.toggle("done",!!localStorage.getItem("ja_profile_complete"));
-document.getElementById("step3").classList.toggle("done",!!localStorage.getItem("ja_plan"));
+
+const st2=document.getElementById("step2");
+const st3=document.getElementById("step3");
+if(st2) st2.classList.toggle("done",hasProfile());
+if(st3) st3.classList.toggle("done",hasPlan());
+
+const nx=nextStep();
+btnContinue.textContent=nx.label;
+btnContinue.disabled=false;
+safeText(hint,"Ready. Continue to the next step.");
 }else{
 setBadge(authBadge,"warn","Signed in, but customer_id missing");
-toProfile.disabled=true;
+btnContinue.disabled=true;
 safeText(hint,"Customer creation failed. Check console.");
 }
 }
@@ -364,15 +386,23 @@ document.getElementById("googleBtn").addEventListener("click",async ()=>{
 try{ await loginWithGoogle(); }catch(e){ console.error(e); alert("Login failed. Check console."); }
 });
 
-document.getElementById("toProfile").addEventListener("click",()=>{
-window.location.href="./profile.html";
+document.getElementById("btnContinue").addEventListener("click",()=>{
+const nx=nextStep();
+window.location.href=nx.url;
 });
 
 document.getElementById("copyToken").addEventListener("click",async ()=>{
 const token=sessionStorage.getItem("sb_access_token") || "";
 if(!token){ alert("No token found yet."); return; }
 await navigator.clipboard.writeText(token);
-alert("Access token copied. You can now test curl /me/jobs/queue.");
+alert("Access token copied.");
+});
+
+document.getElementById("btnLogout").addEventListener("click", async ()=>{
+await supabaseClient.auth.signOut();
+localStorage.removeItem("ja_user_email");
+sessionStorage.removeItem("sb_access_token");
+window.location.replace("./index.html");
 });
 
 window.addEventListener("load",async ()=>{
