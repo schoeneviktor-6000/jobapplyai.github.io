@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>JobApply-AI | Dashboard</title>
 <style>
 :root{
@@ -16,9 +16,13 @@
 --shadow2:0 10px 26px rgba(0,0,0,.10);
 --green:#00a63f;
 --green2:#00c853;
+--amber:#ffb000;
+--red:#d92d20;
 --radius:22px;
 --grad:linear-gradient(135deg,var(--green),var(--green2));
 --max:1120px;
+--safeTop: env(safe-area-inset-top, 0px);
+--safeBottom: env(safe-area-inset-bottom, 0px);
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -39,15 +43,16 @@ z-index:20;
 backdrop-filter:saturate(1.4) blur(10px);
 background:rgba(255,255,255,.72);
 border-bottom:1px solid rgba(215,218,220,.7);
+padding-top:var(--safeTop);
 }
 .nav{
 max-width:var(--max);
 margin:0 auto;
-padding:14px 18px;
+padding:12px 16px;
 display:flex;
 align-items:center;
 justify-content:space-between;
-gap:14px;
+gap:12px;
 }
 .brand{
 display:flex;
@@ -56,13 +61,16 @@ gap:10px;
 font-weight:950;
 letter-spacing:.2px;
 text-decoration:none;
+min-width:0;
 }
+.brand span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .logo{
 width:34px;
 height:34px;
 border-radius:12px;
 background:var(--grad);
 box-shadow:0 10px 24px rgba(0,166,63,.22);
+flex:0 0 auto;
 }
 .navlinks{
 display:flex;
@@ -84,44 +92,65 @@ font-size:13px;
 text-decoration:none;
 transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease, background .15s ease;
 cursor:pointer;
+white-space:nowrap;
 }
 .pill:hover{transform:translateY(-1px);box-shadow:var(--shadow);border-color:rgba(0,166,63,.22)}
 .pill.primary{border-color:transparent;background:var(--text);color:#fff}
 .pill.primary:hover{transform:translateY(-1px);box-shadow:0 14px 36px rgba(0,0,0,.22)}
+.pill.iconOnly{padding:9px 10px}
+.pill .hideOnMobile{display:inline}
+
 .main{
 max-width:var(--max);
 margin:0 auto;
-padding:26px 18px 26px;
+padding:18px 16px calc(18px + var(--safeBottom));
 }
 .h1{
-font-size:44px;
-line-height:1.02;
+font-size:38px;
+line-height:1.05;
 letter-spacing:-1px;
 margin:10px 0 8px 0;
 }
-.sub{margin:0 0 18px 0;color:var(--muted);font-weight:650}
+.sub{margin:0 0 14px 0;color:var(--muted);font-weight:650}
+
 .cards{
 display:grid;
-grid-template-columns:1fr 1fr 1fr;
-gap:14px;
-margin:14px 0 18px 0;
+grid-template-columns:repeat(4, 1fr);
+gap:12px;
+margin:12px 0 16px 0;
 }
-@media (max-width:980px){.cards{grid-template-columns:1fr}}
+@media (max-width:1100px){
+.cards{grid-template-columns:repeat(2, 1fr)}
+}
+@media (max-width:620px){
+.cards{grid-template-columns:1fr}
+}
+
 .grid{
 display:grid;
-grid-template-columns:1.1fr .9fr;
-gap:18px;
+grid-template-columns:1.2fr .8fr;
+gap:16px;
 align-items:start;
 }
-@media (max-width:980px){.grid{grid-template-columns:1fr}}
+@media (max-width:980px){
+.grid{grid-template-columns:1fr}
+}
+
 .card{
-background:rgba(255,255,255,.9);
+background:rgba(255,255,255,.92);
 border:1px solid rgba(215,218,220,.85);
 border-radius:var(--radius);
 box-shadow:var(--shadow);
-padding:16px;
+padding:14px;
 }
-.card h2{margin:0 0 10px 0;font-size:16px}
+.card h2{
+margin:0 0 10px 0;
+font-size:16px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:10px;
+}
 .kpi{
 display:flex;
 align-items:flex-end;
@@ -132,6 +161,7 @@ gap:10px;
 font-size:34px;
 font-weight:950;
 letter-spacing:-.6px;
+line-height:1;
 }
 .kpi .label{
 color:var(--muted2);
@@ -149,10 +179,12 @@ background:rgba(246,247,248,.92);
 font-weight:850;
 font-size:13px;
 color:var(--muted);
+white-space:nowrap;
 }
 .badge.good{border-color:rgba(0,166,63,.25);color:#075b24}
 .badge.warn{border-color:rgba(255,176,0,.35);color:#7a4d00}
-.hr{height:1px;background:rgba(215,218,220,.8);margin:14px 0}
+.badge.bad{border-color:rgba(217,45,32,.35);color:#7a1a12}
+.hr{height:1px;background:rgba(215,218,220,.8);margin:12px 0}
 .actions{
 display:flex;
 gap:10px;
@@ -181,14 +213,29 @@ text-decoration:none;
 .btn.ghost:hover{transform:translateY(-1px);box-shadow:0 14px 36px rgba(0,0,0,.22)}
 .btn.light{border:1px solid rgba(215,218,220,.95);background:rgba(246,247,248,.92);color:var(--text)}
 .btn.light:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
-.table{
-width:100%;
-border-collapse:separate;
-border-spacing:0;
-overflow:hidden;
+
+@media (max-width:620px){
+.nav{padding:10px 12px}
+.main{padding:16px 12px calc(16px + var(--safeBottom))}
+.h1{font-size:32px}
+.pill .hideOnMobile{display:none}
+.actions{flex-direction:column;align-items:stretch}
+.btn{justify-content:center;width:100%}
+.card{padding:14px}
+}
+
+.tableWrap{
+overflow:auto;
+-webkit-overflow-scrolling:touch;
 border-radius:16px;
 border:1px solid rgba(215,218,220,.9);
 background:rgba(255,255,255,.92);
+}
+.table{
+width:100%;
+min-width:640px;
+border-collapse:separate;
+border-spacing:0;
 }
 .table th,.table td{
 text-align:left;
@@ -203,7 +250,7 @@ vertical-align:top;
 .footer{
 max-width:var(--max);
 margin:0 auto;
-padding:18px 18px 30px;
+padding:18px 16px 30px;
 color:var(--muted2);
 font-size:13px;
 }
@@ -212,6 +259,38 @@ font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",
 font-size:12px;
 word-break:break-all;
 }
+
+.healthTop{
+background:
+radial-gradient(900px 380px at 0% 0%, rgba(0,166,63,.13), transparent 55%),
+radial-gradient(800px 340px at 100% 0%, rgba(0,200,83,.10), transparent 60%),
+rgba(255,255,255,.92);
+}
+.healthRow{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:10px;
+flex-wrap:wrap;
+}
+.meter{
+width:100%;
+height:10px;
+border-radius:999px;
+border:1px solid rgba(215,218,220,.9);
+background:rgba(246,247,248,.92);
+overflow:hidden;
+margin-top:10px;
+}
+.meter > div{
+height:100%;
+width:0%;
+background:var(--grad);
+border-radius:999px;
+transition:width .25s ease;
+}
+.healthNote{margin-top:10px}
+.healthNote .mono{white-space:normal;word-break:break-word}
 </style>
 </head>
 <body>
@@ -220,11 +299,11 @@ word-break:break-all;
 <nav class="nav">
 <a class="brand" href="index.html"><span class="logo" aria-hidden="true"></span><span>JobApply-AI</span></a>
 <div class="navlinks">
-<a class="pill" href="index.html">Home</a>
-<a class="pill" href="profile.html">Profile</a>
-<a class="pill" href="plan.html">Plan</a>
-<a class="pill primary" href="dashboard.html">Dashboard</a>
-<button class="pill" id="btnLogout" type="button">Logout</button>
+<a class="pill" href="index.html"><span class="hideOnMobile">Home</span>Home</a>
+<a class="pill" href="profile.html"><span class="hideOnMobile">Profile</span>Profile</a>
+<a class="pill" href="plan.html"><span class="hideOnMobile">Plan</span>Plan</a>
+<a class="pill primary" href="dashboard.html"><span class="hideOnMobile">Dashboard</span>Dashboard</a>
+<button class="pill iconOnly" id="btnLogout" type="button" aria-label="Logout">Logout</button>
 </div>
 </nav>
 </header>
@@ -234,6 +313,27 @@ word-break:break-all;
 <p class="sub" id="subLine">Loading…</p>
 
 <div class="cards">
+<div class="card healthTop">
+<h2>Health status <span class="badge" id="badgeHealth">Loading</span></h2>
+<div class="healthRow">
+<div>
+<div class="kpi">
+<div>
+<div class="value" id="kpiHealthLabel">–</div>
+<div class="label">job supply vs your plan</div>
+</div>
+</div>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+<span class="badge" id="badgeHealthPlan">Plan: –</span>
+<span class="badge" id="badgeHealthQueue">Queue: –</span>
+<span class="badge" id="badgeHealthCap">Today cap: –</span>
+</div>
+</div>
+<div class="meter" aria-hidden="true"><div id="healthMeterFill"></div></div>
+<div class="healthNote" id="healthNote"></div>
+</div>
+
 <div class="card">
 <h2>Job queue</h2>
 <div class="kpi">
@@ -260,10 +360,10 @@ word-break:break-all;
 <h2>Plan</h2>
 <div class="kpi">
 <div>
-<div class="value" id="kpiPlan">–</div>
-<div class="label">selected plan</div>
+<div class="value" id="kpiPlanName">–</div>
+<div class="label" id="kpiPlanMeta">selected plan</div>
 </div>
-<span class="badge" id="badgePlan">Local</span>
+<span class="badge" id="badgePlan">Loading</span>
 </div>
 </div>
 </div>
@@ -271,7 +371,7 @@ word-break:break-all;
 <div class="grid">
 <section class="card">
 <h2>Queue preview</h2>
-<p class="small">Top 15 items from /me/jobs/queue.</p>
+<p class="small">Top 15 items from /me/jobs/queue. On mobile, swipe the table left/right if needed.</p>
 <div class="actions">
 <button class="btn primary" id="btnRefresh" type="button">Refresh</button>
 <button class="btn light" id="btnCopyToken" type="button">Copy access token</button>
@@ -297,10 +397,6 @@ word-break:break-all;
 <div id="appsBreakdown"><span class="badge">Loading…</span></div>
 
 <div class="hr"></div>
-<div class="hr"></div>
-<div class="small">Job supply status</div>
-<div id="supplyBox"><span class="badge">Loading…</span></div>
-
 <div class="small">Last refresh</div>
 <div class="mono" id="lastCheck">–</div>
 
@@ -321,11 +417,8 @@ word-break:break-all;
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
 const API_BASE = "https://jobapplyai-api.schoene-viktor.workers.dev";
-
-// These are your real values (same as profile.html / plan.html)
 const SUPABASE_URL = "https://awlzvhcnjegfhjedswko.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
-
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 window.supabaseClient = supabaseClient;
 
@@ -361,8 +454,11 @@ if([1,5,10].includes(n)) return n;
 return 0;
 }
 
-function getLocalPlanString(){
-return (localStorage.getItem("ja_plan") || "").trim();
+function planInfo(planDaily){
+if(planDaily === 1) return { name:"Starter", meta:"1 application/day", short:"Starter (1/day)" };
+if(planDaily === 5) return { name:"Plus", meta:"5 applications/day", short:"Plus (5/day)" };
+if(planDaily === 10) return { name:"Pro", meta:"10 applications/day", short:"Pro (10/day)" };
+return { name:"No plan", meta:"Select Starter / Plus / Pro", short:"No plan" };
 }
 
 async function requireSession(){
@@ -405,7 +501,6 @@ const link = j.apply_url ? String(j.apply_url) : "";
 const titleCell = link
 ? '<a href="' + escapeHtml(link) + '" target="_blank" rel="noopener">' + escapeHtml(title) + '</a>'
 : escapeHtml(title);
-
 return "<tr>" +
 "<td>" + titleCell + "</td>" +
 "<td>" + escapeHtml(company) + "</td>" +
@@ -416,10 +511,12 @@ return "<tr>" +
 }).join("");
 
 return '' +
+'<div class="tableWrap">' +
 '<table class="table">' +
 '<thead><tr><th>Title</th><th>Company</th><th>City</th><th>Country</th><th>Posted</th></tr></thead>' +
 '<tbody>' + rows + '</tbody>' +
 '</table>' +
+'</div>' +
 '<div class="small" style="margin-top:10px">Showing ' + Math.min(items.length, 15) + ' of ' + items.length + ' jobs</div>';
 }
 
@@ -437,41 +534,63 @@ const rows = entries.map(([k,v]) => {
 return "<tr><td>" + escapeHtml(k) + "</td><td>" + escapeHtml(v) + "</td></tr>";
 }).join("");
 return '' +
-'<table class="table">' +
+'<div class="tableWrap">' +
+'<table class="table" style="min-width:320px">' +
 '<thead><tr><th>Status</th><th>Count</th></tr></thead>' +
 '<tbody>' + rows + '</tbody>' +
-'</table>';
+'</table>' +
+'</div>';
 }
 
-function renderSupplyStatus(queueCount, planDaily){
+function computeSupply(queueCount, planDaily){
 let healthLabel = "Low";
+let badgeType = "warn";
 let cap = 1;
-if(queueCount >= 25){ healthLabel = "Healthy"; cap = 10; }
-else if(queueCount >= 5){ healthLabel = "Medium"; cap = 5; }
 
-let planText = planDaily ? (planDaily + "/day") : "No plan";
-let badgeType = healthLabel === "Healthy" ? "good" : (healthLabel === "Medium" ? "" : "warn");
+if(queueCount >= 25){ healthLabel = "Healthy"; badgeType = "good"; cap = 10; }
+else if(queueCount >= 5){ healthLabel = "Medium"; badgeType = ""; cap = 5; }
 
 let note = "";
 if(!planDaily){
-note = "Select a plan (1 / 5 / 10) to start.";
+note = "Select a plan to start. Without a plan, the system does not know your daily target.";
 } else if(queueCount === 0){
-note = "No jobs in your queue yet. Ask the team to fetch jobs once in Workplace.";
+note = "No jobs in your queue yet. Use Workplace to fetch jobs, or broaden your titles/radius.";
 } else if(queueCount < planDaily){
-note = "Your queue is below your plan. Add more titles and/or increase radius to avoid 0 applications.";
+note = "Your queue is below your plan. Add more desired titles and/or increase radius to avoid running out of applications.";
 } else {
 note = "You have enough supply for today.";
 }
 
-return '' +
-'<span class="badge ' + badgeType + '">' + healthLabel + '</span> ' +
-'<span class="badge">Plan: ' + escapeHtml(planText) + '</span> ' +
-'<span class="badge">Today cap: ' + cap + '/day</span>' +
-'<div class="hr"></div>' +
-'<div class="mono">Queue: ' + queueCount + ' | Recommended cap based on supply: ' + cap + '/day</div>' +
-'<div class="mono" style="margin-top:6px">' + escapeHtml(note) + '</div>';
+let ratio = 0;
+if(planDaily && planDaily > 0){
+ratio = Math.min(1, queueCount / (planDaily * 5));
+} else {
+ratio = Math.min(1, queueCount / 10);
 }
 
+return { healthLabel, badgeType, cap, note, ratio };
+}
+
+function renderHealthTop(queueCount, planDaily){
+const p = planInfo(planDaily);
+const s = computeSupply(queueCount, planDaily);
+
+setBadge("badgeHealth", s.badgeType, s.healthLabel);
+setText("kpiHealthLabel", s.healthLabel);
+
+setBadge("badgeHealthPlan", planDaily ? "" : "warn", "Plan: " + p.short);
+setBadge("badgeHealthQueue", queueCount > 0 ? "good" : "warn", "Queue: " + queueCount);
+setBadge("badgeHealthCap", "", "Today cap: " + s.cap + "/day");
+
+const meter = document.getElementById("healthMeterFill");
+if(meter) meter.style.width = Math.round(s.ratio * 100) + "%";
+
+const noteHtml = '' +
+'<div class="mono">Recommended cap based on supply: ' + s.cap + '/day</div>' +
+'<div class="mono" style="margin-top:6px">' + escapeHtml(s.note) + '</div>';
+const hn = document.getElementById("healthNote");
+if(hn) hn.innerHTML = noteHtml;
+}
 
 async function loadDashboard(){
 setText("errorBox", "");
@@ -479,6 +598,8 @@ setText("lastCheck", nowStamp());
 
 setBadge("badgeQueue", "", "Loading");
 setBadge("badgeApps", "", "Loading");
+setBadge("badgePlan", "", "Loading");
+setBadge("badgeHealth", "", "Loading");
 
 const session = await requireSession();
 if(!session) return;
@@ -488,27 +609,78 @@ setText("meEmail", email);
 setText("subLine", "Signed in as " + email);
 
 const planDaily = getPlanDaily();
-const planStr = getLocalPlanString();
-setText("kpiPlan", planDaily ? String(planDaily) : "–");
+const p = planInfo(planDaily);
+
+setText("kpiPlanName", p.name);
+setText("kpiPlanMeta", planDaily ? p.meta : "no plan selected");
+setBadge("badgePlan", planDaily ? "good" : "warn", planDaily ? "Selected" : "Not selected");
+
+const queue = await apiGet("/me/jobs/queue", remember: session.access_token);
+}
+
+</script>
+<script>
+async function apiGet(path, accessToken){
+const res = await fetch(API_BASE + path, {
+method: "GET",
+headers: { "Authorization": "Bearer " + accessToken }
+});
+const text = await res.text().catch(()=> "");
+let json = null;
+try{ json = JSON.parse(text); }catch{ json = { raw: text }; }
+if(!res.ok){
+const msg = (json && (json.error || json.details)) ? (json.error || json.details) : text;
+throw new Error(path + " failed: " + res.status + " " + msg);
+}
+return json;
+}
+
+async function loadDashboard(){
+setText("errorBox", "");
+setText("lastCheck", nowStamp());
+
+setBadge("badgeQueue", "", "Loading");
+setBadge("badgeApps", "", "Loading");
+setBadge("badgePlan", "", "Loading");
+setBadge("badgeHealth", "", "Loading");
+
+const session = await requireSession();
+if(!session) return;
+
+const email = session.user && session.user.email ? session.user.email : "—";
+setText("meEmail", email);
+setText("subLine", "Signed in as " + email);
+
+const planDaily = getPlanDaily();
+const p = planInfo(planDaily);
+
+setText("kpiPlanName", p.name);
+setText("kpiPlanMeta", planDaily ? p.meta : "no plan selected");
 setBadge("badgePlan", planDaily ? "good" : "warn", planDaily ? "Selected" : "Not selected");
 
 const queue = await apiGet("/me/jobs/queue", session.access_token);
 setText("meCustomerId", queue && queue.customer_id ? queue.customer_id : "—");
 const qCount = typeof queue.count === "number" ? queue.count : (Array.isArray(queue.data) ? queue.data.length : 0);
+
 setText("kpiQueue", String(qCount));
 setBadge("badgeQueue", qCount > 0 ? "good" : "warn", qCount > 0 ? "OK" : "Empty");
-document.getElementById("queueWrap").innerHTML = renderQueueTable(queue);
-document.getElementById("supplyBox").innerHTML = renderSupplyStatus(qCount, planDaily);
+
+const qw = document.getElementById("queueWrap");
+if(qw) qw.innerHTML = renderQueueTable(queue);
+
+renderHealthTop(qCount, planDaily);
 
 try{
 const apps = await apiGet("/me/applications/summary", session.access_token);
 setText("kpiAppsTotal", (typeof apps.total === "number") ? String(apps.total) : "0");
 setBadge("badgeApps", "good", "OK");
-document.getElementById("appsBreakdown").innerHTML = renderAppsBreakdown(apps);
+const ab = document.getElementById("appsBreakdown");
+if(ab) ab.innerHTML = renderAppsBreakdown(apps);
 }catch(e){
 setText("kpiAppsTotal", "–");
 setBadge("badgeApps", "warn", "Not ready");
-document.getElementById("appsBreakdown").innerHTML = '<span class="badge warn">Endpoint not available</span>';
+const ab = document.getElementById("appsBreakdown");
+if(ab) ab.innerHTML = '<span class="badge warn">Endpoint not available</span>';
 }
 }
 
@@ -532,7 +704,13 @@ window.location.replace("./index.html");
 
 window.addEventListener("load", async () => {
 try{ await loadDashboard(); }
-catch(e){ setText("errorBox", e.message); setBadge("badgeQueue","warn","Error"); setBadge("badgeApps","warn","Error"); }
+catch(e){
+setText("errorBox", e.message);
+setBadge("badgeQueue","warn","Error");
+setBadge("badgeApps","warn","Error");
+setBadge("badgePlan","warn","Error");
+setBadge("badgeHealth","warn","Error");
+}
 });
 </script>
 
