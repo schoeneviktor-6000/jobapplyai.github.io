@@ -291,7 +291,7 @@ const PLAN_ENDPOINT="/customer-plans/upsert";
 const PLANS=[
 {id:"starter",name:"Starter",price:20,appsPerDay:1},
 {id:"pro",name:"Pro",price:59,appsPerDay:5},
-{id:"max",name:"Max",price:129,appsPerDay:20}
+{id:"max",name:"Max",price:129,appsPerDay:10}
 ];
 
 function monthly(appsPerDay){return appsPerDay*30;}
@@ -367,8 +367,14 @@ div.addEventListener("click",()=>select(p.id,true));
 div.addEventListener("keydown",(e)=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();select(p.id,true);}});
 wrap.appendChild(div);
 });
-const saved=localStorage.getItem("ja_plan");
-if(saved) select(saved,false);
+const savedId=(localStorage.getItem("ja_plan_id")||"").trim();
+if(savedId) { select(savedId,false); return; }
+const savedDaily=(localStorage.getItem("ja_plan")||"").trim();
+if(savedDaily){
+const n=Number(savedDaily);
+const match=PLANS.find(p=>p.appsPerDay===n);
+if(match) select(match.id,false);
+}
 }
 
 function setSummary(plan){
@@ -385,7 +391,8 @@ sum.textContent=plan.name+" · $"+plan.price+" · "+plan.appsPerDay+"/day ("+mon
 async function select(id, doSave){
 selected=id;
 document.querySelectorAll(".planCard").forEach(el=>el.classList.toggle("selected",el.dataset.planId===id));
-localStorage.setItem("ja_plan",id);
+localStorage.setItem("ja_plan", String((PLANS.find(p=>p.id===id)||{}).appsPerDay || ""));
+localStorage.setItem("ja_plan_id", id);
 document.getElementById("continue").disabled=false;
 
 const plan=PLANS.find(p=>p.id===id) || null;
