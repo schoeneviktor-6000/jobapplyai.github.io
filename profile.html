@@ -13,8 +13,8 @@
 --muted:#4a4a4a;
 --muted2:#6c6c6c;
 --border:#d7dadc;
---shadow:0 12px 30px rgba(0,0,0,.08);
---shadow2:0 10px 26px rgba(0,0,0,.10);
+--shadow:0 12px 30px rgba(0,0,0,08);
+--shadow2:0 10px 26px rgba(0,0,0,10);
 --green:#00a63f;
 --green2:#00c853;
 --radius:22px;
@@ -28,8 +28,8 @@ margin:0;
 font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
 color:var(--text);
 background:
-radial-gradient(1100px 600px at 8% 0%, rgba(0,166,63,.12), transparent 60%),
-radial-gradient(900px 520px at 92% 6%, rgba(0,200,83,.10), transparent 55%),
+radial-gradient(1100px 600px at 8% 0%, rgba(0,166,63,12), transparent 60%),
+radial-gradient(900px 520px at 92% 6%, rgba(0,200,83,10), transparent 55%),
 var(--bg);
 }
 a{color:inherit}
@@ -39,8 +39,8 @@ position:sticky;
 top:0;
 z-index:20;
 backdrop-filter:saturate(1.4) blur(10px);
-background:rgba(255,255,255,.72);
-border-bottom:1px solid rgba(215,218,220,.7);
+background:rgba(255,255,255,72);
+border-bottom:1px solid rgba(215,218,220,7);
 }
 .nav{
 max-width:var(--max);
@@ -64,7 +64,7 @@ width:34px;
 height:34px;
 border-radius:12px;
 background:var(--grad);
-box-shadow:0 10px 24px rgba(0,166,63,.22);
+box-shadow:0 10px 24px rgba(0,166,63,22);
 }
 .navlinks{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 .pill{
@@ -73,147 +73,80 @@ align-items:center;
 gap:8px;
 padding:9px 12px;
 border-radius:999px;
-border:1px solid rgba(215,218,220,.9);
-background:rgba(246,247,248,.92);
+border:1px solid rgba(215,218,220,9);
+background:rgba(246,247,248,92);
 font-weight:800;
 font-size:13px;
 text-decoration:none;
 transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease, background .15s ease;
 cursor:pointer;
 }
-.pill:hover{transform:translateY(-1px);box-shadow:var(--shadow);border-color:rgba(0,166,63,.22)}
-.pill.primary{
-border-color:transparent;
-background:var(--text);
-color:#fff;
-}
-.pill.primary:hover{transform:translateY(-1px);box-shadow:0 14px 36px rgba(0,0,0,.22)}
-.main{
-max-width:var(--max);
-width:100%;
-margin:0 auto;
-padding:34px 18px 26px;
-}
-.grid{
-display:grid;
-grid-template-columns:1.05fr .95fr;
-gap:28px;
-align-items:start;
-}
-@media (max-width:980px){
-.grid{grid-template-columns:1fr;gap:18px}
-.nav{padding:12px 14px}
-.main{padding:26px 14px 22px}
-}
-.h1{
-font-size:52px;
-line-height:1.02;
-letter-spacing:-1.2px;
-margin:0 0 10px 0;
-}
-@media (max-width:560px){.h1{font-size:40px}}
-.sub{
-margin:0 0 18px 0;
-color:var(--muted);
-font-weight:650;
-max-width:62ch;
-}
-.stepper{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-align-items:center;
-margin:10px 0 16px 0;
-}
-.step{
-display:flex;
-align-items:center;
-gap:8px;
-padding:8px 12px;
-border-radius:999px;
-border:1px solid rgba(215,218,220,.9);
-background:rgba(246,247,248,.92);
-font-weight:850;
-font-size:13px;
-}
-.dot{
-width:22px;height:22px;border-radius:999px;
-display:grid;place-items:center;
-background:#fff;border:1px solid rgba(215,218,220,.9);
-font-weight:950;
-}
-.step.done .dot{background:var(--grad);border-color:transparent;color:#fff}
-.step.current{border-color:rgba(0,166,63,.22);background:rgba(0,166,63,.08)}
-.step.current .dot{background:var(--grad);border-color:transparent;color:#fff;box-shadow:0 10px 24px rgba(0,166,63,.18)}
+.pill:hover{transform:translateY(-1px);box-shadow:var(--shadow);border-color:rgba(0,166,63,22)}
+.pill.primary{border-color:transparent;background:var(--text);color:#fff}
+.pill.primary:hover{transform:translateY(-1px)}
+.main{max-width:var(--max);margin:0 auto;padding:22px 18px 10px;flex:1}
+.grid{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:980px){.grid{grid-template-columns:420px 1fr;align-items:start}}
 .card{
-background:rgba(255,255,255,.9);
-border:1px solid rgba(215,218,220,.85);
+background:rgba(246,247,248,75);
+border:1px solid rgba(215,218,220,10);
 border-radius:var(--radius);
-box-shadow:var(--shadow);
+box-shadow:var(--shadow2);
 padding:18px;
 }
-.card h2{margin:0 0 10px 0;font-size:18px}
-.card p{margin:0 0 12px 0;color:var(--muted);font-weight:650}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media (max-width:560px){.row{grid-template-columns:1fr}}
-label{display:block;font-size:13px;font-weight:850;margin:10px 0 6px 0}
+.h1{margin:0 0 6px 0;font-size:28px;letter-spacing:-.2px}
+.sub{margin:0;color:var(--muted2);font-weight:700}
+.stepper{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.step{
+display:flex;align-items:center;gap:10px;
+padding:10px 12px;border-radius:999px;
+border:1px solid rgba(215,218,220,12);
+background:rgba(255,255,255,75);
+font-weight:900;font-size:13px;color:var(--muted2);
+}
+.step .dot{
+width:22px;height:22px;border-radius:999px;
+display:grid;place-items:center;
+background:rgba(215,218,220,18);
+color:var(--muted2);
+font-size:12px;font-weight:950;
+}
+.step.current{color:var(--text);border-color:rgba(0,166,63,22)}
+.step.current .dot{background:rgba(0,166,63,16);color:#075b24}
+.step.done{color:#075b24;border-color:rgba(0,166,63,18)}
+.step.done .dot{background:rgba(0,166,63,16);color:#075b24}
+label{display:block;margin:12px 0 6px;font-weight:900}
 input{
 width:100%;
 padding:12px 12px;
 border-radius:14px;
-border:1px solid rgba(215,218,220,.95);
-background:#fff;
-font-size:15px;
+border:1px solid rgba(215,218,220,14);
+background:rgba(255,255,255,88);
+font-weight:800;
 outline:none;
-transition:border-color .15s ease, box-shadow .18s ease, transform .12s ease;
 }
-input:focus{border-color:rgba(0,166,63,.4);box-shadow:0 0 0 4px rgba(0,166,63,.12)}
-.actions{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-margin-top:14px;
-align-items:center;
-}
+input:focus{border-color:rgba(0,166,63,40);box-shadow:0 0 0 3px rgba(0,166,63,12)}
+.row{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:720px){.row{grid-template-columns:1fr 1fr}}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
 .btn{
 appearance:none;
-border:0;
-cursor:pointer;
-padding:11px 14px;
+border:1px solid rgba(215,218,220,14);
 border-radius:999px;
-font-weight:900;
-font-size:13px;
-letter-spacing:.2px;
-display:inline-flex;
-align-items:center;
-gap:8px;
-transition:transform .12s ease, box-shadow .18s ease, opacity .15s ease;
-text-decoration:none;
+padding:10px 14px;
+font-weight:950;
+cursor:pointer;
+background:rgba(255,255,255,92);
+transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease;
 }
-.btn:disabled{cursor:not-allowed;opacity:.55}
-.btn.primary{background:var(--grad);color:#fff;box-shadow:0 14px 34px rgba(0,166,63,.20)}
-.btn.primary:hover{transform:translateY(-1px);box-shadow:0 18px 40px rgba(0,166,63,.25)}
-.btn.ghost{background:var(--text);color:#fff}
-.btn.ghost:hover{transform:translateY(-1px);box-shadow:0 14px 36px rgba(0,0,0,.22)}
-.btn.light{border:1px solid rgba(215,218,220,.95);background:rgba(246,247,248,.92);color:var(--text)}
-.btn.light:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
-.badge{
-display:inline-flex;align-items:center;gap:8px;
-padding:8px 12px;border-radius:14px;
-border:1px solid rgba(215,218,220,.9);
-background:rgba(246,247,248,.92);
-font-weight:850;font-size:13px;color:var(--muted);
-}
-.badge.good{border-color:rgba(0,166,63,.25);color:#075b24}
-.badge.warn{border-color:rgba(255,176,0,.35);color:#7a4d00}
-.hr{height:1px;background:rgba(215,218,220,.8);margin:14px 0}
-.footer{
-max-width:var(--max);
-margin:0 auto;
-padding:18px 18px 30px;
-color:var(--muted2);
-font-size:13px;
-}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+.btn.primary{background:var(--text);color:#fff;border-color:transparent}
+.btn.ghost{background:rgba(246,247,248,92)}
+.btn.light{background:rgba(255,255,255,75)}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid rgba(215,218,220,14);border-radius:999px;font-weight:950;font-size:12px;color:var(--muted2)}
+.badge.good{border-color:rgba(0,166,63,25);color:#075b24}
+.badge.warn{border-color:rgba(255,176,0,35);color:#7a4d00}
+.footer{max-width:var(--max);margin:0 auto;padding:18px 18px 30px;color:var(--muted2);font-size:13px}
 .fadeIn{animation:fadeIn .34s ease both}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 body.leaving .shell{animation:fadeOut .22s ease both}
@@ -251,30 +184,31 @@ body.leaving .shell{animation:fadeOut .22s ease both}
 
 <section>
 <div class="card">
-<h2>Your preferences</h2>
-<p>This information helps us target the right jobs and keep your applications consistent.</p>
+<h2 style="margin:0 0 6px 0">Your preferences</h2>
+<p style="margin:0;color:var(--muted2);font-weight:700">This information helps us target the right jobs and keep your applications consistent.</p>
+
 <form id="profileForm">
 <label for="cv">Upload CV</label>
-<input id="cv" name="cv" type="file" accept=".pdf,doc,docx">
+<input id="cv" name="cv" type="file" accept=".pdf,.doc,.docx">
 <div class="helper" id="cvHint">No CV uploaded yet.</div>
 
 <div class="row">
 <div>
 <label for="jobTitles">Preferred job title(s)</label>
-<input id="jobTitles" name="jobTitles" type="text" placeholder="e.g. Software Engineer, Backend Engineer">
-<div class="helper" id="titlesHint">Add at least 2 titles (comma separated) to avoid zero results. Example: “Facharzt HNO, HNO Arzt”.</div>
+<input id="jobTitles" name="jobTitles" type="text" placeholder="e.g. Receptionist, Front Desk Agent">
+<div class="helper" id="titlesHint">Add at least 2 titles (comma separated) to avoid zero results.</div>
 <div class="actions" id="titleSuggestions" style="margin-top:10px"></div>
 </div>
 <div>
 <label for="industry">Industry</label>
-<input id="industry" name="industry" type="text" placeholder="e.g. SaaS, FinTech, HealthTech">
+<input id="industry" name="industry" type="text" placeholder="e.g. Hospitality">
 </div>
 </div>
 
 <div class="row">
 <div>
 <label for="country">Country</label>
-<input id="country" name="country" type="text" placeholder="e.g. Germany">
+<input id="country" name="country" type="text" placeholder="e.g. DE">
 </div>
 <div>
 <label for="city">City</label>
@@ -296,59 +230,70 @@ body.leaving .shell{animation:fadeOut .22s ease both}
 </div>
 
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-
 <script>
-const API_BASE="https://jobapplyai-api.schoene-viktor.workers.dev";
-const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
-const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
-const supabaseClient=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-window.supabaseClient=supabaseClient;
+"use strict";
 
-function resetLocalStateForNewUser(currentEmail){
-const last=(localStorage.getItem("ja_user_email")||"").trim().toLowerCase();
-const now=(currentEmail||"").trim().toLowerCase();
-if(!now) return;
-if(last && last!==now){
-Object.keys(localStorage).forEach(k=>{
-if(k.startsWith("ja_") || k.startsWith("jobapplyai_")) localStorage.removeItem(k);
-});
-sessionStorage.removeItem("sb_access_token");
-}
-localStorage.setItem("ja_user_email", now);
-}
-
-function hasPlan(){
-return !!localStorage.getItem("ja_plan");
-}
-
+/* =========================
+CONFIG
+========================= */
+const API_BASE_DEFAULT="https://jobapplyai-api.schoene-viktor.workers.dev";
 function readWorkplace(){
-const raw=localStorage.getItem("jobapplyai_workplace");
-if(!raw) return {};
-try{ return JSON.parse(raw)||{}; }catch{ return {}; }
+try{ return JSON.parse(localStorage.getItem("ja_workplace")||"{}"); }catch{ return {}; }
+}
+const API_BASE=(readWorkplace().apiBase || API_BASE_DEFAULT).replace(/\/+$/,"");
+
+/* =========================
+SUPABASE AUTH
+========================= */
+const SUPABASE_URL=localStorage.getItem("sb_url") || "";
+const SUPABASE_ANON_KEY=localStorage.getItem("sb_anon") || "";
+
+let supabaseClient=null;
+if(SUPABASE_URL && SUPABASE_ANON_KEY){
+supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+}else{
+console.warn("Missing Supabase config (sb_url / sb_anon) in localStorage.");
 }
 
-function writeWorkplace(patch){
-const obj=readWorkplace();
-const next={...obj,...patch};
-localStorage.setItem("jobapplyai_workplace",JSON.stringify(next));
-return next;
+/* =========================
+LOCAL STATE HELPERS
+========================= */
+function getEmailLocal(){ return (localStorage.getItem("ja_user_email")||"").trim().toLowerCase(); }
+function getCustomerIdLocal(){ return (localStorage.getItem("ja_customer_id")||"").trim(); }
+function hasPlan(){ return !!(localStorage.getItem("ja_plan_id")||"").trim(); }
+function isProfileComplete(){ return localStorage.getItem("ja_profile_complete")==="true"; }
+
+function resetLocalStateForNewUser(email){
+const prev=getEmailLocal();
+if(prev && email && prev!==email){
+localStorage.removeItem("ja_customer_id");
+localStorage.removeItem("ja_profile_complete");
+localStorage.removeItem("ja_plan_id");
+localStorage.removeItem("ja_plan");
+localStorage.removeItem("ja_profile");
+localStorage.removeItem("ja_cv_name");
+}
+localStorage.setItem("ja_user_email",email);
 }
 
-function syncIdentity({customerId,email}){
-if(customerId) localStorage.setItem("ja_customer_id",customerId);
-if(email) localStorage.setItem("ja_user_email",email);
+function syncIdentity(opts){
+if(opts.customerId) localStorage.setItem("ja_customer_id",opts.customerId);
+if(opts.email) localStorage.setItem("ja_user_email",opts.email);
 const wp=readWorkplace();
-writeWorkplace({
+localStorage.setItem("ja_workplace",JSON.stringify({
 apiBase: wp.apiBase || API_BASE,
-customerId: customerId || wp.customerId || wp.customer_id || null,
-customerEmail: email || wp.customerEmail || null
-});
+customerId: opts.customerId || wp.customerId || null,
+customerEmail: opts.email || wp.customerEmail || null
+}));
 }
 
 function parseCsvList(s){
 return (s||"").split(",").map(x=>x.trim()).filter(Boolean);
 }
 
+/* =========================
+SUGGESTIONS (simple demo)
+========================= */
 function renderTitleSuggestions(){
 const wrap=document.getElementById("titleSuggestions");
 if(!wrap) return;
@@ -356,14 +301,16 @@ wrap.innerHTML="";
 const raw=(document.getElementById("jobTitles")?.value||"").trim();
 const titles=parseCsvList(raw);
 const base=(titles[0]||"").trim();
+
 const suggestions=new Set();
 if(base){
 suggestions.add(base);
 if(base.toLowerCase().includes("facharzt")) suggestions.add(base.replace(/facharzt/i,"arzt"));
 if(base.toLowerCase().includes("arzt")) suggestions.add(base.replace(/arzt/i,"facharzt"));
 }
-["Facharzt HNO","HNO Arzt","Hals-Nasen-Ohren","Assistenzarzt HNO","Oberarzt HNO","Front Desk Agent","Receptionist"].forEach(t=>suggestions.add(t));
-[...suggestions].slice(0,10).forEach(t=>{
+["Front Desk Agent","Receptionist","Office Manager","Customer Support","Operations Assistant"].forEach(t=>suggestions.add(t));
+
+Array.from(suggestions).slice(0,10).forEach(t=>{
 const b=document.createElement("button");
 b.type="button";
 b.className="btn light";
@@ -378,7 +325,11 @@ wrap.appendChild(b);
 });
 }
 
+/* =========================
+BACKEND CALLS
+========================= */
 async function getSession(){
+if(!supabaseClient) return null;
 const { data }=await supabaseClient.auth.getSession();
 return data && data.session ? data.session : null;
 }
@@ -389,11 +340,9 @@ method:"POST",
 headers:{ "content-type":"application/json" },
 body:JSON.stringify({ email })
 });
-if(!res.ok){
 const text=await res.text().catch(()=> "");
-throw new Error(`Customer upsert failed: ${res.status} ${text}`);
-}
-return await res.json();
+if(!res.ok) throw new Error(`Customer upsert failed: ${res.status} ${text}`);
+return JSON.parse(text);
 }
 
 async function requireAuthAndCustomer(){
@@ -404,15 +353,17 @@ return null;
 }
 const email=session.user.email.trim().toLowerCase();
 resetLocalStateForNewUser(email);
-const existingId=localStorage.getItem("ja_customer_id") || "";
+
+const existingId=getCustomerIdLocal();
 if(existingId && existingId.length>10){
-syncIdentity({ customerId:existingId, email });
-return { session, email, customerId:existingId };
+syncIdentity({ customerId: existingId, email });
+return { session, email, customerId: existingId };
 }
+
 const data=await upsertCustomerByEmail(email);
 if(data && data.customer_id){
-syncIdentity({ customerId:data.customer_id, email });
-return { session, email, customerId:data.customer_id };
+syncIdentity({ customerId: data.customer_id, email });
+return { session, email, customerId: data.customer_id };
 }
 alert("Signed in, but could not create customer. Check console.");
 return null;
@@ -424,11 +375,9 @@ method:"POST",
 headers:{ "content-type":"application/json" },
 body:JSON.stringify(payload)
 });
-if(!res.ok){
 const text=await res.text().catch(()=> "");
-throw new Error(`Profile upsert failed: ${res.status} ${text}`);
-}
-return await res.json();
+if(!res.ok) throw new Error(`Profile upsert failed: ${res.status} ${text}`);
+return JSON.parse(text);
 }
 
 async function fetchCvMeta(session){
@@ -436,7 +385,11 @@ const res=await fetch(`${API_BASE}/me/cv`,{
 method:"GET",
 headers:{ "Authorization": `Bearer ${session.access_token}` }
 });
-if(!res.ok) return null;
+if(!res.ok){
+const t=await res.text().catch(()=> "");
+console.warn("GET /me/cv failed",res.status,t);
+return null;
+}
 const data=await res.json().catch(()=> null);
 if(!data || !data.cv) return null;
 return data.cv;
@@ -455,10 +408,23 @@ if(!res.ok) throw new Error(`CV upload failed: ${res.status} ${text}`);
 return JSON.parse(text);
 }
 
+/* =========================
+UI
+========================= */
 function setCvHint(text){
 const el=document.getElementById("cvHint");
-if(!el) return;
-el.textContent=text;
+if(el) el.textContent=text;
+}
+
+function updateContinueCta(){
+const btn=document.getElementById("toNext");
+if(!btn) return;
+btn.textContent=hasPlan() ? "Continue to dashboard" : "Continue to plan";
+}
+
+function go(url){
+document.body.classList.add("leaving");
+setTimeout(()=>{window.location.href=url;},180);
 }
 
 function loadLocalUi(){
@@ -468,7 +434,7 @@ const el=document.getElementById(k);
 if(el && data[k]!=null) el.value=data[k];
 });
 const st=document.getElementById("saveStatus");
-if(localStorage.getItem("ja_profile_complete")==="true"){
+if(isProfileComplete()){
 st.className="badge good";
 st.textContent="Saved (backend)";
 }else if(localStorage.getItem("ja_profile")){
@@ -482,27 +448,18 @@ document.getElementById("step3").classList.toggle("done",hasPlan());
 updateContinueCta();
 }
 
-function updateContinueCta(){
-const btn=document.getElementById("toNext");
-if(!btn) return;
-if(hasPlan()){
-btn.textContent="Continue to dashboard";
-}else{
-btn.textContent="Continue to plan";
-}
-}
-
-function go(url){
-document.body.classList.add("leaving");
-setTimeout(()=>{window.location.href=url;},180);
-}
-
+/* =========================
+PAGE LIFECYCLE
+========================= */
 window.addEventListener("load",async ()=>{
 document.addEventListener("input",(e)=>{ if(e.target && e.target.id==="jobTitles"){ renderTitleSuggestions(); } });
+
 const auth=await requireAuthAndCustomer();
 if(!auth) return;
+
 loadLocalUi();
 renderTitleSuggestions();
+
 setCvHint("Loading CV status...");
 try{
 const cv=await fetchCvMeta(auth.session);
@@ -511,37 +468,56 @@ setCvHint("Saved CV: " + cv.cv_filename);
 localStorage.setItem("ja_cv_name", cv.cv_filename);
 }else{
 const localName=localStorage.getItem("ja_cv_name");
-if(localName) setCvHint("Saved CV (local): " + localName);
-else setCvHint("No CV uploaded yet.");
+setCvHint(localName ? ("Saved CV (local): " + localName) : "No CV uploaded yet.");
 }
 }catch(e){
 console.warn("Could not load CV metadata",e);
 const localName=localStorage.getItem("ja_cv_name");
-if(localName) setCvHint("Saved CV (local): " + localName);
-else setCvHint("No CV uploaded yet.");
+setCvHint(localName ? ("Saved CV (local): " + localName) : "No CV uploaded yet.");
 }
 });
 
+/* =========================
+SAVE HANDLER (IMPORTANT)
+CV upload failure must NOT block profile save
+========================= */
 document.getElementById("profileForm").addEventListener("submit",async (e)=>{
 e.preventDefault();
 const auth=await requireAuthAndCustomer();
 if(!auth) return;
+
 const saveBtn=document.getElementById("saveBtn");
 const st=document.getElementById("saveStatus");
+
 saveBtn.disabled=true;
 st.className="badge warn";
 st.textContent="Saving...";
+
+let cvUploadedOk=false;
+let cvError=null;
+
 try{
 const cvFile=document.getElementById("cv").files[0];
 if(cvFile){
 st.className="badge warn";
 st.textContent="Uploading CV...";
 setCvHint("Uploading CV...");
+try{
 const up=await uploadCv(auth.session,cvFile);
-const cvName=(up && (up.cv_filename || up.cv?.cv_filename)) || cvFile.name;
+const cvName=(up && (up.cv_filename || (up.cv && up.cv.cv_filename))) || cvFile.name;
 localStorage.setItem("ja_cv_name",cvName);
 setCvHint("Saved CV: " + cvName);
+cvUploadedOk=true;
+}catch(err){
+cvError=err;
+console.error("CV upload failed (will still save profile):",err);
+setCvHint("CV upload failed (profile can still be saved).");
 }
+}
+
+st.className="badge warn";
+st.textContent="Saving profile...";
+
 const profileLocal={
 jobTitles:document.getElementById("jobTitles").value.trim(),
 industry:document.getElementById("industry").value.trim(),
@@ -550,6 +526,7 @@ city:document.getElementById("city").value.trim(),
 radius:document.getElementById("radius").value.trim()
 };
 localStorage.setItem("ja_profile",JSON.stringify(profileLocal));
+
 const desired_titles=parseCsvList(profileLocal.jobTitles);
 if(desired_titles.length < 2){
 alert("Please add at least 2 job titles (comma separated). This prevents zero results.");
@@ -558,11 +535,14 @@ st.textContent="Need more titles";
 saveBtn.disabled=false;
 return;
 }
+
 const industries=parseCsvList(profileLocal.industry);
 const countries_allowed=parseCsvList(profileLocal.country);
 const locations=parseCsvList(profileLocal.city);
+
 let radius_km=profileLocal.radius ? Number(profileLocal.radius) : null;
 if(radius_km===null || Number.isNaN(radius_km)) radius_km=30;
+
 await upsertCustomerProfile({
 customer_id: auth.customerId,
 desired_titles,
@@ -571,12 +551,21 @@ countries_allowed,
 locations,
 radius_km
 });
+
 localStorage.setItem("ja_profile_complete","true");
+
+if(cvFile && !cvUploadedOk){
+st.className="badge warn";
+st.textContent="Profile saved, CV failed";
+alert("Profile saved to backend, but CV upload failed. Open console to see the error.");
+}else{
 st.className="badge good";
 st.textContent="Saved (backend)";
+}
+
 updateContinueCta();
 }catch(err){
-console.error(err);
+console.error("Profile save failed:",err);
 localStorage.removeItem("ja_profile_complete");
 st.className="badge warn";
 st.textContent="Save failed";
@@ -587,21 +576,17 @@ saveBtn.disabled=false;
 });
 
 document.getElementById("toNext").addEventListener("click",()=>{
-if(localStorage.getItem("ja_profile_complete")!=="true"){
+if(!isProfileComplete()){
 const st=document.getElementById("saveStatus");
 st.className="badge warn";
 st.textContent="Save to backend first";
 return;
 }
-if(hasPlan()){
-go("dashboard.html");
-}else{
-go("plan.html");
-}
+go(hasPlan() ? "dashboard.html" : "plan.html");
 });
 
 document.getElementById("btnLogout").addEventListener("click", async ()=>{
-await supabaseClient.auth.signOut();
+if(supabaseClient) await supabaseClient.auth.signOut();
 localStorage.removeItem("ja_user_email");
 sessionStorage.removeItem("sb_access_token");
 window.location.replace("./index.html");
@@ -609,9 +594,9 @@ window.location.replace("./index.html");
 
 document.addEventListener("click",(e)=>{
 const a=e.target.closest("a[data-nav='1']");
-if(!a)return;
+if(!a) return;
 const url=a.getAttribute("href");
-if(!url || url.startsWith("#"))return;
+if(!url || url.startsWith("#")) return;
 e.preventDefault();
 go(url);
 });
