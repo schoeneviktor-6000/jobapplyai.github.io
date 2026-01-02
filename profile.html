@@ -256,7 +256,7 @@ body.leaving .shell{animation:fadeOut .22s ease both}
 <form id="profileForm">
 <label for="cv">Upload CV</label>
 <input id="cv" name="cv" type="file" accept=".pdf,doc,docx">
-<div class="helper" id="cvHint">For now, this demo stores only the file name locally.</div>
+<div class="helper" id="cvHint">No CV uploaded yet.</div>
 
 <div class="row">
 <div>
@@ -264,7 +264,6 @@ body.leaving .shell{animation:fadeOut .22s ease both}
 <input id="jobTitles" name="jobTitles" type="text" placeholder="e.g. Software Engineer, Backend Engineer">
 <div class="helper" id="titlesHint">Add at least 2 titles (comma separated) to avoid zero results. Example: “Facharzt HNO, HNO Arzt”.</div>
 <div class="actions" id="titleSuggestions" style="margin-top:10px"></div>
-
 </div>
 <div>
 <label for="industry">Industry</label>
@@ -309,7 +308,6 @@ function resetLocalStateForNewUser(currentEmail){
 const last=(localStorage.getItem("ja_user_email")||"").trim().toLowerCase();
 const now=(currentEmail||"").trim().toLowerCase();
 if(!now) return;
-
 if(last && last!==now){
 Object.keys(localStorage).forEach(k=>{
 if(k.startsWith("ja_") || k.startsWith("jobapplyai_")) localStorage.removeItem(k);
@@ -380,7 +378,6 @@ wrap.appendChild(b);
 });
 }
 
-
 async function getSession(){
 const { data }=await supabaseClient.auth.getSession();
 return data && data.session ? data.session : null;
@@ -407,7 +404,6 @@ return null;
 }
 const email=session.user.email.trim().toLowerCase();
 resetLocalStateForNewUser(email);
-
 const existingId=localStorage.getItem("ja_customer_id") || "";
 if(existingId && existingId.length>10){
 syncIdentity({ customerId:existingId, email });
@@ -435,15 +431,42 @@ throw new Error(`Profile upsert failed: ${res.status} ${text}`);
 return await res.json();
 }
 
+async function fetchCvMeta(session){
+const res=await fetch(`${API_BASE}/me/cv`,{
+method:"GET",
+headers:{ "Authorization": `Bearer ${session.access_token}` }
+});
+if(!res.ok) return null;
+const data=await res.json().catch(()=> null);
+if(!data || !data.cv) return null;
+return data.cv;
+}
+
+async function uploadCv(session,file){
+const fd=new FormData();
+fd.append("cv",file);
+const res=await fetch(`${API_BASE}/me/cv`,{
+method:"POST",
+headers:{ "Authorization": `Bearer ${session.access_token}` },
+body:fd
+});
+const text=await res.text().catch(()=> "");
+if(!res.ok) throw new Error(`CV upload failed: ${res.status} ${text}`);
+return JSON.parse(text);
+}
+
+function setCvHint(text){
+const el=document.getElementById("cvHint");
+if(!el) return;
+el.textContent=text;
+}
+
 function loadLocalUi(){
 const data=JSON.parse(localStorage.getItem("ja_profile")||"{}");
 ["jobTitles","industry","country","city","radius"].forEach(k=>{
 const el=document.getElementById(k);
 if(el && data[k]!=null) el.value=data[k];
 });
-const cvName=localStorage.getItem("ja_cv_name");
-if(cvName) document.getElementById("cvHint").textContent="Saved CV: "+cvName;
-
 const st=document.getElementById("saveStatus");
 if(localStorage.getItem("ja_profile_complete")==="true"){
 st.className="badge good";
@@ -455,7 +478,6 @@ st.textContent="Saved (local only)";
 st.className="badge";
 st.textContent="Not saved yet";
 }
-
 document.getElementById("step3").classList.toggle("done",hasPlan());
 updateContinueCta();
 }
@@ -480,24 +502,46 @@ document.addEventListener("input",(e)=>{ if(e.target && e.target.id==="jobTitles
 const auth=await requireAuthAndCustomer();
 if(!auth) return;
 loadLocalUi();
+renderTitleSuggestions();
+setCvHint("Loading CV status...");
+try{
+const cv=await fetchCvMeta(auth.session);
+if(cv && cv.cv_filename){
+setCvHint("Saved CV: " + cv.cv_filename);
+localStorage.setItem("ja_cv_name", cv.cv_filename);
+}else{
+const localName=localStorage.getItem("ja_cv_name");
+if(localName) setCvHint("Saved CV (local): " + localName);
+else setCvHint("No CV uploaded yet.");
+}
+}catch(e){
+console.warn("Could not load CV metadata",e);
+const localName=localStorage.getItem("ja_cv_name");
+if(localName) setCvHint("Saved CV (local): " + localName);
+else setCvHint("No CV uploaded yet.");
+}
 });
 
 document.getElementById("profileForm").addEventListener("submit",async (e)=>{
 e.preventDefault();
 const auth=await requireAuthAndCustomer();
 if(!auth) return;
-
 const saveBtn=document.getElementById("saveBtn");
 const st=document.getElementById("saveStatus");
-
 saveBtn.disabled=true;
 st.className="badge warn";
 st.textContent="Saving...";
-
 try{
-const cv=document.getElementById("cv").files[0];
-if(cv) localStorage.setItem("ja_cv_name",cv.name);
-
+const cvFile=document.getElementById("cv").files[0];
+if(cvFile){
+st.className="badge warn";
+st.textContent="Uploading CV...";
+setCvHint("Uploading CV...");
+const up=await uploadCv(auth.session,cvFile);
+const cvName=(up && (up.cv_filename || up.cv?.cv_filename)) || cvFile.name;
+localStorage.setItem("ja_cv_name",cvName);
+setCvHint("Saved CV: " + cvName);
+}
 const profileLocal={
 jobTitles:document.getElementById("jobTitles").value.trim(),
 industry:document.getElementById("industry").value.trim(),
@@ -506,7 +550,6 @@ city:document.getElementById("city").value.trim(),
 radius:document.getElementById("radius").value.trim()
 };
 localStorage.setItem("ja_profile",JSON.stringify(profileLocal));
-
 const desired_titles=parseCsvList(profileLocal.jobTitles);
 if(desired_titles.length < 2){
 alert("Please add at least 2 job titles (comma separated). This prevents zero results.");
@@ -520,7 +563,6 @@ const countries_allowed=parseCsvList(profileLocal.country);
 const locations=parseCsvList(profileLocal.city);
 let radius_km=profileLocal.radius ? Number(profileLocal.radius) : null;
 if(radius_km===null || Number.isNaN(radius_km)) radius_km=30;
-
 await upsertCustomerProfile({
 customer_id: auth.customerId,
 desired_titles,
@@ -529,7 +571,6 @@ countries_allowed,
 locations,
 radius_km
 });
-
 localStorage.setItem("ja_profile_complete","true");
 st.className="badge good";
 st.textContent="Saved (backend)";
