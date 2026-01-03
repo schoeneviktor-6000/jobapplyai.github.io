@@ -13,8 +13,8 @@
 --muted:#4a4a4a;
 --muted2:#6c6c6c;
 --border:#d7dadc;
---shadow:0 12px 30px rgba(0,0,0,08);
---shadow2:0 10px 26px rgba(0,0,0,10);
+--shadow:0 12px 30px rgba(0,0,0,.08);
+--shadow2:0 10px 26px rgba(0,0,0,.10);
 --green:#00a63f;
 --green2:#00c853;
 --radius:22px;
@@ -28,8 +28,8 @@ margin:0;
 font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
 color:var(--text);
 background:
-radial-gradient(1100px 600px at 8% 0%, rgba(0,166,63,12), transparent 60%),
-radial-gradient(900px 520px at 92% 6%, rgba(0,200,83,10), transparent 55%),
+radial-gradient(1100px 600px at 8% 0%, rgba(0,166,63,.12), transparent 60%),
+radial-gradient(900px 520px at 92% 6%, rgba(0,200,83,.10), transparent 55%),
 var(--bg);
 }
 a{color:inherit}
@@ -39,8 +39,8 @@ position:sticky;
 top:0;
 z-index:20;
 backdrop-filter:saturate(1.4) blur(10px);
-background:rgba(255,255,255,72);
-border-bottom:1px solid rgba(215,218,220,7);
+background:rgba(255,255,255,.72);
+border-bottom:1px solid rgba(215,218,220,.7);
 }
 .nav{
 max-width:var(--max);
@@ -64,7 +64,7 @@ width:34px;
 height:34px;
 border-radius:12px;
 background:var(--grad);
-box-shadow:0 10px 24px rgba(0,166,63,22);
+box-shadow:0 10px 24px rgba(0,166,63,.22);
 }
 .navlinks{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 .pill{
@@ -73,23 +73,22 @@ align-items:center;
 gap:8px;
 padding:9px 12px;
 border-radius:999px;
-border:1px solid rgba(215,218,220,9);
-background:rgba(246,247,248,92);
+border:1px solid rgba(215,218,220,.9);
+background:rgba(246,247,248,.92);
 font-weight:800;
 font-size:13px;
 text-decoration:none;
 transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease, background .15s ease;
 cursor:pointer;
 }
-.pill:hover{transform:translateY(-1px);box-shadow:var(--shadow);border-color:rgba(0,166,63,22)}
+.pill:hover{transform:translateY(-1px);box-shadow:var(--shadow);border-color:rgba(0,166,63,.22)}
 .pill.primary{border-color:transparent;background:var(--text);color:#fff}
-.pill.primary:hover{transform:translateY(-1px)}
 .main{max-width:var(--max);margin:0 auto;padding:22px 18px 10px;flex:1}
 .grid{display:grid;grid-template-columns:1fr;gap:16px}
 @media(min-width:980px){.grid{grid-template-columns:420px 1fr;align-items:start}}
 .card{
-background:rgba(246,247,248,75);
-border:1px solid rgba(215,218,220,10);
+background:rgba(246,247,248,.75);
+border:1px solid rgba(215,218,220,.10);
 border-radius:var(--radius);
 box-shadow:var(--shadow2);
 padding:18px;
@@ -100,58 +99,61 @@ padding:18px;
 .step{
 display:flex;align-items:center;gap:10px;
 padding:10px 12px;border-radius:999px;
-border:1px solid rgba(215,218,220,12);
-background:rgba(255,255,255,75);
+border:1px solid rgba(215,218,220,.12);
+background:rgba(255,255,255,.75);
 font-weight:900;font-size:13px;color:var(--muted2);
 }
 .step .dot{
 width:22px;height:22px;border-radius:999px;
 display:grid;place-items:center;
-background:rgba(215,218,220,18);
+background:rgba(215,218,220,.18);
 color:var(--muted2);
 font-size:12px;font-weight:950;
 }
-.step.current{color:var(--text);border-color:rgba(0,166,63,22)}
-.step.current .dot{background:rgba(0,166,63,16);color:#075b24}
-.step.done{color:#075b24;border-color:rgba(0,166,63,18)}
-.step.done .dot{background:rgba(0,166,63,16);color:#075b24}
+.step.current{color:var(--text);border-color:rgba(0,166,63,.22)}
+.step.current .dot{background:rgba(0,166,63,.16);color:#075b24}
+.step.done{color:#075b24;border-color:rgba(0,166,63,.18)}
+.step.done .dot{background:rgba(0,166,63,.16);color:#075b24}
 label{display:block;margin:12px 0 6px;font-weight:900}
 input{
 width:100%;
 padding:12px 12px;
 border-radius:14px;
-border:1px solid rgba(215,218,220,14);
-background:rgba(255,255,255,88);
+border:1px solid rgba(215,218,220,.14);
+background:rgba(255,255,255,.88);
 font-weight:800;
 outline:none;
 }
-input:focus{border-color:rgba(0,166,63,40);box-shadow:0 0 0 3px rgba(0,166,63,12)}
+input:focus{border-color:rgba(0,166,63,.40);box-shadow:0 0 0 3px rgba(0,166,63,.12)}
 .row{display:grid;grid-template-columns:1fr;gap:12px}
 @media(min-width:720px){.row{grid-template-columns:1fr 1fr}}
 .actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
 .btn{
 appearance:none;
-border:1px solid rgba(215,218,220,14);
+border:1px solid rgba(215,218,220,.14);
 border-radius:999px;
 padding:10px 14px;
 font-weight:950;
 cursor:pointer;
-background:rgba(255,255,255,92);
+background:rgba(255,255,255,.92);
 transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease;
 }
 .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
 .btn.primary{background:var(--text);color:#fff;border-color:transparent}
-.btn.ghost{background:rgba(246,247,248,92)}
-.btn.light{background:rgba(255,255,255,75)}
-.badge{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid rgba(215,218,220,14);border-radius:999px;font-weight:950;font-size:12px;color:var(--muted2)}
-.badge.good{border-color:rgba(0,166,63,25);color:#075b24}
-.badge.warn{border-color:rgba(255,176,0,35);color:#7a4d00}
+.btn.ghost{background:rgba(246,247,248,.92)}
+.btn.light{background:rgba(255,255,255,.75)}
+.btn[disabled]{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid rgba(215,218,220,.14);border-radius:999px;font-weight:950;font-size:12px;color:var(--muted2)}
+.badge.good{border-color:rgba(0,166,63,.25);color:#075b24}
+.badge.warn{border-color:rgba(255,176,0,.35);color:#7a4d00}
+.badge.bad{border-color:rgba(255,0,0,.25);color:#7a0000}
 .footer{max-width:var(--max);margin:0 auto;padding:18px 18px 30px;color:var(--muted2);font-size:13px}
 .fadeIn{animation:fadeIn .34s ease both}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 body.leaving .shell{animation:fadeOut .22s ease both}
 @keyframes fadeOut{to{opacity:0;transform:translateY(6px)}}
 .helper{font-size:12px;color:var(--muted2);font-weight:650;margin-top:6px}
+.hr{height:1px;background:rgba(215,218,220,.35);margin:14px 0}
 </style>
 </head>
 <body>
@@ -185,11 +187,13 @@ body.leaving .shell{animation:fadeOut .22s ease both}
 <section>
 <div class="card">
 <h2 style="margin:0 0 6px 0">Your preferences</h2>
-<p style="margin:0;color:var(--muted2);font-weight:700">This information helps us target the right jobs and keep your applications consistent.</p>
+<p style="margin:0;color:var(--muted2);font-weight:700">We use this to find the right jobs and keep applications consistent.</p>
+
+<div class="hr"></div>
 
 <form id="profileForm">
 <label for="cv">Upload CV</label>
-<input id="cv" name="cv" type="file" accept=".pdf,.doc,.docx">
+<input id="cv" name="cv" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
 <div class="helper" id="cvHint">No CV uploaded yet.</div>
 
 <div class="row">
@@ -221,10 +225,12 @@ body.leaving .shell{animation:fadeOut .22s ease both}
 
 <div class="actions">
 <button class="btn ghost" type="submit" id="saveBtn">Save profile</button>
-<button class="btn primary" type="button" id="toNext">Continue to plan</button>
+<button class="btn primary" type="button" id="toNext">Continue</button>
 <span class="badge" id="saveStatus">Not saved yet</span>
 </div>
 </form>
+
+<div class="helper" id="fatalHint" style="margin-top:10px"></div>
 </div>
 </section>
 </div>
@@ -249,11 +255,6 @@ const SUPABASE_URL=localStorage.getItem("sb_url") || "";
 const SUPABASE_ANON_KEY=localStorage.getItem("sb_anon") || "";
 
 let supabaseClient=null;
-if(SUPABASE_URL && SUPABASE_ANON_KEY){
-supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-}else{
-console.warn("Missing Supabase config (sb_url / sb_anon) in localStorage.");
-}
 
 /* =========================
 LOCAL STATE HELPERS
@@ -291,6 +292,28 @@ function parseCsvList(s){
 return (s||"").split(",").map(x=>x.trim()).filter(Boolean);
 }
 
+function setCvHint(text){
+const el=document.getElementById("cvHint");
+if(el) el.textContent=text;
+}
+
+function setFatal(text){
+const el=document.getElementById("fatalHint");
+if(!el) return;
+el.textContent=text || "";
+}
+
+function updateContinueCta(){
+const btn=document.getElementById("toNext");
+if(!btn) return;
+btn.textContent=hasPlan() ? "Continue to dashboard" : "Continue to plan";
+}
+
+function go(url){
+document.body.classList.add("leaving");
+setTimeout(()=>{window.location.href=url;},180);
+}
+
 /* =========================
 SUGGESTIONS (simple demo)
 ========================= */
@@ -305,8 +328,6 @@ const base=(titles[0]||"").trim();
 const suggestions=new Set();
 if(base){
 suggestions.add(base);
-if(base.toLowerCase().includes("facharzt")) suggestions.add(base.replace(/facharzt/i,"arzt"));
-if(base.toLowerCase().includes("arzt")) suggestions.add(base.replace(/arzt/i,"facharzt"));
 }
 ["Front Desk Agent","Receptionist","Office Manager","Customer Support","Operations Assistant"].forEach(t=>suggestions.add(t));
 
@@ -365,8 +386,7 @@ if(data && data.customer_id){
 syncIdentity({ customerId: data.customer_id, email });
 return { session, email, customerId: data.customer_id };
 }
-alert("Signed in, but could not create customer. Check console.");
-return null;
+throw new Error("Signed in, but could not create customer (missing customer_id).");
 }
 
 async function upsertCustomerProfile(payload){
@@ -409,24 +429,8 @@ return JSON.parse(text);
 }
 
 /* =========================
-UI
+UI INIT
 ========================= */
-function setCvHint(text){
-const el=document.getElementById("cvHint");
-if(el) el.textContent=text;
-}
-
-function updateContinueCta(){
-const btn=document.getElementById("toNext");
-if(!btn) return;
-btn.textContent=hasPlan() ? "Continue to dashboard" : "Continue to plan";
-}
-
-function go(url){
-document.body.classList.add("leaving");
-setTimeout(()=>{window.location.href=url;},180);
-}
-
 function loadLocalUi(){
 const data=JSON.parse(localStorage.getItem("ja_profile")||"{}");
 ["jobTitles","industry","country","city","radius"].forEach(k=>{
@@ -449,19 +453,30 @@ updateContinueCta();
 }
 
 /* =========================
-PAGE LIFECYCLE
+LIFECYCLE
 ========================= */
 window.addEventListener("load",async ()=>{
-document.addEventListener("input",(e)=>{ if(e.target && e.target.id==="jobTitles"){ renderTitleSuggestions(); } });
+try{
+if(!window.supabase) throw new Error("Supabase library did not load.");
+if(!SUPABASE_URL || !SUPABASE_ANON_KEY) throw new Error("Missing sb_url / sb_anon in localStorage.");
+supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
-const auth=await requireAuthAndCustomer();
-if(!auth) return;
+document.addEventListener("input",(e)=>{ if(e.target && e.target.id==="jobTitles"){ renderTitleSuggestions(); } });
 
 loadLocalUi();
 renderTitleSuggestions();
 
+const cvInput=document.getElementById("cv");
+cvInput.addEventListener("change",()=>{
+const f=cvInput.files && cvInput.files[0];
+if(!f){ setCvHint("No CV selected."); return; }
+setCvHint(`Selected: ${f.name} (${Math.round((f.size||0)/1024)} KB)`);
+});
+
+const auth=await requireAuthAndCustomer();
+if(!auth) return;
+
 setCvHint("Loading CV status...");
-try{
 const cv=await fetchCvMeta(auth.session);
 if(cv && cv.cv_filename){
 setCvHint("Saved CV: " + cv.cv_filename);
@@ -470,21 +485,44 @@ localStorage.setItem("ja_cv_name", cv.cv_filename);
 const localName=localStorage.getItem("ja_cv_name");
 setCvHint(localName ? ("Saved CV (local): " + localName) : "No CV uploaded yet.");
 }
+
+document.getElementById("btnLogout").addEventListener("click", async ()=>{
+try{
+if(supabaseClient) await supabaseClient.auth.signOut();
+localStorage.removeItem("ja_user_email");
+sessionStorage.removeItem("sb_access_token");
+window.location.replace("./index.html");
 }catch(e){
-console.warn("Could not load CV metadata",e);
-const localName=localStorage.getItem("ja_cv_name");
-setCvHint(localName ? ("Saved CV (local): " + localName) : "No CV uploaded yet.");
+console.warn(e);
+}
+});
+
+document.addEventListener("click",(e)=>{
+const a=e.target.closest("a[data-nav='1']");
+if(!a) return;
+const url=a.getAttribute("href");
+if(!url || url.startsWith("#")) return;
+e.preventDefault();
+go(url);
+});
+
+}catch(err){
+console.error(err);
+setFatal(String(err && err.message ? err.message : err));
+const st=document.getElementById("saveStatus");
+if(st){
+st.className="badge bad";
+st.textContent="Page error";
+}
 }
 });
 
 /* =========================
-SAVE HANDLER (IMPORTANT)
+SAVE HANDLER
 CV upload failure must NOT block profile save
 ========================= */
 document.getElementById("profileForm").addEventListener("submit",async (e)=>{
 e.preventDefault();
-const auth=await requireAuthAndCustomer();
-if(!auth) return;
 
 const saveBtn=document.getElementById("saveBtn");
 const st=document.getElementById("saveStatus");
@@ -493,10 +531,10 @@ saveBtn.disabled=true;
 st.className="badge warn";
 st.textContent="Saving...";
 
-let cvUploadedOk=false;
-let cvError=null;
-
 try{
+const auth=await requireAuthAndCustomer();
+if(!auth) return;
+
 const cvFile=document.getElementById("cv").files[0];
 if(cvFile){
 st.className="badge warn";
@@ -507,9 +545,7 @@ const up=await uploadCv(auth.session,cvFile);
 const cvName=(up && (up.cv_filename || (up.cv && up.cv.cv_filename))) || cvFile.name;
 localStorage.setItem("ja_cv_name",cvName);
 setCvHint("Saved CV: " + cvName);
-cvUploadedOk=true;
 }catch(err){
-cvError=err;
 console.error("CV upload failed (will still save profile):",err);
 setCvHint("CV upload failed (profile can still be saved).");
 }
@@ -532,7 +568,6 @@ if(desired_titles.length < 2){
 alert("Please add at least 2 job titles (comma separated). This prevents zero results.");
 st.className="badge warn";
 st.textContent="Need more titles";
-saveBtn.disabled=false;
 return;
 }
 
@@ -553,17 +588,10 @@ radius_km
 });
 
 localStorage.setItem("ja_profile_complete","true");
-
-if(cvFile && !cvUploadedOk){
-st.className="badge warn";
-st.textContent="Profile saved, CV failed";
-alert("Profile saved to backend, but CV upload failed. Open console to see the error.");
-}else{
 st.className="badge good";
 st.textContent="Saved (backend)";
-}
-
 updateContinueCta();
+
 }catch(err){
 console.error("Profile save failed:",err);
 localStorage.removeItem("ja_profile_complete");
@@ -575,6 +603,9 @@ saveBtn.disabled=false;
 }
 });
 
+/* =========================
+CONTINUE
+========================= */
 document.getElementById("toNext").addEventListener("click",()=>{
 if(!isProfileComplete()){
 const st=document.getElementById("saveStatus");
@@ -583,22 +614,6 @@ st.textContent="Save to backend first";
 return;
 }
 go(hasPlan() ? "dashboard.html" : "plan.html");
-});
-
-document.getElementById("btnLogout").addEventListener("click", async ()=>{
-if(supabaseClient) await supabaseClient.auth.signOut();
-localStorage.removeItem("ja_user_email");
-sessionStorage.removeItem("sb_access_token");
-window.location.replace("./index.html");
-});
-
-document.addEventListener("click",(e)=>{
-const a=e.target.closest("a[data-nav='1']");
-if(!a) return;
-const url=a.getAttribute("href");
-if(!url || url.startsWith("#")) return;
-e.preventDefault();
-go(url);
 });
 </script>
 
