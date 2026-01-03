@@ -115,7 +115,7 @@ font-size:12px;font-weight:950;
 .step.done{color:#075b24;border-color:rgba(0,166,63,.18)}
 .step.done .dot{background:rgba(0,166,63,.16);color:#075b24}
 label{display:block;margin:12px 0 6px;font-weight:900}
-input{
+input,textarea{
 width:100%;
 padding:12px 12px;
 border-radius:14px;
@@ -124,7 +124,8 @@ background:rgba(255,255,255,.88);
 font-weight:800;
 outline:none;
 }
-input:focus{border-color:rgba(0,166,63,.40);box-shadow:0 0 0 3px rgba(0,166,63,.12)}
+textarea{min-height:180px;resize:vertical;font-weight:750;line-height:1.35}
+input:focus,textarea:focus{border-color:rgba(0,166,63,.40);box-shadow:0 0 0 3px rgba(0,166,63,.12)}
 .row{display:grid;grid-template-columns:1fr;gap:12px}
 @media(min-width:720px){.row{grid-template-columns:1fr 1fr}}
 .actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
@@ -154,6 +155,9 @@ body.leaving .shell{animation:fadeOut .22s ease both}
 @keyframes fadeOut{to{opacity:0;transform:translateY(6px)}}
 .helper{font-size:12px;color:var(--muted2);font-weight:650;margin-top:6px}
 .hr{height:1px;background:rgba(215,218,220,.35);margin:14px 0}
+.small{font-size:12px;color:var(--muted2);font-weight:750}
+.kv{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.kv .pill{font-size:12px;padding:7px 10px}
 </style>
 </head>
 <body>
@@ -195,6 +199,17 @@ body.leaving .shell{animation:fadeOut .22s ease both}
 <label for="cv">Upload CV</label>
 <input id="cv" name="cv" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
 <div class="helper" id="cvHint">No CV uploaded yet.</div>
+
+<div class="kv">
+<button class="btn light" type="button" id="btnRunOcr" disabled>Extract text (OCR)</button>
+<button class="btn light" type="button" id="btnRefreshOcr" disabled>Refresh OCR status</button>
+<span class="badge" id="ocrBadge">OCR: not started</span>
+</div>
+<div class="helper" id="ocrHint">After uploading a CV, click “Extract text (OCR)”. We will use this later for smarter suggestions.</div>
+
+<label for="ocrText">Extracted CV text (preview)</label>
+<textarea id="ocrText" readonly placeholder="OCR text will appear here after processing."></textarea>
+<div class="helper" id="ocrMeta"></div>
 
 <div class="row">
 <div>
@@ -253,7 +268,6 @@ SUPABASE AUTH
 ========================= */
 const SUPABASE_URL=localStorage.getItem("sb_url") || "";
 const SUPABASE_ANON_KEY=localStorage.getItem("sb_anon") || "";
-
 let supabaseClient=null;
 
 /* =========================
@@ -263,7 +277,6 @@ function getEmailLocal(){ return (localStorage.getItem("ja_user_email")||"").tri
 function getCustomerIdLocal(){ return (localStorage.getItem("ja_customer_id")||"").trim(); }
 function hasPlan(){ return !!(localStorage.getItem("ja_plan_id")||"").trim(); }
 function isProfileComplete(){ return localStorage.getItem("ja_profile_complete")==="true"; }
-
 function resetLocalStateForNewUser(email){
 const prev=getEmailLocal();
 if(prev && email && prev!==email){
@@ -273,10 +286,13 @@ localStorage.removeItem("ja_plan_id");
 localStorage.removeItem("ja_plan");
 localStorage.removeItem("ja_profile");
 localStorage.removeItem("ja_cv_name");
+localStorage.removeItem("ja_ocr_op");
+localStorage.removeItem("ja_ocr_out");
+localStorage.removeItem("ja_ocr_text");
+localStorage.removeItem("ja_ocr_done_at");
 }
 localStorage.setItem("ja_user_email",email);
 }
-
 function syncIdentity(opts){
 if(opts.customerId) localStorage.setItem("ja_customer_id",opts.customerId);
 if(opts.email) localStorage.setItem("ja_user_email",opts.email);
@@ -287,28 +303,23 @@ customerId: opts.customerId || wp.customerId || null,
 customerEmail: opts.email || wp.customerEmail || null
 }));
 }
-
 function parseCsvList(s){
 return (s||"").split(",").map(x=>x.trim()).filter(Boolean);
 }
-
 function setCvHint(text){
 const el=document.getElementById("cvHint");
 if(el) el.textContent=text;
 }
-
 function setFatal(text){
 const el=document.getElementById("fatalHint");
 if(!el) return;
 el.textContent=text || "";
 }
-
 function updateContinueCta(){
 const btn=document.getElementById("toNext");
 if(!btn) return;
 btn.textContent=hasPlan() ? "Continue to dashboard" : "Continue to plan";
 }
-
 function go(url){
 document.body.classList.add("leaving");
 setTimeout(()=>{window.location.href=url;},180);
@@ -324,13 +335,9 @@ wrap.innerHTML="";
 const raw=(document.getElementById("jobTitles")?.value||"").trim();
 const titles=parseCsvList(raw);
 const base=(titles[0]||"").trim();
-
 const suggestions=new Set();
-if(base){
-suggestions.add(base);
-}
+if(base){ suggestions.add(base); }
 ["Front Desk Agent","Receptionist","Office Manager","Customer Support","Operations Assistant"].forEach(t=>suggestions.add(t));
-
 Array.from(suggestions).slice(0,10).forEach(t=>{
 const b=document.createElement("button");
 b.type="button";
@@ -354,7 +361,6 @@ if(!supabaseClient) return null;
 const { data }=await supabaseClient.auth.getSession();
 return data && data.session ? data.session : null;
 }
-
 async function upsertCustomerByEmail(email){
 const res=await fetch(`${API_BASE}/customers/upsert`,{
 method:"POST",
@@ -365,7 +371,6 @@ const text=await res.text().catch(()=> "");
 if(!res.ok) throw new Error(`Customer upsert failed: ${res.status} ${text}`);
 return JSON.parse(text);
 }
-
 async function requireAuthAndCustomer(){
 const session=await getSession();
 if(!session || !session.user || !session.user.email){
@@ -374,13 +379,11 @@ return null;
 }
 const email=session.user.email.trim().toLowerCase();
 resetLocalStateForNewUser(email);
-
 const existingId=getCustomerIdLocal();
 if(existingId && existingId.length>10){
 syncIdentity({ customerId: existingId, email });
 return { session, email, customerId: existingId };
 }
-
 const data=await upsertCustomerByEmail(email);
 if(data && data.customer_id){
 syncIdentity({ customerId: data.customer_id, email });
@@ -388,7 +391,6 @@ return { session, email, customerId: data.customer_id };
 }
 throw new Error("Signed in, but could not create customer (missing customer_id).");
 }
-
 async function upsertCustomerProfile(payload){
 const res=await fetch(`${API_BASE}/customer-profiles/upsert`,{
 method:"POST",
@@ -399,7 +401,6 @@ const text=await res.text().catch(()=> "");
 if(!res.ok) throw new Error(`Profile upsert failed: ${res.status} ${text}`);
 return JSON.parse(text);
 }
-
 async function fetchCvMeta(session){
 const res=await fetch(`${API_BASE}/me/cv`,{
 method:"GET",
@@ -414,7 +415,6 @@ const data=await res.json().catch(()=> null);
 if(!data || !data.cv) return null;
 return data.cv;
 }
-
 async function uploadCv(session,file){
 const fd=new FormData();
 fd.append("cv",file);
@@ -426,6 +426,145 @@ body:fd
 const text=await res.text().catch(()=> "");
 if(!res.ok) throw new Error(`CV upload failed: ${res.status} ${text}`);
 return JSON.parse(text);
+}
+
+/* =========================
+OCR (NEW)
+========================= */
+let ocrPollTimer=null;
+function setOcrBadge(kind,text){
+const b=document.getElementById("ocrBadge");
+if(!b) return;
+b.className="badge" + (kind ? (" " + kind) : "");
+b.textContent=text;
+}
+function setOcrMeta(text){
+const el=document.getElementById("ocrMeta");
+if(el) el.textContent=text || "";
+}
+function setOcrText(text){
+const el=document.getElementById("ocrText");
+if(!el) return;
+el.value=text || "";
+}
+function getOcrState(){
+return {
+op: (localStorage.getItem("ja_ocr_op")||"").trim(),
+out: (localStorage.getItem("ja_ocr_out")||"").trim(),
+text: (localStorage.getItem("ja_ocr_text")||""),
+doneAt: (localStorage.getItem("ja_ocr_done_at")||"").trim()
+};
+}
+function setOcrState(op,out){
+if(op) localStorage.setItem("ja_ocr_op",op);
+if(out) localStorage.setItem("ja_ocr_out",out);
+}
+function clearOcrPoll(){
+if(ocrPollTimer){ clearInterval(ocrPollTimer); ocrPollTimer=null; }
+}
+function extractOpId(op){
+const s=(op||"").trim();
+if(!s) return "";
+if(s.includes("/operations/")) return s.split("/operations/").pop();
+return s;
+}
+async function startOcr(session){
+const res=await fetch(`${API_BASE}/me/cv/ocr`,{
+method:"POST",
+headers:{ "Authorization": `Bearer ${session.access_token}` }
+});
+const text=await res.text().catch(()=> "");
+if(!res.ok) throw new Error(`OCR start failed: ${res.status} ${text}`);
+const data=JSON.parse(text);
+const operation=data && data.operation ? data.operation : "";
+const out=data && data.gcs && data.gcs.output ? data.gcs.output : "";
+const opId=extractOpId(operation);
+if(opId) setOcrState(opId,out);
+return { opId, out, raw:data };
+}
+async function checkOcrStatus(session,opId,out){
+const qp=new URLSearchParams();
+qp.set("op",opId);
+if(out) qp.set("out",out);
+const res=await fetch(`${API_BASE}/me/cv/ocr/status?${qp.toString()}`,{
+method:"GET",
+headers:{ "Authorization": `Bearer ${session.access_token}` }
+});
+const text=await res.text().catch(()=> "");
+if(!res.ok) throw new Error(`OCR status failed: ${res.status} ${text}`);
+return JSON.parse(text);
+}
+function pickTextFromJsonPayload(payload){
+try{
+if(!payload) return "";
+if(typeof payload === "string") return payload;
+if(payload.text && typeof payload.text === "string") return payload.text;
+if(payload.fullText && typeof payload.fullText === "string") return payload.fullText;
+if(payload.responses && Array.isArray(payload.responses)){
+const parts=[];
+payload.responses.forEach(r=>{
+if(r && r.fullTextAnnotation && r.fullTextAnnotation.text) parts.push(r.fullTextAnnotation.text);
+});
+return parts.join("\n").trim();
+}
+return "";
+}catch{
+return "";
+}
+}
+async function fetchOcrTextFromGcs(session,opId,out){
+const qp=new URLSearchParams();
+qp.set("op",opId);
+if(out) qp.set("out",out);
+const res=await fetch(`${API_BASE}/me/cv/ocr/text?${qp.toString()}`,{
+method:"GET",
+headers:{ "Authorization": `Bearer ${session.access_token}` }
+});
+const text=await res.text().catch(()=> "");
+if(!res.ok) throw new Error(`OCR text fetch failed: ${res.status} ${text}`);
+const data=JSON.parse(text);
+const extracted=pickTextFromJsonPayload(data && data.payload ? data.payload : data);
+return { extracted, raw:data };
+}
+async function refreshOcrUi(session){
+const st=getOcrState();
+if(!st.op){
+setOcrBadge("", "OCR: not started");
+setOcrMeta("");
+if(st.text) setOcrText(st.text);
+return;
+}
+setOcrBadge("warn","OCR: checking...");
+const status=await checkOcrStatus(session,st.op,st.out);
+if(status && status.ok===true && status.status==="done"){
+setOcrBadge("good","OCR: done");
+const got=await fetchOcrTextFromGcs(session,st.op,st.out);
+const extracted=(got && got.extracted) ? got.extracted : "";
+if(extracted){
+localStorage.setItem("ja_ocr_text",extracted);
+localStorage.setItem("ja_ocr_done_at",new Date().toISOString());
+setOcrText(extracted);
+setOcrMeta(`Saved OCR text locally (${Math.round(extracted.length/1024)} KB).`);
+}else{
+setOcrMeta("OCR finished, but no text was extracted.");
+}
+clearOcrPoll();
+return;
+}
+if(status && status.status==="processing"){
+setOcrBadge("warn","OCR: processing...");
+setOcrMeta("This can take 10–60 seconds depending on PDF size.");
+return;
+}
+setOcrBadge("bad","OCR: failed");
+setOcrMeta((status && status.error) ? String(status.error) : "OCR failed.");
+clearOcrPoll();
+}
+function startOcrPolling(session){
+clearOcrPoll();
+ocrPollTimer=setInterval(async ()=>{
+try{ await refreshOcrUi(session); }catch(e){ console.warn(e); }
+},4500);
 }
 
 /* =========================
@@ -450,6 +589,15 @@ st.textContent="Not saved yet";
 }
 document.getElementById("step3").classList.toggle("done",hasPlan());
 updateContinueCta();
+const o=getOcrState();
+if(o.text) setOcrText(o.text);
+if(o.op){
+setOcrBadge("warn","OCR: ready to check");
+setOcrMeta(o.doneAt ? ("Last done: " + o.doneAt) : "OCR started earlier. You can refresh status.");
+}else{
+setOcrBadge("", "OCR: not started");
+setOcrMeta("");
+}
 }
 
 /* =========================
@@ -460,34 +608,62 @@ try{
 if(!window.supabase) throw new Error("Supabase library did not load.");
 if(!SUPABASE_URL || !SUPABASE_ANON_KEY) throw new Error("Missing sb_url / sb_anon in localStorage.");
 supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-
 document.addEventListener("input",(e)=>{ if(e.target && e.target.id==="jobTitles"){ renderTitleSuggestions(); } });
-
 loadLocalUi();
 renderTitleSuggestions();
-
 const cvInput=document.getElementById("cv");
 cvInput.addEventListener("change",()=>{
 const f=cvInput.files && cvInput.files[0];
 if(!f){ setCvHint("No CV selected."); return; }
 setCvHint(`Selected: ${f.name} (${Math.round((f.size||0)/1024)} KB)`);
 });
-
 const auth=await requireAuthAndCustomer();
 if(!auth) return;
-
 setCvHint("Loading CV status...");
 const cv=await fetchCvMeta(auth.session);
 if(cv && cv.cv_filename){
 setCvHint("Saved CV: " + cv.cv_filename);
 localStorage.setItem("ja_cv_name", cv.cv_filename);
+document.getElementById("btnRunOcr").disabled=false;
+document.getElementById("btnRefreshOcr").disabled=false;
 }else{
 const localName=localStorage.getItem("ja_cv_name");
 setCvHint(localName ? ("Saved CV (local): " + localName) : "No CV uploaded yet.");
+document.getElementById("btnRunOcr").disabled=true;
+document.getElementById("btnRefreshOcr").disabled=false;
 }
-
+await refreshOcrUi(auth.session);
+if(getOcrState().op) startOcrPolling(auth.session);
+document.getElementById("btnRunOcr").addEventListener("click", async ()=>{
+try{
+const a=await requireAuthAndCustomer();
+if(!a) return;
+setOcrBadge("warn","OCR: starting...");
+setOcrMeta("Uploading to OCR pipeline...");
+const started=await startOcr(a.session);
+setOcrMeta(`Started. Operation: ${started.opId}`);
+document.getElementById("btnRefreshOcr").disabled=false;
+startOcrPolling(a.session);
+}catch(e){
+console.error(e);
+setOcrBadge("bad","OCR: failed");
+setOcrMeta(String(e && e.message ? e.message : e));
+}
+});
+document.getElementById("btnRefreshOcr").addEventListener("click", async ()=>{
+try{
+const a=await requireAuthAndCustomer();
+if(!a) return;
+await refreshOcrUi(a.session);
+}catch(e){
+console.error(e);
+setOcrBadge("bad","OCR: failed");
+setOcrMeta(String(e && e.message ? e.message : e));
+}
+});
 document.getElementById("btnLogout").addEventListener("click", async ()=>{
 try{
+clearOcrPoll();
 if(supabaseClient) await supabaseClient.auth.signOut();
 localStorage.removeItem("ja_user_email");
 sessionStorage.removeItem("sb_access_token");
@@ -496,7 +672,6 @@ window.location.replace("./index.html");
 console.warn(e);
 }
 });
-
 document.addEventListener("click",(e)=>{
 const a=e.target.closest("a[data-nav='1']");
 if(!a) return;
@@ -505,7 +680,6 @@ if(!url || url.startsWith("#")) return;
 e.preventDefault();
 go(url);
 });
-
 }catch(err){
 console.error(err);
 setFatal(String(err && err.message ? err.message : err));
@@ -523,18 +697,14 @@ CV upload failure must NOT block profile save
 ========================= */
 document.getElementById("profileForm").addEventListener("submit",async (e)=>{
 e.preventDefault();
-
 const saveBtn=document.getElementById("saveBtn");
 const st=document.getElementById("saveStatus");
-
 saveBtn.disabled=true;
 st.className="badge warn";
 st.textContent="Saving...";
-
 try{
 const auth=await requireAuthAndCustomer();
 if(!auth) return;
-
 const cvFile=document.getElementById("cv").files[0];
 if(cvFile){
 st.className="badge warn";
@@ -545,15 +715,15 @@ const up=await uploadCv(auth.session,cvFile);
 const cvName=(up && (up.cv_filename || (up.cv && up.cv.cv_filename))) || cvFile.name;
 localStorage.setItem("ja_cv_name",cvName);
 setCvHint("Saved CV: " + cvName);
+document.getElementById("btnRunOcr").disabled=false;
+document.getElementById("btnRefreshOcr").disabled=false;
 }catch(err){
 console.error("CV upload failed (will still save profile):",err);
 setCvHint("CV upload failed (profile can still be saved).");
 }
 }
-
 st.className="badge warn";
 st.textContent="Saving profile...";
-
 const profileLocal={
 jobTitles:document.getElementById("jobTitles").value.trim(),
 industry:document.getElementById("industry").value.trim(),
@@ -562,7 +732,6 @@ city:document.getElementById("city").value.trim(),
 radius:document.getElementById("radius").value.trim()
 };
 localStorage.setItem("ja_profile",JSON.stringify(profileLocal));
-
 const desired_titles=parseCsvList(profileLocal.jobTitles);
 if(desired_titles.length < 2){
 alert("Please add at least 2 job titles (comma separated). This prevents zero results.");
@@ -570,14 +739,11 @@ st.className="badge warn";
 st.textContent="Need more titles";
 return;
 }
-
 const industries=parseCsvList(profileLocal.industry);
 const countries_allowed=parseCsvList(profileLocal.country);
 const locations=parseCsvList(profileLocal.city);
-
 let radius_km=profileLocal.radius ? Number(profileLocal.radius) : null;
 if(radius_km===null || Number.isNaN(radius_km)) radius_km=30;
-
 await upsertCustomerProfile({
 customer_id: auth.customerId,
 desired_titles,
@@ -586,12 +752,10 @@ countries_allowed,
 locations,
 radius_km
 });
-
 localStorage.setItem("ja_profile_complete","true");
 st.className="badge good";
 st.textContent="Saved (backend)";
 updateContinueCta();
-
 }catch(err){
 console.error("Profile save failed:",err);
 localStorage.removeItem("ja_profile_complete");
@@ -618,7 +782,6 @@ go(hasPlan() ? "dashboard.html" : "plan.html");
 </script>
 
 </main>
-
 <footer class="footer">Need help? Email <a href="mailto:schonv2@gmail.com">schonv2@gmail.com</a>.</footer>
 </div>
 </body>
