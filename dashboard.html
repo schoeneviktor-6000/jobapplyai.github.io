@@ -98,7 +98,6 @@ white-space:nowrap;
 .pill.primary{border-color:transparent;background:var(--text);color:#fff}
 .pill.primary:hover{transform:translateY(-1px);box-shadow:var(--shadow2)}
 .pill.iconOnly{padding:9px 10px}
-
 .main{
 max-width:var(--max);
 margin:0 auto;
@@ -111,7 +110,6 @@ letter-spacing:-1px;
 margin:10px 0 8px 0;
 }
 .sub{margin:0 0 14px 0;color:var(--muted);font-weight:650}
-
 .card{
 background:rgba(255,255,255,.92);
 border:1px solid rgba(215,218,220,.85);
@@ -189,7 +187,6 @@ text-decoration:none;
 .btn.ghost:hover{transform:translateY(-1px);box-shadow:var(--shadow2)}
 .btn.light{border:1px solid rgba(215,218,220,.95);background:rgba(246,247,248,.92);color:var(--text)}
 .btn.light:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
-
 .tableWrap{
 overflow:auto;
 -webkit-overflow-scrolling:touch;
@@ -225,7 +222,6 @@ font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",
 font-size:12px;
 word-break:break-all;
 }
-
 .healthTop{
 background:
 radial-gradient(900px 380px at 0% 0%, rgba(0,166,63,.13), transparent 55%),
@@ -277,8 +273,6 @@ color:#7a1a12;
 font-weight:800;
 display:none;
 }
-
-/* Desktop-first grid */
 .cards{
 display:grid;
 gap:14px;
@@ -289,7 +283,6 @@ grid-template-columns:repeat(12, minmax(0,1fr));
 .cards > .card:nth-child(2){grid-column:span 2;}
 .cards > .card:nth-child(3){grid-column:span 2;}
 .cards > .card:nth-child(4){grid-column:span 4;}
-
 .grid{
 display:grid;
 grid-template-columns:repeat(12, minmax(0,1fr));
@@ -298,7 +291,6 @@ align-items:start;
 }
 .grid > section.card{grid-column:span 8;}
 .grid > aside.card{grid-column:span 4;position:sticky;top:88px;}
-
 @media (max-width:1100px){
 .cards{grid-template-columns:repeat(2, 1fr)}
 .cards > .card:nth-child(1),
@@ -317,8 +309,6 @@ align-items:start;
 .btn{justify-content:center;width:100%}
 .cards{grid-template-columns:1fr}
 }
-
-/* Animations + skeleton */
 @keyframes cardIn{
 from{opacity:0;transform:translateY(10px)}
 to{opacity:1;transform:translateY(0)}
@@ -329,7 +319,6 @@ to{opacity:1;transform:translateY(0)}
 .cards .card:nth-child(3){animation-delay:.08s}
 .cards .card:nth-child(4){animation-delay:.11s}
 .grid .card{animation-delay:.14s}
-
 @keyframes shimmer{
 0%{background-position:200% 0}
 100%{background-position:-200% 0}
@@ -344,7 +333,6 @@ animation:shimmer 1.2s linear infinite;
 .skeleton.big{height:32px;border-radius:14px}
 .skeleton.row{height:14px}
 .skeleton.block{height:140px;border-radius:16px}
-
 @media (prefers-reduced-motion: reduce){
 .card{animation:none}
 .skeleton{animation:none}
@@ -354,7 +342,6 @@ animation:shimmer 1.2s linear infinite;
 </style>
 </head>
 <body>
-
 <header class="topbar">
 <nav class="nav">
 <a class="brand" href="index.html"><span class="logo" aria-hidden="true"></span><span>JobApply-AI</span></a>
@@ -453,6 +440,10 @@ animation:shimmer 1.2s linear infinite;
 <div class="mono" id="meCustomerId">–</div>
 
 <div class="hr"></div>
+<div class="small">Onboarding checks</div>
+<div id="onboardingChecks"><div class="skeleton row" style="width:86%"></div><div style="height:8px"></div><div class="skeleton row" style="width:74%"></div><div style="height:8px"></div><div class="skeleton row" style="width:66%"></div></div>
+
+<div class="hr"></div>
 <div class="small">Applications breakdown</div>
 <div id="appsBreakdown"><div class="skeleton row" style="width:80%"></div><div style="height:8px"></div><div class="skeleton row" style="width:60%"></div></div>
 
@@ -513,7 +504,6 @@ return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll("
 function nowStamp(){
 return new Date().toISOString().replace("T"," ").replace("Z"," UTC");
 }
-
 function animateNumber(el,to){
 if(!el) return;
 const prefersReduced=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -530,22 +520,21 @@ if(p<1) requestAnimationFrame(tick);
 }
 requestAnimationFrame(tick);
 }
-
 function renderQueueSkeleton(){
 return '<div class="skeleton big" style="width:220px"></div><div style="height:10px"></div><div class="skeleton row" style="width:96%"></div><div style="height:8px"></div><div class="skeleton row" style="width:92%"></div><div style="height:8px"></div><div class="skeleton row" style="width:88%"></div><div style="height:8px"></div><div class="skeleton row" style="width:84%"></div>';
 }
 
-function getPlanDaily(){
-const raw=(localStorage.getItem("ja_plan")||"").trim();
-const n=Number(raw);
-if([1,5,10].includes(n)) return n;
-return 0;
+function planFromState(planId){
+const pid=String(planId||"").trim().toLowerCase();
+if(pid==="starter") return {id:"starter",name:"Starter",daily:1,meta:"1 application/day",short:"Starter (1/day)"};
+if(pid==="pro") return {id:"pro",name:"Pro",daily:5,meta:"5 applications/day",short:"Pro (5/day)"};
+if(pid==="max") return {id:"max",name:"Max",daily:10,meta:"10 applications/day",short:"Max (10/day)"};
+return {id:null,name:"No plan",daily:0,meta:"Select Starter / Pro / Max",short:"No plan"};
 }
-function planInfo(planDaily){
-if(planDaily===1) return {name:"Starter",meta:"1 application/day",short:"Starter (1/day)"};
-if(planDaily===5) return {name:"Plus",meta:"5 applications/day",short:"Plus (5/day)"};
-if(planDaily===10) return {name:"Pro",meta:"10 applications/day",short:"Pro (10/day)"};
-return {name:"No plan",meta:"Select Starter / Plus / Pro",short:"No plan"};
+function planFallbackFromLocalStorage(){
+const raw=(localStorage.getItem("ja_plan")||"").trim().toLowerCase();
+if(raw==="starter"||raw==="pro"||raw==="max") return planFromState(raw);
+return planFromState(null);
 }
 
 async function requireSession(){
@@ -558,7 +547,6 @@ return null;
 }
 return data.session;
 }
-
 async function apiGet(path,accessToken){
 const res=await fetch(API_BASE+path,{method:"GET",headers:{"Authorization":"Bearer "+accessToken}});
 const text=await res.text().catch(()=> "");
@@ -600,9 +588,9 @@ return '<div class="tableWrap"><table class="table" style="min-width:320px"><the
 function computeSupply(queueCount,planDaily){
 let healthLabel="Low";
 let badgeType="warn";
-let cap=1;
-if(queueCount>=25){healthLabel="Healthy";badgeType="good";cap=10;}
-else if(queueCount>=5){healthLabel="Medium";badgeType="";cap=5;}
+let recommendedCap=1;
+if(queueCount>=25){healthLabel="Healthy";badgeType="good";recommendedCap=10;}
+else if(queueCount>=5){healthLabel="Medium";badgeType="";recommendedCap=5;}
 let note="";
 if(!planDaily) note="Select a plan to start. Without a plan, the system does not know your daily target.";
 else if(queueCount===0) note="No jobs in your queue yet. Use Workplace to fetch jobs, or broaden your titles/radius.";
@@ -611,20 +599,37 @@ else note="You have enough supply for today.";
 let ratio=0;
 if(planDaily&&planDaily>0) ratio=Math.min(1,queueCount/(planDaily*5));
 else ratio=Math.min(1,queueCount/10);
-return {healthLabel,badgeType,cap,note,ratio};
+return {healthLabel,badgeType,recommendedCap,note,ratio};
 }
 
-function renderHealthTop(queueCount,planDaily){
-const p=planInfo(planDaily);
-const s=computeSupply(queueCount,planDaily);
+function renderHealthTop(queueCount,plan){
+const s=computeSupply(queueCount,plan.daily);
 setBadge("badgeHealth",s.badgeType,s.healthLabel);
 setText("kpiHealthLabel",s.healthLabel);
-setBadge("badgeHealthPlan",planDaily?"":"warn","Plan: "+p.short);
+setBadge("badgeHealthPlan",plan.daily?"":"warn","Plan: "+plan.short);
 setBadge("badgeHealthQueue",queueCount>0?"good":"warn","Queue: "+queueCount);
-setBadge("badgeHealthCap","","Today cap: "+s.cap+"/day");
+setBadge("badgeHealthCap","","Today cap: "+(plan.daily?plan.daily:0)+"/day");
 const meter=document.getElementById("healthMeterFill");
 if(meter) meter.style.width=Math.round(s.ratio*100)+"%";
-setHtml("healthNote",'<div class="mono">Recommended cap based on supply: '+s.cap+'/day</div><div class="mono" style="margin-top:6px">'+escapeHtml(s.note)+'</div>');
+setHtml("healthNote",'<div class="mono">Recommended cap based on supply: '+s.recommendedCap+'/day</div><div class="mono" style="margin-top:6px">'+escapeHtml(s.note)+'</div>');
+}
+
+function renderOnboardingChecks(state){
+const items=[];
+const profileOk=!!state.profile_complete;
+const planOk=!!state.plan_id;
+const cvOk=!!state.cv_uploaded;
+const ocrOk=(String(state.cv_ocr_status||"").toLowerCase()==="done");
+items.push({label:"Profile complete",ok:profileOk,cta:profileOk?"":"Open profile"});
+items.push({label:"Plan selected",ok:planOk,cta:planOk?"":"Choose plan"});
+items.push({label:"CV uploaded",ok:cvOk,cta:cvOk?"":"Upload CV"});
+items.push({label:"OCR done",ok:ocrOk,cta:ocrOk?"":"Run OCR"});
+const rows=items.map(it=>{
+const bClass=it.ok?"badge good":"badge warn";
+const right=it.ok?'OK':('<a href="'+(it.label==="Plan selected"?'plan.html':'profile.html')+'" style="text-decoration:underline">Fix</a>');
+return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0"><span class="'+bClass+'">'+escapeHtml(it.label)+'</span><span class="small">'+right+'</span></div>';
+}).join("");
+return rows||'<span class="badge warn">Not available</span>';
 }
 
 async function loadDashboard(){
@@ -638,6 +643,7 @@ setBadge("badgePlan","","Loading");
 setBadge("badgeHealth","","Loading");
 setHtml("queueWrap",renderQueueSkeleton());
 setHtml("appsBreakdown",'<div class="skeleton row" style="width:80%"></div><div style="height:8px"></div><div class="skeleton row" style="width:60%"></div>');
+setHtml("onboardingChecks",'<div class="skeleton row" style="width:86%"></div><div style="height:8px"></div><div class="skeleton row" style="width:74%"></div><div style="height:8px"></div><div class="skeleton row" style="width:66%"></div>');
 
 const session=await requireSession();
 if(!session) return;
@@ -646,20 +652,38 @@ const email=session.user&&session.user.email?session.user.email:"—";
 setText("meEmail",email);
 setText("subLine","Signed in as "+email);
 
-const planDaily=getPlanDaily();
-const p=planInfo(planDaily);
-setText("kpiPlanName",p.name);
-setText("kpiPlanMeta",planDaily?p.meta:"no plan selected");
-setBadge("badgePlan",planDaily?"good":"warn",planDaily?"Selected":"Not selected");
+let state=null;
+try{
+state=await apiGet("/me/state",session.access_token);
+}catch(e){
+state=null;
+}
+
+const plan=state&&state.plan_id?planFromState(state.plan_id):planFallbackFromLocalStorage();
+setText("kpiPlanName",plan.name);
+setText("kpiPlanMeta",plan.daily?plan.meta:"no plan selected");
+setBadge("badgePlan",plan.daily?"good":"warn",plan.daily?"Selected":"Not selected");
+
+if(state&&state.customer_id){
+setText("meCustomerId",state.customer_id);
+}else{
+setText("meCustomerId","—");
+}
+
+if(state){
+setHtml("onboardingChecks",renderOnboardingChecks(state));
+}
 
 try{
 const queue=await apiGet("/me/jobs/queue",session.access_token);
-setText("meCustomerId",queue&&queue.customer_id?queue.customer_id:"—");
 const qCount=(typeof queue.count==="number")?queue.count:(Array.isArray(queue.data)?queue.data.length:0);
 animateNumber(document.getElementById("kpiQueue"),qCount);
 setBadge("badgeQueue",qCount>0?"good":"warn",qCount>0?"OK":"Empty");
 setHtml("queueWrap",renderQueueTable(queue));
-renderHealthTop(qCount,planDaily);
+renderHealthTop(qCount,plan);
+if(!state||!state.customer_id){
+setText("meCustomerId",queue&&queue.customer_id?queue.customer_id:"—");
+}
 }catch(e){
 setText("kpiQueue","–");
 setBadge("badgeQueue","bad","Error");
@@ -718,6 +742,5 @@ setBadge("badgeHealth","bad","Error");
 }
 });
 </script>
-
 </body>
 </html>
