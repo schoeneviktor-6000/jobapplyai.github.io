@@ -155,9 +155,7 @@ body.leaving .shell{animation:fadeOut .22s ease both}
 @keyframes fadeOut{to{opacity:0;transform:translateY(6px)}}
 .helper{font-size:12px;color:var(--muted2);font-weight:650;margin-top:6px}
 .hr{height:1px;background:rgba(215,218,220,.35);margin:14px 0}
-.small{font-size:12px;color:var(--muted2);font-weight:750}
 .kv{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.kv .pill{font-size:12px;padding:7px 10px}
 </style>
 </head>
 <body>
@@ -205,7 +203,7 @@ body.leaving .shell{animation:fadeOut .22s ease both}
 <button class="btn light" type="button" id="btnRefreshOcr" disabled>Refresh OCR status</button>
 <span class="badge" id="ocrBadge">OCR: not started</span>
 </div>
-<div class="helper" id="ocrHint">After uploading a CV, click “Extract text (OCR)”. We will use this later for smarter suggestions.</div>
+<div class="helper" id="ocrHint">After uploading a CV, click “Extract text (OCR)”.</div>
 
 <label for="ocrText">Extracted CV text (preview)</label>
 <textarea id="ocrText" readonly placeholder="OCR text will appear here after processing."></textarea>
@@ -215,7 +213,7 @@ body.leaving .shell{animation:fadeOut .22s ease both}
 <div>
 <label for="jobTitles">Preferred job title(s)</label>
 <input id="jobTitles" name="jobTitles" type="text" placeholder="e.g. Receptionist, Front Desk Agent">
-<div class="helper" id="titlesHint">Add at least 2 titles (comma separated) to avoid zero results.</div>
+<div class="helper">Add at least 2 titles (comma separated) to avoid zero results.</div>
 <div class="actions" id="titleSuggestions" style="margin-top:10px"></div>
 </div>
 <div>
@@ -254,530 +252,210 @@ body.leaving .shell{animation:fadeOut .22s ease both}
 <script>
 "use strict";
 
-/* =========================
-CONFIG
-========================= */
-const API_BASE_DEFAULT="https://jobapplyai-api.schoene-viktor.workers.dev";
-function readWorkplace(){
-try{ return JSON.parse(localStorage.getItem("ja_workplace")||"{}"); }catch{ return {}; }
-}
-const API_BASE=(readWorkplace().apiBase || API_BASE_DEFAULT).replace(/\/+$/,"");
+/* ========= CONFIG ========= */
+const API_BASE="https://jobapplyai-api.schoene-viktor.workers.dev";
 
-/* =========================
-SUPABASE AUTH
-========================= */
-const SUPABASE_URL=localStorage.getItem("sb_url") || "";
-const SUPABASE_ANON_KEY=localStorage.getItem("sb_anon") || "";
-let supabaseClient=null;
+// Public Supabase config (safe to hardcode)
+const SUPABASE_URL_HARDCODED="https://awlzvhcnjegfhjedswko.supabase.co";
+const SUPABASE_ANON_HARDCODED="PASTE_YOUR_ANON_KEY_HERE";
 
-/* =========================
-LOCAL STATE HELPERS
-========================= */
-function getEmailLocal(){ return (localStorage.getItem("ja_user_email")||"").trim().toLowerCase(); }
-function getCustomerIdLocal(){ return (localStorage.getItem("ja_customer_id")||"").trim(); }
-function hasPlan(){ return !!(localStorage.getItem("ja_plan_id")||"").trim(); }
-function isProfileComplete(){ return localStorage.getItem("ja_profile_complete")==="true"; }
-function resetLocalStateForNewUser(email){
-const prev=getEmailLocal();
-if(prev && email && prev!==email){
-localStorage.removeItem("ja_customer_id");
-localStorage.removeItem("ja_profile_complete");
-localStorage.removeItem("ja_plan_id");
-localStorage.removeItem("ja_plan");
-localStorage.removeItem("ja_profile");
-localStorage.removeItem("ja_cv_name");
-localStorage.removeItem("ja_ocr_op");
-localStorage.removeItem("ja_ocr_out");
-localStorage.removeItem("ja_ocr_text");
-localStorage.removeItem("ja_ocr_done_at");
-}
-localStorage.setItem("ja_user_email",email);
-}
-function syncIdentity(opts){
-if(opts.customerId) localStorage.setItem("ja_customer_id",opts.customerId);
-if(opts.email) localStorage.setItem("ja_user_email",opts.email);
-const wp=readWorkplace();
-localStorage.setItem("ja_workplace",JSON.stringify({
-apiBase: wp.apiBase || API_BASE,
-customerId: opts.customerId || wp.customerId || null,
-customerEmail: opts.email || wp.customerEmail || null
-}));
-}
-function parseCsvList(s){
-return (s||"").split(",").map(x=>x.trim()).filter(Boolean);
-}
-function setCvHint(text){
-const el=document.getElementById("cvHint");
-if(el) el.textContent=text;
-}
-function setFatal(text){
-const el=document.getElementById("fatalHint");
-if(!el) return;
-el.textContent=text || "";
-}
-function updateContinueCta(){
-const btn=document.getElementById("toNext");
-if(!btn) return;
-btn.textContent=hasPlan() ? "Continue to dashboard" : "Continue to plan";
-}
-function go(url){
-document.body.classList.add("leaving");
-setTimeout(()=>{window.location.href=url;},180);
-}
+// Ensure localStorage keys always exist (fixes “nothing works on a new profile/browser”)
+if(!localStorage.getItem("sb_url")) localStorage.setItem("sb_url", SUPABASE_URL_HARDCODED);
+if(!localStorage.getItem("sb_anon")) localStorage.setItem("sb_anon", SUPABASE_ANON_HARDCODED);
 
-/* =========================
-SUGGESTIONS (simple demo)
-========================= */
-function renderTitleSuggestions(){
-const wrap=document.getElementById("titleSuggestions");
-if(!wrap) return;
-wrap.innerHTML="";
-const raw=(document.getElementById("jobTitles")?.value||"").trim();
-const titles=parseCsvList(raw);
-const base=(titles[0]||"").trim();
-const suggestions=new Set();
-if(base){ suggestions.add(base); }
-["Front Desk Agent","Receptionist","Office Manager","Customer Support","Operations Assistant"].forEach(t=>suggestions.add(t));
-Array.from(suggestions).slice(0,10).forEach(t=>{
-const b=document.createElement("button");
-b.type="button";
-b.className="btn light";
-b.textContent="Add: " + t;
-b.addEventListener("click",()=>{
-const cur=parseCsvList(document.getElementById("jobTitles").value);
-if(!cur.map(x=>x.toLowerCase()).includes(t.toLowerCase())) cur.push(t);
-document.getElementById("jobTitles").value=cur.join(", ");
-renderTitleSuggestions();
-});
-wrap.appendChild(b);
-});
-}
+const SUPABASE_URL=localStorage.getItem("sb_url") || SUPABASE_URL_HARDCODED;
+const SUPABASE_ANON_KEY=localStorage.getItem("sb_anon") || SUPABASE_ANON_HARDCODED;
 
-/* =========================
-BACKEND CALLS
-========================= */
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+/* ========= Helpers ========= */
+function parseCsvList(s){ return (s||"").split(",").map(x=>x.trim()).filter(Boolean); }
+function setCvHint(t){ const el=document.getElementById("cvHint"); if(el) el.textContent=t; }
+function setFatal(t){ const el=document.getElementById("fatalHint"); if(el) el.textContent=t||""; }
+function setOcrBadge(kind,text){ const b=document.getElementById("ocrBadge"); b.className="badge"+(kind?(" "+kind):""); b.textContent=text; }
+function setOcrMeta(t){ const el=document.getElementById("ocrMeta"); if(el) el.textContent=t||""; }
+function setOcrText(t){ const el=document.getElementById("ocrText"); if(el) el.value=t||""; }
+function extractOpId(op){ if(!op) return ""; return op.includes("/operations/") ? op.split("/operations/").pop() : op; }
+
 async function getSession(){
-if(!supabaseClient) return null;
 const { data }=await supabaseClient.auth.getSession();
 return data && data.session ? data.session : null;
 }
+async function requireAuth(){
+const s=await getSession();
+if(!s){ window.location.replace("./signup.html"); return null; }
+return s;
+}
 async function upsertCustomerByEmail(email){
-const res=await fetch(`${API_BASE}/customers/upsert`,{
-method:"POST",
-headers:{ "content-type":"application/json" },
-body:JSON.stringify({ email })
-});
-const text=await res.text().catch(()=> "");
-if(!res.ok) throw new Error(`Customer upsert failed: ${res.status} ${text}`);
-return JSON.parse(text);
+const res=await fetch(`${API_BASE}/customers/upsert`,{ method:"POST", headers:{ "content-type":"application/json" }, body:JSON.stringify({ email }) });
+if(!res.ok) throw new Error(await res.text());
+return await res.json();
 }
 async function requireAuthAndCustomer(){
-const session=await getSession();
-if(!session || !session.user || !session.user.email){
-window.location.replace("./signup.html");
-return null;
-}
-const email=session.user.email.trim().toLowerCase();
-resetLocalStateForNewUser(email);
-const existingId=getCustomerIdLocal();
-if(existingId && existingId.length>10){
-syncIdentity({ customerId: existingId, email });
-return { session, email, customerId: existingId };
-}
+const session=await requireAuth();
+if(!session) return null;
+const email=session.user.email.toLowerCase().trim();
+const existing=localStorage.getItem("ja_customer_id");
+if(existing) return { session, email, customerId: existing };
 const data=await upsertCustomerByEmail(email);
-if(data && data.customer_id){
-syncIdentity({ customerId: data.customer_id, email });
+localStorage.setItem("ja_customer_id", data.customer_id);
 return { session, email, customerId: data.customer_id };
 }
-throw new Error("Signed in, but could not create customer (missing customer_id).");
-}
-async function upsertCustomerProfile(payload){
-const res=await fetch(`${API_BASE}/customer-profiles/upsert`,{
-method:"POST",
-headers:{ "content-type":"application/json" },
-body:JSON.stringify(payload)
-});
-const text=await res.text().catch(()=> "");
-if(!res.ok) throw new Error(`Profile upsert failed: ${res.status} ${text}`);
-return JSON.parse(text);
-}
 async function fetchCvMeta(session){
-const res=await fetch(`${API_BASE}/me/cv`,{
-method:"GET",
-headers:{ "Authorization": `Bearer ${session.access_token}` }
-});
-if(!res.ok){
-const t=await res.text().catch(()=> "");
-console.warn("GET /me/cv failed",res.status,t);
-return null;
-}
-const data=await res.json().catch(()=> null);
-if(!data || !data.cv) return null;
-return data.cv;
+const res=await fetch(`${API_BASE}/me/cv`,{ headers:{ "Authorization":`Bearer ${session.access_token}` }});
+if(!res.ok) return null;
+const data=await res.json();
+return data.cv || null;
 }
 async function uploadCv(session,file){
 const fd=new FormData();
 fd.append("cv",file);
-const res=await fetch(`${API_BASE}/me/cv`,{
-method:"POST",
-headers:{ "Authorization": `Bearer ${session.access_token}` },
-body:fd
-});
-const text=await res.text().catch(()=> "");
-if(!res.ok) throw new Error(`CV upload failed: ${res.status} ${text}`);
+const res=await fetch(`${API_BASE}/me/cv`,{ method:"POST", headers:{ "Authorization":`Bearer ${session.access_token}` }, body:fd });
+const text=await res.text();
+if(!res.ok) throw new Error(text);
 return JSON.parse(text);
-}
-
-/* =========================
-OCR (NEW)
-========================= */
-let ocrPollTimer=null;
-function setOcrBadge(kind,text){
-const b=document.getElementById("ocrBadge");
-if(!b) return;
-b.className="badge" + (kind ? (" " + kind) : "");
-b.textContent=text;
-}
-function setOcrMeta(text){
-const el=document.getElementById("ocrMeta");
-if(el) el.textContent=text || "";
-}
-function setOcrText(text){
-const el=document.getElementById("ocrText");
-if(!el) return;
-el.value=text || "";
-}
-function getOcrState(){
-return {
-op: (localStorage.getItem("ja_ocr_op")||"").trim(),
-out: (localStorage.getItem("ja_ocr_out")||"").trim(),
-text: (localStorage.getItem("ja_ocr_text")||""),
-doneAt: (localStorage.getItem("ja_ocr_done_at")||"").trim()
-};
-}
-function setOcrState(op,out){
-if(op) localStorage.setItem("ja_ocr_op",op);
-if(out) localStorage.setItem("ja_ocr_out",out);
-}
-function clearOcrPoll(){
-if(ocrPollTimer){ clearInterval(ocrPollTimer); ocrPollTimer=null; }
-}
-function extractOpId(op){
-const s=(op||"").trim();
-if(!s) return "";
-if(s.includes("/operations/")) return s.split("/operations/").pop();
-return s;
 }
 async function startOcr(session){
-const res=await fetch(`${API_BASE}/me/cv/ocr`,{
-method:"POST",
-headers:{ "Authorization": `Bearer ${session.access_token}` }
-});
-const text=await res.text().catch(()=> "");
-if(!res.ok) throw new Error(`OCR start failed: ${res.status} ${text}`);
-const data=JSON.parse(text);
-const operation=data && data.operation ? data.operation : "";
-const out=data && data.gcs && data.gcs.output ? data.gcs.output : "";
-const opId=extractOpId(operation);
-if(opId) setOcrState(opId,out);
-return { opId, out, raw:data };
-}
-async function checkOcrStatus(session,opId,out){
-const qp=new URLSearchParams();
-qp.set("op",opId);
-if(out) qp.set("out",out);
-const res=await fetch(`${API_BASE}/me/cv/ocr/status?${qp.toString()}`,{
-method:"GET",
-headers:{ "Authorization": `Bearer ${session.access_token}` }
-});
-const text=await res.text().catch(()=> "");
-if(!res.ok) throw new Error(`OCR status failed: ${res.status} ${text}`);
+const res=await fetch(`${API_BASE}/me/cv/ocr`,{ method:"POST", headers:{ "Authorization":`Bearer ${session.access_token}` }});
+const text=await res.text();
+if(!res.ok) throw new Error(text);
 return JSON.parse(text);
 }
-function pickTextFromJsonPayload(payload){
-try{
-if(!payload) return "";
-if(typeof payload === "string") return payload;
-if(payload.text && typeof payload.text === "string") return payload.text;
-if(payload.fullText && typeof payload.fullText === "string") return payload.fullText;
-if(payload.responses && Array.isArray(payload.responses)){
-const parts=[];
-payload.responses.forEach(r=>{
-if(r && r.fullTextAnnotation && r.fullTextAnnotation.text) parts.push(r.fullTextAnnotation.text);
-});
-return parts.join("\n").trim();
-}
-return "";
-}catch{
-return "";
-}
-}
-async function fetchOcrTextFromGcs(session,opId,out){
+async function checkOcrStatus(session,operation,out){
 const qp=new URLSearchParams();
-qp.set("op",opId);
-if(out) qp.set("out",out);
-const res=await fetch(`${API_BASE}/me/cv/ocr/text?${qp.toString()}`,{
-method:"GET",
-headers:{ "Authorization": `Bearer ${session.access_token}` }
-});
-const text=await res.text().catch(()=> "");
-if(!res.ok) throw new Error(`OCR text fetch failed: ${res.status} ${text}`);
-const data=JSON.parse(text);
-const extracted=pickTextFromJsonPayload(data && data.payload ? data.payload : data);
-return { extracted, raw:data };
+qp.set("operation", operation);
+if(out) qp.set("out", out);
+const res=await fetch(`${API_BASE}/me/cv/ocr/status?${qp.toString()}`,{ headers:{ "Authorization":`Bearer ${session.access_token}` }});
+const text=await res.text();
+if(!res.ok) throw new Error(text);
+return JSON.parse(text);
 }
-async function refreshOcrUi(session){
-const st=getOcrState();
-if(!st.op){
-setOcrBadge("", "OCR: not started");
-setOcrMeta("");
-if(st.text) setOcrText(st.text);
-return;
-}
-setOcrBadge("warn","OCR: checking...");
-const status=await checkOcrStatus(session,st.op,st.out);
-if(status && status.ok===true && status.status==="done"){
+
+/* ========= Page init ========= */
+let pollTimer=null;
+function stopPoll(){ if(pollTimer){ clearInterval(pollTimer); pollTimer=null; } }
+function startPoll(session){
+stopPoll();
+pollTimer=setInterval(async ()=>{
+try{
+const op=localStorage.getItem("ja_ocr_op_full")||"";
+const out=localStorage.getItem("ja_ocr_out")||"";
+if(!op) return;
+const st=await checkOcrStatus(session, op, out);
+if(st.status==="processing"){ setOcrBadge("warn","OCR: processing..."); return; }
+if(st.status==="done"){
 setOcrBadge("good","OCR: done");
-const got=await fetchOcrTextFromGcs(session,st.op,st.out);
-const extracted=(got && got.extracted) ? got.extracted : "";
-if(extracted){
-localStorage.setItem("ja_ocr_text",extracted);
-localStorage.setItem("ja_ocr_done_at",new Date().toISOString());
-setOcrText(extracted);
-setOcrMeta(`Saved OCR text locally (${Math.round(extracted.length/1024)} KB).`);
-}else{
-setOcrMeta("OCR finished, but no text was extracted.");
-}
-clearOcrPoll();
-return;
-}
-if(status && status.status==="processing"){
-setOcrBadge("warn","OCR: processing...");
-setOcrMeta("This can take 10–60 seconds depending on PDF size.");
+if(st.text){ localStorage.setItem("ja_ocr_text", st.text); setOcrText(st.text); }
+stopPoll();
 return;
 }
 setOcrBadge("bad","OCR: failed");
-setOcrMeta((status && status.error) ? String(status.error) : "OCR failed.");
-clearOcrPoll();
-}
-function startOcrPolling(session){
-clearOcrPoll();
-ocrPollTimer=setInterval(async ()=>{
-try{ await refreshOcrUi(session); }catch(e){ console.warn(e); }
-},4500);
-}
-
-/* =========================
-UI INIT
-========================= */
-function loadLocalUi(){
-const data=JSON.parse(localStorage.getItem("ja_profile")||"{}");
-["jobTitles","industry","country","city","radius"].forEach(k=>{
-const el=document.getElementById(k);
-if(el && data[k]!=null) el.value=data[k];
-});
-const st=document.getElementById("saveStatus");
-if(isProfileComplete()){
-st.className="badge good";
-st.textContent="Saved (backend)";
-}else if(localStorage.getItem("ja_profile")){
-st.className="badge warn";
-st.textContent="Saved (local only)";
-}else{
-st.className="badge";
-st.textContent="Not saved yet";
-}
-document.getElementById("step3").classList.toggle("done",hasPlan());
-updateContinueCta();
-const o=getOcrState();
-if(o.text) setOcrText(o.text);
-if(o.op){
-setOcrBadge("warn","OCR: ready to check");
-setOcrMeta(o.doneAt ? ("Last done: " + o.doneAt) : "OCR started earlier. You can refresh status.");
-}else{
-setOcrBadge("", "OCR: not started");
-setOcrMeta("");
-}
-}
-
-/* =========================
-LIFECYCLE
-========================= */
-window.addEventListener("load",async ()=>{
-try{
-if(!window.supabase) throw new Error("Supabase library did not load.");
-if(!SUPABASE_URL || !SUPABASE_ANON_KEY) throw new Error("Missing sb_url / sb_anon in localStorage.");
-supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-document.addEventListener("input",(e)=>{ if(e.target && e.target.id==="jobTitles"){ renderTitleSuggestions(); } });
-loadLocalUi();
-renderTitleSuggestions();
-const cvInput=document.getElementById("cv");
-cvInput.addEventListener("change",()=>{
-const f=cvInput.files && cvInput.files[0];
-if(!f){ setCvHint("No CV selected."); return; }
-setCvHint(`Selected: ${f.name} (${Math.round((f.size||0)/1024)} KB)`);
-});
-const auth=await requireAuthAndCustomer();
-if(!auth) return;
-setCvHint("Loading CV status...");
-const cv=await fetchCvMeta(auth.session);
-if(cv && cv.cv_filename){
-setCvHint("Saved CV: " + cv.cv_filename);
-localStorage.setItem("ja_cv_name", cv.cv_filename);
-document.getElementById("btnRunOcr").disabled=false;
-document.getElementById("btnRefreshOcr").disabled=false;
-}else{
-const localName=localStorage.getItem("ja_cv_name");
-setCvHint(localName ? ("Saved CV (local): " + localName) : "No CV uploaded yet.");
-document.getElementById("btnRunOcr").disabled=true;
-document.getElementById("btnRefreshOcr").disabled=false;
-}
-await refreshOcrUi(auth.session);
-if(getOcrState().op) startOcrPolling(auth.session);
-document.getElementById("btnRunOcr").addEventListener("click", async ()=>{
-try{
-const a=await requireAuthAndCustomer();
-if(!a) return;
-setOcrBadge("warn","OCR: starting...");
-setOcrMeta("Uploading to OCR pipeline...");
-const started=await startOcr(a.session);
-setOcrMeta(`Started. Operation: ${started.opId}`);
-document.getElementById("btnRefreshOcr").disabled=false;
-startOcrPolling(a.session);
-}catch(e){
-console.error(e);
-setOcrBadge("bad","OCR: failed");
-setOcrMeta(String(e && e.message ? e.message : e));
-}
-});
-document.getElementById("btnRefreshOcr").addEventListener("click", async ()=>{
-try{
-const a=await requireAuthAndCustomer();
-if(!a) return;
-await refreshOcrUi(a.session);
-}catch(e){
-console.error(e);
-setOcrBadge("bad","OCR: failed");
-setOcrMeta(String(e && e.message ? e.message : e));
-}
-});
-document.getElementById("btnLogout").addEventListener("click", async ()=>{
-try{
-clearOcrPoll();
-if(supabaseClient) await supabaseClient.auth.signOut();
-localStorage.removeItem("ja_user_email");
-sessionStorage.removeItem("sb_access_token");
-window.location.replace("./index.html");
+setOcrMeta(st.error||"OCR failed");
+stopPoll();
 }catch(e){
 console.warn(e);
 }
-});
-document.addEventListener("click",(e)=>{
-const a=e.target.closest("a[data-nav='1']");
-if(!a) return;
-const url=a.getAttribute("href");
-if(!url || url.startsWith("#")) return;
-e.preventDefault();
-go(url);
-});
-}catch(err){
-console.error(err);
-setFatal(String(err && err.message ? err.message : err));
-const st=document.getElementById("saveStatus");
-if(st){
-st.className="badge bad";
-st.textContent="Page error";
+},4000);
 }
-}
-});
 
-/* =========================
-SAVE HANDLER
-CV upload failure must NOT block profile save
-========================= */
-document.getElementById("profileForm").addEventListener("submit",async (e)=>{
-e.preventDefault();
-const saveBtn=document.getElementById("saveBtn");
-const st=document.getElementById("saveStatus");
-saveBtn.disabled=true;
-st.className="badge warn";
-st.textContent="Saving...";
+window.addEventListener("load", async ()=>{
 try{
 const auth=await requireAuthAndCustomer();
 if(!auth) return;
-const cvFile=document.getElementById("cv").files[0];
-if(cvFile){
-st.className="badge warn";
-st.textContent="Uploading CV...";
-setCvHint("Uploading CV...");
-try{
-const up=await uploadCv(auth.session,cvFile);
-const cvName=(up && (up.cv_filename || (up.cv && up.cv.cv_filename))) || cvFile.name;
-localStorage.setItem("ja_cv_name",cvName);
-setCvHint("Saved CV: " + cvName);
+
+const cv=await fetchCvMeta(auth.session);
+if(cv && cv.cv_filename){
+setCvHint("Saved CV: "+cv.cv_filename);
 document.getElementById("btnRunOcr").disabled=false;
 document.getElementById("btnRefreshOcr").disabled=false;
-}catch(err){
-console.error("CV upload failed (will still save profile):",err);
-setCvHint("CV upload failed (profile can still be saved).");
+}else{
+setCvHint("No CV uploaded yet.");
+document.getElementById("btnRunOcr").disabled=true;
+document.getElementById("btnRefreshOcr").disabled=true;
 }
+
+const cached=localStorage.getItem("ja_ocr_text");
+if(cached) setOcrText(cached);
+
+const opFull=localStorage.getItem("ja_ocr_op_full");
+if(opFull){
+setOcrBadge("warn","OCR: ready to check");
+document.getElementById("btnRefreshOcr").disabled=false;
+startPoll(auth.session);
 }
-st.className="badge warn";
-st.textContent="Saving profile...";
-const profileLocal={
-jobTitles:document.getElementById("jobTitles").value.trim(),
-industry:document.getElementById("industry").value.trim(),
-country:document.getElementById("country").value.trim(),
-city:document.getElementById("city").value.trim(),
-radius:document.getElementById("radius").value.trim()
-};
-localStorage.setItem("ja_profile",JSON.stringify(profileLocal));
-const desired_titles=parseCsvList(profileLocal.jobTitles);
-if(desired_titles.length < 2){
-alert("Please add at least 2 job titles (comma separated). This prevents zero results.");
-st.className="badge warn";
-st.textContent="Need more titles";
-return;
-}
-const industries=parseCsvList(profileLocal.industry);
-const countries_allowed=parseCsvList(profileLocal.country);
-const locations=parseCsvList(profileLocal.city);
-let radius_km=profileLocal.radius ? Number(profileLocal.radius) : null;
-if(radius_km===null || Number.isNaN(radius_km)) radius_km=30;
-await upsertCustomerProfile({
-customer_id: auth.customerId,
-desired_titles,
-industries,
-countries_allowed,
-locations,
-radius_km
-});
-localStorage.setItem("ja_profile_complete","true");
-st.className="badge good";
-st.textContent="Saved (backend)";
-updateContinueCta();
-}catch(err){
-console.error("Profile save failed:",err);
-localStorage.removeItem("ja_profile_complete");
-st.className="badge warn";
-st.textContent="Save failed";
-alert("Could not save profile to backend. Check console for details.");
-}finally{
-saveBtn.disabled=false;
+
+document.getElementById("btnRunOcr").addEventListener("click", async ()=>{
+try{
+setOcrBadge("warn","OCR: starting...");
+setOcrMeta("Starting OCR…");
+const r=await startOcr(auth.session);
+localStorage.setItem("ja_ocr_op_full", r.operation);
+localStorage.setItem("ja_ocr_out", r.gcs && r.gcs.output ? r.gcs.output : "");
+setOcrMeta("Started. Waiting for results…");
+startPoll(auth.session);
+}catch(e){
+setOcrBadge("bad","OCR: failed");
+setOcrMeta(String(e));
 }
 });
 
-/* =========================
-CONTINUE
-========================= */
-document.getElementById("toNext").addEventListener("click",()=>{
-if(!isProfileComplete()){
-const st=document.getElementById("saveStatus");
-st.className="badge warn";
-st.textContent="Save to backend first";
-return;
+document.getElementById("btnRefreshOcr").addEventListener("click", async ()=>{
+try{
+const op=localStorage.getItem("ja_ocr_op_full")||"";
+const out=localStorage.getItem("ja_ocr_out")||"";
+if(!op){ setOcrMeta("No OCR operation found. Start OCR first."); return; }
+setOcrBadge("warn","OCR: checking...");
+const st=await checkOcrStatus(auth.session, op, out);
+if(st.status==="done"){
+setOcrBadge("good","OCR: done");
+if(st.text){ localStorage.setItem("ja_ocr_text", st.text); setOcrText(st.text); }
+}else if(st.status==="processing"){
+setOcrBadge("warn","OCR: processing...");
+}else{
+setOcrBadge("bad","OCR: failed");
+setOcrMeta(st.error||"OCR failed");
 }
-go(hasPlan() ? "dashboard.html" : "plan.html");
+}catch(e){
+setOcrBadge("bad","OCR: failed");
+setOcrMeta(String(e));
+}
+});
+
+document.getElementById("cv").addEventListener("change", async ()=>{
+const f=document.getElementById("cv").files[0];
+if(!f) return;
+setCvHint("Selected: "+f.name);
+});
+
+document.getElementById("profileForm").addEventListener("submit", async (e)=>{
+e.preventDefault();
+const saveStatus=document.getElementById("saveStatus");
+saveStatus.className="badge warn";
+saveStatus.textContent="Saving...";
+try{
+const cvFile=document.getElementById("cv").files[0];
+if(cvFile){
+await uploadCv(auth.session, cvFile);
+const cv2=await fetchCvMeta(auth.session);
+if(cv2 && cv2.cv_filename){
+setCvHint("Saved CV: "+cv2.cv_filename);
+document.getElementById("btnRunOcr").disabled=false;
+document.getElementById("btnRefreshOcr").disabled=false;
+}
+}
+saveStatus.className="badge good";
+saveStatus.textContent="Saved (backend)";
+}catch(e){
+saveStatus.className="badge bad";
+saveStatus.textContent="Save failed";
+alert("Save failed. See console.");
+console.error(e);
+}
+});
+}catch(e){
+console.error(e);
+setFatal(String(e));
+}
 });
 </script>
 
