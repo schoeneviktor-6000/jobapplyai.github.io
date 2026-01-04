@@ -221,7 +221,7 @@ background:rgba(0,0,0,.14);
 }
 .table{
 width:100%;
-min-width:860px;
+min-width:980px;
 border-collapse:separate;
 border-spacing:0;
 }
@@ -287,16 +287,14 @@ font-weight:750;
 font-size:13px;
 }
 
-.cards{
+.kpiBoard{
 display:grid;
+grid-template-columns: 2fr 1fr 1fr 1fr;
 gap:14px;
 margin:12px 0 16px 0;
-grid-template-columns:repeat(12, minmax(0,1fr));
+align-items:stretch;
 }
-.cards > .card:nth-child(1){grid-column:span 4;}
-.cards > .card:nth-child(2){grid-column:span 2;}
-.cards > .card:nth-child(3){grid-column:span 2;}
-.cards > .card:nth-child(4){grid-column:span 4;}
+.kpiBoard .card{height:100%}
 
 .grid{
 display:grid;
@@ -305,8 +303,9 @@ gap:16px;
 align-items:start;
 }
 .grid > section.card{grid-column:span 8;}
-.grid > aside.card{grid-column:span 4;position:sticky;top:92px;}
+.grid > aside.card{grid-column:span 4;position:sticky;top:92px}
 
+/* Sticky header aligned to its container (no negative margins). */
 .sectionSticky{
 position:sticky;
 top:var(--stickyTop);
@@ -316,7 +315,7 @@ backdrop-filter:saturate(1.2) blur(12px);
 border:1px solid rgba(255,255,255,.10);
 border-radius:16px;
 padding:12px;
-margin:-6px -6px 12px -6px;
+margin:0 0 12px 0;
 }
 .sectionSticky h2{margin:0 0 8px 0}
 .sectionSticky .small{margin:0 0 8px 0}
@@ -374,20 +373,6 @@ animation:shimmer 1.2s linear infinite;
 100%{background-position:-200% 0}
 }
 
-.kpiRail{
-display:none;
-gap:12px;
-overflow:auto;
-scroll-snap-type:x mandatory;
--webkit-overflow-scrolling:touch;
-padding-bottom:6px;
-}
-.kpiRail::-webkit-scrollbar{display:none}
-.kpiRail .card{
-min-width:260px;
-scroll-snap-align:start;
-}
-
 .footer{
 max-width:var(--max);
 margin:0 auto;
@@ -397,19 +382,14 @@ font-size:13px;
 }
 
 @media (max-width:1100px){
-.cards{grid-template-columns:repeat(2, 1fr)}
-.cards > .card:nth-child(1),
-.cards > .card:nth-child(2),
-.cards > .card:nth-child(3),
-.cards > .card:nth-child(4){grid-column:auto}
 .grid{grid-template-columns:1fr}
 .grid > section.card{grid-column:auto}
 .grid > aside.card{grid-column:auto;position:static}
+.kpiBoard{grid-template-columns:1fr 1fr}
 }
 @media (max-width:760px){
-.cards{display:none}
-.kpiRail{display:flex}
-.table{min-width:760px}
+.kpiBoard{grid-template-columns:1fr 1fr}
+.table{min-width:880px}
 }
 @media (max-width:620px){
 .nav{padding:10px 12px}
@@ -417,6 +397,7 @@ font-size:13px;
 .h1{font-size:30px}
 .actions{flex-direction:column;align-items:stretch}
 .btn{justify-content:center;width:100%}
+.kpiBoard{grid-template-columns:1fr}
 }
 @media (prefers-reduced-motion: reduce){
 .skeleton{animation:none}
@@ -444,55 +425,7 @@ font-size:13px;
 <p class="sub" id="subLine">Loading…</p>
 <div class="errorTop" id="errorTop"></div>
 
-<div class="kpiRail" id="kpiRail">
-<div class="card">
-<h2>Health <span class="badge" id="badgeHealth_m">Loading</span></h2>
-<div class="kpi">
-<div>
-<div class="value" id="kpiHealthLabel_m">–</div>
-<div class="label">supply vs plan</div>
-</div>
-</div>
-<div class="meter"><div id="healthMeterFill_m"></div></div>
-<div style="margin-top:10px" id="healthNote_m" class="small"></div>
-</div>
-
-<div class="card">
-<h2>Queue</h2>
-<div class="kpi">
-<div>
-<div class="value" id="kpiQueue_m">–</div>
-<div class="label">ready</div>
-</div>
-<span class="badge" id="badgeQueue_m">Loading</span>
-</div>
-</div>
-
-<div class="card">
-<h2>Applications</h2>
-<div class="kpi">
-<div>
-<div class="value" id="kpiAppsTotal_m">–</div>
-<div class="label">total</div>
-</div>
-<span class="badge" id="badgeApps_m">Loading</span>
-</div>
-</divA>
-</div>
-
-<div class="card">
-<h2>Plan</h2>
-<div class="kpi">
-<div>
-<div class="value" id="kpiPlanName_m">–</div>
-<div class="label" id="kpiPlanMeta_m">selected</div>
-</div>
-<span class="badge" id="badgePlan_m">Loading</span>
-</div>
-</div>
-</div>
-
-<div class="cards">
+<div class="kpiBoard">
 <div class="card">
 <h2>Health status <span class="badge" id="badgeHealth">Loading</span></h2>
 <div class="kpi">
@@ -515,7 +448,7 @@ font-size:13px;
 <div class="kpi">
 <div>
 <div class="value" id="kpiQueue">–</div>
-<div class="label">jobs ready to apply</div>
+<div class="label">jobs ready</div>
 </div>
 <span class="badge" id="badgeQueue">Loading</span>
 </div>
@@ -526,7 +459,7 @@ font-size:13px;
 <div class="kpi">
 <div>
 <div class="value" id="kpiAppsTotal">–</div>
-<div class="label">total applications</div>
+<div class="label">total</div>
 </div>
 <span class="badge" id="badgeApps">Loading</span>
 </div>
@@ -537,7 +470,7 @@ font-size:13px;
 <div class="kpi">
 <div>
 <div class="value" id="kpiPlanName">–</div>
-<div class="label" id="kpiPlanMeta">selected plan</div>
+<div class="label" id="kpiPlanMeta">selected</div>
 </div>
 <span class="badge" id="badgePlan">Loading</span>
 </div>
@@ -652,7 +585,7 @@ if(p<1) requestAnimationFrame(tick);
 }
 requestAnimationFrame(tick);
 }
-function renderSkeleton(){return '<div class="skeleton big" style="width:220px"></div><div style="height:10px"></div><div class="skeleton row" style="width:96%"></div><div style="height:8px"></div><div class="skeleton row" style="width:92%"></div><div style="height:8px"></div><div class="skeleton row" style="width:88%"></div>'; }
+function renderSkeleton(){return '<div class="skeleton block"></div>'; }
 
 function planFromState(planId){
 const pid=String(planId||"").trim().toLowerCase();
@@ -731,15 +664,12 @@ function renderHealth(queueCount,plan){
 const s=computeSupply(queueCount,plan.daily);
 setBadge("badgeHealth",s.badgeType,s.healthLabel);
 setText("kpiHealthLabel",s.healthLabel);
+setBadge("badgeHealthPlan",plan.daily?"":"warn","Plan: "+plan.short);
+setBadge("badgeHealthQueue",queueCount>0?"good":"warn","Queue: "+queueCount);
+setBadge("badgeHealthCap","","Today cap: "+(plan.daily?plan.daily:0)+"/day");
 const meter=document.getElementById("healthMeterFill");
 if(meter) meter.style.width=Math.round(s.ratio*100)+"%";
 setHtml("healthNote",'<div class="mono">Recommended cap based on supply: '+s.recommendedCap+'/day</div><div class="mono" style="margin-top:6px">'+escapeHtml(s.note)+'</div>');
-
-setBadge("badgeHealth_m",s.badgeType,s.healthLabel);
-setText("kpiHealthLabel_m",s.healthLabel);
-const meterM=document.getElementById("healthMeterFill_m");
-if(meterM) meterM.style.width=Math.round(s.ratio*100)+"%";
-setHtml("healthNote_m",escapeHtml(s.note));
 }
 
 function statusBadge(status){
@@ -757,23 +687,32 @@ try{return String(ts).replace("T"," ").slice(0,16);}catch{return String(ts).slic
 }
 
 function isMobile(){
-return window.matchMedia && window.matchMedia("(max-width: 760px)").matches;
+return window.matchMedia && window.matchMedia("(max-width: 620px)").matches;
 }
 
+/* Desktop queue table includes Skip button now (fix #2). */
 function renderQueueDesktop(queue){
 const items=Array.isArray(queue?.data)?queue.data:[];
 if(items.length===0) return '<span class="badge warn">No jobs in queue</span>';
 const rows=items.slice(0,15).map(j=>{
 const title=j.title||"Untitled";
 const company=j.company_name||"—";
-const city=j.city||"—";
-const country=j.country||"—";
+const loc=[j.city||"", j.region||""].filter(Boolean).join(", ") || "—";
 const posted=j.posted_at?String(j.posted_at).slice(0,10):"—";
 const link=j.apply_url?String(j.apply_url):"";
+const jobId=j.id||"";
 const titleCell=link?('<a href="'+escapeHtml(link)+'" target="_blank" rel="noopener">'+escapeHtml(title)+'</a>'):escapeHtml(title);
-return "<tr><td>"+titleCell+"</td><td>"+escapeHtml(company)+"</td><td>"+escapeHtml(city)+"</td><td>"+escapeHtml(country)+"</td><td>"+escapeHtml(posted)+"</td></tr>";
+return "<tr>"
++ "<td>"+titleCell+"</td>"
++ "<td>"+escapeHtml(company)+"</td>"
++ "<td>"+escapeHtml(loc)+"</td>"
++ "<td>"+escapeHtml(posted)+"</td>"
++ "<td>"
++ "<button class='btn small danger' type='button' data-skip='"+escapeHtml(jobId)+"'>Skip</button>"
++ "</td>"
++ "</tr>";
 }).join("");
-return '<div class="tableWrap"><table class="table" style="min-width:760px"><thead><tr><th>Title</th><th>Company</th><th>City</th><th>Country</th><th>Posted</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+return '<div class="tableWrap"><table class="table" style="min-width:980px"><thead><tr><th>Job</th><th>Company</th><th>Location</th><th>Posted</th><th>Action</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 
 function renderQueueMobile(queue){
@@ -787,8 +726,7 @@ const posted=j.posted_at?String(j.posted_at).slice(0,10):"—";
 const link=j.apply_url?String(j.apply_url):"";
 const jobId=j.id||"";
 const titleHtml=link?('<a href="'+escapeHtml(link)+'" target="_blank" rel="noopener">'+escapeHtml(title)+'</a>'):escapeHtml(title);
-
-return '<div class="item" data-jobid="'+escapeHtml(jobId)+'">'
+return '<div class="item">'
 + '<div class="itemTop"><div class="itemTitle">'+titleHtml+'</div><span class="badge">new</span></div>'
 + '<div class="itemMeta"><span>'+escapeHtml(company)+'</span><span>•</span><span>'+escapeHtml(loc)+'</span><span>•</span><span>Posted '+escapeHtml(posted)+'</span></div>'
 + '<div class="itemActions">'
@@ -813,15 +751,13 @@ const el=document.getElementById("skipGuardrail");
 if(el){
 el.style.display="block";
 el.style.color="rgba(255,179,0,.95)";
-el.textContent="Skipping is limited right now because your queue is getting low. Add more titles or increase radius to keep daily applications running.";
+el.textContent="Skipping is limited because your queue is getting low. Add more titles or increase radius to keep daily applications running.";
 }
 return;
 }
 
 let reason="";
-try{
-reason = prompt("Reason to skip (optional):") || "";
-}catch{ reason=""; }
+try{ reason = prompt("Reason to skip (optional):") || ""; }catch{ reason=""; }
 
 try{
 await apiPost("/me/applications/skip", lastSessionToken, { job_id: jobId, reason });
@@ -877,7 +813,7 @@ return "<tr>"
 + "<td>"+(notes?notes:"—")+"</td>"
 + "</tr>";
 }).join("");
-return '<div class="tableWrap"><table class="table">'
+return '<div class="tableWrap"><table class="table" style="min-width:980px">'
 + '<thead><tr><th>Status</th><th>Job</th><th>Company</th><th>Location</th><th>Updated</th><th>Notes</th></tr></thead>'
 + '<tbody>'+rows+'</tbody></table></div>';
 }
@@ -891,7 +827,6 @@ const loc=[job.city||"", job.region||""].filter(Boolean).join(", ") || "—";
 const updated=fmtDate(a.updated_at || a.created_at);
 const link=job.apply_url?String(job.apply_url):"";
 const titleHtml=link?('<a href="'+escapeHtml(link)+'" target="_blank" rel="noopener">'+escapeHtml(title)+'</a>'):escapeHtml(title);
-
 return '<div class="item">'
 + '<div class="itemTop"><div class="itemTitle">'+titleHtml+'</div><span class="badge '+b.cls+'">'+escapeHtml(b.label)+'</span></div>'
 + '<div class="itemMeta"><span>'+escapeHtml(company)+'</span><span>•</span><span>'+escapeHtml(loc)+'</span><span>•</span><span>'+escapeHtml(updated)+'</span></div>'
@@ -967,6 +902,7 @@ setHtml("appsBreakdown",renderSkeleton());
 setHtml("onboardingChecks",renderSkeleton());
 setHtml("activityWrap",renderSkeleton());
 setHtml("activityError","");
+
 const session=await requireSession();
 if(!session) return;
 const email=session.user&&session.user.email?session.user.email:"—";
@@ -983,10 +919,6 @@ setText("kpiPlanName",plan.name);
 setText("kpiPlanMeta",plan.daily?plan.meta:"no plan selected");
 setBadge("badgePlan",plan.daily?"good":"warn",plan.daily?"Selected":"Not selected");
 
-setText("kpiPlanName_m",plan.name);
-setText("kpiPlanMeta_m",plan.daily?plan.meta:"selected");
-setBadge("badgePlan_m",plan.daily?"good":"warn",plan.daily?"Selected":"Not selected");
-
 if(state&&state.customer_id){ setText("meCustomerId",state.customer_id); }
 if(state){ setHtml("onboardingChecks",renderOnboardingChecks(state)); }
 
@@ -996,20 +928,15 @@ const qCount=(typeof queue.count==="number")?queue.count:(Array.isArray(queue.da
 currentQueueCount=qCount;
 
 animateNumber(document.getElementById("kpiQueue"),qCount);
-animateNumber(document.getElementById("kpiQueue_m"),qCount);
 setBadge("badgeQueue",qCount>0?"good":"warn",qCount>0?"OK":"Empty");
-setBadge("badgeQueue_m",qCount>0?"good":"warn",qCount>0?"OK":"Empty");
 
 setHtml("queueWrap",renderQueue(queue));
 wireQueueSkipClicks();
 renderHealth(qCount,plan);
 }catch(e){
 setText("kpiQueue","–");
-setText("kpiQueue_m","–");
 setBadge("badgeQueue","bad","Error");
-setBadge("badgeQueue_m","bad","Error");
 setBadge("badgeHealth","bad","Error");
-setBadge("badgeHealth_m","bad","Error");
 setHtml("queueWrap",'<span class="badge bad">Queue failed</span>');
 setHtml("queueError",'<div class="error">'+escapeHtml(e.message)+'</div>');
 setText("errorBox",e.message);
@@ -1020,15 +947,11 @@ try{
 const apps=await apiGet("/me/applications/summary",session.access_token);
 const total=(typeof apps.total==="number")?apps.total:0;
 animateNumber(document.getElementById("kpiAppsTotal"),total);
-animateNumber(document.getElementById("kpiAppsTotal_m"),total);
 setBadge("badgeApps","good","OK");
-setBadge("badgeApps_m","good","OK");
 setHtml("appsBreakdown",renderAppsBreakdown(apps));
 }catch(e){
 setText("kpiAppsTotal","–");
-setText("kpiAppsTotal_m","–");
 setBadge("badgeApps","warn","Not ready");
-setBadge("badgeApps_m","warn","Not ready");
 setHtml("appsBreakdown",'<span class="badge warn">Not available</span>');
 }
 
