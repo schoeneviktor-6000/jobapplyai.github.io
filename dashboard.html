@@ -23,10 +23,12 @@
   --safeBottom: env(safe-area-inset-bottom, 0px);
   --stickyTop: 76px;
 
-  /* Solid surfaces */
   --surface:#0f1730;
   --surface2:#0c1226;
   --surface3:#111a34;
+
+  /* NEW: measured height of sticky header to prevent overlap */
+  --queueStickyH: 0px;
 }
 
 *{box-sizing:border-box}
@@ -121,7 +123,6 @@ small{color:var(--muted)}
   overflow:hidden;
 }
 .cardNoPad{padding:0}
-
 .card h2{
   margin:0 0 10px 0;
   font-size:16px;
@@ -137,16 +138,9 @@ small{color:var(--muted)}
   align-items:flex-end;
   justify-content:space-between;
   gap:10px;
-
-  /* FIX for “Selected” badge being cut:
-     - allow wrapping
-     - allow left side to shrink */
-  flex-wrap:wrap;
+  flex-wrap:wrap; /* prevents plan badge cut */
 }
-.kpi > div{
-  min-width:0;
-  flex:1 1 auto;
-}
+.kpi > div{min-width:0;flex:1 1 auto}
 .kpi .value{
   font-size:34px;
   font-weight:950;
@@ -299,11 +293,7 @@ small{color:var(--muted)}
 .grid > section.card{grid-column:span 8;}
 .grid > aside.card{grid-column:span 4;position:sticky;top:92px}
 
-/* ✅ PERFECT “Queue preview” alignment:
-   Make it a real header bar of the section card:
-   - full width
-   - no inner card / no margin
-   - content padding matches the body padding */
+/* Sticky header bar */
 .queueSticky{
   position:sticky;
   top:var(--stickyTop);
@@ -313,10 +303,13 @@ small{color:var(--muted)}
   border-bottom:1px solid rgba(255,255,255,.10);
 }
 .queueStickyInner{
-  padding:14px; /* SAME inset as body */
+  padding:14px;
 }
+
+/* CRITICAL: reserve sticky header space so it never overlaps cards */
 .sectionBody{
-  padding:14px; /* SAME inset as header inner */
+  padding:14px;
+  padding-top: calc(14px + var(--queueStickyH));
 }
 
 /* Solid job cards */
@@ -524,7 +517,7 @@ small{color:var(--muted)}
         </div>
       </div>
 
-      <div class="sectionBody">
+      <div class="sectionBody" id="queueSectionBody">
         <div id="queueWrap"><div class="skeleton block"></div></div>
         <div id="queueError"></div>
 
@@ -623,6 +616,19 @@ function animateNumber(el,to){
 }
 function renderSkeleton(){return '<div class="skeleton block"></div>'; }
 
+function updateStickyOffsets(){
+  const top=document.getElementById("topbar");
+  if(top){
+    const h=Math.round(top.getBoundingClientRect().height);
+    document.documentElement.style.setProperty("--stickyTop",(h+10)+"px");
+  }
+  const sticky=document.getElementById("queueSticky");
+  if(sticky){
+    const sh=Math.round(sticky.getBoundingClientRect().height);
+    document.documentElement.style.setProperty("--queueStickyH", sh+"px");
+  }
+}
+
 function planFromState(planId){
   const pid=String(planId||"").trim().toLowerCase();
   if(pid==="starter") return {id:"starter",name:"Starter",daily:1,meta:"1 application/day",short:"Starter (1/day)"};
@@ -711,20 +717,6 @@ function renderHealth(queueCount,plan){
   );
 }
 
-function fmtDate(ts){
-  if(!ts) return "—";
-  try{return String(ts).replace("T"," ").slice(0,16);}catch{return String(ts).slice(0,16);}
-}
-function statusBadge(status){
-  const s=String(status||"").toLowerCase();
-  if(s==="applied") return {cls:"good", label:"applied"};
-  if(s==="shortlisted") return {cls:"good", label:"shortlisted"};
-  if(s==="rejected") return {cls:"bad", label:"rejected"};
-  if(s==="skipped") return {cls:"warn", label:"skipped"};
-  if(s==="expired") return {cls:"warn", label:"expired"};
-  return {cls:"", label:s||"unknown"};
-}
-
 function isSingleColumn(){
   return window.matchMedia && window.matchMedia("(max-width: 1100px)").matches;
 }
@@ -793,6 +785,20 @@ function wireQueueSkipClicks(){
     if(!jobId) return;
     onSkipJob(jobId);
   });
+}
+
+function fmtDate(ts){
+  if(!ts) return "—";
+  try{return String(ts).replace("T"," ").slice(0,16);}catch{return String(ts).slice(0,16);}
+}
+function statusBadge(status){
+  const s=String(status||"").toLowerCase();
+  if(s==="applied") return {cls:"good", label:"applied"};
+  if(s==="shortlisted") return {cls:"good", label:"shortlisted"};
+  if(s==="rejected") return {cls:"bad", label:"rejected"};
+  if(s==="skipped") return {cls:"warn", label:"skipped"};
+  if(s==="expired") return {cls:"warn", label:"expired"};
+  return {cls:"", label:s||"unknown"};
 }
 
 function renderAppsBreakdown(summary){
@@ -877,20 +883,15 @@ async function loadQueueAndActivityOnly(){
     setHtml("queueWrap",renderQueueCards(queue));
     wireQueueSkipClicks();
     await loadActivity(lastSessionToken);
+    updateStickyOffsets();
   }catch(e){
     showTopError(e.message);
   }
 }
 
-function applyStickyTopbarHeight(){
-  const top=document.getElementById("topbar");
-  if(!top) return;
-  const h=Math.round(top.getBoundingClientRect().height);
-  document.documentElement.style.setProperty("--stickyTop",(h+10)+"px");
-}
-
 async function loadDashboard(){
-  applyStickyTopbarHeight();
+  updateStickyOffsets();
+
   clearTopError();
   setText("errorBox","");
   setHtml("queueError","");
@@ -936,6 +937,8 @@ async function loadDashboard(){
     setHtml("queueWrap",renderQueueCards(queue));
     wireQueueSkipClicks();
     renderHealth(qCount,plan);
+
+    updateStickyOffsets();
   }catch(e){
     setText("kpiQueue","–");
     setBadge("badgeQueue","bad","Error");
@@ -944,6 +947,7 @@ async function loadDashboard(){
     setHtml("queueError",'<div class="error">'+escapeHtml(e.message)+'</div>');
     setText("errorBox",e.message);
     showTopError(e.message);
+    updateStickyOffsets();
   }
 
   try{
@@ -959,6 +963,7 @@ async function loadDashboard(){
   }
 
   await loadActivity(session.access_token);
+  updateStickyOffsets();
 }
 
 function wireActivityFilters(){
@@ -972,6 +977,7 @@ function wireActivityFilters(){
     for(const b of wrap.querySelectorAll(".chip")) b.classList.remove("active");
     btn.classList.add("active");
     if(lastSessionToken) await loadActivity(lastSessionToken);
+    updateStickyOffsets();
   });
 }
 
@@ -994,8 +1000,11 @@ function wireEvents(){
       window.location.replace("./index.html");
     }catch(e){ showTopError(e.message); }
   });
+
   wireActivityFilters();
-  window.addEventListener("resize",()=>{applyStickyTopbarHeight();});
+
+  window.addEventListener("resize",()=>{updateStickyOffsets();});
+  window.addEventListener("orientationchange",()=>{setTimeout(updateStickyOffsets,50);});
 }
 
 window.addEventListener("load",async()=>{
@@ -1003,7 +1012,9 @@ window.addEventListener("load",async()=>{
     if(!window.supabase) throw new Error("Supabase library did not load. Check adblockers / network.");
     supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
     wireEvents();
+    updateStickyOffsets();
     await loadDashboard();
+    updateStickyOffsets();
   }catch(e){
     showTopError(e.message);
     setText("errorBox",e.message);
