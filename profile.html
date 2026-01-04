@@ -1,269 +1,398 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>JobApply-AI | Profile</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>JobApplyAI • Profile</title>
 <style>
 :root{
---bg:#ffffff;
---surface:#f6f7f8;
---surface2:#eef1f2;
---text:#0b0b0b;
---muted:#4a4a4a;
---muted2:#6c6c6c;
---border:#d7dadc;
---shadow:0 12px 30px rgba(0,0,0,.08);
---shadow2:0 10px 26px rgba(0,0,0,.10);
---green:#00a63f;
---green2:#00c853;
---radius:22px;
---grad:linear-gradient(135deg,var(--green),var(--green2));
---max:1120px;
+  --bg:#0b1020;
+  --card:rgba(255,255,255,.08);
+  --card2:rgba(255,255,255,.06);
+  --text:#e9ecf7;
+  --muted:rgba(233,236,247,.72);
+  --line:rgba(255,255,255,.12);
+  --accent:#7c5cff;
+  --accent2:#00d4ff;
+  --danger:#ff3d71;
+  --ok:#00c853;
+  --warn:#ffb300;
+  --shadow:0 12px 34px rgba(0,0,0,.35);
+  --shadow2:0 10px 26px rgba(0,0,0,.10);
+  --green:#00a63f;
 }
+
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
-margin:0;
-font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
-color:var(--text);
-background:
-radial-gradient(1100px 600px at 8% 0%, rgba(0,166,63,.12), transparent 60%),
-radial-gradient(900px 520px at 92% 6%, rgba(0,200,83,.10), transparent 55%),
-var(--bg);
+  margin:0;
+  font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  color:var(--text);
+  background:
+    radial-gradient(1200px 650px at 20% -10%, rgba(124,92,255,.35), transparent 55%),
+    radial-gradient(900px 500px at 90% 10%, rgba(0,212,255,.22), transparent 55%),
+    radial-gradient(800px 600px at 70% 110%, rgba(0,200,83,.10), transparent 55%),
+    var(--bg);
+  overflow-x:hidden;
 }
-a{color:inherit}
-.shell{min-height:100%;display:flex;flex-direction:column}
+
+a{color:inherit;text-decoration:none}
+small{color:var(--muted)}
+
+.wrap{
+  max-width:980px;
+  margin:0 auto;
+  padding:22px 16px 70px;
+}
+
 .topbar{
-position:sticky;
-top:0;
-z-index:20;
-backdrop-filter:saturate(1.4) blur(10px);
-background:rgba(255,255,255,.72);
-border-bottom:1px solid rgba(215,218,220,.7);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:18px;
 }
-.nav{
-max-width:var(--max);
-margin:0 auto;
-padding:14px 18px;
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:14px;
-}
+
 .brand{
-display:flex;
-align-items:center;
-gap:10px;
-font-weight:950;
-letter-spacing:.2px;
-text-decoration:none;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:800;
+  letter-spacing:.2px;
 }
 .logo{
-width:34px;
-height:34px;
-border-radius:12px;
-background:var(--grad);
-box-shadow:0 10px 24px rgba(0,166,63,.22);
+  width:34px;height:34px;border-radius:11px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  box-shadow: 0 10px 30px rgba(124,92,255,.25);
 }
-.navlinks{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.nav{
+  display:flex; gap:10px; flex-wrap:wrap;
+}
 .pill{
-display:inline-flex;
-align-items:center;
-gap:8px;
-padding:9px 12px;
-border-radius:999px;
-border:1px solid rgba(215,218,220,.9);
-background:rgba(246,247,248,.92);
-font-weight:800;
-font-size:13px;
-text-decoration:none;
-transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease, background .15s ease;
-cursor:pointer;
+  padding:9px 12px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:rgba(255,255,255,.04);
+  font-weight:650;
+  font-size:13px;
+  transition:.15s ease;
 }
-.pill:hover{transform:translateY(-1px);box-shadow:var(--shadow);border-color:rgba(0,166,63,.22)}
-.pill.primary{border-color:transparent;background:var(--text);color:#fff}
-.main{max-width:var(--max);margin:0 auto;padding:22px 18px 10px;flex:1}
-.grid{display:grid;grid-template-columns:1fr;gap:16px}
-@media(min-width:980px){.grid{grid-template-columns:420px 1fr;align-items:start}}
+.pill:hover{transform:translateY(-1px); background:rgba(255,255,255,.06)}
+.pill.active{border-color:rgba(124,92,255,.6); background:rgba(124,92,255,.18)}
+
+.grid{
+  display:grid;
+  grid-template-columns: 1.2fr .8fr;
+  gap:14px;
+}
+
 .card{
-background:rgba(246,247,248,.75);
-border:1px solid rgba(215,218,220,.10);
-border-radius:var(--radius);
-box-shadow:var(--shadow2);
-padding:18px;
+  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
+  border:1px solid var(--line);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
 }
-.h1{margin:0 0 6px 0;font-size:28px;letter-spacing:-.2px}
-.sub{margin:0;color:var(--muted2);font-weight:700}
-.stepper{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-.step{
-display:flex;align-items:center;gap:10px;
-padding:10px 12px;border-radius:999px;
-border:1px solid rgba(215,218,220,.12);
-background:rgba(255,255,255,.75);
-font-weight:900;font-size:13px;color:var(--muted2);
+
+.cardHeader{
+  padding:18px 18px 14px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
 }
-.step .dot{
-width:22px;height:22px;border-radius:999px;
-display:grid;place-items:center;
-background:rgba(215,218,220,.18);
-color:var(--muted2);
-font-size:12px;font-weight:950;
+
+.hTitle{font-size:18px; font-weight:850; margin:0}
+.hSub{margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.35}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 10px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.05);
+  color:var(--muted);
+  font-size:12px;
+  font-weight:750;
+  white-space:nowrap;
 }
-.step.current{color:var(--text);border-color:rgba(0,166,63,.22)}
-.step.current .dot{background:rgba(0,166,63,.16);color:#075b24}
-.step.done{color:#075b24;border-color:rgba(0,166,63,.18)}
-.step.done .dot{background:rgba(0,166,63,.16);color:#075b24}
-label{display:block;margin:12px 0 6px;font-weight:900}
-input,textarea{
-width:100%;
-padding:12px 12px;
-border-radius:14px;
-border:1px solid rgba(215,218,220,.14);
-background:rgba(255,255,255,.88);
-font-weight:800;
-outline:none;
+.badge.good{border-color:rgba(0,200,83,.4); background:rgba(0,200,83,.12); color:#c9ffe0}
+.badge.warn{border-color:rgba(255,179,0,.5); background:rgba(255,179,0,.12); color:#fff3c4}
+.badge.bad{border-color:rgba(255,61,113,.55); background:rgba(255,61,113,.12); color:#ffd1dc}
+
+.form{
+  padding:18px;
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:12px;
 }
-textarea{min-height:180px;resize:vertical;font-weight:750;line-height:1.35}
-input:focus,textarea:focus{border-color:rgba(0,166,63,.40);box-shadow:0 0 0 3px rgba(0,166,63,.12)}
-.row{display:grid;grid-template-columns:1fr;gap:12px}
-@media(min-width:720px){.row{grid-template-columns:1fr 1fr}}
-.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
+
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.field.full{grid-column:1/-1}
+
+label{font-size:12px; color:var(--muted); font-weight:750}
+input,select,textarea{
+  background:rgba(0,0,0,.18);
+  border:1px solid rgba(255,255,255,.14);
+  color:var(--text);
+  padding:11px 12px;
+  border-radius:12px;
+  outline:none;
+  transition:.15s ease;
+  font-size:14px;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:rgba(124,92,255,.65);
+  box-shadow:0 0 0 3px rgba(124,92,255,.18);
+}
+textarea{min-height:88px; resize:vertical}
+.help{font-size:12px; color:var(--muted); line-height:1.4}
+
+.actions{
+  padding:0 18px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
 .btn{
-appearance:none;
-border:1px solid rgba(215,218,220,.14);
-border-radius:999px;
-padding:10px 14px;
-font-weight:950;
-cursor:pointer;
-background:rgba(255,255,255,.92);
-transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease;
+  appearance:none;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.06);
+  color:var(--text);
+  padding:11px 14px;
+  border-radius:12px;
+  font-weight:850;
+  cursor:pointer;
+  transition:.15s ease;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
 }
-.btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
-.btn.primary{background:var(--text);color:#fff;border-color:transparent}
-.btn.ghost{background:rgba(246,247,248,.92)}
-.btn.light{background:rgba(255,255,255,.75)}
-.btn[disabled]{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
-.badge{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid rgba(215,218,220,.14);border-radius:999px;font-weight:950;font-size:12px;color:var(--muted2)}
-.badge.good{border-color:rgba(0,166,63,.25);color:#075b24}
-.badge.warn{border-color:rgba(255,176,0,.35);color:#7a4d00}
-.badge.bad{border-color:rgba(255,0,0,.25);color:#7a0000}
-.footer{max-width:var(--max);margin:0 auto;padding:18px 18px 30px;color:var(--muted2);font-size:13px}
-.fadeIn{animation:fadeIn .34s ease both}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-body.leaving .shell{animation:fadeOut .22s ease both}
-@keyframes fadeOut{to{opacity:0;transform:translateY(6px)}}
-.helper{font-size:12px;color:var(--muted2);font-weight:650;margin-top:6px}
-.hr{height:1px;background:rgba(215,218,220,.35);margin:14px 0}
-.kv{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}
-.smallcheck{
-display:flex;align-items:center;gap:8px;
-font-size:12px;color:var(--muted2);font-weight:750;margin-top:8px;
-user-select:none;
+.btn:hover{transform:translateY(-1px); background:rgba(255,255,255,.08)}
+.btn:disabled{opacity:.6; cursor:not-allowed; transform:none}
+.btn.primary{
+  border-color:rgba(124,92,255,.55);
+  background:linear-gradient(135deg, rgba(124,92,255,.30), rgba(0,212,255,.18));
 }
-.smallcheck input{width:auto;transform:translateY(1px)}
+.btn.green{
+  border-color:rgba(0,200,83,.45);
+  background:linear-gradient(135deg, rgba(0,200,83,.20), rgba(0,212,255,.12));
+}
+.btn.danger{
+  border-color:rgba(255,61,113,.55);
+  background:linear-gradient(135deg, rgba(255,61,113,.20), rgba(124,92,255,.14));
+}
+
+.side{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.side .card{box-shadow:var(--shadow2)}
+.side .cardHeader{align-items:center}
+
+.kpi{
+  padding:16px 18px 18px;
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+}
+.kpiRow{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 12px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:14px;
+}
+.kpiName{color:var(--muted); font-size:12px; font-weight:800}
+.kpiVal{font-weight:900; letter-spacing:.3px}
+.kpiVal.ok{color:#c9ffe0}
+.kpiVal.bad{color:#ffd1dc}
+
+.hr{height:1px;background:var(--line); margin:12px 0}
+
+.cvBox{
+  padding:16px 18px 18px;
+}
+.cvRow{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+.cvMeta{color:var(--muted); font-size:12px; line-height:1.35}
+.file{
+  padding:11px 12px;
+  border-radius:12px;
+  border:1px dashed rgba(255,255,255,.18);
+  background:rgba(0,0,0,.16);
+  width:100%;
+}
+.cvActions{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
+.progressLine{
+  margin-top:10px;
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.35;
+}
+.pulse{
+  display:inline-block; width:8px; height:8px; border-radius:50%;
+  background:var(--accent2);
+  box-shadow:0 0 0 0 rgba(0,212,255,.6);
+  animation:pulse 1.2s infinite;
+  margin-right:8px;
+}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(0,212,255,.6)}
+  70%{box-shadow:0 0 0 10px rgba(0,212,255,0)}
+  100%{box-shadow:0 0 0 0 rgba(0,212,255,0)}
+}
+
+.leaving{opacity:.45; filter:blur(.3px); transition:.2s}
+.helper{font-size:12px; color:var(--muted)}
+.helper strong{color:var(--text)}
+
+@media (max-width: 900px){
+  .grid{grid-template-columns:1fr}
+}
 </style>
 </head>
 
 <body>
-<div class="shell fadeIn">
-<header class="topbar">
-<nav class="nav">
-<a class="brand" href="index.html" data-nav="1"><span class="logo" aria-hidden="true"></span><span>JobApply-AI</span></a>
-<div class="navlinks">
-<a class="pill" href="index.html" data-nav="1">Home</a>
-<a class="pill" href="signup.html" data-nav="1">Signup</a>
-<a class="pill primary" href="profile.html" data-nav="1">Profile</a>
-<a class="pill" href="plan.html" data-nav="1">Plan</a>
-<a class="pill" href="dashboard.html" data-nav="1">Dashboard</a>
-<button class="pill" id="btnLogout" type="button">Logout</button>
-</div>
-</nav>
-</header>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>
+        <div style="font-size:14px;opacity:.85">JobApplyAI</div>
+        <div style="font-size:12px;color:var(--muted);font-weight:700">Customer profile</div>
+      </div>
+    </div>
+    <div class="nav">
+      <a class="pill" href="./index.html" data-nav="1">Home</a>
+      <a class="pill active" href="./profile.html" data-nav="1">Profile</a>
+      <a class="pill" href="./plan.html" data-nav="1">Plan</a>
+      <a class="pill" href="./dashboard.html" data-nav="1">Dashboard</a>
+    </div>
+  </div>
 
-<main class="main">
-<div class="grid">
-<section>
-<h1 class="h1">Profile setup</h1>
-<p class="sub">Step 2 of 3. Upload your CV and set your job preferences so we can apply consistently.</p>
-<div class="stepper" aria-label="Steps">
-<div class="step done"><span class="dot">1</span><span>Signup</span></div>
-<div class="step current" aria-current="step"><span class="dot">2</span><span>Profile</span></div>
-<div class="step" id="step3"><span class="dot">3</span><span>Plan</span></div>
-</div>
-</section>
+  <div class="grid">
+    <section class="card">
+      <div class="cardHeader">
+        <div>
+          <h2 class="hTitle">Your preferences</h2>
+          <p class="hSub">These settings decide which jobs we fetch for you. Save after updating.</p>
+        </div>
+        <span class="badge" id="saveStatus">Not saved yet</span>
+      </div>
 
-<section>
-<div class="card">
-<h2 style="margin:0 0 6px 0">Your preferences</h2>
-<p style="margin:0;color:var(--muted2);font-weight:700">We use this to find the right jobs and keep applications consistent.</p>
+      <form class="form" id="profileForm" autocomplete="off">
+        <div class="field full">
+          <label for="jobTitles">Desired job titles (comma separated)</label>
+          <textarea id="jobTitles" placeholder="Receptionist, Front Desk Agent, Rezeption"></textarea>
+          <div class="help">Tip: add 3–5 variations to avoid “0 jobs found”.</div>
+        </div>
 
-<div class="hr"></div>
+        <div class="field full">
+          <label for="industry">Industries (comma separated)</label>
+          <input id="industry" placeholder="Healthtech, Hospitality, Wellness">
+          <div class="help">Optional. Can be used later for better matching.</div>
+        </div>
 
-<form id="profileForm">
-<label for="cv">Upload CV</label>
-<input id="cv" name="cv" type="file"
-  accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
-<div class="helper" id="cvHint">No CV uploaded yet.</div>
+        <div class="field">
+          <label for="country">Country</label>
+          <select id="country">
+            <option value="DE">Germany (DE)</option>
+            <option value="UK">United Kingdom (UK)</option>
+          </select>
+        </div>
 
-<div class="smallcheck">
-<input type="checkbox" id="autoOcr" checked>
-<label for="autoOcr" style="margin:0; font-weight:900; cursor:pointer;">Auto extract text after upload (recommended)</label>
-</div>
+        <div class="field">
+          <label for="city">Main location(s) (comma separated)</label>
+          <input id="city" placeholder="Berlin, Potsdam">
+        </div>
 
-<div class="kv">
-<button class="btn light" type="button" id="btnUploadCv" disabled>Upload CV now</button>
-<button class="btn light" type="button" id="btnRunOcr" disabled>Extract text (OCR)</button>
-<button class="btn light" type="button" id="btnRefreshOcr" disabled>Refresh OCR status</button>
-<button class="btn light" type="button" id="btnCopyOcr" disabled>Copy extracted text</button>
-<span class="badge" id="ocrBadge">OCR: not started</span>
-</div>
+        <div class="field">
+          <label for="radius">Radius (km)</label>
+          <input id="radius" placeholder="20" inputmode="numeric">
+        </div>
 
-<div class="helper" id="ocrHint">
-Tip: You can continue filling your preferences while OCR runs. OCR works best with PDF.
-</div>
+        <div class="field full">
+          <div class="help">
+            Your plan sets the daily application cap. Profile data is used for job matching and later for email drafting.
+          </div>
+        </div>
 
-<label for="ocrText">Extracted CV text (preview)</label>
-<textarea id="ocrText" readonly placeholder="OCR text will appear here after processing."></textarea>
-<div class="helper" id="ocrMeta"></div>
+        <div class="field full">
+          <button class="btn primary" type="button" id="saveBtn">Save profile</button>
+          <button class="btn green" type="button" id="toNext">Continue</button>
+        </div>
+      </form>
 
-<div class="row">
-<div>
-<label for="jobTitles">Preferred job title(s)</label>
-<input id="jobTitles" name="jobTitles" type="text" placeholder="e.g. Receptionist, Front Desk Agent">
-<div class="helper">Add at least 2 titles (comma separated) to avoid zero results.</div>
-<div class="actions" id="titleSuggestions" style="margin-top:10px"></div>
-</div>
-<div>
-<label for="industry">Industry</label>
-<input id="industry" name="industry" type="text" placeholder="e.g. Hospitality">
-</div>
-</div>
+      <div class="helper" id="fatalHint" style="margin-top:10px"></div>
+    </section>
 
-<div class="row">
-<div>
-<label for="country">Country</label>
-<input id="country" name="country" type="text" placeholder="e.g. DE">
-</div>
-<div>
-<label for="city">City</label>
-<input id="city" name="city" type="text" placeholder="e.g. Berlin">
-</div>
-</div>
+    <aside class="side">
+      <section class="card">
+        <div class="cardHeader">
+          <div>
+            <div class="hTitle" style="font-size:16px">Account status</div>
+            <div class="hSub" style="margin-top:4px">Quick checks before we fetch jobs</div>
+          </div>
+          <span class="badge" id="signedInBadge">Checking…</span>
+        </div>
 
-<label for="radius">Radius (km)</label>
-<input id="radius" name="radius" type="number" min="0" step="1" placeholder="e.g. 30">
+        <div class="kpi">
+          <div class="kpiRow">
+            <div class="kpiName">Signed in</div>
+            <div class="kpiVal" id="kSigned">…</div>
+          </div>
+          <div class="kpiRow">
+            <div class="kpiName">Profile saved</div>
+            <div class="kpiVal" id="kProfile">…</div>
+          </div>
+          <div class="kpiRow">
+            <div class="kpiName">Plan selected</div>
+            <div class="kpiVal" id="kPlan">…</div>
+          </div>
+        </div>
+      </section>
 
-<div class="actions">
-<button class="btn ghost" type="submit" id="saveBtn">Save profile</button>
-<button class="btn primary" type="button" id="toNext">Continue</button>
-<span class="badge" id="saveStatus">Not saved yet</span>
-</div>
-</form>
+      <section class="card">
+        <div class="cardHeader">
+          <div>
+            <div class="hTitle" style="font-size:16px">CV upload & OCR</div>
+            <div class="hSub" style="margin-top:4px">Upload your CV and extract text for better matching.</div>
+          </div>
+          <span class="badge" id="ocrBadge">OCR idle</span>
+        </div>
 
-<div class="helper" id="fatalHint" style="margin-top:10px"></div>
-</div>
-</section>
+        <div class="cvBox">
+          <input class="file" type="file" id="cvFile" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+          <div class="progressLine" id="cvHint">No file uploaded yet.</div>
+          <div class="progressLine" id="ocrMeta"></div>
+
+          <div class="cvActions">
+            <button class="btn" type="button" id="uploadCvBtn">Upload CV</button>
+            <button class="btn primary" type="button" id="startOcrBtn">Start OCR (PDF)</button>
+            <button class="btn" type="button" id="pollOcrBtn">Refresh OCR status</button>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="help">
+            OCR will store extracted text in your profile so we can suggest job titles and tailor future applications.
+          </div>
+        </div>
+      </section>
+    </aside>
+  </div>
 </div>
 
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -273,6 +402,7 @@ Tip: You can continue filling your preferences while OCR runs. OCR works best wi
 /* =========================
 CONFIG
 ========================= */
+// Your Worker base URL
 const API_BASE_DEFAULT = "https://jobapplyai-api.schoene-viktor.workers.dev";
 const API_BASE = API_BASE_DEFAULT.replace(/\/+$/,"");
 
@@ -306,28 +436,12 @@ function setOcrBadge(kind,text){
   b.textContent=text;
 }
 function setOcrMeta(t){ const el=$("ocrMeta"); if(el) el.textContent=t||""; }
-function setOcrText(t){ const el=$("ocrText"); if(el) el.value=t||""; }
 
-function parseCsvList(s){ return (s||"").split(",").map(x=>x.trim()).filter(Boolean); }
-function uniqLower(arr){
-  const seen=new Set();
-  const out=[];
-  for(const x of (arr||[])){
-    const v=String(x||"").trim();
-    if(!v) continue;
-    const k=v.toLowerCase();
-    if(seen.has(k)) continue;
-    seen.add(k); out.push(v);
-  }
-  return out;
+function hasPlan(){
+  const p = (localStorage.getItem("ja_plan")||"").trim();
+  return !!p;
 }
-
-/* =========================
-Local state
-========================= */
-function hasPlan(){ return !!(localStorage.getItem("ja_plan_id")||"").trim(); }
-function isProfileComplete(){ return localStorage.getItem("ja_profile_complete")==="true"; }
-function updateContinueCta(){
+function setNextButton(){
   const btn=$("toNext");
   if(!btn) return;
   btn.textContent = hasPlan() ? "Continue to dashboard" : "Continue to plan";
@@ -346,19 +460,18 @@ function getOcrState(){
     doneAt: (localStorage.getItem("ja_ocr_done_at")||"").trim()
   };
 }
-function setOcrState(op,out){
-  if(op) localStorage.setItem("ja_ocr_op", op);
-  if(out) localStorage.setItem("ja_ocr_out", out);
-}
-function extractOpId(op){
-  const s=(op||"").trim();
-  if(!s) return "";
-  if(s.includes("/operations/")) return s.split("/operations/").pop();
-  return s;
+function setOcrState(patch){
+  const st=getOcrState();
+  const merged={...st, ...patch};
+  localStorage.setItem("ja_ocr_op", merged.op || "");
+  localStorage.setItem("ja_ocr_out", merged.out || "");
+  localStorage.setItem("ja_ocr_text", merged.text || "");
+  localStorage.setItem("ja_ocr_done_at", merged.doneAt || "");
+  return merged;
 }
 
 /* =========================
-Auth + backend
+Auth / backend
 ========================= */
 async function getSession(){
   const { data } = await supabaseClient.auth.getSession();
@@ -398,26 +511,24 @@ async function requireAuthAndCustomer(){
 
 async function fetchCvMeta(session){
   const res = await fetch(`${API_BASE}/me/cv`,{
+    method:"GET",
     headers:{ "Authorization": `Bearer ${session.access_token}` }
   });
-  if(!res.ok){
-    const t=await res.text().catch(()=> "");
-    console.warn("GET /me/cv failed",res.status,t);
-    return null;
-  }
-  const data = await res.json().catch(()=> null);
-  return data && data.cv ? data.cv : null;
+  const text = await res.text().catch(()=> "");
+  if(!res.ok) throw new Error(`CV meta failed: ${res.status} ${text}`);
+  return JSON.parse(text);
 }
 
-async function uploadCv(session,file){
-  const fd=new FormData();
-  fd.append("cv",file);
-  const res=await fetch(`${API_BASE}/me/cv`,{
+async function uploadCv(session, file){
+  const fd = new FormData();
+  fd.append("cv", file);
+
+  const res = await fetch(`${API_BASE}/me/cv`,{
     method:"POST",
     headers:{ "Authorization": `Bearer ${session.access_token}` },
     body: fd
   });
-  const text=await res.text().catch(()=> "");
+  const text = await res.text().catch(()=> "");
   if(!res.ok) throw new Error(`CV upload failed: ${res.status} ${text}`);
   return JSON.parse(text);
 }
@@ -427,53 +538,36 @@ async function startOcr(session){
     method:"POST",
     headers:{ "Authorization": `Bearer ${session.access_token}` }
   });
-  const text=await res.text().catch(()=> "");
+  const text = await res.text().catch(()=> "");
   if(!res.ok) throw new Error(`OCR start failed: ${res.status} ${text}`);
   return JSON.parse(text);
 }
 
-async function checkOcrStatus(session, opIdOrFull, outUri){
-  const qp=new URLSearchParams();
-  // your worker accepts op or operation
-  qp.set("op", opIdOrFull);
-  if(outUri) qp.set("out", outUri);
-  const res=await fetch(`${API_BASE}/me/cv/ocr/status?${qp.toString()}`,{
+async function pollOcr(session, op, out){
+  const u = new URL(`${API_BASE}/me/cv/ocr/status`);
+  if(op) u.searchParams.set("operation", op);
+  if(out) u.searchParams.set("out", out);
+
+  const res = await fetch(u.toString(),{
+    method:"GET",
     headers:{ "Authorization": `Bearer ${session.access_token}` }
   });
-  const text=await res.text().catch(()=> "");
+  const text = await res.text().catch(()=> "");
   if(!res.ok) throw new Error(`OCR status failed: ${res.status} ${text}`);
   return JSON.parse(text);
 }
 
-async function fetchOcrText(session){
-  // Preferred endpoint if present on worker
-  const res=await fetch(`${API_BASE}/me/cv/ocr/text`,{
-    method:"GET",
-    headers:{ "Authorization": `Bearer ${session.access_token}` }
-  });
-  const text=await res.text().catch(()=> "");
-  if(res.status===404){
-    // Worker might not have this route; handle gracefully.
-    return { ok:false, status:"missing_endpoint", text:"" };
-  }
-  if(!res.ok) throw new Error(`OCR text failed: ${res.status} ${text}`);
-  return JSON.parse(text);
-}
+/* NEW: authenticated profile save */
+async function upsertMeProfile(session,payload){
+  const token = session && session.access_token ? session.access_token : "";
+  if(!token) throw new Error("Missing access token. Please sign in again.");
 
-async function fetchSuggestedTitles(session, limit=10){
-  const res=await fetch(`${API_BASE}/me/cv/suggest-titles?limit=${encodeURIComponent(String(limit))}`,{
+  const res=await fetch(`${API_BASE}/me/profile`,{
     method:"POST",
-    headers:{ "Authorization": `Bearer ${session.access_token}` }
-  });
-  const text=await res.text().catch(()=> "");
-  if(!res.ok) throw new Error(`Suggest titles failed: ${res.status} ${text}`);
-  return JSON.parse(text);
-}
-
-async function upsertCustomerProfile(payload){
-  const res=await fetch(`${API_BASE}/customer-profiles/upsert`,{
-    method:"POST",
-    headers:{ "content-type":"application/json" },
+    headers:{
+      "content-type":"application/json",
+      "Authorization":`Bearer ${token}`
+    },
     body: JSON.stringify(payload)
   });
   const text=await res.text().catch(()=> "");
@@ -482,189 +576,18 @@ async function upsertCustomerProfile(payload){
 }
 
 /* =========================
-Title suggestions UI
+Parsing helpers
 ========================= */
-function renderTitleSuggestionButtons(titles){
-  const wrap=$("titleSuggestions");
-  if(!wrap) return;
-  wrap.innerHTML="";
-
-  const unique = uniqLower(titles || []);
-  if(!unique.length) return;
-
-  // "Use top" button
-  const useBtn=document.createElement("button");
-  useBtn.type="button";
-  useBtn.className="btn light";
-  useBtn.textContent = "Use top 3 suggestions";
-  useBtn.addEventListener("click", ()=>{
-    const top = unique.slice(0,3);
-    $("jobTitles").value = top.join(", ");
-  });
-  wrap.appendChild(useBtn);
-
-  unique.slice(0,12).forEach(t=>{
-    const b=document.createElement("button");
-    b.type="button";
-    b.className="btn light";
-    b.textContent = "Add: " + t;
-    b.addEventListener("click", ()=>{
-      const cur = parseCsvList($("jobTitles").value);
-      const next = uniqLower(cur.concat([t]));
-      $("jobTitles").value = next.join(", ");
-    });
-    wrap.appendChild(b);
-  });
-}
-
-async function refreshCvBasedSuggestions(session){
-  try{
-    const data = await fetchSuggestedTitles(session, 12);
-    const suggestions = Array.isArray(data?.suggestions) ? data.suggestions : [];
-    const titles = suggestions.map(s=>s && s.title ? s.title : "").filter(Boolean);
-    renderTitleSuggestionButtons(titles);
-  }catch(e){
-    console.warn("suggestions failed", e);
-  }
+function parseCsvList(s){
+  return String(s||"")
+    .split(",")
+    .map(x=>x.trim())
+    .filter(Boolean)
+    .slice(0,30);
 }
 
 /* =========================
-OCR lifecycle
-========================= */
-let ocrTimer=null;
-function stopOcrPoll(){ if(ocrTimer){ clearInterval(ocrTimer); ocrTimer=null; } }
-
-async function pollOcrOnce(session){
-  const st = getOcrState();
-  if(!st.op){
-    setOcrBadge("", "OCR: not started");
-    return;
-  }
-
-  setOcrBadge("warn", "OCR: checking...");
-  const r = await checkOcrStatus(session, st.op, st.out);
-
-  if(r && r.status==="processing"){
-    setOcrBadge("warn", "OCR: processing...");
-    setOcrMeta("You can keep editing your preferences while OCR runs.");
-    return;
-  }
-
-  if(r && r.status==="done"){
-    setOcrBadge("good", "OCR: done");
-    setOcrMeta("Fetching extracted text...");
-
-    // Get text from DB (preferred)
-    const txt = await fetchOcrText(session);
-    const extracted = (txt && txt.text) ? String(txt.text) : "";
-    if(extracted){
-      localStorage.setItem("ja_ocr_text", extracted);
-      localStorage.setItem("ja_ocr_done_at", new Date().toISOString());
-      setOcrText(extracted);
-      $("btnCopyOcr").disabled = false;
-      setOcrMeta(`Extracted ${Math.round(extracted.length/1024)} KB. Saved to backend + locally.`);
-      await refreshCvBasedSuggestions(session);
-    }else{
-      setOcrMeta("OCR finished, but no text could be loaded.");
-    }
-
-    stopOcrPoll();
-    return;
-  }
-
-  setOcrBadge("bad", "OCR: failed");
-  setOcrMeta(r && r.error ? String(r.error) : "OCR failed.");
-  stopOcrPoll();
-}
-
-function startOcrPolling(session){
-  stopOcrPoll();
-  ocrTimer=setInterval(async ()=>{
-    try{ await pollOcrOnce(session); }catch(e){ console.warn(e); }
-  }, 4500);
-}
-
-/* =========================
-CV upload flow
-========================= */
-let lastUploadedFileKey = "";
-
-function fileKey(f){
-  if(!f) return "";
-  return [f.name, f.size, f.lastModified].join("|");
-}
-
-async function uploadCvNow(auth){
-  const f = $("cv").files && $("cv").files[0];
-  if(!f){
-    setCvHint("No CV selected.");
-    return;
-  }
-
-  const key=fileKey(f);
-  if(key && key===lastUploadedFileKey){
-    setCvHint("CV already uploaded.");
-    return;
-  }
-
-  $("btnUploadCv").disabled = true;
-  setCvHint(`Uploading: ${f.name}...`);
-
-  try{
-    const up = await uploadCv(auth.session, f);
-    lastUploadedFileKey = key;
-
-    // Try to show filename from response; fallback to local file name
-    const cvName = (up && (up.cv_filename || (up.cv && up.cv.cv_filename))) || f.name;
-    localStorage.setItem("ja_cv_name", cvName);
-
-    setCvHint("Saved CV: " + cvName);
-    $("btnRunOcr").disabled = false;
-    $("btnRefreshOcr").disabled = false;
-
-    // If auto OCR enabled, start it immediately (PDF only)
-    const isPdf = (f.type==="application/pdf") || f.name.toLowerCase().endsWith(".pdf");
-    if($("autoOcr").checked && isPdf){
-      await startOcrNow(auth);
-    }else if($("autoOcr").checked && !isPdf){
-      setOcrBadge("warn","OCR: not started");
-      setOcrMeta("OCR currently supports PDF only. Upload a PDF to extract text.");
-    }
-  }catch(e){
-    console.error(e);
-    setCvHint("CV upload failed. Check console.");
-  }finally{
-    $("btnUploadCv").disabled = false;
-  }
-}
-
-async function startOcrNow(auth){
-  try{
-    setOcrBadge("warn","OCR: starting...");
-    setOcrMeta("Starting OCR pipeline...");
-
-    const data = await startOcr(auth.session);
-    const operationFull = data && data.operation ? String(data.operation) : "";
-    const out = data && data.gcs && data.gcs.output ? String(data.gcs.output) : "";
-
-    // Store op ID (short) because your worker accepts both
-    const opId = extractOpId(operationFull) || operationFull;
-    setOcrState(opId, out);
-
-    $("btnRefreshOcr").disabled = false;
-    $("btnCopyOcr").disabled = true;
-    setOcrMeta("Started. This usually takes 10–60 seconds.");
-    startOcrPolling(auth.session);
-  }catch(e){
-    console.error(e);
-    setOcrBadge("bad","OCR: failed");
-    setOcrMeta(String(e && e.message ? e.message : e));
-    stopOcrPoll();
-  }
-}
-
-/* =========================
-Profile saving (backend)
+Main actions
 ========================= */
 async function saveProfileNow(auth){
   const st=$("saveStatus");
@@ -685,52 +608,90 @@ async function saveProfileNow(auth){
     localStorage.setItem("ja_profile", JSON.stringify(profileLocal));
 
     const desired_titles = parseCsvList(profileLocal.jobTitles);
-    if(desired_titles.length < 2){
-      st.className="badge warn";
-      st.textContent="Need more titles";
-      alert("Please add at least 2 job titles (comma separated). This prevents zero results.");
-      return;
+    if(desired_titles.length === 0){
+      throw new Error("Please enter at least 1 desired job title.");
+    }
+    const industries = parseCsvList(profileLocal.industry);
+
+    const countries_allowed = [ (profileLocal.country || "DE").trim() ].filter(Boolean);
+    const locations = parseCsvList(profileLocal.city);
+
+    if(locations.length === 0){
+      throw new Error("Please enter at least 1 location (city).");
     }
 
-    const industries = parseCsvList(profileLocal.industry);
-    const countries_allowed = parseCsvList(profileLocal.country);
-    const locations = parseCsvList(profileLocal.city);
     let radius_km = profileLocal.radius ? Number(profileLocal.radius) : 30;
     if(!Number.isFinite(radius_km)) radius_km = 30;
 
-    await upsertCustomerProfile({
-      customer_id: auth.customerId,
-      desired_titles,
-      industries,
-      countries_allowed,
-      locations,
-      radius_km
-    });
+    await upsertMeProfile(auth.session,{ desired_titles, industries, countries_allowed, locations, radius_km });
 
     localStorage.setItem("ja_profile_complete","true");
     st.className="badge good";
-    st.textContent="Saved (backend)";
-    updateContinueCta();
+    st.textContent="Saved";
+    $("kProfile").textContent="Yes";
+    $("kProfile").className="kpiVal ok";
+    setNextButton();
   }catch(e){
-    console.error(e);
-    localStorage.removeItem("ja_profile_complete");
     st.className="badge bad";
     st.textContent="Save failed";
-    alert("Could not save profile to backend. Check console for details.");
+    setFatal(e && e.message ? e.message : String(e));
   }finally{
     saveBtn.disabled=false;
   }
 }
 
-/* =========================
-Init
-========================= */
-window.addEventListener("load", async ()=>{
+function loadLocalProfile(){
   try{
-    if(!window.supabase) throw new Error("Supabase library did not load.");
+    const raw = localStorage.getItem("ja_profile");
+    if(!raw) return;
+    const p = JSON.parse(raw);
+    if(p.jobTitles) $("jobTitles").value = p.jobTitles;
+    if(p.industry) $("industry").value = p.industry;
+    if(p.country) $("country").value = p.country;
+    if(p.city) $("city").value = p.city;
+    if(p.radius) $("radius").value = p.radius;
+  }catch{}
+}
 
+async function refreshCvUi(session){
+  try{
+    const data = await fetchCvMeta(session);
+    const cv = data && data.cv ? data.cv : null;
+
+    if(cv && cv.cv_path){
+      setCvHint(`Uploaded: ${cv.cv_filename || cv.cv_path} (${cv.cv_size || 0} bytes)`);
+      const ocrStatus = (cv.cv_ocr_status || "").toLowerCase();
+      if(ocrStatus === "processing"){
+        setOcrBadge("warn","OCR processing");
+        setOcrMeta("You can refresh status anytime.");
+      }else if(ocrStatus === "done"){
+        setOcrBadge("good","OCR done");
+        setOcrMeta("Extracted text is stored in your profile.");
+      }else if(ocrStatus === "failed"){
+        setOcrBadge("bad","OCR failed");
+        setOcrMeta(cv.cv_ocr_error || "Unknown OCR error");
+      }else{
+        setOcrBadge("","OCR idle");
+        setOcrMeta("");
+      }
+    }else{
+      setCvHint("No file uploaded yet.");
+      setOcrBadge("","OCR idle");
+      setOcrMeta("");
+    }
+  }catch(e){
+    setCvHint("Could not load CV status.");
+  }
+}
+
+/* =========================
+Boot
+========================= */
+(async function boot(){
+  try{
     if(!SUPABASE_URL || !SUPABASE_ANON_KEY){
-      throw new Error("Missing Supabase config. Set sb_url and sb_anon in localStorage or hardcode SUPABASE_ANON_DEFAULT.");
+      setFatal("Missing Supabase config. Set sb_url and sb_anon in localStorage or hardcode SUPABASE_ANON_DEFAULT.");
+      return;
     }
 
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -745,155 +706,97 @@ window.addEventListener("load", async ()=>{
       go(url);
     });
 
-    updateContinueCta();
+    loadLocalProfile();
+    setNextButton();
 
-    // Load local profile values
-    try{
-      const data = JSON.parse(localStorage.getItem("ja_profile")||"{}");
-      ["jobTitles","industry","country","city","radius"].forEach(k=>{
-        const el=$(k);
-        if(el && data[k]!=null) el.value=data[k];
-      });
-    }catch{}
-
-    // Auth
     const auth = await requireAuthAndCustomer();
     if(!auth) return;
 
-    // Setup buttons
-    $("btnUploadCv").addEventListener("click", ()=> uploadCvNow(auth));
-    $("btnRunOcr").addEventListener("click", ()=> startOcrNow(auth));
-    $("btnRefreshOcr").addEventListener("click", async ()=>{
-      try{
-        await pollOcrOnce(auth.session);
-      }catch(e){
-        console.error(e);
-        setOcrBadge("bad","OCR: failed");
-        setOcrMeta(String(e && e.message ? e.message : e));
-      }
-    });
+    $("signedInBadge").className="badge good";
+    $("signedInBadge").textContent="Signed in";
+    $("kSigned").textContent="Yes";
+    $("kSigned").className="kpiVal ok";
 
-    $("btnCopyOcr").addEventListener("click", async ()=>{
-      try{
-        const t = ($("ocrText").value||"").trim();
-        if(!t) return;
-        await navigator.clipboard.writeText(t);
-        setOcrMeta("Copied extracted text to clipboard.");
-      }catch(e){
-        // Some browsers block clipboard in some contexts, but this is user-click so usually OK.
-        console.warn(e);
-        setOcrMeta("Could not copy text (browser blocked clipboard).");
-      }
-    });
+    const profComplete = (localStorage.getItem("ja_profile_complete")||"").trim()==="true";
+    $("kProfile").textContent = profComplete ? "Yes" : "No";
+    $("kProfile").className = "kpiVal " + (profComplete ? "ok" : "bad");
 
-    // CV file selection: enable “Upload now” and optionally auto-upload
-    $("cv").addEventListener("change", async ()=>{
-      const f = $("cv").files && $("cv").files[0];
-      if(!f){
-        setCvHint("No CV selected.");
-        $("btnUploadCv").disabled = true;
-        return;
-      }
-      setCvHint(`Selected: ${f.name} (${Math.round((f.size||0)/1024)} KB)`);
-      $("btnUploadCv").disabled = false;
+    $("kPlan").textContent = hasPlan() ? "Yes" : "No";
+    $("kPlan").className = "kpiVal " + (hasPlan() ? "ok" : "bad");
 
-      // Auto-upload on select (better UX)
-      await uploadCvNow(auth);
-    });
+    await refreshCvUi(auth.session);
 
-    // Load CV status from backend
-    setCvHint("Loading CV status...");
-    const cv = await fetchCvMeta(auth.session);
+    $("saveBtn").addEventListener("click", ()=> saveProfileNow(auth));
 
-    if(cv && cv.cv_filename){
-      setCvHint("Saved CV: " + cv.cv_filename);
-      $("btnRunOcr").disabled = false;
-      $("btnRefreshOcr").disabled = false;
-    }else{
-      const localName = localStorage.getItem("ja_cv_name");
-      setCvHint(localName ? ("Saved CV (local): " + localName) : "No CV uploaded yet.");
-      $("btnRunOcr").disabled = true;
-      $("btnRefreshOcr").disabled = true;
-    }
-
-    // Restore OCR state
-    const o = getOcrState();
-    if(o.text){
-      setOcrText(o.text);
-      $("btnCopyOcr").disabled = false;
-    }
-    if(o.op){
-      setOcrBadge("warn","OCR: checking...");
-      $("btnRefreshOcr").disabled = false;
-      startOcrPolling(auth.session);
-    }else{
-      setOcrBadge("", "OCR: not started");
-      setOcrMeta("");
-    }
-
-    // If OCR already done in backend, load text (nice on new device)
-    try{
-      const txt = await fetchOcrText(auth.session);
-      if(txt && txt.text){
-        localStorage.setItem("ja_ocr_text", txt.text);
-        setOcrText(txt.text);
-        $("btnCopyOcr").disabled = false;
-        setOcrBadge("good","OCR: done");
-        setOcrMeta(`Loaded extracted text from backend (${Math.round(txt.text.length/1024)} KB).`);
-        await refreshCvBasedSuggestions(auth.session);
-      }
-    }catch{}
-
-    // Logout
-    $("btnLogout").addEventListener("click", async ()=>{
-      try{
-        stopOcrPoll();
-        if(supabaseClient) await supabaseClient.auth.signOut();
-        localStorage.removeItem("ja_user_email");
-        localStorage.removeItem("ja_customer_id");
-        localStorage.removeItem("ja_profile_complete");
-        go("index.html");
-      }catch(e){
-        console.warn(e);
-        window.location.replace("./index.html");
-      }
-    });
-
-    // Save handler
-    $("profileForm").addEventListener("submit", async (e)=>{
-      e.preventDefault();
-      await saveProfileNow(auth);
-    });
-
-    // Continue
     $("toNext").addEventListener("click", ()=>{
-      if(!isProfileComplete()){
-        const st=$("saveStatus");
-        st.className="badge warn";
-        st.textContent="Save to backend first";
-        return;
-      }
-      go(hasPlan() ? "dashboard.html" : "plan.html");
+      if(hasPlan()) go("./dashboard.html");
+      else go("./plan.html");
     });
 
-    // Initial suggestion attempt (if OCR text already exists)
-    await refreshCvBasedSuggestions(auth.session);
+    $("uploadCvBtn").addEventListener("click", async ()=>{
+      setFatal("");
+      const file = $("cvFile").files && $("cvFile").files[0] ? $("cvFile").files[0] : null;
+      if(!file){ setFatal("Please choose a CV file first."); return; }
+      try{
+        setCvHint("Uploading...");
+        const r = await uploadCv(auth.session, file);
+        setCvHint(`Uploaded: ${r.cv_filename || r.cv_path}`);
+        await refreshCvUi(auth.session);
+      }catch(e){
+        setFatal(e && e.message ? e.message : String(e));
+      }
+    });
+
+    $("startOcrBtn").addEventListener("click", async ()=>{
+      setFatal("");
+      try{
+        setOcrBadge("warn","Starting OCR…");
+        setOcrMeta("This can take 1–3 minutes for longer PDFs.");
+        const r = await startOcr(auth.session);
+        const op = (r.operation || "").trim();
+        const out = (r.gcs && r.gcs.output) ? String(r.gcs.output) : "";
+        setOcrState({ op, out, text:"", doneAt:"" });
+        setOcrBadge("warn","OCR processing");
+        setOcrMeta("OCR started. Click refresh to check status.");
+      }catch(e){
+        setOcrBadge("bad","OCR failed");
+        setOcrMeta("");
+        setFatal(e && e.message ? e.message : String(e));
+      }
+    });
+
+    $("pollOcrBtn").addEventListener("click", async ()=>{
+      setFatal("");
+      try{
+        const st = getOcrState();
+        if(!st.op){
+          setFatal("No OCR operation found. Start OCR first.");
+          return;
+        }
+        setOcrBadge("warn","Checking…");
+        const r = await pollOcr(auth.session, st.op, st.out);
+        if(r.status === "processing"){
+          setOcrBadge("warn","OCR processing");
+          setOcrMeta("Still running… try again in a moment.");
+        }else if(r.status === "done"){
+          setOcrBadge("good","OCR done");
+          setOcrMeta(`Saved text (${r.text_length || 0} chars).`);
+          setOcrState({ doneAt: new Date().toISOString() });
+        }else{
+          setOcrBadge("bad","OCR failed");
+          setOcrMeta(r.error || "Unknown error");
+        }
+        await refreshCvUi(auth.session);
+      }catch(e){
+        setOcrBadge("bad","OCR failed");
+        setFatal(e && e.message ? e.message : String(e));
+      }
+    });
 
   }catch(e){
-    console.error(e);
-    setFatal(String(e && e.message ? e.message : e));
-    const st=$("saveStatus");
-    if(st){
-      st.className="badge bad";
-      st.textContent="Page error";
-    }
+    setFatal(e && e.message ? e.message : String(e));
   }
-});
+})();
 </script>
-
-</main>
-
-<footer class="footer">Need help? Email <a href="mailto:schonv2@gmail.com">schonv2@gmail.com</a>.</footer>
-</div>
 </body>
 </html>
