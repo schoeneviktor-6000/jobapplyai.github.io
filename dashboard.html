@@ -26,9 +26,6 @@
   --surface:#0f1730;
   --surface2:#0c1226;
   --surface3:#111a34;
-
-  /* NEW: measured height of sticky header to prevent overlap */
-  --queueStickyH: 0px;
 }
 
 *{box-sizing:border-box}
@@ -138,7 +135,7 @@ small{color:var(--muted)}
   align-items:flex-end;
   justify-content:space-between;
   gap:10px;
-  flex-wrap:wrap; /* prevents plan badge cut */
+  flex-wrap:wrap;
 }
 .kpi > div{min-width:0;flex:1 1 auto}
 .kpi .value{
@@ -293,26 +290,20 @@ small{color:var(--muted)}
 .grid > section.card{grid-column:span 8;}
 .grid > aside.card{grid-column:span 4;position:sticky;top:92px}
 
-/* Sticky header bar */
-.queueSticky{
-  position:sticky;
-  top:var(--stickyTop);
-  z-index:12;
-  width:100%;
+/* ✅ Make Queue preview header identical to Activity header:
+   - no sticky for now (removes overlap entirely)
+   - padding matches body
+   - border-bottom matches */
+.sectionHeader{
   background:var(--surface2);
   border-bottom:1px solid rgba(255,255,255,.10);
-}
-.queueStickyInner{
   padding:14px;
 }
-
-/* CRITICAL: reserve sticky header space so it never overlaps cards */
 .sectionBody{
   padding:14px;
-  padding-top: calc(14px + var(--queueStickyH));
 }
 
-/* Solid job cards */
+/* Job cards */
 .list{display:flex;flex-direction:column;gap:12px}
 .listGrid{
   display:grid;
@@ -504,34 +495,33 @@ small{color:var(--muted)}
 
   <div class="grid">
     <section class="card cardNoPad">
-      <div class="queueSticky" id="queueSticky">
-        <div class="queueStickyInner">
-          <h2>Queue preview</h2>
-          <p class="small" id="queueStickyHint">Use Skip to remove jobs you don’t want. Skipping is limited if your queue gets too low.</p>
-          <div class="actions">
-            <button class="btn primary" id="btnRefresh" type="button">Refresh</button>
-            <button class="btn" id="btnCopyToken" type="button">Copy access token</button>
-          </div>
-          <div class="hr"></div>
-          <div class="small" id="skipGuardrail" style="display:none"></div>
+      <div class="sectionHeader" id="queueHeader">
+        <h2>Queue preview</h2>
+        <p class="small" id="queueStickyHint">Use Skip to remove jobs you don’t want. Skipping is limited if your queue gets too low.</p>
+        <div class="actions">
+          <button class="btn primary" id="btnRefresh" type="button">Refresh</button>
+          <button class="btn" id="btnCopyToken" type="button">Copy access token</button>
         </div>
+        <div class="hr"></div>
+        <div class="small" id="skipGuardrail" style="display:none"></div>
       </div>
 
-      <div class="sectionBody" id="queueSectionBody">
+      <div class="sectionBody">
         <div id="queueWrap"><div class="skeleton block"></div></div>
         <div id="queueError"></div>
 
         <div class="hr"></div>
 
-        <h2 style="margin-top:0">Application activity log</h2>
-        <p class="small">Latest application events.</p>
-
-        <div class="chips" id="activityFilters">
-          <button class="chip active" type="button" data-status="">All</button>
-          <button class="chip" type="button" data-status="new">New</button>
-          <button class="chip" type="button" data-status="applied">Applied</button>
-          <button class="chip" type="button" data-status="rejected">Rejected</button>
-          <button class="chip" type="button" data-status="skipped">Skipped</button>
+        <div class="sectionHeader" style="border-radius:0;border-left:0;border-right:0">
+          <h2 style="margin:0">Application activity log</h2>
+          <p class="small">Latest application events.</p>
+          <div class="chips" id="activityFilters">
+            <button class="chip active" type="button" data-status="">All</button>
+            <button class="chip" type="button" data-status="new">New</button>
+            <button class="chip" type="button" data-status="applied">Applied</button>
+            <button class="chip" type="button" data-status="rejected">Rejected</button>
+            <button class="chip" type="button" data-status="skipped">Skipped</button>
+          </div>
         </div>
 
         <div class="hr"></div>
@@ -615,19 +605,6 @@ function animateNumber(el,to){
   requestAnimationFrame(tick);
 }
 function renderSkeleton(){return '<div class="skeleton block"></div>'; }
-
-function updateStickyOffsets(){
-  const top=document.getElementById("topbar");
-  if(top){
-    const h=Math.round(top.getBoundingClientRect().height);
-    document.documentElement.style.setProperty("--stickyTop",(h+10)+"px");
-  }
-  const sticky=document.getElementById("queueSticky");
-  if(sticky){
-    const sh=Math.round(sticky.getBoundingClientRect().height);
-    document.documentElement.style.setProperty("--queueStickyH", sh+"px");
-  }
-}
 
 function planFromState(planId){
   const pid=String(planId||"").trim().toLowerCase();
@@ -883,15 +860,12 @@ async function loadQueueAndActivityOnly(){
     setHtml("queueWrap",renderQueueCards(queue));
     wireQueueSkipClicks();
     await loadActivity(lastSessionToken);
-    updateStickyOffsets();
   }catch(e){
     showTopError(e.message);
   }
 }
 
 async function loadDashboard(){
-  updateStickyOffsets();
-
   clearTopError();
   setText("errorBox","");
   setHtml("queueError","");
@@ -937,8 +911,6 @@ async function loadDashboard(){
     setHtml("queueWrap",renderQueueCards(queue));
     wireQueueSkipClicks();
     renderHealth(qCount,plan);
-
-    updateStickyOffsets();
   }catch(e){
     setText("kpiQueue","–");
     setBadge("badgeQueue","bad","Error");
@@ -947,7 +919,6 @@ async function loadDashboard(){
     setHtml("queueError",'<div class="error">'+escapeHtml(e.message)+'</div>');
     setText("errorBox",e.message);
     showTopError(e.message);
-    updateStickyOffsets();
   }
 
   try{
@@ -963,7 +934,6 @@ async function loadDashboard(){
   }
 
   await loadActivity(session.access_token);
-  updateStickyOffsets();
 }
 
 function wireActivityFilters(){
@@ -977,7 +947,6 @@ function wireActivityFilters(){
     for(const b of wrap.querySelectorAll(".chip")) b.classList.remove("active");
     btn.classList.add("active");
     if(lastSessionToken) await loadActivity(lastSessionToken);
-    updateStickyOffsets();
   });
 }
 
@@ -1002,9 +971,6 @@ function wireEvents(){
   });
 
   wireActivityFilters();
-
-  window.addEventListener("resize",()=>{updateStickyOffsets();});
-  window.addEventListener("orientationchange",()=>{setTimeout(updateStickyOffsets,50);});
 }
 
 window.addEventListener("load",async()=>{
@@ -1012,9 +978,7 @@ window.addEventListener("load",async()=>{
     if(!window.supabase) throw new Error("Supabase library did not load. Check adblockers / network.");
     supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
     wireEvents();
-    updateStickyOffsets();
     await loadDashboard();
-    updateStickyOffsets();
   }catch(e){
     showTopError(e.message);
     setText("errorBox",e.message);
