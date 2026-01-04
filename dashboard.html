@@ -22,7 +22,13 @@
 --safeTop: env(safe-area-inset-top, 0px);
 --safeBottom: env(safe-area-inset-bottom, 0px);
 --stickyTop: 76px;
+
+/* New: solid surfaces to avoid background “breaks” */
+--surface: #0f1730;
+--surface2:#0c1226;
+--surface3:#111a34;
 }
+
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
@@ -217,35 +223,6 @@ transition:.15s ease;
 .chip:hover{transform:translateY(-1px); background:rgba(0,0,0,.28)}
 .chip.active{border-color:rgba(124,92,255,.55); background:rgba(124,92,255,.18); color:#e9ecf7}
 
-.tableWrap{
-overflow:auto;
--webkit-overflow-scrolling:touch;
-border-radius:16px;
-border:1px solid rgba(255,255,255,.12);
-background:rgba(0,0,0,.14);
-}
-.table{
-width:100%;
-min-width:980px;
-border-collapse:separate;
-border-spacing:0;
-}
-.table th,.table td{
-text-align:left;
-padding:10px 10px;
-font-size:13px;
-border-bottom:1px solid rgba(255,255,255,.10);
-vertical-align:top;
-}
-.table th{
-background:rgba(255,255,255,.06);
-font-weight:950;
-position:sticky;
-top:0;
-}
-.table tr:last-child td{border-bottom:0}
-.table a{color:#dfe7ff;text-decoration:underline}
-
 .small{font-size:12px;color:var(--muted2);font-weight:650}
 .mono{
 font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
@@ -310,18 +287,20 @@ align-items:start;
 .grid > section.card{grid-column:span 8;}
 .grid > aside.card{grid-column:span 4;position:sticky;top:92px}
 
+/* Alignment fix:
+- This header + body now use exactly the same left/right padding (14px)
+- No extra padding differences = header text aligns with cards below */
 .sectionSticky{
 position:sticky;
 top:var(--stickyTop);
 z-index:10;
-background:rgba(11,16,32,.92);
-backdrop-filter:saturate(1.2) blur(12px);
+background:var(--surface2);
 border-bottom:1px solid rgba(255,255,255,.10);
-padding:16px 14px 14px 14px;
+padding:14px;
 }
 .sectionSticky h2{margin:0 0 8px 0}
 .sectionSticky .small{margin:0 0 10px 0}
-.sectionBody{padding:14px}
+.sectionBody{padding:14px;background:transparent}
 
 .list{display:flex;flex-direction:column;gap:10px}
 .listGrid{
@@ -329,11 +308,13 @@ display:grid;
 grid-template-columns:repeat(2, minmax(0,1fr));
 gap:12px;
 }
+
+/* Remove transparency from job listing cards completely */
 .item{
 border:1px solid rgba(255,255,255,.12);
-background:linear-gradient(180deg, #111a34, #0c1226);
+background:var(--surface3);
 border-radius:16px;
-padding:12px;
+padding:14px;
 }
 .itemTop{
 display:flex;
@@ -390,7 +371,6 @@ font-size:13px;
 @media (max-width:760px){
 .kpiBoard{grid-template-columns:1fr 1fr}
 .listGrid{grid-template-columns:1fr}
-.table{min-width:880px}
 }
 @media (max-width:620px){
 .nav{padding:10px 12px}
