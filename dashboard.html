@@ -3,27 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>JobApply-AI | Dashboard</title>
+<title>JobApplyAI • Dashboard</title>
 <style>
 :root{
---bg:#ffffff;
---surface:#f6f7f8;
---text:#0b0b0b;
---muted:#4a4a4a;
---muted2:#6c6c6c;
---border:#d7dadc;
---shadow:0 12px 30px rgba(0,0,0,.08);
---shadow2:0 14px 36px rgba(0,0,0,.22);
---green:#00a63f;
---green2:#00c853;
---amber:#ffb000;
---red:#d92d20;
---radius:22px;
---grad:linear-gradient(135deg,var(--green),var(--green2));
+--bg:#0b1020;
+--card:rgba(255,255,255,.08);
+--card2:rgba(255,255,255,.06);
+--text:#e9ecf7;
+--muted:rgba(233,236,247,.72);
+--muted2:rgba(233,236,247,.55);
+--line:rgba(255,255,255,.12);
+--accent:#7c5cff;
+--accent2:#00d4ff;
+--ok:#00c853;
+--warn:#ffb300;
+--bad:#ff3d71;
+--shadow:0 12px 34px rgba(0,0,0,.35);
+--shadow2:0 16px 42px rgba(0,0,0,.38);
+--radius:18px;
 --max:1120px;
 --safeTop: env(safe-area-inset-top, 0px);
 --safeBottom: env(safe-area-inset-bottom, 0px);
 }
+
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
@@ -31,18 +33,22 @@ margin:0;
 font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
 color:var(--text);
 background:
-radial-gradient(1100px 600px at 8% 0%, rgba(0,166,63,.12), transparent 60%),
-radial-gradient(900px 520px at 92% 6%, rgba(0,200,83,.10), transparent 55%),
+radial-gradient(1200px 650px at 20% -10%, rgba(124,92,255,.35), transparent 55%),
+radial-gradient(900px 500px at 90% 10%, rgba(0,212,255,.22), transparent 55%),
+radial-gradient(800px 600px at 70% 110%, rgba(0,200,83,.10), transparent 55%),
 var(--bg);
+overflow-x:hidden;
 }
-a{color:inherit}
+a{color:inherit;text-decoration:none}
+small{color:var(--muted)}
+
 .topbar{
 position:sticky;
 top:0;
 z-index:20;
-backdrop-filter:saturate(1.4) blur(10px);
-background:rgba(255,255,255,.72);
-border-bottom:1px solid rgba(215,218,220,.7);
+background:rgba(11,16,32,.62);
+backdrop-filter:saturate(1.2) blur(12px);
+border-bottom:1px solid var(--line);
 padding-top:var(--safeTop);
 }
 .nav{
@@ -58,64 +64,53 @@ gap:12px;
 display:flex;
 align-items:center;
 gap:10px;
-font-weight:950;
+font-weight:900;
 letter-spacing:.2px;
-text-decoration:none;
 min-width:0;
 }
-.brand span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .logo{
-width:34px;
-height:34px;
-border-radius:12px;
-background:var(--grad);
-box-shadow:0 10px 24px rgba(0,166,63,.22);
+width:34px;height:34px;border-radius:11px;
+background: linear-gradient(135deg, var(--accent), var(--accent2));
+box-shadow: 0 10px 30px rgba(124,92,255,.25);
 flex:0 0 auto;
 }
-.navlinks{
-display:flex;
-align-items:center;
-gap:10px;
-flex-wrap:wrap;
-justify-content:flex-end;
-}
+.navlinks{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 .pill{
-display:inline-flex;
-align-items:center;
-gap:8px;
 padding:9px 12px;
+border:1px solid var(--line);
 border-radius:999px;
-border:1px solid rgba(215,218,220,.9);
-background:rgba(246,247,248,.92);
-font-weight:800;
+background:rgba(255,255,255,.04);
+font-weight:750;
 font-size:13px;
-text-decoration:none;
-transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease, background .15s ease;
+transition:.15s ease;
 cursor:pointer;
 white-space:nowrap;
 }
-.pill:hover{transform:translateY(-1px);box-shadow:var(--shadow);border-color:rgba(0,166,63,.22)}
-.pill.primary{border-color:transparent;background:var(--text);color:#fff}
-.pill.primary:hover{transform:translateY(-1px);box-shadow:var(--shadow2)}
+.pill:hover{transform:translateY(-1px);background:rgba(255,255,255,.06)}
+.pill.active{border-color:rgba(124,92,255,.6); background:rgba(124,92,255,.18)}
 .pill.iconOnly{padding:9px 10px}
+
 .main{
 max-width:var(--max);
 margin:0 auto;
 padding:18px 16px calc(18px + var(--safeBottom));
 }
+
 .h1{
-font-size:38px;
+font-size:36px;
 line-height:1.05;
-letter-spacing:-1px;
+letter-spacing:-.8px;
 margin:10px 0 8px 0;
 }
 .sub{margin:0 0 14px 0;color:var(--muted);font-weight:650}
+
 .card{
-background:rgba(255,255,255,.92);
-border:1px solid rgba(215,218,220,.85);
+background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
+border:1px solid var(--line);
 border-radius:var(--radius);
 box-shadow:var(--shadow);
 padding:14px;
+overflow:hidden;
 }
 .card h2{
 margin:0 0 10px 0;
@@ -125,6 +120,8 @@ align-items:center;
 justify-content:space-between;
 gap:10px;
 }
+.hr{height:1px;background:var(--line);margin:12px 0}
+
 .kpi{
 display:flex;
 align-items:flex-end;
@@ -139,26 +136,27 @@ line-height:1;
 }
 .kpi .label{
 color:var(--muted2);
-font-weight:700;
+font-weight:750;
 font-size:12px;
 }
+
 .badge{
 display:inline-flex;
 align-items:center;
 gap:8px;
-padding:8px 12px;
-border-radius:14px;
-border:1px solid rgba(215,218,220,.9);
-background:rgba(246,247,248,.92);
-font-weight:850;
-font-size:13px;
+padding:7px 10px;
+border-radius:999px;
+border:1px solid var(--line);
+background:rgba(255,255,255,.05);
 color:var(--muted);
+font-size:12px;
+font-weight:750;
 white-space:nowrap;
 }
-.badge.good{border-color:rgba(0,166,63,.25);color:#075b24}
-.badge.warn{border-color:rgba(255,176,0,.35);color:#7a4d00}
-.badge.bad{border-color:rgba(217,45,32,.35);color:#7a1a12}
-.hr{height:1px;background:rgba(215,218,220,.8);margin:12px 0}
+.badge.good{border-color:rgba(0,200,83,.4); background:rgba(0,200,83,.12); color:#c9ffe0}
+.badge.warn{border-color:rgba(255,179,0,.5); background:rgba(255,179,0,.12); color:#fff3c4}
+.badge.bad{border-color:rgba(255,61,113,.55); background:rgba(255,61,113,.12); color:#ffd1dc}
+
 .actions{
 display:flex;
 gap:10px;
@@ -167,36 +165,41 @@ align-items:center;
 }
 .btn{
 appearance:none;
-border:0;
-cursor:pointer;
-padding:10px 12px;
+border:1px solid var(--line);
+background:rgba(255,255,255,.06);
+color:var(--text);
+padding:11px 14px;
 border-radius:999px;
 font-weight:900;
 font-size:13px;
-letter-spacing:.2px;
+cursor:pointer;
+transition:.15s ease;
 display:inline-flex;
 align-items:center;
 gap:8px;
-transition:transform .12s ease, box-shadow .18s ease, opacity .15s ease;
 text-decoration:none;
 }
-.btn:disabled{cursor:not-allowed;opacity:.55}
-.btn.primary{background:var(--grad);color:#fff;box-shadow:0 14px 34px rgba(0,166,63,.20)}
-.btn.primary:hover{transform:translateY(-1px);box-shadow:0 18px 40px rgba(0,166,63,.25)}
-.btn.ghost{background:var(--text);color:#fff}
-.btn.ghost:hover{transform:translateY(-1px);box-shadow:var(--shadow2)}
-.btn.light{border:1px solid rgba(215,218,220,.95);background:rgba(246,247,248,.92);color:var(--text)}
-.btn.light:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+.btn:hover{transform:translateY(-1px); background:rgba(255,255,255,.08)}
+.btn:disabled{opacity:.6; cursor:not-allowed; transform:none}
+.btn.primary{
+border-color:rgba(124,92,255,.55);
+background:linear-gradient(135deg, rgba(124,92,255,.30), rgba(0,212,255,.18));
+}
+.btn.ghost{
+border-color:rgba(255,255,255,.14);
+background:rgba(0,0,0,.18);
+}
+
 .tableWrap{
 overflow:auto;
 -webkit-overflow-scrolling:touch;
 border-radius:16px;
-border:1px solid rgba(215,218,220,.9);
-background:rgba(255,255,255,.92);
+border:1px solid rgba(255,255,255,.12);
+background:rgba(0,0,0,.14);
 }
 .table{
 width:100%;
-min-width:640px;
+min-width:720px;
 border-collapse:separate;
 border-spacing:0;
 }
@@ -204,75 +207,64 @@ border-spacing:0;
 text-align:left;
 padding:10px 10px;
 font-size:13px;
-border-bottom:1px solid rgba(215,218,220,.7);
+border-bottom:1px solid rgba(255,255,255,.10);
 vertical-align:top;
 }
-.table th{background:rgba(246,247,248,.92);font-weight:950}
-.table tr:last-child td{border-bottom:0}
-.small{font-size:12px;color:var(--muted2);font-weight:650}
-.footer{
-max-width:var(--max);
-margin:0 auto;
-padding:18px 16px 30px;
-color:var(--muted2);
-font-size:13px;
+.table th{
+background:rgba(255,255,255,.06);
+font-weight:950;
+position:sticky;
+top:0;
 }
+.table tr:last-child td{border-bottom:0}
+.table a{color:#dfe7ff;text-decoration:underline}
+
+.small{font-size:12px;color:var(--muted2);font-weight:650}
 .mono{
 font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
 font-size:12px;
 word-break:break-all;
+color:rgba(233,236,247,.72);
 }
-.healthTop{
-background:
-radial-gradient(900px 380px at 0% 0%, rgba(0,166,63,.13), transparent 55%),
-radial-gradient(800px 340px at 100% 0%, rgba(0,200,83,.10), transparent 60%),
-rgba(255,255,255,.92);
-}
-.healthRow{
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:10px;
-flex-wrap:wrap;
-}
+
 .meter{
 width:100%;
 height:10px;
 border-radius:999px;
-border:1px solid rgba(215,218,220,.9);
-background:rgba(246,247,248,.92);
+border:1px solid rgba(255,255,255,.14);
+background:rgba(0,0,0,.16);
 overflow:hidden;
 margin-top:10px;
 }
 .meter > div{
 height:100%;
 width:0%;
-background:var(--grad);
+background: linear-gradient(135deg, var(--accent), var(--accent2));
 border-radius:999px;
 transition:width .25s ease;
 }
-.healthNote{margin-top:10px}
-.healthNote .mono{white-space:normal;word-break:break-word}
-.error{
-margin-top:10px;
-padding:10px 12px;
-border-radius:14px;
-border:1px solid rgba(217,45,32,.25);
-background:rgba(217,45,32,.06);
-color:#7a1a12;
-font-weight:750;
-font-size:13px;
-}
+
 .errorTop{
 margin:12px 0 12px 0;
 padding:12px 14px;
 border-radius:16px;
-border:1px solid rgba(217,45,32,.25);
-background:rgba(217,45,32,.06);
-color:#7a1a12;
+border:1px solid rgba(255,61,113,.25);
+background:rgba(255,61,113,.08);
+color:#ffd1dc;
 font-weight:800;
 display:none;
 }
+.error{
+margin-top:10px;
+padding:10px 12px;
+border-radius:14px;
+border:1px solid rgba(255,61,113,.25);
+background:rgba(255,61,113,.08);
+color:#ffd1dc;
+font-weight:750;
+font-size:13px;
+}
+
 .cards{
 display:grid;
 gap:14px;
@@ -283,6 +275,7 @@ grid-template-columns:repeat(12, minmax(0,1fr));
 .cards > .card:nth-child(2){grid-column:span 2;}
 .cards > .card:nth-child(3){grid-column:span 2;}
 .cards > .card:nth-child(4){grid-column:span 4;}
+
 .grid{
 display:grid;
 grid-template-columns:repeat(12, minmax(0,1fr));
@@ -290,7 +283,22 @@ gap:16px;
 align-items:start;
 }
 .grid > section.card{grid-column:span 8;}
-.grid > aside.card{grid-column:span 4;position:sticky;top:88px;}
+.grid > aside.card{grid-column:span 4;position:sticky;top:92px;}
+
+.skeleton{
+border-radius:12px;
+height:12px;
+background:linear-gradient(90deg, rgba(255,255,255,.10), rgba(255,255,255,.04), rgba(255,255,255,.10));
+background-size:200% 100%;
+animation:shimmer 1.2s linear infinite;
+}
+.skeleton.big{height:32px;border-radius:14px}
+.skeleton.row{height:14px}
+.skeleton.block{height:140px;border-radius:16px}
+@keyframes shimmer{
+0%{background-position:200% 0}
+100%{background-position:-200% 0}
+}
 @media (max-width:1100px){
 .cards{grid-template-columns:repeat(2, 1fr)}
 .cards > .card:nth-child(1),
@@ -304,52 +312,34 @@ align-items:start;
 @media (max-width:620px){
 .nav{padding:10px 12px}
 .main{padding:16px 12px calc(16px + var(--safeBottom))}
-.h1{font-size:32px}
+.h1{font-size:30px}
 .actions{flex-direction:column;align-items:stretch}
 .btn{justify-content:center;width:100%}
-.cards{grid-template-columns:1fr}
+.table{min-width:640px}
 }
-@keyframes cardIn{
-from{opacity:0;transform:translateY(10px)}
-to{opacity:1;transform:translateY(0)}
-}
-.card{animation:cardIn .22s ease-out both}
-.cards .card:nth-child(1){animation-delay:.02s}
-.cards .card:nth-child(2){animation-delay:.05s}
-.cards .card:nth-child(3){animation-delay:.08s}
-.cards .card:nth-child(4){animation-delay:.11s}
-.grid .card{animation-delay:.14s}
-@keyframes shimmer{
-0%{background-position:200% 0}
-100%{background-position:-200% 0}
-}
-.skeleton{
-border-radius:12px;
-height:12px;
-background:linear-gradient(90deg, rgba(0,0,0,.06), rgba(0,0,0,.02), rgba(0,0,0,.06));
-background-size:200% 100%;
-animation:shimmer 1.2s linear infinite;
-}
-.skeleton.big{height:32px;border-radius:14px}
-.skeleton.row{height:14px}
-.skeleton.block{height:140px;border-radius:16px}
 @media (prefers-reduced-motion: reduce){
-.card{animation:none}
 .skeleton{animation:none}
-.btn,.pill{transition:none}
 .meter > div{transition:none}
+.pill,.btn{transition:none}
+}
+.footer{
+max-width:var(--max);
+margin:0 auto;
+padding:18px 16px 30px;
+color:var(--muted2);
+font-size:13px;
 }
 </style>
 </head>
 <body>
 <header class="topbar">
 <nav class="nav">
-<a class="brand" href="index.html"><span class="logo" aria-hidden="true"></span><span>JobApply-AI</span></a>
+<a class="brand" href="index.html"><span class="logo" aria-hidden="true"></span><span>JobApplyAI</span></a>
 <div class="navlinks">
 <a class="pill" href="index.html">Home</a>
 <a class="pill" href="profile.html">Profile</a>
 <a class="pill" href="plan.html">Plan</a>
-<a class="pill primary" href="dashboard.html">Dashboard</a>
+<a class="pill active" href="dashboard.html">Dashboard</a>
 <button class="pill iconOnly" id="btnLogout" type="button" aria-label="Logout">Logout</button>
 </div>
 </nav>
@@ -361,14 +351,12 @@ animation:shimmer 1.2s linear infinite;
 <div class="errorTop" id="errorTop"></div>
 
 <div class="cards">
-<div class="card healthTop">
+<div class="card">
 <h2>Health status <span class="badge" id="badgeHealth">Loading</span></h2>
-<div class="healthRow">
 <div class="kpi">
 <div>
 <div class="value" id="kpiHealthLabel">–</div>
 <div class="label">job supply vs your plan</div>
-</div>
 </div>
 <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
 <span class="badge" id="badgeHealthPlan">Plan: –</span>
@@ -377,7 +365,7 @@ animation:shimmer 1.2s linear infinite;
 </div>
 </div>
 <div class="meter" aria-hidden="true"><div id="healthMeterFill"></div></div>
-<div class="healthNote" id="healthNote"></div>
+<div style="margin-top:10px" id="healthNote"></div>
 </div>
 
 <div class="card">
@@ -417,10 +405,10 @@ animation:shimmer 1.2s linear infinite;
 <div class="grid">
 <section class="card">
 <h2>Queue preview</h2>
-<p class="small">Top 15 items from /me/jobs/queue. On mobile, swipe the table left/right if needed.</p>
+<p class="small">Top 15 items from /me/jobs/queue.</p>
 <div class="actions">
 <button class="btn primary" id="btnRefresh" type="button">Refresh</button>
-<button class="btn light" id="btnCopyToken" type="button">Copy access token</button>
+<button class="btn" id="btnCopyToken" type="button">Copy access token</button>
 </div>
 <div class="hr"></div>
 <div id="queueWrap"><div class="skeleton block"></div></div>
@@ -505,8 +493,8 @@ function nowStamp(){
 return new Date().toISOString().replace("T"," ").replace("Z"," UTC");
 }
 function animateNumber(el,to){
-if(!el) return;
 const prefersReduced=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+if(!el) return;
 if(prefersReduced){el.textContent=String(to);return;}
 const from=Number(String(el.textContent||"").replace(/[^\d.-]/g,""))||0;
 const start=performance.now();
@@ -523,7 +511,6 @@ requestAnimationFrame(tick);
 function renderQueueSkeleton(){
 return '<div class="skeleton big" style="width:220px"></div><div style="height:10px"></div><div class="skeleton row" style="width:96%"></div><div style="height:8px"></div><div class="skeleton row" style="width:92%"></div><div style="height:8px"></div><div class="skeleton row" style="width:88%"></div><div style="height:8px"></div><div class="skeleton row" style="width:84%"></div>';
 }
-
 function planFromState(planId){
 const pid=String(planId||"").trim().toLowerCase();
 if(pid==="starter") return {id:"starter",name:"Starter",daily:1,meta:"1 application/day",short:"Starter (1/day)"};
@@ -536,7 +523,6 @@ const raw=(localStorage.getItem("ja_plan")||"").trim().toLowerCase();
 if(raw==="starter"||raw==="pro"||raw==="max") return planFromState(raw);
 return planFromState(null);
 }
-
 async function requireSession(){
 if(!supabaseClient) throw new Error("Supabase client not initialized.");
 const {data,error}=await supabaseClient.auth.getSession();
@@ -558,7 +544,6 @@ throw new Error(path+" failed: "+res.status+" "+msg);
 }
 return json;
 }
-
 function renderQueueTable(queue){
 const items=Array.isArray(queue?.data)?queue.data:[];
 if(items.length===0) return '<span class="badge warn">No jobs in queue</span>';
@@ -574,7 +559,6 @@ return "<tr><td>"+titleCell+"</td><td>"+escapeHtml(company)+"</td><td>"+escapeHt
 }).join("");
 return '<div class="tableWrap"><table class="table"><thead><tr><th>Title</th><th>Company</th><th>City</th><th>Country</th><th>Posted</th></tr></thead><tbody>'+rows+'</tbody></table></div><div class="small" style="margin-top:10px">Showing '+Math.min(items.length,15)+' of '+items.length+' jobs</div>';
 }
-
 function renderAppsBreakdown(summary){
 const counts=summary&&summary.counts?summary.counts:null;
 if(!counts||typeof counts!=="object") return '<span class="badge warn">Not available</span>';
@@ -584,7 +568,6 @@ entries.sort((a,b)=>String(a[0]).localeCompare(String(b[0])));
 const rows=entries.map(([k,v])=>"<tr><td>"+escapeHtml(k)+"</td><td>"+escapeHtml(v)+"</td></tr>").join("");
 return '<div class="tableWrap"><table class="table" style="min-width:320px"><thead><tr><th>Status</th><th>Count</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
-
 function computeSupply(queueCount,planDaily){
 let healthLabel="Low";
 let badgeType="warn";
@@ -601,7 +584,6 @@ if(planDaily&&planDaily>0) ratio=Math.min(1,queueCount/(planDaily*5));
 else ratio=Math.min(1,queueCount/10);
 return {healthLabel,badgeType,recommendedCap,note,ratio};
 }
-
 function renderHealthTop(queueCount,plan){
 const s=computeSupply(queueCount,plan.daily);
 setBadge("badgeHealth",s.badgeType,s.healthLabel);
@@ -613,25 +595,22 @@ const meter=document.getElementById("healthMeterFill");
 if(meter) meter.style.width=Math.round(s.ratio*100)+"%";
 setHtml("healthNote",'<div class="mono">Recommended cap based on supply: '+s.recommendedCap+'/day</div><div class="mono" style="margin-top:6px">'+escapeHtml(s.note)+'</div>');
 }
-
 function renderOnboardingChecks(state){
 const items=[];
 const profileOk=!!state.profile_complete;
 const planOk=!!state.plan_id;
 const cvOk=!!state.cv_uploaded;
 const ocrOk=(String(state.cv_ocr_status||"").toLowerCase()==="done");
-items.push({label:"Profile complete",ok:profileOk,cta:profileOk?"":"Open profile"});
-items.push({label:"Plan selected",ok:planOk,cta:planOk?"":"Choose plan"});
-items.push({label:"CV uploaded",ok:cvOk,cta:cvOk?"":"Upload CV"});
-items.push({label:"OCR done",ok:ocrOk,cta:ocrOk?"":"Run OCR"});
-const rows=items.map(it=>{
-const bClass=it.ok?"badge good":"badge warn";
-const right=it.ok?'OK':('<a href="'+(it.label==="Plan selected"?'plan.html':'profile.html')+'" style="text-decoration:underline">Fix</a>');
-return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0"><span class="'+bClass+'">'+escapeHtml(it.label)+'</span><span class="small">'+right+'</span></div>';
+items.push({label:"Profile complete",ok:profileOk,fix:"profile.html"});
+items.push({label:"Plan selected",ok:planOk,fix:"plan.html"});
+items.push({label:"CV uploaded",ok:cvOk,fix:"profile.html"});
+items.push({label:"OCR done",ok:ocrOk,fix:"profile.html"});
+return items.map(it=>{
+const cls=it.ok?"badge good":"badge warn";
+const right=it.ok?'OK':('<a href="'+it.fix+'" style="text-decoration:underline">Fix</a>');
+return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0"><span class="'+cls+'">'+escapeHtml(it.label)+'</span><span class="small">'+right+'</span></div>';
 }).join("");
-return rows||'<span class="badge warn">Not available</span>';
 }
-
 async function loadDashboard(){
 clearTopError();
 setText("errorBox","");
@@ -644,36 +623,27 @@ setBadge("badgeHealth","","Loading");
 setHtml("queueWrap",renderQueueSkeleton());
 setHtml("appsBreakdown",'<div class="skeleton row" style="width:80%"></div><div style="height:8px"></div><div class="skeleton row" style="width:60%"></div>');
 setHtml("onboardingChecks",'<div class="skeleton row" style="width:86%"></div><div style="height:8px"></div><div class="skeleton row" style="width:74%"></div><div style="height:8px"></div><div class="skeleton row" style="width:66%"></div>');
-
 const session=await requireSession();
 if(!session) return;
-
 const email=session.user&&session.user.email?session.user.email:"—";
 setText("meEmail",email);
 setText("subLine","Signed in as "+email);
-
 let state=null;
 try{
 state=await apiGet("/me/state",session.access_token);
 }catch(e){
 state=null;
 }
-
 const plan=state&&state.plan_id?planFromState(state.plan_id):planFallbackFromLocalStorage();
 setText("kpiPlanName",plan.name);
 setText("kpiPlanMeta",plan.daily?plan.meta:"no plan selected");
 setBadge("badgePlan",plan.daily?"good":"warn",plan.daily?"Selected":"Not selected");
-
 if(state&&state.customer_id){
 setText("meCustomerId",state.customer_id);
-}else{
-setText("meCustomerId","—");
 }
-
 if(state){
 setHtml("onboardingChecks",renderOnboardingChecks(state));
 }
-
 try{
 const queue=await apiGet("/me/jobs/queue",session.access_token);
 const qCount=(typeof queue.count==="number")?queue.count:(Array.isArray(queue.data)?queue.data.length:0);
@@ -681,8 +651,8 @@ animateNumber(document.getElementById("kpiQueue"),qCount);
 setBadge("badgeQueue",qCount>0?"good":"warn",qCount>0?"OK":"Empty");
 setHtml("queueWrap",renderQueueTable(queue));
 renderHealthTop(qCount,plan);
-if(!state||!state.customer_id){
-setText("meCustomerId",queue&&queue.customer_id?queue.customer_id:"—");
+if((!state||!state.customer_id) && queue && queue.customer_id){
+setText("meCustomerId",queue.customer_id);
 }
 }catch(e){
 setText("kpiQueue","–");
@@ -693,7 +663,6 @@ setHtml("queueError",'<div class="error">'+escapeHtml(e.message)+'</div>');
 setText("errorBox",e.message);
 showTopError(e.message);
 }
-
 try{
 const apps=await apiGet("/me/applications/summary",session.access_token);
 const total=(typeof apps.total==="number")?apps.total:0;
@@ -703,10 +672,9 @@ setHtml("appsBreakdown",renderAppsBreakdown(apps));
 }catch(e){
 setText("kpiAppsTotal","–");
 setBadge("badgeApps","warn","Not ready");
-setHtml("appsBreakdown",'<span class="badge warn">Endpoint not available</span>');
+setHtml("appsBreakdown",'<span class="badge warn">Not available</span>');
 }
 }
-
 function wireEvents(){
 document.getElementById("btnRefresh").addEventListener("click",async()=>{try{await loadDashboard();}catch(e){showTopError(e.message);setText("errorBox",e.message);}});
 document.getElementById("btnCopyToken").addEventListener("click",async()=>{
@@ -725,10 +693,9 @@ window.location.replace("./index.html");
 }catch(e){showTopError(e.message);}
 });
 }
-
 window.addEventListener("load",async()=>{
 try{
-if(!window.supabase) throw new Error("Supabase library did not load. Check adblockers / network / CSP.");
+if(!window.supabase) throw new Error("Supabase library did not load. Check adblockers / network.");
 supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 wireEvents();
 await loadDashboard();
