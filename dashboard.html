@@ -7,8 +7,6 @@
 <style>
 :root{
 --bg:#0b1020;
---card:rgba(255,255,255,.08);
---card2:rgba(255,255,255,.06);
 --text:#e9ecf7;
 --muted:rgba(233,236,247,.72);
 --muted2:rgba(233,236,247,.55);
@@ -45,7 +43,7 @@ small{color:var(--muted)}
 position:sticky;
 top:0;
 z-index:30;
-background:rgba(11,16,32,.62);
+background:rgba(11,16,32,.72);
 backdrop-filter:saturate(1.2) blur(12px);
 border-bottom:1px solid var(--line);
 padding-top:var(--safeTop);
@@ -73,7 +71,13 @@ background: linear-gradient(135deg, var(--accent), var(--accent2));
 box-shadow: 0 10px 30px rgba(124,92,255,.25);
 flex:0 0 auto;
 }
-.navlinks{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.navlinks{
+display:flex;
+align-items:center;
+gap:10px;
+flex-wrap:wrap;
+justify-content:flex-end;
+}
 .pill{
 padding:9px 12px;
 border:1px solid var(--line);
@@ -110,6 +114,7 @@ box-shadow:var(--shadow);
 padding:14px;
 overflow:hidden;
 }
+.cardNoPad{padding:0}
 .card h2{
 margin:0 0 10px 0;
 font-size:16px;
@@ -185,11 +190,11 @@ background:linear-gradient(135deg, rgba(124,92,255,.30), rgba(0,212,255,.18));
 }
 .btn.ghost{
 border-color:rgba(255,255,255,.14);
-background:rgba(0,0,0,.18);
+background:rgba(0,0,0,.22);
 }
 .btn.danger{
 border-color:rgba(255,61,113,.45);
-background:rgba(255,61,113,.10);
+background:rgba(255,61,113,.12);
 }
 .btn.small{
 padding:9px 12px;
@@ -200,7 +205,7 @@ font-weight:900;
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
 .chip{
 border:1px solid rgba(255,255,255,.14);
-background:rgba(0,0,0,.16);
+background:rgba(0,0,0,.22);
 color:var(--muted);
 padding:8px 10px;
 border-radius:999px;
@@ -209,7 +214,7 @@ font-size:12px;
 cursor:pointer;
 transition:.15s ease;
 }
-.chip:hover{transform:translateY(-1px); background:rgba(0,0,0,.22)}
+.chip:hover{transform:translateY(-1px); background:rgba(0,0,0,.28)}
 .chip.active{border-color:rgba(124,92,255,.55); background:rgba(124,92,255,.18); color:#e9ecf7}
 
 .tableWrap{
@@ -254,7 +259,7 @@ width:100%;
 height:10px;
 border-radius:999px;
 border:1px solid rgba(255,255,255,.14);
-background:rgba(0,0,0,.16);
+background:rgba(0,0,0,.18);
 overflow:hidden;
 margin-top:10px;
 }
@@ -271,7 +276,7 @@ margin:12px 0 12px 0;
 padding:12px 14px;
 border-radius:16px;
 border:1px solid rgba(255,61,113,.25);
-background:rgba(255,61,113,.08);
+background:rgba(255,61,113,.10);
 color:#ffd1dc;
 font-weight:800;
 display:none;
@@ -281,7 +286,7 @@ margin-top:10px;
 padding:10px 12px;
 border-radius:14px;
 border:1px solid rgba(255,61,113,.25);
-background:rgba(255,61,113,.08);
+background:rgba(255,61,113,.10);
 color:#ffd1dc;
 font-weight:750;
 font-size:13px;
@@ -305,29 +310,28 @@ align-items:start;
 .grid > section.card{grid-column:span 8;}
 .grid > aside.card{grid-column:span 4;position:sticky;top:92px}
 
-/* Sticky header aligned to its container (no negative margins). */
 .sectionSticky{
 position:sticky;
 top:var(--stickyTop);
 z-index:10;
-background:rgba(11,16,32,.70);
+background:rgba(11,16,32,.92);
 backdrop-filter:saturate(1.2) blur(12px);
-border:1px solid rgba(255,255,255,.10);
-border-radius:16px;
-padding:12px;
-margin:0 0 12px 0;
+border-bottom:1px solid rgba(255,255,255,.10);
+padding:16px 14px 14px 14px;
 }
 .sectionSticky h2{margin:0 0 8px 0}
-.sectionSticky .small{margin:0 0 8px 0}
+.sectionSticky .small{margin:0 0 10px 0}
+.sectionBody{padding:14px}
 
-.list{
-display:flex;
-flex-direction:column;
-gap:10px;
+.list{display:flex;flex-direction:column;gap:10px}
+.listGrid{
+display:grid;
+grid-template-columns:repeat(2, minmax(0,1fr));
+gap:12px;
 }
 .item{
 border:1px solid rgba(255,255,255,.12);
-background:rgba(0,0,0,.14);
+background:linear-gradient(180deg, #111a34, #0c1226);
 border-radius:16px;
 padding:12px;
 }
@@ -337,10 +341,7 @@ justify-content:space-between;
 gap:10px;
 align-items:flex-start;
 }
-.itemTitle{
-font-weight:950;
-line-height:1.2;
-}
+.itemTitle{font-weight:950;line-height:1.2}
 .itemMeta{
 margin-top:6px;
 display:flex;
@@ -365,8 +366,6 @@ background:linear-gradient(90deg, rgba(255,255,255,.10), rgba(255,255,255,.04), 
 background-size:200% 100%;
 animation:shimmer 1.2s linear infinite;
 }
-.skeleton.big{height:32px;border-radius:14px}
-.skeleton.row{height:14px}
 .skeleton.block{height:140px;border-radius:16px}
 @keyframes shimmer{
 0%{background-position:200% 0}
@@ -386,9 +385,11 @@ font-size:13px;
 .grid > section.card{grid-column:auto}
 .grid > aside.card{grid-column:auto;position:static}
 .kpiBoard{grid-template-columns:1fr 1fr}
+.listGrid{grid-template-columns:1fr}
 }
 @media (max-width:760px){
 .kpiBoard{grid-template-columns:1fr 1fr}
+.listGrid{grid-template-columns:1fr}
 .table{min-width:880px}
 }
 @media (max-width:620px){
@@ -478,10 +479,10 @@ font-size:13px;
 </div>
 
 <div class="grid">
-<section class="card">
+<section class="card cardNoPad">
 <div class="sectionSticky" id="queueSticky">
 <h2>Queue preview</h2>
-<p class="small" id="queueStickyHint">Top items from /me/jobs/queue. Use Skip to remove jobs you don’t want.</p>
+<p class="small" id="queueStickyHint">Use Skip to remove jobs you don’t want. Skipping is limited if your queue gets too low.</p>
 <div class="actions">
 <button class="btn primary" id="btnRefresh" type="button">Refresh</button>
 <button class="btn" id="btnCopyToken" type="button">Copy access token</button>
@@ -490,6 +491,7 @@ font-size:13px;
 <div class="small" id="skipGuardrail" style="display:none"></div>
 </div>
 
+<div class="sectionBody">
 <div id="queueWrap"><div class="skeleton block"></div></div>
 <div id="queueError"></div>
 
@@ -510,6 +512,7 @@ font-size:13px;
 
 <div id="activityWrap"><div class="skeleton block"></div></div>
 <div id="activityError"></div>
+</div>
 </section>
 
 <aside class="card">
@@ -526,11 +529,11 @@ font-size:13px;
 
 <div class="hr"></div>
 <div class="small">Onboarding checks</div>
-<div id="onboardingChecks"><div class="skeleton row" style="width:86%"></div><div style="height:8px"></div><div class="skeleton row" style="width:74%"></div><div style="height:8px"></div><div class="skeleton row" style="width:66%"></div></div>
+<div id="onboardingChecks"><div class="skeleton block"></div></div>
 
 <div class="hr"></div>
 <div class="small">Applications breakdown</div>
-<div id="appsBreakdown"><div class="skeleton row" style="width:80%"></div><div style="height:8px"></div><div class="skeleton row" style="width:60%"></div></div>
+<div id="appsBreakdown"><div class="skeleton block"></div></div>
 
 <div class="hr"></div>
 <div class="small">Last refresh</div>
@@ -686,38 +689,17 @@ if(!ts) return "—";
 try{return String(ts).replace("T"," ").slice(0,16);}catch{return String(ts).slice(0,16);}
 }
 
+function isSingleColumn(){
+return window.matchMedia && window.matchMedia("(max-width: 1100px)").matches;
+}
 function isMobile(){
 return window.matchMedia && window.matchMedia("(max-width: 620px)").matches;
 }
 
-/* Desktop queue table includes Skip button now (fix #2). */
-function renderQueueDesktop(queue){
+function renderQueueCards(queue, forMobile){
 const items=Array.isArray(queue?.data)?queue.data:[];
 if(items.length===0) return '<span class="badge warn">No jobs in queue</span>';
-const rows=items.slice(0,15).map(j=>{
-const title=j.title||"Untitled";
-const company=j.company_name||"—";
-const loc=[j.city||"", j.region||""].filter(Boolean).join(", ") || "—";
-const posted=j.posted_at?String(j.posted_at).slice(0,10):"—";
-const link=j.apply_url?String(j.apply_url):"";
-const jobId=j.id||"";
-const titleCell=link?('<a href="'+escapeHtml(link)+'" target="_blank" rel="noopener">'+escapeHtml(title)+'</a>'):escapeHtml(title);
-return "<tr>"
-+ "<td>"+titleCell+"</td>"
-+ "<td>"+escapeHtml(company)+"</td>"
-+ "<td>"+escapeHtml(loc)+"</td>"
-+ "<td>"+escapeHtml(posted)+"</td>"
-+ "<td>"
-+ "<button class='btn small danger' type='button' data-skip='"+escapeHtml(jobId)+"'>Skip</button>"
-+ "</td>"
-+ "</tr>";
-}).join("");
-return '<div class="tableWrap"><table class="table" style="min-width:980px"><thead><tr><th>Job</th><th>Company</th><th>Location</th><th>Posted</th><th>Action</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
-}
-
-function renderQueueMobile(queue){
-const items=Array.isArray(queue?.data)?queue.data:[];
-if(items.length===0) return '<span class="badge warn">No jobs in queue</span>';
+const wrapClass = forMobile ? "list" : "listGrid";
 const cards=items.slice(0,15).map(j=>{
 const title=j.title||"Untitled";
 const company=j.company_name||"—";
@@ -731,15 +713,16 @@ return '<div class="item">'
 + '<div class="itemMeta"><span>'+escapeHtml(company)+'</span><span>•</span><span>'+escapeHtml(loc)+'</span><span>•</span><span>Posted '+escapeHtml(posted)+'</span></div>'
 + '<div class="itemActions">'
 + '<button class="btn small danger" type="button" data-skip="'+escapeHtml(jobId)+'">Skip</button>'
-+ '<a class="btn small" href="'+escapeHtml(link)+'" target="_blank" rel="noopener">Open</a>'
++ (link?('<a class="btn small" href="'+escapeHtml(link)+'" target="_blank" rel="noopener">Open</a>'):'')
 + '</div>'
 + '</div>';
 }).join("");
-return '<div class="list">'+cards+'</div>';
+return '<div class="'+wrapClass+'">'+cards+'</div>';
 }
 
 function renderQueue(queue){
-return isMobile()?renderQueueMobile(queue):renderQueueDesktop(queue);
+if(isMobile()) return renderQueueCards(queue, true);
+return renderQueueCards(queue, isSingleColumn());
 }
 
 async function onSkipJob(jobId){
@@ -792,8 +775,6 @@ return '<div class="tableWrap"><table class="table" style="min-width:320px"><the
 function renderActivity(resp){
 const items=Array.isArray(resp?.data)?resp.data:[];
 if(items.length===0) return '<span class="badge warn">No activity yet</span>';
-
-if(!isMobile()){
 const rows=items.slice(0,20).map(a=>{
 const b=statusBadge(a.status);
 const job=a.job||{};
@@ -816,23 +797,6 @@ return "<tr>"
 return '<div class="tableWrap"><table class="table" style="min-width:980px">'
 + '<thead><tr><th>Status</th><th>Job</th><th>Company</th><th>Location</th><th>Updated</th><th>Notes</th></tr></thead>'
 + '<tbody>'+rows+'</tbody></table></div>';
-}
-
-const cards=items.slice(0,20).map(a=>{
-const b=statusBadge(a.status);
-const job=a.job||{};
-const title=job.title||"Untitled";
-const company=job.company_name||"—";
-const loc=[job.city||"", job.region||""].filter(Boolean).join(", ") || "—";
-const updated=fmtDate(a.updated_at || a.created_at);
-const link=job.apply_url?String(job.apply_url):"";
-const titleHtml=link?('<a href="'+escapeHtml(link)+'" target="_blank" rel="noopener">'+escapeHtml(title)+'</a>'):escapeHtml(title);
-return '<div class="item">'
-+ '<div class="itemTop"><div class="itemTitle">'+titleHtml+'</div><span class="badge '+b.cls+'">'+escapeHtml(b.label)+'</span></div>'
-+ '<div class="itemMeta"><span>'+escapeHtml(company)+'</span><span>•</span><span>'+escapeHtml(loc)+'</span><span>•</span><span>'+escapeHtml(updated)+'</span></div>'
-+ '</div>';
-}).join("");
-return '<div class="list">'+cards+'</div>';
 }
 
 async function loadActivity(accessToken){
@@ -966,10 +930,8 @@ const btn=e.target.closest("button[data-status]");
 if(!btn) return;
 const status=btn.getAttribute("data-status")||"";
 activityFilterStatus=status;
-
 for(const b of wrap.querySelectorAll(".chip")) b.classList.remove("active");
 btn.classList.add("active");
-
 if(lastSessionToken) await loadActivity(lastSessionToken);
 });
 }
