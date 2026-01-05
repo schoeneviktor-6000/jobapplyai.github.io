@@ -6,566 +6,640 @@
 <title>JobApplyAI • Dashboard</title>
 <style>
 :root{
-  --bg:#0b1020;
-  --text:#e9ecf7;
-  --muted:rgba(233,236,247,.72);
-  --muted2:rgba(233,236,247,.55);
-  --line:rgba(255,255,255,.12);
-  --accent:#7c5cff;
-  --accent2:#00d4ff;
-  --ok:#00c853;
-  --warn:#ffb300;
-  --bad:#ff3d71;
-  --shadow:0 12px 34px rgba(0,0,0,.35);
-  --radius:18px;
-  --max:1120px;
-  --safeTop: env(safe-area-inset-top, 0px);
-  --safeBottom: env(safe-area-inset-bottom, 0px);
-  --stickyTop: 76px;
+--bg:#0b1020;
+--text:#e9ecf7;
+--muted:rgba(233,236,247,.72);
+--muted2:rgba(233,236,247,.55);
+--line:rgba(255,255,255,.12);
+--accent:#7c5cff;
+--accent2:#00d4ff;
+--ok:#00c853;
+--warn:#ffb300;
+--bad:#ff3d71;
+--shadow:0 12px 34px rgba(0,0,0,.35);
+--radius:18px;
+--max:1120px;
+--safeTop: env(safe-area-inset-top, 0px);
+--safeBottom: env(safe-area-inset-bottom, 0px);
 
-  --surface:#0f1730;
-  --surface2:#0c1226;
-  --surface3:#111a34;
+--surface:#0f1730;
+--surface2:#0c1226;
+--surface3:#111a34;
 }
-
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
-  margin:0;
-  font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-  color:var(--text);
-  background:
-    radial-gradient(1200px 650px at 20% -10%, rgba(124,92,255,.35), transparent 55%),
-    radial-gradient(900px 500px at 90% 10%, rgba(0,212,255,.22), transparent 55%),
-    radial-gradient(800px 600px at 70% 110%, rgba(0,200,83,.10), transparent 55%),
-    var(--bg);
-  overflow-x:hidden;
+margin:0;
+font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+color:var(--text);
+background:
+radial-gradient(1200px 650px at 20% -10%, rgba(124,92,255,.35), transparent 55%),
+radial-gradient(900px 500px at 90% 10%, rgba(0,212,255,.22), transparent 55%),
+radial-gradient(800px 600px at 70% 110%, rgba(0,200,83,.10), transparent 55%),
+var(--bg);
+overflow-x:hidden;
 }
 a{color:inherit;text-decoration:none}
 small{color:var(--muted)}
 
 .topbar{
-  position:sticky;
-  top:0;
-  z-index:30;
-  background:rgba(11,16,32,.72);
-  backdrop-filter:saturate(1.2) blur(12px);
-  border-bottom:1px solid var(--line);
-  padding-top:var(--safeTop);
+position:sticky;
+top:0;
+z-index:30;
+background:rgba(11,16,32,.72);
+backdrop-filter:saturate(1.2) blur(12px);
+border-bottom:1px solid var(--line);
+padding-top:var(--safeTop);
 }
 .nav{
-  max-width:var(--max);
-  margin:0 auto;
-  padding:12px 16px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
+max-width:var(--max);
+margin:0 auto;
+padding:12px 16px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:12px;
 }
 .brand{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  font-weight:900;
-  letter-spacing:.2px;
-  min-width:0;
+display:flex;
+align-items:center;
+gap:10px;
+font-weight:900;
+letter-spacing:.2px;
+min-width:0;
 }
 .logo{
-  width:34px;height:34px;border-radius:11px;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  box-shadow: 0 10px 30px rgba(124,92,255,.25);
-  flex:0 0 auto;
+width:34px;height:34px;border-radius:11px;
+background: linear-gradient(135deg, var(--accent), var(--accent2));
+box-shadow: 0 10px 30px rgba(124,92,255,.25);
+flex:0 0 auto;
 }
 .navlinks{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  flex-wrap:wrap;
-  justify-content:flex-end;
+display:flex;
+align-items:center;
+gap:10px;
+flex-wrap:wrap;
+justify-content:flex-end;
 }
 .pill{
-  padding:9px 12px;
-  border:1px solid var(--line);
-  border-radius:999px;
-  background:rgba(255,255,255,.04);
-  font-weight:750;
-  font-size:13px;
-  transition:.15s ease;
-  cursor:pointer;
-  white-space:nowrap;
+padding:9px 12px;
+border:1px solid var(--line);
+border-radius:999px;
+background:rgba(255,255,255,.04);
+font-weight:750;
+font-size:13px;
+transition:.15s ease;
+cursor:pointer;
+white-space:nowrap;
 }
 .pill:hover{transform:translateY(-1px);background:rgba(255,255,255,.06)}
 .pill.active{border-color:rgba(124,92,255,.6); background:rgba(124,92,255,.18)}
 .pill.iconOnly{padding:9px 10px}
 
 .main{
-  max-width:var(--max);
-  margin:0 auto;
-  padding:18px 16px calc(18px + var(--safeBottom));
+max-width:var(--max);
+margin:0 auto;
+padding:18px 16px calc(18px + var(--safeBottom));
 }
 .h1{
-  font-size:36px;
-  line-height:1.05;
-  letter-spacing:-.8px;
-  margin:10px 0 8px 0;
+font-size:36px;
+line-height:1.05;
+letter-spacing:-.8px;
+margin:10px 0 8px 0;
 }
 .sub{margin:0 0 14px 0;color:var(--muted);font-weight:650}
 
 .card{
-  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  padding:14px;
-  overflow:hidden;
+background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
+border:1px solid var(--line);
+border-radius:var(--radius);
+box-shadow:var(--shadow);
+padding:14px;
+overflow:hidden;
 }
 .cardNoPad{padding:0}
+
 .card h2{
-  margin:0 0 10px 0;
-  font-size:16px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
+margin:0 0 10px 0;
+font-size:16px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:10px;
 }
 .hr{height:1px;background:var(--line);margin:12px 0}
 
 .kpi{
-  display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
-  gap:10px;
-  flex-wrap:wrap;
+display:flex;
+align-items:flex-end;
+justify-content:space-between;
+gap:10px;
+flex-wrap:wrap;
 }
 .kpi > div{min-width:0;flex:1 1 auto}
 .kpi .value{
-  font-size:34px;
-  font-weight:950;
-  letter-spacing:-.6px;
-  line-height:1;
-  word-break:break-word;
+font-size:34px;
+font-weight:950;
+letter-spacing:-.6px;
+line-height:1;
+word-break:break-word;
 }
 .kpi .label{
-  color:var(--muted2);
-  font-weight:750;
-  font-size:12px;
+color:var(--muted2);
+font-weight:750;
+font-size:12px;
 }
 
 .badge{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:7px 10px;
-  border-radius:999px;
-  border:1px solid var(--line);
-  background:rgba(255,255,255,.05);
-  color:var(--muted);
-  font-size:12px;
-  font-weight:750;
-  white-space:nowrap;
-  max-width:100%;
+display:inline-flex;
+align-items:center;
+gap:8px;
+padding:7px 10px;
+border-radius:999px;
+border:1px solid var(--line);
+background:rgba(255,255,255,.05);
+color:var(--muted);
+font-size:12px;
+font-weight:750;
+white-space:nowrap;
+max-width:100%;
 }
 .badge.good{border-color:rgba(0,200,83,.4); background:rgba(0,200,83,.12); color:#c9ffe0}
 .badge.warn{border-color:rgba(255,179,0,.5); background:rgba(255,179,0,.12); color:#fff3c4}
 .badge.bad{border-color:rgba(255,61,113,.55); background:rgba(255,61,113,.12); color:#ffd1dc}
 
 .actions{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  align-items:center;
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+align-items:center;
 }
 .btn{
-  appearance:none;
-  border:1px solid var(--line);
-  background:rgba(255,255,255,.06);
-  color:var(--text);
-  padding:11px 14px;
-  border-radius:999px;
-  font-weight:900;
-  font-size:13px;
-  cursor:pointer;
-  transition:.15s ease;
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  text-decoration:none;
+appearance:none;
+border:1px solid var(--line);
+background:rgba(255,255,255,.06);
+color:var(--text);
+padding:11px 14px;
+border-radius:999px;
+font-weight:900;
+font-size:13px;
+cursor:pointer;
+transition:.15s ease;
+display:inline-flex;
+align-items:center;
+gap:8px;
+text-decoration:none;
 }
 .btn:hover{transform:translateY(-1px); background:rgba(255,255,255,.08)}
 .btn:disabled{opacity:.6; cursor:not-allowed; transform:none}
 .btn.primary{
-  border-color:rgba(124,92,255,.55);
-  background:linear-gradient(135deg, rgba(124,92,255,.30), rgba(0,212,255,.18));
+border-color:rgba(124,92,255,.55);
+background:linear-gradient(135deg, rgba(124,92,255,.30), rgba(0,212,255,.18));
 }
 .btn.ghost{
-  border-color:rgba(255,255,255,.14);
-  background:rgba(0,0,0,.22);
+border-color:rgba(255,255,255,.14);
+background:rgba(0,0,0,.22);
 }
 .btn.danger{
-  border-color:rgba(255,61,113,.45);
-  background:rgba(255,61,113,.12);
+border-color:rgba(255,61,113,.45);
+background:rgba(255,61,113,.12);
 }
 .btn.small{
-  padding:9px 12px;
-  font-size:12px;
-  font-weight:900;
+padding:9px 12px;
+font-size:12px;
+font-weight:900;
 }
 
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
 .chip{
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(0,0,0,.22);
-  color:var(--muted);
-  padding:8px 10px;
-  border-radius:999px;
-  font-weight:850;
-  font-size:12px;
-  cursor:pointer;
-  transition:.15s ease;
+border:1px solid rgba(255,255,255,.14);
+background:rgba(0,0,0,.22);
+color:var(--muted);
+padding:8px 10px;
+border-radius:999px;
+font-weight:850;
+font-size:12px;
+cursor:pointer;
+transition:.15s ease;
 }
 .chip:hover{transform:translateY(-1px); background:rgba(0,0,0,.28)}
 .chip.active{border-color:rgba(124,92,255,.55); background:rgba(124,92,255,.18); color:#e9ecf7}
 
 .small{font-size:12px;color:var(--muted2);font-weight:650}
 .mono{
-  font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
-  font-size:12px;
-  word-break:break-all;
-  color:rgba(233,236,247,.72);
+font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+font-size:12px;
+word-break:break-all;
+color:rgba(233,236,247,.72);
 }
 
 .meter{
-  width:100%;
-  height:10px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(0,0,0,.18);
-  overflow:hidden;
-  margin-top:10px;
+width:100%;
+height:10px;
+border-radius:999px;
+border:1px solid rgba(255,255,255,.14);
+background:rgba(0,0,0,.18);
+overflow:hidden;
+margin-top:10px;
 }
 .meter > div{
-  height:100%;
-  width:0%;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  border-radius:999px;
-  transition:width .25s ease;
+height:100%;
+width:0%;
+background: linear-gradient(135deg, var(--accent), var(--accent2));
+border-radius:999px;
+transition:width .25s ease;
 }
 
 .errorTop{
-  margin:12px 0 12px 0;
-  padding:12px 14px;
-  border-radius:16px;
-  border:1px solid rgba(255,61,113,.25);
-  background:rgba(255,61,113,.10);
-  color:#ffd1dc;
-  font-weight:800;
-  display:none;
+margin:12px 0 12px 0;
+padding:12px 14px;
+border-radius:16px;
+border:1px solid rgba(255,61,113,.25);
+background:rgba(255,61,113,.10);
+color:#ffd1dc;
+font-weight:800;
+display:none;
 }
 .error{
-  margin-top:10px;
-  padding:10px 12px;
-  border-radius:14px;
-  border:1px solid rgba(255,61,113,.25);
-  background:rgba(255,61,113,.10);
-  color:#ffd1dc;
-  font-weight:750;
-  font-size:13px;
+margin-top:10px;
+padding:10px 12px;
+border-radius:14px;
+border:1px solid rgba(255,61,113,.25);
+background:rgba(255,61,113,.10);
+color:#ffd1dc;
+font-weight:750;
+font-size:13px;
 }
 
 .kpiBoard{
-  display:grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap:14px;
-  margin:12px 0 16px 0;
-  align-items:stretch;
+display:grid;
+grid-template-columns: 2fr 1fr 1fr 1fr;
+gap:14px;
+margin:12px 0 16px 0;
+align-items:stretch;
 }
 .kpiBoard .card{height:100%}
 
 .grid{
-  display:grid;
-  grid-template-columns:repeat(12, minmax(0,1fr));
-  gap:16px;
-  align-items:start;
+display:grid;
+grid-template-columns:repeat(12, minmax(0,1fr));
+gap:16px;
+align-items:start;
 }
 .grid > section.card{grid-column:span 8;}
 .grid > aside.card{grid-column:span 4;position:sticky;top:92px}
 
-/* ✅ Make Queue preview header identical to Activity header:
-   - no sticky for now (removes overlap entirely)
-   - padding matches body
-   - border-bottom matches */
 .sectionHeader{
-  background:var(--surface2);
-  border-bottom:1px solid rgba(255,255,255,.10);
-  padding:14px;
+background:var(--surface2);
+border-bottom:1px solid rgba(255,255,255,.10);
+padding:14px;
 }
 .sectionBody{
-  padding:14px;
+padding:14px;
 }
 
 /* Job cards */
 .list{display:flex;flex-direction:column;gap:12px}
 .listGrid{
-  display:grid;
-  grid-template-columns:repeat(2, minmax(0,1fr));
-  gap:12px;
+display:grid;
+grid-template-columns:repeat(2, minmax(0,1fr));
+gap:12px;
 }
 .item{
-  border:1px solid rgba(255,255,255,.12);
-  background:var(--surface3);
-  border-radius:16px;
-  padding:14px;
+border:1px solid rgba(255,255,255,.12);
+background:var(--surface3);
+border-radius:16px;
+padding:14px;
 }
 .itemTop{
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  align-items:flex-start;
+display:flex;
+justify-content:space-between;
+gap:10px;
+align-items:flex-start;
 }
 .itemTitle{font-weight:950;line-height:1.2}
 .itemMeta{
-  margin-top:6px;
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  color:var(--muted2);
-  font-size:12px;
-  font-weight:750;
+margin-top:6px;
+display:flex;
+flex-wrap:wrap;
+gap:8px;
+color:var(--muted2);
+font-size:12px;
+font-weight:750;
 }
 .itemActions{
-  margin-top:10px;
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
+margin-top:10px;
+display:flex;
+gap:10px;
+flex-wrap:wrap;
 }
 .itemActions .btn{flex:1 1 auto;justify-content:center}
 
 /* Table swipe */
 .tableWrap{
-  overflow-x:auto;
-  overflow-y:hidden;
-  -webkit-overflow-scrolling:touch;
-  touch-action:pan-x pan-y;
-  border-radius:16px;
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(0,0,0,.16);
+overflow-x:auto;
+overflow-y:hidden;
+-webkit-overflow-scrolling:touch;
+touch-action:pan-x pan-y;
+border-radius:16px;
+border:1px solid rgba(255,255,255,.12);
+background:rgba(0,0,0,.16);
 }
 .table{
-  width:100%;
-  min-width:1100px;
-  border-collapse:separate;
-  border-spacing:0;
+width:100%;
+min-width:1100px;
+border-collapse:separate;
+border-spacing:0;
 }
 .table th,.table td{
-  text-align:left;
-  padding:10px 10px;
-  font-size:13px;
-  border-bottom:1px solid rgba(255,255,255,.10);
-  vertical-align:top;
+text-align:left;
+padding:10px 10px;
+font-size:13px;
+border-bottom:1px solid rgba(255,255,255,.10);
+vertical-align:top;
 }
 .table th{
-  background:rgba(255,255,255,.06);
-  font-weight:950;
-  position:sticky;
-  top:0;
+background:rgba(255,255,255,.06);
+font-weight:950;
+position:sticky;
+top:0;
 }
 .table tr:last-child td{border-bottom:0}
 .table a{color:#dfe7ff;text-decoration:underline}
 
 .skeleton{
-  border-radius:12px;
-  height:12px;
-  background:linear-gradient(90deg, rgba(255,255,255,.10), rgba(255,255,255,.04), rgba(255,255,255,.10));
-  background-size:200% 100%;
-  animation:shimmer 1.2s linear infinite;
+border-radius:12px;
+height:12px;
+background:linear-gradient(90deg, rgba(255,255,255,.10), rgba(255,255,255,.04), rgba(255,255,255,.10));
+background-size:200% 100%;
+animation:shimmer 1.2s linear infinite;
 }
 .skeleton.block{height:140px;border-radius:16px}
 @keyframes shimmer{
-  0%{background-position:200% 0}
-  100%{background-position:-200% 0}
+0%{background-position:200% 0}
+100%{background-position:-200% 0}
 }
 
+/* Modal */
+.modalBackdrop{
+position:fixed;
+inset:0;
+z-index:999;
+background:rgba(0,0,0,.55);
+display:flex;
+align-items:center;
+justify-content:center;
+padding:16px;
+}
+.modalCard{
+width:min(520px, 100%);
+border:1px solid rgba(255,255,255,.14);
+background:var(--surface2);
+border-radius:18px;
+box-shadow:0 18px 50px rgba(0,0,0,.55);
+padding:14px;
+}
+.modalTitle{
+font-weight:950;
+font-size:16px;
+margin:0 0 10px 0;
+}
+.field{
+display:flex;
+flex-direction:column;
+gap:6px;
+margin-top:10px;
+}
+label{font-size:12px;color:var(--muted);font-weight:800}
+select,textarea{
+border:1px solid rgba(255,255,255,.14);
+background:rgba(0,0,0,.18);
+color:var(--text);
+border-radius:12px;
+padding:10px 12px;
+outline:none;
+}
+textarea{min-height:80px;resize:vertical}
+.modalActions{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+justify-content:flex-end;
+margin-top:12px;
+}
+.modalActions .btn{flex:0 0 auto}
+
 .footer{
-  max-width:var(--max);
-  margin:0 auto;
-  padding:18px 16px 30px;
-  color:var(--muted2);
-  font-size:13px;
+max-width:var(--max);
+margin:0 auto;
+padding:18px 16px 30px;
+color:var(--muted2);
+font-size:13px;
 }
 
 @media (max-width:1100px){
-  .grid{grid-template-columns:1fr}
-  .grid > section.card{grid-column:auto}
-  .grid > aside.card{grid-column:auto;position:static}
-  .kpiBoard{grid-template-columns:1fr 1fr}
-  .listGrid{grid-template-columns:1fr}
-  .table{min-width:980px}
+.grid{grid-template-columns:1fr}
+.grid > section.card{grid-column:auto}
+.grid > aside.card{grid-column:auto;position:static}
+.kpiBoard{grid-template-columns:1fr 1fr}
+.listGrid{grid-template-columns:1fr}
+.table{min-width:980px}
 }
 @media (max-width:760px){
-  .kpiBoard{grid-template-columns:1fr 1fr}
-  .listGrid{grid-template-columns:1fr}
-  .table{min-width:900px}
+.kpiBoard{grid-template-columns:1fr 1fr}
+.listGrid{grid-template-columns:1fr}
+.table{min-width:900px}
 }
 @media (max-width:620px){
-  .nav{padding:10px 12px}
-  .main{padding:16px 12px calc(16px + var(--safeBottom))}
-  .h1{font-size:30px}
-  .actions{flex-direction:column;align-items:stretch}
-  .btn{justify-content:center;width:100%}
-  .kpiBoard{grid-template-columns:1fr}
-  .table{min-width:820px}
+.nav{padding:10px 12px}
+.main{padding:16px 12px calc(16px + var(--safeBottom))}
+.h1{font-size:30px}
+.actions{flex-direction:column;align-items:stretch}
+.btn{justify-content:center;width:100%}
+.kpiBoard{grid-template-columns:1fr}
+.table{min-width:820px}
+.modalActions{flex-direction:column}
+.modalActions .btn{width:100%;justify-content:center}
 }
 @media (prefers-reduced-motion: reduce){
-  .skeleton{animation:none}
-  .meter > div{transition:none}
-  .pill,.btn,.chip{transition:none}
+.skeleton{animation:none}
+.meter > div{transition:none}
+.pill,.btn,.chip{transition:none}
 }
 </style>
 </head>
 <body>
 <header class="topbar" id="topbar">
-  <nav class="nav">
-    <a class="brand" href="index.html"><span class="logo" aria-hidden="true"></span><span>JobApplyAI</span></a>
-    <div class="navlinks">
-      <a class="pill" href="index.html">Home</a>
-      <a class="pill" href="profile.html">Profile</a>
-      <a class="pill" href="plan.html">Plan</a>
-      <a class="pill active" href="dashboard.html">Dashboard</a>
-      <button class="pill iconOnly" id="btnLogout" type="button" aria-label="Logout">Logout</button>
-    </div>
-  </nav>
+<nav class="nav">
+<a class="brand" href="index.html"><span class="logo" aria-hidden="true"></span><span>JobApplyAI</span></a>
+<div class="navlinks">
+<a class="pill" href="index.html">Home</a>
+<a class="pill" href="profile.html">Profile</a>
+<a class="pill" href="plan.html">Plan</a>
+<a class="pill active" href="dashboard.html">Dashboard</a>
+<button class="pill iconOnly" id="btnLogout" type="button" aria-label="Logout">Logout</button>
+</div>
+</nav>
 </header>
 
 <main class="main">
-  <h1 class="h1">Dashboard</h1>
-  <p class="sub" id="subLine">Loading…</p>
-  <div class="errorTop" id="errorTop"></div>
+<h1 class="h1">Dashboard</h1>
+<p class="sub" id="subLine">Loading…</p>
+<div class="errorTop" id="errorTop"></div>
 
-  <div class="kpiBoard">
-    <div class="card">
-      <h2>Health status <span class="badge" id="badgeHealth">Loading</span></h2>
-      <div class="kpi">
-        <div>
-          <div class="value" id="kpiHealthLabel">–</div>
-          <div class="label">job supply vs your plan</div>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-          <span class="badge" id="badgeHealthPlan">Plan: –</span>
-          <span class="badge" id="badgeHealthQueue">Queue: –</span>
-          <span class="badge" id="badgeHealthCap">Today cap: –</span>
-        </div>
-      </div>
-      <div class="meter"><div id="healthMeterFill"></div></div>
-      <div style="margin-top:10px" id="healthNote"></div>
-    </div>
+<div class="kpiBoard">
+<div class="card">
+<h2>Health status <span class="badge" id="badgeHealth">Loading</span></h2>
+<div class="kpi">
+<div>
+<div class="value" id="kpiHealthLabel">–</div>
+<div class="label">job supply vs your plan</div>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+<span class="badge" id="badgeHealthPlan">Plan: –</span>
+<span class="badge" id="badgeHealthQueue">Queue: –</span>
+<span class="badge" id="badgeHealthCap">Today cap: –</span>
+</div>
+</div>
+<div class="meter"><div id="healthMeterFill"></div></div>
+<div style="margin-top:10px" id="healthNote"></div>
+</div>
 
-    <div class="card">
-      <h2>Job queue</h2>
-      <div class="kpi">
-        <div>
-          <div class="value" id="kpiQueue">–</div>
-          <div class="label">jobs ready</div>
-        </div>
-        <span class="badge" id="badgeQueue">Loading</span>
-      </div>
-    </div>
+<div class="card">
+<h2>Job queue</h2>
+<div class="kpi">
+<div>
+<div class="value" id="kpiQueue">–</div>
+<div class="label">jobs ready</div>
+</div>
+<span class="badge" id="badgeQueue">Loading</span>
+</div>
+</div>
 
-    <div class="card">
-      <h2>Applications</h2>
-      <div class="kpi">
-        <div>
-          <div class="value" id="kpiAppsTotal">–</div>
-          <div class="label">total</div>
-        </div>
-        <span class="badge" id="badgeApps">Loading</span>
-      </div>
-    </div>
+<div class="card">
+<h2>Applications</h2>
+<div class="kpi">
+<div>
+<div class="value" id="kpiAppsTotal">–</div>
+<div class="label">total</div>
+</div>
+<span class="badge" id="badgeApps">Loading</span>
+</div>
+</div>
 
-    <div class="card">
-      <h2>Plan</h2>
-      <div class="kpi">
-        <div>
-          <div class="value" id="kpiPlanName">–</div>
-          <div class="label" id="kpiPlanMeta">selected</div>
-        </div>
-        <span class="badge" id="badgePlan">Loading</span>
-      </div>
-    </div>
-  </div>
+<div class="card">
+<h2>Plan</h2>
+<div class="kpi">
+<div>
+<div class="value" id="kpiPlanName">–</div>
+<div class="label" id="kpiPlanMeta">selected</div>
+</div>
+<span class="badge" id="badgePlan">Loading</span>
+</div>
+</div>
+</div>
 
-  <div class="grid">
-    <section class="card cardNoPad">
-      <div class="sectionHeader" id="queueHeader">
-        <h2>Queue preview</h2>
-        <p class="small" id="queueStickyHint">Use Skip to remove jobs you don’t want. Skipping is limited if your queue gets too low.</p>
-        <div class="actions">
-          <button class="btn primary" id="btnRefresh" type="button">Refresh</button>
-          <button class="btn" id="btnCopyToken" type="button">Copy access token</button>
-        </div>
-        <div class="hr"></div>
-        <div class="small" id="skipGuardrail" style="display:none"></div>
-      </div>
+<div class="grid">
+<section class="card cardNoPad">
+<div class="sectionHeader">
+<h2>Queue preview</h2>
+<p class="small" id="queueHint">Use Skip to remove jobs you don’t want. Skipping is limited if your queue gets too low.</p>
+<div class="actions">
+<button class="btn primary" id="btnRefresh" type="button">Refresh</button>
+<button class="btn" id="btnCopyToken" type="button">Copy access token</button>
+</div>
+<div class="hr"></div>
+<div class="small" id="skipGuardrail" style="display:none"></div>
+</div>
 
-      <div class="sectionBody">
-        <div id="queueWrap"><div class="skeleton block"></div></div>
-        <div id="queueError"></div>
+<div class="sectionBody">
+<div id="queueWrap"><div class="skeleton block"></div></div>
+<div id="queueError"></div>
 
-        <div class="hr"></div>
+<div class="hr"></div>
 
-        <div class="sectionHeader" style="border-radius:0;border-left:0;border-right:0">
-          <h2 style="margin:0">Application activity log</h2>
-          <p class="small">Latest application events.</p>
-          <div class="chips" id="activityFilters">
-            <button class="chip active" type="button" data-status="">All</button>
-            <button class="chip" type="button" data-status="new">New</button>
-            <button class="chip" type="button" data-status="applied">Applied</button>
-            <button class="chip" type="button" data-status="rejected">Rejected</button>
-            <button class="chip" type="button" data-status="skipped">Skipped</button>
-          </div>
-        </div>
+<div class="sectionHeader" style="border-radius:0;border-left:0;border-right:0">
+<h2 style="margin:0">Application activity log</h2>
+<p class="small">Latest timeline events (queued, skipped, applied…).</p>
+<div class="chips" id="activityFilters">
+<button class="chip active" type="button" data-etype="">All</button>
+<button class="chip" type="button" data-etype="queued">Queued</button>
+<button class="chip" type="button" data-etype="applied">Applied</button>
+<button class="chip" type="button" data-etype="rejected">Rejected</button>
+<button class="chip" type="button" data-etype="skipped">Skipped</button>
+</div>
+</div>
 
-        <div class="hr"></div>
+<div class="hr"></div>
 
-        <div id="activityWrap"><div class="skeleton block"></div></div>
-        <div id="activityError"></div>
-      </div>
-    </section>
+<div id="activityWrap"><div class="skeleton block"></div></div>
+<div id="activityError"></div>
+</div>
+</section>
 
-    <aside class="card">
-      <h2>Account</h2>
-      <div class="badge good" id="badgeUser">Signed in</div>
-      <div class="hr"></div>
+<aside class="card">
+<h2>Account</h2>
+<div class="badge good" id="badgeUser">Signed in</div>
+<div class="hr"></div>
 
-      <div class="small">Email</div>
-      <div class="mono" id="meEmail">–</div>
+<div class="small">Email</div>
+<div class="mono" id="meEmail">–</div>
 
-      <div class="hr"></div>
-      <div class="small">Customer ID</div>
-      <div class="mono" id="meCustomerId">–</div>
+<div class="hr"></div>
+<div class="small">Customer ID</div>
+<div class="mono" id="meCustomerId">–</div>
 
-      <div class="hr"></div>
-      <div class="small">Onboarding checks</div>
-      <div id="onboardingChecks"><div class="skeleton block"></div></div>
+<div class="hr"></div>
+<div class="small">Onboarding checks</div>
+<div id="onboardingChecks"><div class="skeleton block"></div></div>
 
-      <div class="hr"></div>
-      <div class="small">Applications breakdown</div>
-      <div id="appsBreakdown"><div class="skeleton block"></div></div>
+<div class="hr"></div>
+<div class="small">Applications breakdown</div>
+<div id="appsBreakdown"><div class="skeleton block"></div></div>
 
-      <div class="hr"></div>
-      <div class="small">Last refresh</div>
-      <div class="mono" id="lastCheck">–</div>
+<div class="hr"></div>
+<div class="small">Last refresh</div>
+<div class="mono" id="lastCheck">–</div>
 
-      <div class="hr"></div>
-      <div class="actions">
-        <a class="btn ghost" href="profile.html">Edit profile</a>
-        <a class="btn ghost" href="plan.html">Change plan</a>
-      </div>
+<div class="hr"></div>
+<div class="actions">
+<a class="btn ghost" href="profile.html">Edit profile</a>
+<a class="btn ghost" href="plan.html">Change plan</a>
+</div>
 
-      <div class="hr"></div>
-      <div class="small" id="errorBox"></div>
-    </aside>
-  </div>
+<div class="hr"></div>
+<div class="small" id="errorBox"></div>
+</aside>
+</div>
 </main>
+
+<div class="modalBackdrop" id="skipModal" style="display:none">
+<div class="modalCard">
+<div class="modalTitle">Skip this job</div>
+
+<div class="field">
+<label for="skipReason">Reason</label>
+<select id="skipReason">
+<option value="not_relevant">Not relevant</option>
+<option value="too_far">Too far</option>
+<option value="wrong_industry">Wrong industry</option>
+<option value="salary_too_low">Salary too low</option>
+<option value="already_applied">Already applied</option>
+<option value="other">Other</option>
+</select>
+</div>
+
+<div class="field">
+<label for="skipNote">Note (optional)</label>
+<textarea id="skipNote" placeholder="Anything specific?"></textarea>
+</div>
+
+<div class="modalActions">
+<button class="btn ghost" id="skipCancel" type="button">Cancel</button>
+<button class="btn danger" id="skipConfirm" type="button">Skip</button>
+</div>
+</div>
+</div>
 
 <footer class="footer">Support: <a href="mailto:schonv2@gmail.com">schonv2@gmail.com</a></footer>
 
@@ -577,9 +651,13 @@ const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 let supabaseClient=null;
 
 let lastSessionToken="";
-let activityFilterStatus="";
 let currentPlanDaily=0;
 let currentQueueCount=0;
+
+let useEventsEndpoint = true;
+let activityEventType = "";
+
+let pendingSkipJobId = null;
 
 function setText(id,text){const el=document.getElementById(id); if(el) el.textContent=text;}
 function setHtml(id,html){const el=document.getElementById(id); if(el) el.innerHTML=html;}
@@ -589,404 +667,504 @@ function clearTopError(){const el=document.getElementById("errorTop"); if(!el) r
 function escapeHtml(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
 function nowStamp(){return new Date().toISOString().replace("T"," ").slice(0,19)+" UTC";}
 function animateNumber(el,to){
-  const prefersReduced=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if(!el) return;
-  if(prefersReduced){el.textContent=String(to);return;}
-  const from=Number(String(el.textContent||"").replace(/[^\d.-]/g,""))||0;
-  const start=performance.now();
-  const dur=420;
-  function tick(t){
-    const p=Math.min(1,(t-start)/dur);
-    const eased=1-Math.pow(1-p,3);
-    const v=Math.round(from+(to-from)*eased);
-    el.textContent=String(v);
-    if(p<1) requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
+const prefersReduced=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+if(!el) return;
+if(prefersReduced){el.textContent=String(to);return;}
+const from=Number(String(el.textContent||"").replace(/[^\d.-]/g,""))||0;
+const start=performance.now();
+const dur=420;
+function tick(t){
+const p=Math.min(1,(t-start)/dur);
+const eased=1-Math.pow(1-p,3);
+const v=Math.round(from+(to-from)*eased);
+el.textContent=String(v);
+if(p<1) requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
 }
 function renderSkeleton(){return '<div class="skeleton block"></div>'; }
 
-function planFromState(planId){
-  const pid=String(planId||"").trim().toLowerCase();
-  if(pid==="starter") return {id:"starter",name:"Starter",daily:1,meta:"1 application/day",short:"Starter (1/day)"};
-  if(pid==="pro") return {id:"pro",name:"Pro",daily:5,meta:"5 applications/day",short:"Pro (5/day)"};
-  if(pid==="max") return {id:"max",name:"Max",daily:10,meta:"10 applications/day",short:"Max (10/day)"};
-  return {id:null,name:"No plan",daily:0,meta:"Select Starter / Pro / Max",short:"No plan"};
+function openSkipModal(jobId){
+pendingSkipJobId = jobId;
+document.getElementById("skipNote").value = "";
+document.getElementById("skipReason").value = "not_relevant";
+document.getElementById("skipModal").style.display = "flex";
 }
-function planFallbackFromLocalStorage(){
-  const raw=(localStorage.getItem("ja_plan")||"").trim().toLowerCase();
-  if(raw==="starter"||raw==="pro"||raw==="max") return planFromState(raw);
-  return planFromState(null);
+function closeSkipModal(){
+pendingSkipJobId = null;
+document.getElementById("skipModal").style.display = "none";
 }
 
 async function requireSession(){
-  if(!supabaseClient) throw new Error("Supabase client not initialized.");
-  const {data,error}=await supabaseClient.auth.getSession();
-  if(error) throw error;
-  if(!data||!data.session){
-    window.location.replace("./signup.html");
-    return null;
-  }
-  lastSessionToken=data.session.access_token;
-  return data.session;
+const {data,error}=await supabaseClient.auth.getSession();
+if(error) throw error;
+if(!data||!data.session){
+window.location.replace("./signup.html");
+return null;
+}
+lastSessionToken=data.session.access_token;
+return data.session;
 }
 
 async function apiGet(path,accessToken){
-  const res=await fetch(API_BASE+path,{method:"GET",headers:{"Authorization":"Bearer "+accessToken}});
-  const text=await res.text().catch(()=> "");
-  let json=null;
-  try{json=JSON.parse(text);}catch{json={raw:text};}
-  if(!res.ok){
-    const msg=(json&&(json.error||json.details))?(json.error||json.details):text;
-    throw new Error(path+" failed: "+res.status+" "+msg);
-  }
-  return json;
+const res=await fetch(API_BASE+path,{method:"GET",headers:{"Authorization":"Bearer "+accessToken}});
+const text=await res.text().catch(()=> "");
+let json=null;
+try{json=JSON.parse(text);}catch{json={raw:text};}
+if(!res.ok){
+const msg=(json&&(json.error||json.details))?(json.error||json.details):text;
+throw new Error(path+" failed: "+res.status+" "+msg);
+}
+return json;
 }
 
 async function apiPost(path,accessToken,body){
-  const res=await fetch(API_BASE+path,{
-    method:"POST",
-    headers:{
-      "Authorization":"Bearer "+accessToken,
-      "content-type":"application/json"
-    },
-    body:JSON.stringify(body||{})
-  });
-  const text=await res.text().catch(()=> "");
-  let json=null;
-  try{json=JSON.parse(text);}catch{json={raw:text};}
-  if(!res.ok){
-    const msg=(json&&(json.error||json.details))?(json.error||json.details):text;
-    throw new Error(path+" failed: "+res.status+" "+msg);
-  }
-  return json;
+const res=await fetch(API_BASE+path,{
+method:"POST",
+headers:{
+"Authorization":"Bearer "+accessToken,
+"content-type":"application/json"
+},
+body:JSON.stringify(body||{})
+});
+const text=await res.text().catch(()=> "");
+let json=null;
+try{json=JSON.parse(text);}catch{json={raw:text};}
+if(!res.ok){
+const msg=(json&&(json.error||json.details))?(json.error||json.details):text;
+throw new Error(path+" failed: "+res.status+" "+msg);
+}
+return json;
+}
+
+function planFromState(planId){
+const pid=String(planId||"").trim().toLowerCase();
+if(pid==="starter") return {id:"starter",name:"Starter",daily:1,meta:"1 application/day",short:"Starter (1/day)"};
+if(pid==="pro") return {id:"pro",name:"Pro",daily:5,meta:"5 applications/day",short:"Pro (5/day)"};
+if(pid==="max") return {id:"max",name:"Max",daily:10,meta:"10 applications/day",short:"Max (10/day)"};
+return {id:null,name:"No plan",daily:0,meta:"Select Starter / Pro / Max",short:"No plan"};
+}
+function planFallbackFromLocalStorage(){
+const raw=(localStorage.getItem("ja_plan")||"").trim().toLowerCase();
+if(raw==="starter"||raw==="pro"||raw==="max") return planFromState(raw);
+return planFromState(null);
 }
 
 function computeSupply(queueCount,planDaily){
-  let healthLabel="Low";
-  let badgeType="warn";
-  let recommendedCap=1;
-  if(queueCount>=25){healthLabel="Healthy";badgeType="good";recommendedCap=10;}
-  else if(queueCount>=5){healthLabel="Medium";badgeType="";recommendedCap=5;}
-  let note="";
-  if(!planDaily) note="Select a plan to start.";
-  else if(queueCount===0) note="No jobs in your queue yet. Broaden titles or increase radius.";
-  else if(queueCount<planDaily) note="Your queue is below your plan. Increase titles/radius to avoid running out.";
-  else note="You have enough supply for today.";
-  let ratio=0;
-  if(planDaily&&planDaily>0) ratio=Math.min(1,queueCount/(planDaily*5));
-  else ratio=Math.min(1,queueCount/10);
-  return {healthLabel,badgeType,recommendedCap,note,ratio};
+let healthLabel="Low";
+let badgeType="warn";
+let recommendedCap=1;
+if(queueCount>=25){healthLabel="Healthy";badgeType="good";recommendedCap=10;}
+else if(queueCount>=5){healthLabel="Medium";badgeType="";recommendedCap=5;}
+let note="";
+if(!planDaily) note="Select a plan to start.";
+else if(queueCount===0) note="No jobs in your queue yet. Broaden titles or increase radius.";
+else if(queueCount<planDaily) note="Your queue is below your plan. Increase titles/radius to avoid running out.";
+else note="You have enough supply for today.";
+let ratio=0;
+if(planDaily&&planDaily>0) ratio=Math.min(1,queueCount/(planDaily*5));
+else ratio=Math.min(1,queueCount/10);
+return {healthLabel,badgeType,recommendedCap,note,ratio};
 }
 
 function renderHealth(queueCount,plan){
-  const s=computeSupply(queueCount,plan.daily);
-  setBadge("badgeHealth",s.badgeType,s.healthLabel);
-  setText("kpiHealthLabel",s.healthLabel);
-  setBadge("badgeHealthPlan",plan.daily?"":"warn","Plan: "+plan.short);
-  setBadge("badgeHealthQueue",queueCount>0?"good":"warn","Queue: "+queueCount);
-  setBadge("badgeHealthCap","","Today cap: "+(plan.daily?plan.daily:0)+"/day");
-  const meter=document.getElementById("healthMeterFill");
-  if(meter) meter.style.width=Math.round(s.ratio*100)+"%";
-  setHtml("healthNote",
-    '<div class="mono">Recommended cap based on supply: '+s.recommendedCap+'/day</div>'+
-    '<div class="mono" style="margin-top:6px">'+escapeHtml(s.note)+'</div>'
-  );
+const s=computeSupply(queueCount,plan.daily);
+setBadge("badgeHealth",s.badgeType,s.healthLabel);
+setText("kpiHealthLabel",s.healthLabel);
+setBadge("badgeHealthPlan",plan.daily?"":"warn","Plan: "+plan.short);
+setBadge("badgeHealthQueue",queueCount>0?"good":"warn","Queue: "+queueCount);
+setBadge("badgeHealthCap","","Today cap: "+(plan.daily?plan.daily:0)+"/day");
+const meter=document.getElementById("healthMeterFill");
+if(meter) meter.style.width=Math.round(s.ratio*100)+"%";
+setHtml("healthNote",
+'<div class="mono">Recommended cap based on supply: '+s.recommendedCap+'/day</div>'+
+'<div class="mono" style="margin-top:6px">'+escapeHtml(s.note)+'</div>'
+);
 }
 
 function isSingleColumn(){
-  return window.matchMedia && window.matchMedia("(max-width: 1100px)").matches;
+return window.matchMedia && window.matchMedia("(max-width: 1100px)").matches;
 }
 
 function renderQueueCards(queue){
-  const items=Array.isArray(queue?.data)?queue.data:[];
-  if(items.length===0) return '<span class="badge warn">No jobs in queue</span>';
-  const wrapClass = isSingleColumn() ? "list" : "listGrid";
+const items=Array.isArray(queue?.data)?queue.data:[];
+if(items.length===0) return '<span class="badge warn">No jobs in queue</span>';
+const wrapClass = isSingleColumn() ? "list" : "listGrid";
 
-  const cards=items.slice(0,16).map(j=>{
-    const title=j.title||"Untitled";
-    const company=j.company_name||"—";
-    const loc=[j.city||"", j.region||""].filter(Boolean).join(", ") || "—";
-    const posted=j.posted_at?String(j.posted_at).slice(0,10):"—";
-    const link=j.apply_url?String(j.apply_url):"";
-    const jobId=j.id||"";
-    const titleHtml=link
-      ? ('<a href="'+escapeHtml(link)+'" target="_blank" rel="noopener">'+escapeHtml(title)+'</a>')
-      : escapeHtml(title);
+const cards=items.slice(0,16).map(j=>{
+const title=j.title||"Untitled";
+const company=j.company_name||"—";
+const loc=[j.city||"", j.region||""].filter(Boolean).join(", ") || "—";
+const posted=j.posted_at?String(j.posted_at).slice(0,10):"—";
+const link=j.apply_url?String(j.apply_url):"";
+const jobId=j.id||"";
+const titleHtml=link ? ('<a href="'+escapeHtml(link)+'" target="_blank" rel="noopener">'+escapeHtml(title)+'</a>') : escapeHtml(title);
 
-    return '<div class="item">'
-      + '<div class="itemTop"><div class="itemTitle">'+titleHtml+'</div><span class="badge">new</span></div>'
-      + '<div class="itemMeta"><span>'+escapeHtml(company)+'</span><span>•</span><span>'+escapeHtml(loc)+'</span><span>•</span><span>Posted '+escapeHtml(posted)+'</span></div>'
-      + '<div class="itemActions">'
-      +   '<button class="btn small danger" type="button" data-skip="'+escapeHtml(jobId)+'">Skip</button>'
-      +   (link?('<a class="btn small" href="'+escapeHtml(link)+'" target="_blank" rel="noopener">Open</a>'):'')
-      + '</div>'
-      + '</div>';
-  }).join("");
+return '<div class="item">'
++ '<div class="itemTop"><div class="itemTitle">'+titleHtml+'</div><span class="badge">new</span></div>'
++ '<div class="itemMeta"><span>'+escapeHtml(company)+'</span><span>•</span><span>'+escapeHtml(loc)+'</span><span>•</span><span>Posted '+escapeHtml(posted)+'</span></div>'
++ '<div class="itemActions">'
++ '<button class="btn small danger" type="button" data-skip="'+escapeHtml(jobId)+'">Skip</button>'
++ (link?('<a class="btn small" href="'+escapeHtml(link)+'" target="_blank" rel="noopener">Open</a>'):'')
++ '</div>'
++ '</div>';
+}).join("");
 
-  return '<div class="'+wrapClass+'">'+cards+'</div>';
+return '<div class="'+wrapClass+'">'+cards+'</div>';
 }
 
-async function onSkipJob(jobId){
-  if(!lastSessionToken) return;
-
-  const minSupply = Math.max(5, currentPlanDaily * 3);
-  if(currentPlanDaily > 0 && currentQueueCount <= minSupply){
-    const el=document.getElementById("skipGuardrail");
-    if(el){
-      el.style.display="block";
-      el.style.color="rgba(255,179,0,.95)";
-      el.textContent="Skipping is limited because your queue is getting low. Add more titles or increase radius to keep daily applications running.";
-    }
-    return;
-  }
-
-  let reason="";
-  try{ reason = prompt("Reason to skip (optional):") || ""; }catch{ reason=""; }
-
-  try{
-    await apiPost("/me/applications/skip", lastSessionToken, { job_id: jobId, reason });
-    await loadQueueAndActivityOnly();
-  }catch(e){
-    showTopError(e.message);
-  }
+function wireQueueClicks(){
+const wrap=document.getElementById("queueWrap");
+if(!wrap) return;
+wrap.addEventListener("click",(e)=>{
+const skip=e.target.closest("button[data-skip]");
+if(skip){
+const jobId=skip.getAttribute("data-skip")||"";
+if(jobId) openSkipModal(jobId);
+}
+});
 }
 
-function wireQueueSkipClicks(){
-  const wrap=document.getElementById("queueWrap");
-  if(!wrap) return;
-  wrap.addEventListener("click",(e)=>{
-    const btn=e.target.closest("button[data-skip]");
-    if(!btn) return;
-    const jobId=btn.getAttribute("data-skip")||"";
-    if(!jobId) return;
-    onSkipJob(jobId);
-  });
+async function submitSkip(){
+if(!pendingSkipJobId) return;
+const minSupply = Math.max(5, currentPlanDaily * 3);
+if(currentPlanDaily > 0 && currentQueueCount <= minSupply){
+const el=document.getElementById("skipGuardrail");
+if(el){
+el.style.display="block";
+el.style.color="rgba(255,179,0,.95)";
+el.textContent="Skipping is limited because your queue is getting low. Add more titles or increase radius to keep daily applications running.";
+}
+closeSkipModal();
+return;
+}
+
+const reason_code = document.getElementById("skipReason").value;
+const reason_note = document.getElementById("skipNote").value.trim();
+
+try{
+await apiPost("/me/applications/skip", lastSessionToken, {
+job_id: pendingSkipJobId,
+reason_code,
+reason_note
+});
+closeSkipModal();
+await refreshQueueAndActivity();
+}catch(e){
+closeSkipModal();
+showTopError(e.message);
+}
+}
+
+async function undoSkip(jobId){
+try{
+await apiPost("/me/applications/unskip", lastSessionToken, { job_id: jobId });
+await refreshQueueAndActivity();
+}catch(e){
+showTopError(e.message);
+}
 }
 
 function fmtDate(ts){
-  if(!ts) return "—";
-  try{return String(ts).replace("T"," ").slice(0,16);}catch{return String(ts).slice(0,16);}
-}
-function statusBadge(status){
-  const s=String(status||"").toLowerCase();
-  if(s==="applied") return {cls:"good", label:"applied"};
-  if(s==="shortlisted") return {cls:"good", label:"shortlisted"};
-  if(s==="rejected") return {cls:"bad", label:"rejected"};
-  if(s==="skipped") return {cls:"warn", label:"skipped"};
-  if(s==="expired") return {cls:"warn", label:"expired"};
-  return {cls:"", label:s||"unknown"};
+if(!ts) return "—";
+try{return String(ts).replace("T"," ").slice(0,16);}catch{return String(ts).slice(0,16);}
 }
 
-function renderAppsBreakdown(summary){
-  const counts=summary&&summary.counts?summary.counts:null;
-  if(!counts||typeof counts!=="object") return '<span class="badge warn">Not available</span>';
-  const entries=Object.entries(counts);
-  if(entries.length===0) return '<span class="badge warn">No applications yet</span>';
-  entries.sort((a,b)=>String(a[0]).localeCompare(String(b[0])));
-  const rows=entries.map(([k,v])=>"<tr><td>"+escapeHtml(k)+"</td><td>"+escapeHtml(v)+"</td></tr>").join("");
-  return '<div class="tableWrap" style="margin-top:8px"><table class="table" style="min-width:520px"><thead><tr><th>Status</th><th>Count</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+function eventBadge(type){
+const t=String(type||"").toLowerCase();
+if(t==="applied"||t==="sent"||t==="replied") return {cls:"good", label:t};
+if(t==="rejected") return {cls:"bad", label:t};
+if(t==="skipped") return {cls:"warn", label:t};
+if(t==="queued") return {cls:"", label:"queued"};
+if(t==="unskipped") return {cls:"", label:"undo"};
+return {cls:"", label:t||"event"};
 }
 
-function renderActivityTable(resp){
-  const items=Array.isArray(resp?.data)?resp.data:[];
-  if(items.length===0) return '<span class="badge warn">No activity yet</span>';
+function renderEventsTable(resp){
+const items=Array.isArray(resp?.data)?resp.data:[];
+if(items.length===0) return '<span class="badge warn">No events yet</span>';
 
-  const rows=items.slice(0,25).map(a=>{
-    const b=statusBadge(a.status);
-    const job=a.job||{};
-    const title=job.title||"Untitled";
-    const company=job.company_name||"—";
-    const loc=[job.city||"", job.region||""].filter(Boolean).join(", ") || "—";
-    const updated=fmtDate(a.updated_at || a.created_at);
-    const notes=a.notes ? escapeHtml(String(a.notes).slice(0,140)) : "";
-    const link=job.apply_url?String(job.apply_url):"";
-    const titleCell=link
-      ? ('<a href="'+escapeHtml(link)+'" target="_blank" rel="noopener">'+escapeHtml(title)+'</a>')
-      : escapeHtml(title);
+const rows=items.slice(0,30).map(ev=>{
+const b=eventBadge(ev.event_type);
+const job=ev.job||{};
+const title=job.title||"Untitled";
+const company=job.company_name||"—";
+const loc=[job.city||"", job.region||""].filter(Boolean).join(", ") || "—";
+const when=fmtDate(ev.created_at);
+const link=job.apply_url?String(job.apply_url):"";
+const titleCell=link ? ('<a href="'+escapeHtml(link)+'" target="_blank" rel="noopener">'+escapeHtml(title)+'</a>') : escapeHtml(title);
 
-    return "<tr>"
-      + "<td><span class='badge "+b.cls+"'>"+escapeHtml(b.label)+"</span></td>"
-      + "<td>"+titleCell+"</td>"
-      + "<td>"+escapeHtml(company)+"</td>"
-      + "<td>"+escapeHtml(loc)+"</td>"
-      + "<td>"+escapeHtml(updated)+"</td>"
-      + "<td>"+(notes?notes:"—")+"</td>"
-      + "</tr>";
-  }).join("");
+let metaTxt="—";
+if(ev.meta && typeof ev.meta === "object"){
+if(ev.meta.reason_code) metaTxt = "reason: " + escapeHtml(String(ev.meta.reason_code));
+}
+const actionBtn = (String(ev.event_type||"").toLowerCase()==="skipped" && job.id)
+? "<button class='btn small ghost' type='button' data-unskip='"+escapeHtml(job.id)+"'>Undo</button>"
+: "—";
 
-  return '<div class="tableWrap"><table class="table">'
-    + '<thead><tr><th>Status</th><th>Job</th><th>Company</th><th>Location</th><th>Updated</th><th>Notes</th></tr></thead>'
-    + '<tbody>'+rows+'</tbody></table></div>';
+return "<tr>"
++ "<td><span class='badge "+b.cls+"'>"+escapeHtml(b.label)+"</span></td>"
++ "<td>"+titleCell+"</td>"
++ "<td>"+escapeHtml(company)+"</td>"
++ "<td>"+escapeHtml(loc)+"</td>"
++ "<td>"+escapeHtml(when)+"</td>"
++ "<td>"+metaTxt+"</td>"
++ "<td>"+actionBtn+"</td>"
++ "</tr>";
+}).join("");
+
+return '<div class="tableWrap"><table class="table">'
++ '<thead><tr><th>Event</th><th>Job</th><th>Company</th><th>Location</th><th>Time</th><th>Meta</th><th>Action</th></tr></thead>'
++ '<tbody>'+rows+'</tbody></table></div>';
+}
+
+function renderAppsFallbackTable(resp){
+const items=Array.isArray(resp?.data)?resp.data:[];
+if(items.length===0) return '<span class="badge warn">No activity yet</span>';
+
+const rows=items.slice(0,30).map(a=>{
+const s=String(a.status||"").toLowerCase();
+const b = s==="applied" ? {cls:"good",label:"applied"} : s==="rejected" ? {cls:"bad",label:"rejected"} : s==="skipped" ? {cls:"warn",label:"skipped"} : {cls:"",label:s||"new"};
+const job=a.job||{};
+const title=job.title||"Untitled";
+const company=job.company_name||"—";
+const loc=[job.city||"", job.region||""].filter(Boolean).join(", ") || "—";
+const when=fmtDate(a.updated_at || a.created_at);
+const link=job.apply_url?String(job.apply_url):"";
+const titleCell=link ? ('<a href="'+escapeHtml(link)+'" target="_blank" rel="noopener">'+escapeHtml(title)+'</a>') : escapeHtml(title);
+
+const actionBtn = (s==="skipped" && job.id)
+? "<button class='btn small ghost' type='button' data-unskip='"+escapeHtml(job.id)+"'>Undo</button>"
+: "—";
+
+return "<tr>"
++ "<td><span class='badge "+b.cls+"'>"+escapeHtml(b.label)+"</span></td>"
++ "<td>"+titleCell+"</td>"
++ "<td>"+escapeHtml(company)+"</td>"
++ "<td>"+escapeHtml(loc)+"</td>"
++ "<td>"+escapeHtml(when)+"</td>"
++ "<td>"+actionBtn+"</td>"
++ "</tr>";
+}).join("");
+
+return '<div class="tableWrap"><table class="table">'
++ '<thead><tr><th>Status</th><th>Job</th><th>Company</th><th>Location</th><th>Time</th><th>Action</th></tr></thead>'
++ '<tbody>'+rows+'</tbody></table></div>';
 }
 
 async function loadActivity(accessToken){
-  setHtml("activityError","");
-  setHtml("activityWrap",renderSkeleton());
-  let path="/me/applications?limit=25";
-  if(activityFilterStatus) path += "&status=" + encodeURIComponent(activityFilterStatus);
-  try{
-    const resp=await apiGet(path,accessToken);
-    setHtml("activityWrap",renderActivityTable(resp));
-  }catch(e){
-    setHtml("activityWrap",'<span class="badge bad">Activity failed</span>');
-    setHtml("activityError",'<div class="error">'+escapeHtml(e.message)+'</div>');
-  }
+setHtml("activityError","");
+setHtml("activityWrap",renderSkeleton());
+
+if(useEventsEndpoint){
+let path="/me/application-events?limit=30";
+if(activityEventType) path += "&event_type=" + encodeURIComponent(activityEventType);
+try{
+const resp=await apiGet(path,accessToken);
+setHtml("activityWrap",renderEventsTable(resp));
+return;
+}catch(e){
+useEventsEndpoint=false;
+}
+}
+
+let path="/me/applications?limit=30";
+if(activityEventType){
+const map = { queued:"new", applied:"applied", rejected:"rejected", skipped:"skipped" };
+const st = map[activityEventType] || "";
+if(st) path += "&status=" + encodeURIComponent(st);
+}
+try{
+const resp=await apiGet(path,accessToken);
+setHtml("activityWrap",renderAppsFallbackTable(resp));
+}catch(e){
+setHtml("activityWrap",'<span class="badge bad">Activity failed</span>');
+setHtml("activityError",'<div class="error">'+escapeHtml(e.message)+'</div>');
+}
+}
+
+function wireActivityClicks(){
+const wrap=document.getElementById("activityWrap");
+if(!wrap) return;
+wrap.addEventListener("click",(e)=>{
+const btn=e.target.closest("button[data-unskip]");
+if(!btn) return;
+const jobId=btn.getAttribute("data-unskip")||"";
+if(jobId) undoSkip(jobId);
+});
+}
+
+async function refreshQueueAndActivity(){
+const queue=await apiGet("/me/jobs/queue", lastSessionToken);
+const qCount=(typeof queue.count==="number")?queue.count:(Array.isArray(queue.data)?queue.data.length:0);
+currentQueueCount=qCount;
+setHtml("queueWrap",renderQueueCards(queue));
+
+await loadActivity(lastSessionToken);
+}
+
+function renderAppsBreakdown(summary){
+const counts=summary&&summary.counts?summary.counts:null;
+if(!counts||typeof counts!=="object") return '<span class="badge warn">Not available</span>';
+const entries=Object.entries(counts);
+if(entries.length===0) return '<span class="badge warn">No applications yet</span>';
+entries.sort((a,b)=>String(a[0]).localeCompare(String(b[0])));
+const rows=entries.map(([k,v])=>"<tr><td>"+escapeHtml(k)+"</td><td>"+escapeHtml(v)+"</td></tr>").join("");
+return '<div class="tableWrap" style="margin-top:8px"><table class="table" style="min-width:520px"><thead><tr><th>Status</th><th>Count</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 
 function renderOnboardingChecks(state){
-  const items=[];
-  const profileOk=!!state.profile_complete;
-  const planOk=!!state.plan_id;
-  const cvOk=!!state.cv_uploaded;
-  const ocrOk=(String(state.cv_ocr_status||"").toLowerCase()==="done");
-  items.push({label:"Profile complete",ok:profileOk,fix:"profile.html"});
-  items.push({label:"Plan selected",ok:planOk,fix:"plan.html"});
-  items.push({label:"CV uploaded",ok:cvOk,fix:"profile.html"});
-  items.push({label:"OCR done",ok:ocrOk,fix:"profile.html"});
-  return items.map(it=>{
-    const cls=it.ok?"badge good":"badge warn";
-    const right=it.ok?'OK':('<a href="'+it.fix+'" style="text-decoration:underline">Fix</a>');
-    return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0"><span class="'+cls+'">'+escapeHtml(it.label)+'</span><span class="small">'+right+'</span></div>';
-  }).join("");
-}
-
-async function loadQueueAndActivityOnly(){
-  if(!lastSessionToken) return;
-  try{
-    const queue=await apiGet("/me/jobs/queue",lastSessionToken);
-    const qCount=(typeof queue.count==="number")?queue.count:(Array.isArray(queue.data)?queue.data.length:0);
-    currentQueueCount=qCount;
-    setHtml("queueWrap",renderQueueCards(queue));
-    wireQueueSkipClicks();
-    await loadActivity(lastSessionToken);
-  }catch(e){
-    showTopError(e.message);
-  }
+const items=[];
+const profileOk=!!state.profile_complete;
+const planOk=!!state.plan_id;
+const cvOk=!!state.cv_uploaded;
+const ocrOk=(String(state.cv_ocr_status||"").toLowerCase()==="done");
+items.push({label:"Profile complete",ok:profileOk,fix:"profile.html"});
+items.push({label:"Plan selected",ok:planOk,fix:"plan.html"});
+items.push({label:"CV uploaded",ok:cvOk,fix:"profile.html"});
+items.push({label:"OCR done",ok:ocrOk,fix:"profile.html"});
+return items.map(it=>{
+const cls=it.ok?"badge good":"badge warn";
+const right=it.ok?'OK':('<a href="'+it.fix+'" style="text-decoration:underline">Fix</a>');
+return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0"><span class="'+cls+'">'+escapeHtml(it.label)+'</span><span class="small">'+right+'</span></div>';
+}).join("");
 }
 
 async function loadDashboard(){
-  clearTopError();
-  setText("errorBox","");
-  setHtml("queueError","");
-  setText("lastCheck",nowStamp());
-  setBadge("badgeQueue","","Loading");
-  setBadge("badgeApps","","Loading");
-  setBadge("badgePlan","","Loading");
-  setBadge("badgeHealth","","Loading");
-  setHtml("queueWrap",renderSkeleton());
-  setHtml("appsBreakdown",renderSkeleton());
-  setHtml("onboardingChecks",renderSkeleton());
-  setHtml("activityWrap",renderSkeleton());
-  setHtml("activityError","");
+clearTopError();
+setText("errorBox","");
+setHtml("queueError","");
+setText("lastCheck",nowStamp());
+setBadge("badgeQueue","","Loading");
+setBadge("badgeApps","","Loading");
+setBadge("badgePlan","","Loading");
+setBadge("badgeHealth","","Loading");
+setHtml("queueWrap",renderSkeleton());
+setHtml("appsBreakdown",renderSkeleton());
+setHtml("onboardingChecks",renderSkeleton());
+setHtml("activityWrap",renderSkeleton());
+setHtml("activityError","");
 
-  const session=await requireSession();
-  if(!session) return;
+const session=await requireSession();
+if(!session) return;
 
-  const email=session.user&&session.user.email?session.user.email:"—";
-  setText("meEmail",email);
-  setText("subLine","Signed in as "+email);
+const email=session.user&&session.user.email?session.user.email:"—";
+setText("meEmail",email);
+setText("subLine","Signed in as "+email);
 
-  let state=null;
-  try{ state=await apiGet("/me/state",session.access_token); }catch(e){ state=null; }
+let state=null;
+try{ state=await apiGet("/me/state",session.access_token); }catch(e){ state=null; }
 
-  const plan=state&&state.plan_id?planFromState(state.plan_id):planFallbackFromLocalStorage();
-  currentPlanDaily=plan.daily;
+const plan=state&&state.plan_id?planFromState(state.plan_id):planFallbackFromLocalStorage();
+currentPlanDaily=plan.daily;
 
-  setText("kpiPlanName",plan.name);
-  setText("kpiPlanMeta",plan.daily?plan.meta:"no plan selected");
-  setBadge("badgePlan",plan.daily?"good":"warn",plan.daily?"Selected":"Not selected");
+setText("kpiPlanName",plan.name);
+setText("kpiPlanMeta",plan.daily?plan.meta:"no plan selected");
+setBadge("badgePlan",plan.daily?"good":"warn",plan.daily?"Selected":"Not selected");
 
-  if(state&&state.customer_id){ setText("meCustomerId",state.customer_id); }
-  if(state){ setHtml("onboardingChecks",renderOnboardingChecks(state)); }
+if(state&&state.customer_id){ setText("meCustomerId",state.customer_id); }
+if(state){ setHtml("onboardingChecks",renderOnboardingChecks(state)); }
 
-  try{
-    const queue=await apiGet("/me/jobs/queue",session.access_token);
-    const qCount=(typeof queue.count==="number")?queue.count:(Array.isArray(queue.data)?queue.data.length:0);
-    currentQueueCount=qCount;
+try{
+const queue=await apiGet("/me/jobs/queue",session.access_token);
+const qCount=(typeof queue.count==="number")?queue.count:(Array.isArray(queue.data)?queue.data.length:0);
+currentQueueCount=qCount;
 
-    animateNumber(document.getElementById("kpiQueue"),qCount);
-    setBadge("badgeQueue",qCount>0?"good":"warn",qCount>0?"OK":"Empty");
+animateNumber(document.getElementById("kpiQueue"),qCount);
+setBadge("badgeQueue",qCount>0?"good":"warn",qCount>0?"OK":"Empty");
 
-    setHtml("queueWrap",renderQueueCards(queue));
-    wireQueueSkipClicks();
-    renderHealth(qCount,plan);
-  }catch(e){
-    setText("kpiQueue","–");
-    setBadge("badgeQueue","bad","Error");
-    setBadge("badgeHealth","bad","Error");
-    setHtml("queueWrap",'<span class="badge bad">Queue failed</span>');
-    setHtml("queueError",'<div class="error">'+escapeHtml(e.message)+'</div>');
-    setText("errorBox",e.message);
-    showTopError(e.message);
-  }
+setHtml("queueWrap",renderQueueCards(queue));
+renderHealth(qCount,plan);
+}catch(e){
+setText("kpiQueue","–");
+setBadge("badgeQueue","bad","Error");
+setBadge("badgeHealth","bad","Error");
+setHtml("queueWrap",'<span class="badge bad">Queue failed</span>');
+setHtml("queueError",'<div class="error">'+escapeHtml(e.message)+'</div>');
+setText("errorBox",e.message);
+showTopError(e.message);
+}
 
-  try{
-    const apps=await apiGet("/me/applications/summary",session.access_token);
-    const total=(typeof apps.total==="number")?apps.total:0;
-    animateNumber(document.getElementById("kpiAppsTotal"),total);
-    setBadge("badgeApps","good","OK");
-    setHtml("appsBreakdown",renderAppsBreakdown(apps));
-  }catch(e){
-    setText("kpiAppsTotal","–");
-    setBadge("badgeApps","warn","Not ready");
-    setHtml("appsBreakdown",'<span class="badge warn">Not available</span>');
-  }
+try{
+const apps=await apiGet("/me/applications/summary",session.access_token);
+const total=(typeof apps.total==="number")?apps.total:0;
+animateNumber(document.getElementById("kpiAppsTotal"),total);
+setBadge("badgeApps","good","OK");
+setHtml("appsBreakdown",renderAppsBreakdown(apps));
+}catch(e){
+setText("kpiAppsTotal","–");
+setBadge("badgeApps","warn","Not ready");
+setHtml("appsBreakdown",'<span class="badge warn">Not available</span>');
+}
 
-  await loadActivity(session.access_token);
+await loadActivity(session.access_token);
 }
 
 function wireActivityFilters(){
-  const wrap=document.getElementById("activityFilters");
-  if(!wrap) return;
-  wrap.addEventListener("click", async (e)=>{
-    const btn=e.target.closest("button[data-status]");
-    if(!btn) return;
-    const status=btn.getAttribute("data-status")||"";
-    activityFilterStatus=status;
-    for(const b of wrap.querySelectorAll(".chip")) b.classList.remove("active");
-    btn.classList.add("active");
-    if(lastSessionToken) await loadActivity(lastSessionToken);
-  });
+const wrap=document.getElementById("activityFilters");
+if(!wrap) return;
+wrap.addEventListener("click", async (e)=>{
+const btn=e.target.closest("button[data-etype]");
+if(!btn) return;
+
+const et=btn.getAttribute("data-etype")||"";
+activityEventType = et;
+
+for(const b of wrap.querySelectorAll(".chip")) b.classList.remove("active");
+btn.classList.add("active");
+
+if(lastSessionToken) await loadActivity(lastSessionToken);
+});
 }
 
 function wireEvents(){
-  document.getElementById("btnRefresh").addEventListener("click",async()=>{
-    try{ await loadDashboard(); }catch(e){ showTopError(e.message); setText("errorBox",e.message); }
-  });
-  document.getElementById("btnCopyToken").addEventListener("click",async()=>{
-    try{
-      const {data}=await supabaseClient.auth.getSession();
-      const token=data&&data.session?data.session.access_token:"";
-      if(!token){alert("No session token found. Please sign in again.");return;}
-      await navigator.clipboard.writeText(token);
-      alert("Access token copied.");
-    }catch(e){ showTopError(e.message); }
-  });
-  document.getElementById("btnLogout").addEventListener("click",async()=>{
-    try{
-      await supabaseClient.auth.signOut();
-      window.location.replace("./index.html");
-    }catch(e){ showTopError(e.message); }
-  });
+document.getElementById("btnRefresh").addEventListener("click",async()=>{
+try{ await loadDashboard(); }catch(e){ showTopError(e.message); setText("errorBox",e.message); }
+});
 
-  wireActivityFilters();
+document.getElementById("btnCopyToken").addEventListener("click",async()=>{
+try{
+const {data}=await supabaseClient.auth.getSession();
+const token=data&&data.session?data.session.access_token:"";
+if(!token){alert("No session token found. Please sign in again.");return;}
+await navigator.clipboard.writeText(token);
+alert("Access token copied.");
+}catch(e){ showTopError(e.message); }
+});
+
+document.getElementById("btnLogout").addEventListener("click",async()=>{
+try{
+await supabaseClient.auth.signOut();
+window.location.replace("./index.html");
+}catch(e){ showTopError(e.message); }
+});
+
+wireQueueClicks();
+wireActivityFilters();
+wireActivityClicks();
+
+document.getElementById("skipCancel").addEventListener("click",()=>closeSkipModal());
+document.getElementById("skipConfirm").addEventListener("click",()=>submitSkip());
+
+document.getElementById("skipModal").addEventListener("click",(e)=>{
+if(e.target && e.target.id==="skipModal") closeSkipModal();
+});
 }
 
 window.addEventListener("load",async()=>{
-  try{
-    if(!window.supabase) throw new Error("Supabase library did not load. Check adblockers / network.");
-    supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-    wireEvents();
-    await loadDashboard();
-  }catch(e){
-    showTopError(e.message);
-    setText("errorBox",e.message);
-    setBadge("badgeQueue","bad","Error");
-    setBadge("badgeApps","bad","Error");
-    setBadge("badgePlan","bad","Error");
-    setBadge("badgeHealth","bad","Error");
-  }
+try{
+if(!window.supabase) throw new Error("Supabase library did not load. Check adblockers / network.");
+supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+wireEvents();
+await loadDashboard();
+}catch(e){
+showTopError(e.message);
+setText("errorBox",e.message);
+setBadge("badgeQueue","bad","Error");
+setBadge("badgeApps","bad","Error");
+setBadge("badgePlan","bad","Error");
+setBadge("badgeHealth","bad","Error");
+}
 });
 </script>
 </body>
