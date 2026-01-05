@@ -6,18 +6,23 @@
 <title>JobApplyAI • Plan</title>
 <style>
 :root{
---bg:#0b1020;
---card:rgba(255,255,255,.08);
---card2:rgba(255,255,255,.06);
---text:#e9ecf7;
---muted:rgba(233,236,247,.72);
---line:rgba(255,255,255,.12);
---accent:#7c5cff;
---accent2:#00d4ff;
---danger:#ff3d71;
---ok:#00c853;
---warn:#ffb300;
---shadow:0 12px 34px rgba(0,0,0,.35);
+--bg:#ffffff;
+--surface:#f6f7f8;
+--surface2:#f0f2f3;
+--text:#0b0b0b;
+--muted:#3f3f3f;
+--muted2:#6a6a6a;
+--border:rgba(0,0,0,.12);
+--shadow:0 16px 42px rgba(0,0,0,.10);
+--radius:18px;
+--max:1120px;
+--accent:#5b5cff;
+--accent2:#00a6ff;
+--ok:#0a3a1c;
+--warn:#5a3b00;
+--bad:#5a1130;
+--safeTop: env(safe-area-inset-top, 0px);
+--safeBottom: env(safe-area-inset-bottom, 0px);
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -26,339 +31,486 @@ margin:0;
 font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
 color:var(--text);
 background:
-radial-gradient(1200px 650px at 20% -10%, rgba(124,92,255,.35), transparent 55%),
-radial-gradient(900px 500px at 90% 10%, rgba(0,212,255,.22), transparent 55%),
-radial-gradient(800px 600px at 70% 110%, rgba(0,200,83,.10), transparent 55%),
+radial-gradient(1200px 650px at 20% -10%, rgba(91,92,255,.12), transparent 55%),
+radial-gradient(900px 500px at 90% 10%, rgba(0,166,255,.10), transparent 55%),
 var(--bg);
 overflow-x:hidden;
 }
 a{color:inherit;text-decoration:none}
-.wrap{max-width:980px;margin:0 auto;padding:22px 16px 70px}
-.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
-.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px}
-.logo{width:34px;height:34px;border-radius:11px;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 10px 30px rgba(124,92,255,.25)}
-.nav{display:flex;gap:10px;flex-wrap:wrap}
+.topbar{
+position:sticky;
+top:0;
+z-index:30;
+background:rgba(255,255,255,.86);
+backdrop-filter:saturate(1.2) blur(12px);
+border-bottom:1px solid var(--border);
+padding-top:var(--safeTop);
+}
+.nav{
+max-width:var(--max);
+margin:0 auto;
+padding:12px 16px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:12px;
+}
+.brand{
+display:flex;
+align-items:center;
+gap:10px;
+font-weight:1000;
+letter-spacing:.2px;
+min-width:0;
+}
+.logo{
+width:34px;height:34px;border-radius:11px;
+background: linear-gradient(135deg, var(--accent), var(--accent2));
+box-shadow: 0 10px 30px rgba(124,92,255,.20);
+flex:0 0 auto;
+}
+.navlinks{
+display:flex;
+align-items:center;
+gap:10px;
+flex-wrap:wrap;
+justify-content:flex-end;
+}
 .pill{
 padding:9px 12px;
-border:1px solid var(--line);
+border:1px solid var(--border);
 border-radius:999px;
-background:rgba(255,255,255,.04);
-font-weight:650;
+background:rgba(0,0,0,.03);
+font-weight:900;
 font-size:13px;
 transition:.15s ease;
+cursor:pointer;
+white-space:nowrap;
 }
-.pill:hover{transform:translateY(-1px);background:rgba(255,255,255,.06)}
-.pill.active{border-color:rgba(124,92,255,.6);background:rgba(124,92,255,.18)}
-.card{
-background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
-border:1px solid var(--line);
-border-radius:18px;
+.pill:hover{transform:translateY(-1px);background:rgba(0,0,0,.05)}
+.pill.active{border-color:rgba(124,92,255,.55); background:rgba(124,92,255,.10)}
+.pill.iconOnly{padding:9px 10px}
+
+.main{
+max-width:var(--max);
+margin:0 auto;
+padding:18px 16px calc(18px + var(--safeBottom));
+}
+.h1{
+font-size:34px;
+line-height:1.05;
+letter-spacing:-.8px;
+margin:10px 0 8px 0;
+}
+.sub{margin:0 0 14px 0;color:var(--muted);font-weight:650}
+.small{font-size:12px;color:var(--muted2);font-weight:650}
+
+.errorTop{
+margin:12px 0 12px 0;
+padding:12px 14px;
+border-radius:16px;
+border:1px solid rgba(255,61,113,.25);
+background:rgba(255,61,113,.10);
+color:var(--bad);
+font-weight:900;
+display:none;
+}
+
+.section{
+background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.82));
+border:1px solid var(--border);
+border-radius:var(--radius);
 box-shadow:var(--shadow);
+padding:14px;
 overflow:hidden;
 }
-.cardHeader{
-padding:18px 18px 14px;
-border-bottom:1px solid var(--line);
+.sectionHead{
 display:flex;
-justify-content:space-between;
 align-items:flex-start;
-gap:10px;
+justify-content:space-between;
+gap:14px;
+flex-wrap:wrap;
 }
-.hTitle{font-size:18px;font-weight:850;margin:0}
-.hSub{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.35}
 .badge{
 display:inline-flex;
 align-items:center;
 gap:8px;
 padding:7px 10px;
 border-radius:999px;
-border:1px solid var(--line);
-background:rgba(255,255,255,.05);
+border:1px solid var(--border);
+background:rgba(0,0,0,.03);
 color:var(--muted);
 font-size:12px;
-font-weight:750;
+font-weight:900;
 white-space:nowrap;
 }
-.badge.good{border-color:rgba(0,200,83,.4);background:rgba(0,200,83,.12);color:#c9ffe0}
-.badge.warn{border-color:rgba(255,179,0,.5);background:rgba(255,179,0,.12);color:#fff3c4}
-.badge.bad{border-color:rgba(255,61,113,.55);background:rgba(255,61,113,.12);color:#ffd1dc}
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;padding:18px}
-.plan{
-border:1px solid rgba(255,255,255,.12);
-background:rgba(255,255,255,.04);
-border-radius:16px;
+.badge.good{border-color:rgba(0,200,83,.35); background:rgba(0,200,83,.10); color:var(--ok)}
+.badge.warn{border-color:rgba(255,179,0,.45); background:rgba(255,179,0,.10); color:var(--warn)}
+.badge.prio{border-color:rgba(124,92,255,.45); background:rgba(124,92,255,.12); color:#1f2a55}
+
+.pricingWrap{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:14px;
+margin-top:14px;
+}
+@media (max-width:980px){
+.pricingWrap{grid-template-columns:1fr}
+}
+.card{
+background:#fff;
+border:1px solid var(--border);
+border-radius:18px;
 padding:16px;
-transition:.15s ease;
-cursor:pointer;
-min-height:240px;
-display:flex;
-flex-direction:column;
-gap:10px;
+box-shadow:0 12px 34px rgba(0,0,0,.08);
+position:relative;
+overflow:hidden;
 }
-.plan:hover{transform:translateY(-2px);background:rgba(255,255,255,.06)}
-.plan.active{border-color:rgba(124,92,255,.65);box-shadow:0 0 0 3px rgba(124,92,255,.16)}
-.planName{font-size:15px;font-weight:900}
-.planCap{font-size:28px;font-weight:950;letter-spacing:.3px}
-.planCap small{font-size:12px;color:var(--muted);font-weight:800}
-.list{margin:0;padding-left:18px;color:var(--muted);font-size:13px;line-height:1.45}
-.actions{
-padding:0 18px 18px;
+.card.plan{min-height:360px;display:flex;flex-direction:column}
+.card.plan.selected{outline:3px solid rgba(124,92,255,.35); border-color:rgba(124,92,255,.35)}
+.card.plan.featured{border-color:rgba(124,92,255,.35); box-shadow:0 18px 46px rgba(91,92,255,.14)}
+.ribbon{
+position:absolute;
+top:14px;
+right:-44px;
+transform:rotate(30deg);
+background:linear-gradient(135deg, rgba(124,92,255,.98), rgba(0,166,255,.98));
+color:#fff;
+font-weight:1000;
+font-size:12px;
+padding:8px 60px;
+letter-spacing:.2px;
+}
+.priceRow{
 display:flex;
-justify-content:space-between;
-align-items:center;
-gap:10px;
+align-items:baseline;
+gap:8px;
 flex-wrap:wrap;
-border-top:1px solid var(--line);
+margin-top:10px;
 }
+.strike{
+text-decoration:line-through;
+color:var(--muted2);
+font-weight:900;
+}
+.priceRow strong{font-size:26px;letter-spacing:-.4px}
+.save{
+display:inline-flex;
+align-items:center;
+padding:6px 10px;
+border-radius:999px;
+border:1px solid rgba(0,0,0,.10);
+background:rgba(0,0,0,.03);
+font-weight:1000;
+font-size:12px;
+}
+.valueRow{
+margin-top:12px;
+border:1px solid rgba(0,0,0,.10);
+background:rgba(0,0,0,.02);
+border-radius:16px;
+padding:12px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:10px;
+}
+.valueRow strong{display:block}
+.valueRow span{display:block;color:var(--muted2);font-size:12px;font-weight:700}
+.features{margin:12px 0 0 0;padding:0;list-style:none;display:grid;gap:10px}
+.features li{display:flex;gap:10px;align-items:flex-start;color:var(--muted);font-size:14px;font-weight:700}
+.tick{
+width:18px;height:18px;border-radius:8px;
+border:1px solid rgba(0,0,0,.14);
+background:rgba(0,0,0,.03);
+display:inline-flex;
+align-items:center;
+justify-content:center;
+flex:0 0 auto;
+margin-top:1px;
+}
+.tick svg{width:14px;height:14px}
+.planActions{margin-top:auto;padding-top:14px}
 .btn{
 appearance:none;
-border:1px solid var(--line);
-background:rgba(255,255,255,.06);
+border:1px solid var(--border);
+background:rgba(0,0,0,.03);
 color:var(--text);
 padding:11px 14px;
-border-radius:12px;
-font-weight:850;
+border-radius:999px;
+font-weight:1000;
+font-size:13px;
 cursor:pointer;
 transition:.15s ease;
 display:inline-flex;
 align-items:center;
-gap:10px;
+gap:8px;
+text-decoration:none;
+width:100%;
+justify-content:center;
 }
-.btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.08)}
-.btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.btn:hover{transform:translateY(-1px); background:rgba(0,0,0,.05)}
+.btn:disabled{opacity:.6; cursor:not-allowed; transform:none}
 .btn.primary{
 border-color:rgba(124,92,255,.55);
-background:linear-gradient(135deg, rgba(124,92,255,.30), rgba(0,212,255,.18));
+background:linear-gradient(135deg, rgba(124,92,255,.22), rgba(0,166,255,.14));
 }
-.hint{padding:14px 18px 0;color:var(--muted);font-size:12px;line-height:1.4}
-.leaving{opacity:.45;filter:blur(.3px);transition:.2s}
-@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.fineprint{
+margin:12px 0 0 0;
+color:var(--muted2);
+font-size:12px;
+font-weight:650;
+line-height:1.45;
+}
 </style>
 </head>
 <body>
-<div class="wrap">
-<div class="topbar">
-<div class="brand">
-<div class="logo"></div>
+<header class="topbar">
+<nav class="nav">
+<a class="brand" href="index.html"><span class="logo" aria-hidden="true"></span><span>JobApplyAI</span></a>
+<div class="navlinks">
+<a class="pill" href="index.html" data-nav="1">Home</a>
+<a class="pill" href="profile.html" data-nav="1">Profile</a>
+<a class="pill active" href="plan.html" data-nav="1">Plan</a>
+<a class="pill" href="dashboard.html" data-nav="1">Dashboard</a>
+<button class="pill iconOnly" id="btnLogout" type="button" aria-label="Logout">Logout</button>
+</div>
+</nav>
+</header>
+
+<main class="main">
+<h1 class="h1">Choose a plan</h1>
+<p class="sub" id="subLine">Loading…</p>
+<div class="errorTop" id="errorTop"></div>
+
+<section class="section">
+<div class="sectionHead">
 <div>
-<div style="font-size:14px;opacity:.85">JobApplyAI</div>
-<div style="font-size:12px;color:var(--muted);font-weight:700">Choose your plan</div>
+<div class="badge prio" id="currentPlanBadge">Current plan: —</div>
+<div class="small" style="margin-top:8px">Plans map to your daily application output. You can change plans anytime.</div>
 </div>
-</div>
-<div class="nav">
-<a class="pill" href="./index.html" data-nav="1">Home</a>
-<a class="pill" href="./profile.html" data-nav="1">Profile</a>
-<a class="pill active" href="./plan.html" data-nav="1">Plan</a>
-<a class="pill" href="./dashboard.html" data-nav="1">Dashboard</a>
-</div>
+<div class="badge" id="authBadge">Checking…</div>
 </div>
 
-<section class="card">
-<div class="cardHeader">
+<div class="pricingWrap">
+<div class="card plan" id="cardStarter">
+<h3 style="margin:0 0 6px;font-weight:1000;letter-spacing:-.2px">Starter</h3>
+<p style="margin:0;color:var(--muted);font-size:14px;font-weight:700">For steady progress.</p>
+<div class="priceRow">
+<div class="strike">$29</div>
+<strong>$20</strong>
+<span style="color:var(--muted);font-weight:800">/ month</span>
+<span class="save">Save 31%</span>
+</div>
+<div class="valueRow" aria-label="Monthly value">
 <div>
-<h2 class="hTitle">Pick a daily application cap</h2>
-<p class="hSub">Payments are not connected yet. This only sets your plan in the database.</p>
+<strong>1 application / day</strong>
+<span>≈ 30 per month</span>
 </div>
-<span class="badge" id="saveStatus">Not saved</span>
+<div class="badge" id="badgeStarter">starter</div>
 </div>
-
-<div class="hint">
-Your plan controls how many applications we can send per day. You can change this later.
-</div>
-
-<div class="grid" id="planGrid">
-<div class="plan" data-plan="starter" role="button" tabindex="0">
-<div class="planName">Starter</div>
-<div class="planCap">1 <small>/ day</small></div>
-<ul class="list">
-<li>Best for careful targeting</li>
-<li>Manual review before sending (later)</li>
-<li>Basic tracking</li>
+<ul class="features">
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Manual email application</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Basic application log</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>CV upload + OCR</li>
 </ul>
+<div class="planActions">
+<button class="btn primary" id="btnStarter" type="button">Select Starter</button>
+</div>
 </div>
 
-<div class="plan" data-plan="pro" role="button" tabindex="0">
-<div class="planName">Pro</div>
-<div class="planCap">5 <small>/ day</small></div>
-<ul class="list">
-<li>Balanced speed + quality</li>
-<li>Priority queue handling (later)</li>
-<li>Better matching signals</li>
+<div class="card plan featured" id="cardPro" aria-label="Best value plan">
+<div class="ribbon">Best value</div>
+<h3 style="margin:0 0 6px;font-weight:1000;letter-spacing:-.2px">Growth</h3>
+<p style="margin:0;color:var(--muted);font-size:14px;font-weight:700">For active searches.</p>
+<div class="priceRow">
+<div class="strike">$69</div>
+<strong>$45</strong>
+<span style="color:var(--muted);font-weight:800">/ month</span>
+<span class="save">Save 35%</span>
+</div>
+<div class="valueRow" aria-label="Monthly value">
+<div>
+<strong>5 applications / day</strong>
+<span>≈ 150 per month</span>
+</div>
+<div class="badge" id="badgePro">pro</div>
+</div>
+<ul class="features">
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Priority turnaround</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Better tracking view</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Follow-up templates</li>
 </ul>
+<div class="planActions">
+<button class="btn primary" id="btnPro" type="button">Select Growth</button>
+</div>
 </div>
 
-<div class="plan" data-plan="max" role="button" tabindex="0">
-<div class="planName">Max</div>
-<div class="planCap">10 <small>/ day</small></div>
-<ul class="list">
-<li>Fastest ramp-up</li>
-<li>Autopilot rules (later)</li>
-<li>Follow-ups (later)</li>
+<div class="card plan" id="cardMax">
+<h3 style="margin:0 0 6px;font-weight:1000;letter-spacing:-.2px">Max</h3>
+<p style="margin:0;color:var(--muted);font-size:14px;font-weight:700">For high volume.</p>
+<div class="priceRow">
+<div class="strike">$129</div>
+<strong>$79</strong>
+<span style="color:var(--muted);font-weight:800">/ month</span>
+<span class="save">Save 39%</span>
+</div>
+<div class="valueRow" aria-label="Monthly value">
+<div>
+<strong>10 applications / day</strong>
+<span>≈ 300 per month</span>
+</div>
+<div class="badge" id="badgeMax">max</div>
+</div>
+<ul class="features">
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Highest throughput</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Best response coverage</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Enhanced reporting</li>
 </ul>
+<div class="planActions">
+<button class="btn primary" id="btnMax" type="button">Select Max</button>
+</div>
 </div>
 </div>
 
-<div class="actions">
-<button class="btn" id="backBtn" type="button">Back to profile</button>
-<div style="display:flex;gap:10px;flex-wrap:wrap">
-<button class="btn primary" id="saveBtn" type="button">Save plan</button>
-<button class="btn" id="nextBtn" type="button">Continue to dashboard</button>
-</div>
-</div>
+<p class="fineprint">Monthly totals are approximate (30-day month). Prices are promotional and may change after launch.</p>
 </section>
-</div>
+</main>
 
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
 "use strict";
 
-const API_BASE_DEFAULT="https://jobapplyai-api.schoene-viktor.workers.dev";
-const API_BASE=API_BASE_DEFAULT.replace(/\/+$/,"");
+const API_BASE="https://jobapplyai-api.schoene-viktor.workers.dev";
+
 const SUPABASE_URL_DEFAULT="https://awlzvhcnjegfhjedswko.supabase.co";
-const SUPABASE_ANON_DEFAULT=localStorage.getItem("sb_anon")||"";
+const SUPABASE_ANON_FALLBACK="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
+
 if(!localStorage.getItem("sb_url")) localStorage.setItem("sb_url",SUPABASE_URL_DEFAULT);
-if(!localStorage.getItem("sb_anon") && SUPABASE_ANON_DEFAULT) localStorage.setItem("sb_anon",SUPABASE_ANON_DEFAULT);
+if(!localStorage.getItem("sb_anon")) localStorage.setItem("sb_anon",SUPABASE_ANON_FALLBACK);
+
 const SUPABASE_URL=localStorage.getItem("sb_url")||SUPABASE_URL_DEFAULT;
-const SUPABASE_ANON_KEY=localStorage.getItem("sb_anon")||SUPABASE_ANON_DEFAULT;
+const SUPABASE_ANON_KEY=localStorage.getItem("sb_anon")||SUPABASE_ANON_FALLBACK;
 
 let supabaseClient=null;
-let selectedPlan=(localStorage.getItem("ja_plan")||"").trim().toLowerCase();
+let session=null;
+let state=null;
 
 function $(id){return document.getElementById(id);}
-function go(url){document.body.classList.add("leaving");setTimeout(()=>{window.location.href=url;},180);}
+function showTopError(msg){const el=$("errorTop");if(!el) return;el.style.display="block";el.textContent=msg;}
+function clearTopError(){const el=$("errorTop");if(!el) return;el.style.display="none";el.textContent="";}
+function setBadge(id,cls,text){const el=$(id);if(!el) return;el.className="badge"+(cls?(" "+cls):"");el.textContent=text;}
+function setText(id,text){const el=$(id);if(!el) return;el.textContent=text;}
 
-function setStatus(kind,text){
-const el=$("saveStatus");
-if(!el) return;
-el.className="badge"+(kind?(" "+kind):"");
-el.textContent=text;
+async function apiGet(path){
+const res=await fetch(API_BASE+path,{method:"GET",headers:{Authorization:"Bearer "+session.access_token}});
+const txt=await res.text().catch(()=> "");
+let json=null;
+try{json=JSON.parse(txt);}catch{json={raw:txt};}
+if(!res.ok) throw new Error(path+" failed: "+res.status+" "+(json.error||json.details||txt));
+return json;
 }
-
-function renderActive(){
-const cards=[...document.querySelectorAll(".plan[data-plan]")];
-for(const c of cards){
-const p=(c.getAttribute("data-plan")||"").trim().toLowerCase();
-if(p===selectedPlan) c.classList.add("active");
-else c.classList.remove("active");
-}
-}
-
-async function getSession(){
-const { data } = await supabaseClient.auth.getSession();
-return data && data.session ? data.session : null;
-}
-
-async function savePlanToBackend(session, plan_id){
-const token=session && session.access_token ? session.access_token : "";
-if(!token) throw new Error("Missing access token. Please sign in again.");
-const res=await fetch(`${API_BASE}/me/plan`,{
+async function apiPostJson(path,body){
+const res=await fetch(API_BASE+path,{
 method:"POST",
-headers:{
-"content-type":"application/json",
-"Authorization":`Bearer ${token}`
-},
-body:JSON.stringify({ plan_id })
+headers:{Authorization:"Bearer "+session.access_token,"content-type":"application/json"},
+body:JSON.stringify(body||{})
 });
-const text=await res.text().catch(()=> "");
-if(!res.ok) throw new Error(`Plan save failed: ${res.status} ${text}`);
-return JSON.parse(text);
+const txt=await res.text().catch(()=> "");
+let json=null;
+try{json=JSON.parse(txt);}catch{json={raw:txt};}
+if(!res.ok) throw new Error(path+" failed: "+res.status+" "+(json.error||json.details||txt));
+return json;
+}
+async function ensureCustomer(email){
+const res=await fetch(API_BASE+"/customers/upsert",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({email})});
+const txt=await res.text().catch(()=> "");
+if(!res.ok) throw new Error("customers/upsert failed: "+res.status+" "+txt);
+return JSON.parse(txt);
 }
 
-async function loadPlanFromBackend(session){
+function applySelectionUI(planId){
+const ids=["starter","pro","max"];
+for(const id of ids){
+const card=$("card"+id.charAt(0).toUpperCase()+id.slice(1));
+if(card) card.classList.toggle("selected", id===planId);
+}
+let label="—";
+if(planId==="starter") label="Starter (1/day)";
+if(planId==="pro") label="Growth (5/day)";
+if(planId==="max") label="Max (10/day)";
+setText("currentPlanBadge","Current plan: "+label);
+}
+
+async function refreshStateAndPlan(){
+state=await apiGet("/me/state");
+const planId=(state && state.plan_id ? String(state.plan_id).toLowerCase() : "");
+applySelectionUI(planId||"");
+}
+
+async function selectPlan(planId){
+clearTopError();
+setBadge("authBadge","warn","Saving…");
+$("btnStarter").disabled=true;
+$("btnPro").disabled=true;
+$("btnMax").disabled=true;
 try{
-const token=session && session.access_token ? session.access_token : "";
-if(!token) return null;
-const res=await fetch(`${API_BASE}/me/plan`,{
-method:"GET",
-headers:{ "Authorization":`Bearer ${token}` }
-});
-if(!res.ok) return null;
-const data=await res.json();
-const plan=data && data.plan && data.plan.plan_id ? String(data.plan.plan_id).trim().toLowerCase() : "";
-return plan || null;
-}catch{
-return null;
+await apiPostJson("/me/plan",{plan_id:planId});
+await refreshStateAndPlan();
+setBadge("authBadge","good","Saved");
+const profOk=!!(state && state.profile_complete);
+window.location.href=profOk ? "./dashboard.html" : "./profile.html";
+}catch(e){
+showTopError(e.message||String(e));
+setBadge("authBadge","bad","Failed");
+}finally{
+$("btnStarter").disabled=false;
+$("btnPro").disabled=false;
+$("btnMax").disabled=false;
 }
 }
 
-function attachPlanClicks(){
-const cards=[...document.querySelectorAll(".plan[data-plan]")];
-for(const card of cards){
-const pick=()=>{
-selectedPlan=(card.getAttribute("data-plan")||"").trim().toLowerCase();
-localStorage.setItem("ja_plan",selectedPlan);
-renderActive();
-setStatus("warn","Not saved");
-};
-card.addEventListener("click",pick);
-card.addEventListener("keydown",(e)=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pick();}});
-}
-}
-
-(async function boot(){
+async function boot(){
 try{
-if(!SUPABASE_URL || !SUPABASE_ANON_KEY){
-setStatus("bad","Missing Supabase config");
-return;
-}
+clearTopError();
+setText("subLine","Checking session…");
 supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-
-document.addEventListener("click",(e)=>{
-const a=e.target.closest("a[data-nav='1']");
-if(!a) return;
-const url=a.getAttribute("href");
-if(!url||url.startsWith("#")) return;
-e.preventDefault();
-go(url);
-});
-
-attachPlanClicks();
-
-const session=await getSession();
+const s=await supabaseClient.auth.getSession();
+session=s && s.data ? s.data.session : null;
 if(!session || !session.user || !session.user.email){
 window.location.replace("./signup.html");
 return;
 }
+const email=String(session.user.email||"").trim().toLowerCase();
+setText("subLine","Signed in as "+email);
+setBadge("authBadge","good","Signed in");
 
-const backendPlan=await loadPlanFromBackend(session);
-if(backendPlan){
-selectedPlan=backendPlan;
-localStorage.setItem("ja_plan",selectedPlan);
-}
+await ensureCustomer(email);
+await refreshStateAndPlan();
 
-if(!selectedPlan){
-selectedPlan="starter";
-localStorage.setItem("ja_plan",selectedPlan);
-}
-renderActive();
+$("btnStarter").addEventListener("click",()=>selectPlan("starter"));
+$("btnPro").addEventListener("click",()=>selectPlan("pro"));
+$("btnMax").addEventListener("click",()=>selectPlan("max"));
 
-$("backBtn").addEventListener("click",()=>go("./profile.html"));
-$("nextBtn").addEventListener("click",()=>go("./dashboard.html"));
-
-$("saveBtn").addEventListener("click",async ()=>{
-if(!selectedPlan){
-setStatus("bad","Pick a plan first");
-return;
-}
-$("saveBtn").disabled=true;
-setStatus("warn","Saving...");
+$("btnLogout").addEventListener("click",async ()=>{
 try{
-await savePlanToBackend(session,selectedPlan);
-setStatus("good","Saved");
+await supabaseClient.auth.signOut();
+Object.keys(localStorage).forEach(k=>{
+if(k.startsWith("ja_") || k.startsWith("jobapplyai_")) localStorage.removeItem(k);
+});
+sessionStorage.removeItem("sb_access_token");
+window.location.replace("./index.html");
 }catch(e){
-setStatus("bad","Save failed");
-alert(e && e.message ? e.message : String(e));
-}finally{
-$("saveBtn").disabled=false;
+showTopError(e.message||String(e));
 }
 });
-
-setStatus(selectedPlan ? "warn" : "", selectedPlan ? "Not saved" : "Pick a plan");
 }catch(e){
-setStatus("bad","Error");
-alert(e && e.message ? e.message : String(e));
+showTopError(e.message||String(e));
+setBadge("authBadge","bad","Auth error");
 }
-})();
+}
+
+window.addEventListener("load",boot);
 </script>
 </body>
 </html>
