@@ -6,797 +6,785 @@
 <title>JobApplyAI • Profile</title>
 <style>
 :root{
-  --bg:#0b1020;
-  --card:rgba(255,255,255,.08);
-  --card2:rgba(255,255,255,.06);
-  --text:#e9ecf7;
-  --muted:rgba(233,236,247,.72);
-  --line:rgba(255,255,255,.12);
-  --accent:#7c5cff;
-  --accent2:#00d4ff;
-  --danger:#ff3d71;
-  --ok:#00c853;
-  --warn:#ffb300;
-  --shadow:0 12px 34px rgba(0,0,0,.35);
-  --shadow2:0 10px 26px rgba(0,0,0,.10);
-  --green:#00a63f;
+--bg:#f6f7fb;
+--text:#111318;
+--muted:rgba(17,19,24,.64);
+--muted2:rgba(17,19,24,.48);
+--line:rgba(17,19,24,.12);
+--accent:#5b5cff;
+--accent2:#00a6ff;
+--ok:#00a34a;
+--warn:#b86b00;
+--bad:#d81b60;
+--shadow:0 12px 34px rgba(17,19,24,.12);
+--radius:18px;
+--max:1120px;
+--safeTop: env(safe-area-inset-top, 0px);
+--safeBottom: env(safe-area-inset-bottom, 0px);
+--surface:#ffffff;
+--surface2:#ffffff;
+--surface3:#fbfcff;
 }
 
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
-  margin:0;
-  font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-  color:var(--text);
-  background:
-    radial-gradient(1200px 650px at 20% -10%, rgba(124,92,255,.35), transparent 55%),
-    radial-gradient(900px 500px at 90% 10%, rgba(0,212,255,.22), transparent 55%),
-    radial-gradient(800px 600px at 70% 110%, rgba(0,200,83,.10), transparent 55%),
-    var(--bg);
-  overflow-x:hidden;
+margin:0;
+font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+color:var(--text);
+background:
+radial-gradient(1200px 650px at 20% -10%, rgba(91,92,255,.18), transparent 55%),
+radial-gradient(900px 500px at 90% 10%, rgba(0,166,255,.12), transparent 55%),
+radial-gradient(800px 600px at 70% 110%, rgba(0,163,74,.08), transparent 55%),
+var(--bg);
+overflow-x:hidden;
 }
 
 a{color:inherit;text-decoration:none}
 small{color:var(--muted)}
 
-.wrap{
-  max-width:980px;
-  margin:0 auto;
-  padding:22px 16px 70px;
-}
-
 .topbar{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:18px;
-}
-
-.brand{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  font-weight:800;
-  letter-spacing:.2px;
-}
-.logo{
-  width:34px;height:34px;border-radius:11px;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  box-shadow: 0 10px 30px rgba(124,92,255,.25);
+position:sticky;
+top:0;
+z-index:30;
+background:rgba(246,247,251,.86);
+backdrop-filter:saturate(1.2) blur(12px);
+border-bottom:1px solid var(--line);
+padding-top:var(--safeTop);
 }
 .nav{
-  display:flex; gap:10px; flex-wrap:wrap;
+max-width:var(--max);
+margin:0 auto;
+padding:12px 16px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:12px;
+}
+.brand{
+display:flex;
+align-items:center;
+gap:10px;
+font-weight:900;
+letter-spacing:.2px;
+min-width:0;
+}
+.logo{
+width:34px;height:34px;border-radius:11px;
+background: linear-gradient(135deg, var(--accent), var(--accent2));
+box-shadow: 0 10px 30px rgba(124,92,255,.25);
+flex:0 0 auto;
+}
+.navlinks{
+display:flex;
+align-items:center;
+gap:10px;
+flex-wrap:wrap;
+justify-content:flex-end;
 }
 .pill{
-  padding:9px 12px;
-  border:1px solid var(--line);
-  border-radius:999px;
-  background:rgba(255,255,255,.04);
-  font-weight:650;
-  font-size:13px;
-  transition:.15s ease;
+padding:9px 12px;
+border:1px solid var(--line);
+border-radius:999px;
+background:rgba(17,19,24,.04);
+font-weight:750;
+font-size:13px;
+transition:.15s ease;
+cursor:pointer;
+white-space:nowrap;
 }
-.pill:hover{transform:translateY(-1px); background:rgba(255,255,255,.06)}
+.pill:hover{transform:translateY(-1px);background:rgba(17,19,24,.06)}
 .pill.active{border-color:rgba(124,92,255,.6); background:rgba(124,92,255,.18)}
+.pill.iconOnly{padding:9px 10px}
 
-.grid{
-  display:grid;
-  grid-template-columns: 1.2fr .8fr;
-  gap:14px;
+.main{
+max-width:var(--max);
+margin:0 auto;
+padding:18px 16px calc(18px + var(--safeBottom));
 }
+.h1{
+font-size:34px;
+line-height:1.05;
+letter-spacing:-.8px;
+margin:10px 0 8px 0;
+}
+.sub{margin:0 0 14px 0;color:var(--muted);font-weight:650}
 
 .card{
-  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
-  border:1px solid var(--line);
-  border-radius:18px;
-  box-shadow:var(--shadow);
-  overflow:hidden;
+background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.82));
+border:1px solid var(--line);
+border-radius:var(--radius);
+box-shadow:var(--shadow);
+padding:14px;
+overflow:hidden;
 }
-
-.cardHeader{
-  padding:18px 18px 14px;
-  border-bottom:1px solid var(--line);
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:10px;
+.cardNoPad{padding:0}
+.sectionHeader{
+background:var(--surface2);
+border-bottom:1px solid rgba(17,19,24,.10);
+padding:14px;
 }
-
-.hTitle{font-size:18px; font-weight:850; margin:0}
-.hSub{margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.35}
+.sectionBody{padding:14px}
+.hr{height:1px;background:var(--line);margin:12px 0}
 
 .badge{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:7px 10px;
-  border-radius:999px;
-  border:1px solid var(--line);
-  background:rgba(255,255,255,.05);
-  color:var(--muted);
-  font-size:12px;
-  font-weight:750;
-  white-space:nowrap;
+display:inline-flex;
+align-items:center;
+gap:8px;
+padding:7px 10px;
+border-radius:999px;
+border:1px solid var(--line);
+background:rgba(17,19,24,.05);
+color:var(--muted);
+font-size:12px;
+font-weight:750;
+white-space:nowrap;
+max-width:100%;
 }
-.badge.good{border-color:rgba(0,200,83,.4); background:rgba(0,200,83,.12); color:#c9ffe0}
-.badge.warn{border-color:rgba(255,179,0,.5); background:rgba(255,179,0,.12); color:#fff3c4}
-.badge.bad{border-color:rgba(255,61,113,.55); background:rgba(255,61,113,.12); color:#ffd1dc}
+.badge.good{border-color:rgba(0,200,83,.4); background:rgba(0,200,83,.12); color:#0a3d1f}
+.badge.warn{border-color:rgba(255,179,0,.5); background:rgba(255,179,0,.12); color:#5a3b00}
+.badge.bad{border-color:rgba(255,61,113,.55); background:rgba(255,61,113,.12); color:#5a1130}
+.badge.prio{border-color:rgba(124,92,255,.55); background:rgba(124,92,255,.18); color:#1f2a55}
 
-.form{
-  padding:18px;
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:12px;
+.grid{
+display:grid;
+grid-template-columns: 1.35fr .65fr;
+gap:14px;
+align-items:start;
+}
+@media (max-width:1100px){
+.grid{grid-template-columns:1fr}
 }
 
 .field{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
+display:flex;
+flex-direction:column;
+gap:6px;
+margin-top:10px;
 }
-.field.full{grid-column:1/-1}
-
-label{font-size:12px; color:var(--muted); font-weight:750}
+label{font-size:12px;color:var(--muted);font-weight:800}
 input,select,textarea{
-  background:rgba(0,0,0,.18);
-  border:1px solid rgba(255,255,255,.14);
-  color:var(--text);
-  padding:11px 12px;
-  border-radius:12px;
-  outline:none;
-  transition:.15s ease;
-  font-size:14px;
+border:1px solid rgba(17,19,24,.14);
+background:rgba(17,19,24,.04);
+color:var(--text);
+border-radius:12px;
+padding:10px 12px;
+outline:none;
+font-size:14px;
 }
-input:focus,select:focus,textarea:focus{
-  border-color:rgba(124,92,255,.65);
-  box-shadow:0 0 0 3px rgba(124,92,255,.18);
-}
-textarea{min-height:88px; resize:vertical}
-.help{font-size:12px; color:var(--muted); line-height:1.4}
+textarea{min-height:90px;resize:vertical}
 
 .actions{
-  padding:0 18px 18px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  flex-wrap:wrap;
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+align-items:center;
 }
-
 .btn{
-  appearance:none;
-  border:1px solid var(--line);
-  background:rgba(255,255,255,.06);
-  color:var(--text);
-  padding:11px 14px;
-  border-radius:12px;
-  font-weight:850;
-  cursor:pointer;
-  transition:.15s ease;
-  display:inline-flex;
-  align-items:center;
-  gap:10px;
+appearance:none;
+border:1px solid var(--line);
+background:rgba(17,19,24,.06);
+color:var(--text);
+padding:11px 14px;
+border-radius:999px;
+font-weight:900;
+font-size:13px;
+cursor:pointer;
+transition:.15s ease;
+display:inline-flex;
+align-items:center;
+gap:8px;
+text-decoration:none;
 }
-.btn:hover{transform:translateY(-1px); background:rgba(255,255,255,.08)}
+.btn:hover{transform:translateY(-1px); background:rgba(17,19,24,.08)}
 .btn:disabled{opacity:.6; cursor:not-allowed; transform:none}
 .btn.primary{
-  border-color:rgba(124,92,255,.55);
-  background:linear-gradient(135deg, rgba(124,92,255,.30), rgba(0,212,255,.18));
+border-color:rgba(124,92,255,.55);
+background:linear-gradient(135deg, rgba(124,92,255,.30), rgba(0,212,255,.18));
 }
-.btn.green{
-  border-color:rgba(0,200,83,.45);
-  background:linear-gradient(135deg, rgba(0,200,83,.20), rgba(0,212,255,.12));
+.btn.good{
+border-color:rgba(0,200,83,.45);
+background:rgba(0,200,83,.12);
 }
 .btn.danger{
-  border-color:rgba(255,61,113,.55);
-  background:linear-gradient(135deg, rgba(255,61,113,.20), rgba(124,92,255,.14));
+border-color:rgba(255,61,113,.45);
+background:rgba(255,61,113,.12);
+}
+.btn.small{
+padding:9px 12px;
+font-size:12px;
+font-weight:900;
+}
+.small{font-size:12px;color:var(--muted2);font-weight:650}
+.mono{
+font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+font-size:12px;
+word-break:break-all;
+color:rgba(17,19,24,.64);
 }
 
-.side{
-  display:flex;
-  flex-direction:column;
-  gap:14px;
+.errorTop{
+margin:12px 0 12px 0;
+padding:12px 14px;
+border-radius:16px;
+border:1px solid rgba(255,61,113,.25);
+background:rgba(255,61,113,.10);
+color:#5a1130;
+font-weight:800;
+display:none;
 }
 
-.side .card{box-shadow:var(--shadow2)}
-.side .cardHeader{align-items:center}
-
-.kpi{
-  padding:16px 18px 18px;
-  display:grid;
-  grid-template-columns:1fr;
-  gap:10px;
-}
+.kpiCol{display:grid;gap:10px}
 .kpiRow{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:10px 12px;
-  background:rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.10);
-  border-radius:14px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:10px;
+padding:10px 12px;
+border:1px solid rgba(17,19,24,.12);
+background:var(--surface3);
+border-radius:16px;
 }
-.kpiName{color:var(--muted); font-size:12px; font-weight:800}
-.kpiVal{font-weight:900; letter-spacing:.3px}
-.kpiVal.ok{color:#c9ffe0}
-.kpiVal.bad{color:#ffd1dc}
+.kpiName{font-size:12px;color:var(--muted);font-weight:900}
+.kpiVal{font-size:12px;font-weight:950}
+.kpiVal.ok{color:#0a3d1f}
+.kpiVal.warn{color:#5a3b00}
+.kpiVal.bad{color:#5a1130}
 
-.hr{height:1px;background:var(--line); margin:12px 0}
-
-.cvBox{
-  padding:16px 18px 18px;
+.stepTitle{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:10px;
 }
-.cvRow{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-.cvMeta{color:var(--muted); font-size:12px; line-height:1.35}
-.file{
-  padding:11px 12px;
-  border-radius:12px;
-  border:1px dashed rgba(255,255,255,.18);
-  background:rgba(0,0,0,.16);
-  width:100%;
-}
-.cvActions{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
-.progressLine{
-  margin-top:10px;
-  font-size:12px;
-  color:var(--muted);
-  line-height:1.35;
-}
-.pulse{
-  display:inline-block; width:8px; height:8px; border-radius:50%;
-  background:var(--accent2);
-  box-shadow:0 0 0 0 rgba(0,212,255,.6);
-  animation:pulse 1.2s infinite;
-  margin-right:8px;
-}
-@keyframes pulse{
-  0%{box-shadow:0 0 0 0 rgba(0,212,255,.6)}
-  70%{box-shadow:0 0 0 10px rgba(0,212,255,0)}
-  100%{box-shadow:0 0 0 0 rgba(0,212,255,0)}
-}
-
-.leaving{opacity:.45; filter:blur(.3px); transition:.2s}
-.helper{font-size:12px; color:var(--muted)}
-.helper strong{color:var(--text)}
-
-@media (max-width: 900px){
-  .grid{grid-template-columns:1fr}
+.stepTitle h2{margin:0;font-size:16px}
+.helpBox{
+border:1px solid rgba(17,19,24,.12);
+background:rgba(17,19,24,.03);
+padding:12px;
+border-radius:16px;
 }
 </style>
 </head>
-
 <body>
-<div class="wrap">
-  <div class="topbar">
-    <div class="brand">
-      <div class="logo"></div>
-      <div>
-        <div style="font-size:14px;opacity:.85">JobApplyAI</div>
-        <div style="font-size:12px;color:var(--muted);font-weight:700">Customer profile</div>
-      </div>
-    </div>
-    <div class="nav">
-      <a class="pill" href="./index.html" data-nav="1">Home</a>
-      <a class="pill active" href="./profile.html" data-nav="1">Profile</a>
-      <a class="pill" href="./plan.html" data-nav="1">Plan</a>
-      <a class="pill" href="./dashboard.html" data-nav="1">Dashboard</a>
-    </div>
-  </div>
-
-  <div class="grid">
-    <section class="card">
-      <div class="cardHeader">
-        <div>
-          <h2 class="hTitle">Your preferences</h2>
-          <p class="hSub">These settings decide which jobs we fetch for you. Save after updating.</p>
-        </div>
-        <span class="badge" id="saveStatus">Not saved yet</span>
-      </div>
-
-      <form class="form" id="profileForm" autocomplete="off">
-        <div class="field full">
-          <label for="jobTitles">Desired job titles (comma separated)</label>
-          <textarea id="jobTitles" placeholder="Receptionist, Front Desk Agent, Rezeption"></textarea>
-          <div class="help">Tip: add 3–5 variations to avoid “0 jobs found”.</div>
-        </div>
-
-        <div class="field full">
-          <label for="industry">Industries (comma separated)</label>
-          <input id="industry" placeholder="Healthtech, Hospitality, Wellness">
-          <div class="help">Optional. Can be used later for better matching.</div>
-        </div>
-
-        <div class="field">
-          <label for="country">Country</label>
-          <select id="country">
-            <option value="DE">Germany (DE)</option>
-            <option value="UK">United Kingdom (UK)</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="city">Main location(s) (comma separated)</label>
-          <input id="city" placeholder="Berlin, Potsdam">
-        </div>
-
-        <div class="field">
-          <label for="radius">Radius (km)</label>
-          <input id="radius" placeholder="20" inputmode="numeric">
-        </div>
-
-        <div class="field full">
-          <div class="help">
-            Your plan sets the daily application cap. Profile data is used for job matching and later for email drafting.
-          </div>
-        </div>
-
-        <div class="field full">
-          <button class="btn primary" type="button" id="saveBtn">Save profile</button>
-          <button class="btn green" type="button" id="toNext">Continue</button>
-        </div>
-      </form>
-
-      <div class="helper" id="fatalHint" style="margin-top:10px"></div>
-    </section>
-
-    <aside class="side">
-      <section class="card">
-        <div class="cardHeader">
-          <div>
-            <div class="hTitle" style="font-size:16px">Account status</div>
-            <div class="hSub" style="margin-top:4px">Quick checks before we fetch jobs</div>
-          </div>
-          <span class="badge" id="signedInBadge">Checking…</span>
-        </div>
-
-        <div class="kpi">
-          <div class="kpiRow">
-            <div class="kpiName">Signed in</div>
-            <div class="kpiVal" id="kSigned">…</div>
-          </div>
-          <div class="kpiRow">
-            <div class="kpiName">Profile saved</div>
-            <div class="kpiVal" id="kProfile">…</div>
-          </div>
-          <div class="kpiRow">
-            <div class="kpiName">Plan selected</div>
-            <div class="kpiVal" id="kPlan">…</div>
-          </div>
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="cardHeader">
-          <div>
-            <div class="hTitle" style="font-size:16px">CV upload & OCR</div>
-            <div class="hSub" style="margin-top:4px">Upload your CV and extract text for better matching.</div>
-          </div>
-          <span class="badge" id="ocrBadge">OCR idle</span>
-        </div>
-
-        <div class="cvBox">
-          <input class="file" type="file" id="cvFile" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
-          <div class="progressLine" id="cvHint">No file uploaded yet.</div>
-          <div class="progressLine" id="ocrMeta"></div>
-
-          <div class="cvActions">
-            <button class="btn" type="button" id="uploadCvBtn">Upload CV</button>
-            <button class="btn primary" type="button" id="startOcrBtn">Start OCR (PDF)</button>
-            <button class="btn" type="button" id="pollOcrBtn">Refresh OCR status</button>
-          </div>
-
-          <div class="hr"></div>
-
-          <div class="help">
-            OCR will store extracted text in your profile so we can suggest job titles and tailor future applications.
-          </div>
-        </div>
-      </section>
-    </aside>
-  </div>
+<header class="topbar">
+<nav class="nav">
+<a class="brand" href="index.html"><span class="logo" aria-hidden="true"></span><span>JobApplyAI</span></a>
+<div class="navlinks">
+<a class="pill" href="index.html" data-nav="1">Home</a>
+<a class="pill active" href="profile.html" data-nav="1">Profile</a>
+<a class="pill" href="plan.html" data-nav="1">Plan</a>
+<a class="pill" href="dashboard.html" data-nav="1">Dashboard</a>
+<button class="pill iconOnly" id="btnLogout" type="button" aria-label="Logout">Logout</button>
 </div>
+</nav>
+</header>
+
+<main class="main">
+<h1 class="h1">Profile</h1>
+<p class="sub" id="subLine">Loading…</p>
+<div class="errorTop" id="errorTop"></div>
+
+<div class="grid">
+<section class="card cardNoPad">
+<div class="sectionHeader">
+<div class="stepTitle">
+<h2>Step 1: Upload CV</h2>
+<span class="badge" id="cvStatusBadge">Loading</span>
+</div>
+<p class="small">Upload your CV first. After upload, you can run OCR and get job title suggestions.</p>
+</div>
+<div class="sectionBody">
+<div class="field">
+<label for="cvFile">CV file (PDF/DOC/DOCX)</label>
+<input type="file" id="cvFile" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+</div>
+
+<div class="helpBox" style="margin-top:10px">
+<div class="small" id="cvHint">No CV uploaded yet.</div>
+<div class="small" id="ocrHint" style="margin-top:6px"></div>
+</div>
+
+<div class="actions" style="margin-top:12px">
+<button class="btn primary" id="uploadCvBtn" type="button">Upload CV</button>
+<button class="btn" id="startOcrBtn" type="button">Start OCR (PDF)</button>
+<button class="btn" id="pollOcrBtn" type="button">Refresh OCR status</button>
+<button class="btn" id="suggestTitlesBtn" type="button">Suggest job titles</button>
+</div>
+
+<div class="hr"></div>
+
+<div class="helpBox">
+<div class="small"><strong>Tip:</strong> OCR is only for PDFs. If you upload DOC/DOCX, upload a PDF version for best results.</div>
+</div>
+</div>
+</section>
+
+<aside class="card">
+<div class="sectionHeader">
+<div class="stepTitle">
+<h2>Onboarding status</h2>
+<span class="badge" id="signedInBadge">Checking…</span>
+</div>
+<p class="small">This is read from the backend (/me/state).</p>
+</div>
+<div class="sectionBody">
+<div class="kpiCol">
+<div class="kpiRow">
+<div class="kpiName">Signed in</div>
+<div class="kpiVal" id="kSigned">…</div>
+</div>
+<div class="kpiRow">
+<div class="kpiName">Customer ID</div>
+<div class="kpiVal mono" id="kCustomerId">—</div>
+</div>
+<div class="kpiRow">
+<div class="kpiName">Profile complete</div>
+<div class="kpiVal" id="kProfile">…</div>
+</div>
+<div class="kpiRow">
+<div class="kpiName">Plan selected</div>
+<div class="kpiVal" id="kPlan">…</div>
+</div>
+<div class="kpiRow">
+<div class="kpiName">CV uploaded</div>
+<div class="kpiVal" id="kCv">…</div>
+</div>
+<div class="kpiRow">
+<div class="kpiName">OCR status</div>
+<div class="kpiVal" id="kOcr">…</div>
+</div>
+</div>
+
+<div class="hr"></div>
+
+<div class="actions">
+<a class="btn" href="plan.html" data-nav="1">Go to plan</a>
+<a class="btn primary" href="dashboard.html" data-nav="1">Go to dashboard</a>
+</div>
+</div>
+</aside>
+
+<section class="card cardNoPad" style="grid-column:1/-1">
+<div class="sectionHeader">
+<div class="stepTitle">
+<h2>Step 2: Preferences</h2>
+<span class="badge" id="saveStatusBadge">Not saved</span>
+</div>
+<p class="small">These settings decide which jobs we fetch for you.</p>
+</div>
+<div class="sectionBody">
+<div class="field">
+<label for="jobTitles">Desired job titles (comma separated)</label>
+<textarea id="jobTitles" placeholder="Receptionist, Front Desk Agent, Rezeption"></textarea>
+<div class="small">Tip: add 3–5 variations to avoid “0 jobs found”.</div>
+</div>
+
+<div class="field">
+<label for="industries">Industries (comma separated)</label>
+<input id="industries" placeholder="Healthtech, Hospitality, Wellness">
+<div class="small">Optional.</div>
+</div>
+
+<div class="field">
+<label for="country">Country</label>
+<select id="country">
+<option value="DE">Germany (DE)</option>
+<option value="UK">United Kingdom (UK)</option>
+</select>
+</div>
+
+<div class="field">
+<label for="locations">Main location(s) (comma separated)</label>
+<input id="locations" placeholder="Berlin, Potsdam">
+</div>
+
+<div class="field">
+<label for="radiusKm">Radius (km)</label>
+<input id="radiusKm" placeholder="20" inputmode="numeric">
+</div>
+
+<div class="actions" style="margin-top:12px">
+<button class="btn primary" id="saveProfileBtn" type="button">Save preferences</button>
+<button class="btn good" id="continueBtn" type="button">Continue</button>
+</div>
+
+<div class="small" id="continueHint" style="margin-top:10px"></div>
+</div>
+</section>
+</div>
+</main>
 
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
 "use strict";
 
-/* =========================
-CONFIG
-========================= */
-// Your Worker base URL
-const API_BASE_DEFAULT = "https://jobapplyai-api.schoene-viktor.workers.dev";
-const API_BASE = API_BASE_DEFAULT.replace(/\/+$/,"");
+const API_BASE="https://jobapplyai-api.schoene-viktor.workers.dev";
 
-// Your Supabase public info (OK to be in frontend)
-const SUPABASE_URL_DEFAULT = "https://awlzvhcnjegfhjedswko.supabase.co";
+const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
 
-// Prefer localStorage if you keep it there; fallback if missing.
-// If you want to hardcode the anon key too, put it below.
-const SUPABASE_ANON_DEFAULT = localStorage.getItem("sb_anon") || "";
+let supabaseClient=null;
+let session=null;
+let state=null;
 
-// Ensure localStorage keys exist to avoid “Missing sb_url / sb_anon”
-if(!localStorage.getItem("sb_url")) localStorage.setItem("sb_url", SUPABASE_URL_DEFAULT);
-if(!localStorage.getItem("sb_anon") && SUPABASE_ANON_DEFAULT) localStorage.setItem("sb_anon", SUPABASE_ANON_DEFAULT);
+function $(id){return document.getElementById(id);}
+function setText(id,t){const el=$(id);if(el) el.textContent=t;}
+function setHtml(id,h){const el=$(id);if(el) el.innerHTML=h;}
+function showTopError(msg){const el=$("errorTop");if(!el) return;el.style.display="block";el.textContent=msg;}
+function clearTopError(){const el=$("errorTop");if(!el) return;el.style.display="none";el.textContent="";}
+function escapeHtml(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
 
-const SUPABASE_URL = localStorage.getItem("sb_url") || SUPABASE_URL_DEFAULT;
-const SUPABASE_ANON_KEY = localStorage.getItem("sb_anon") || SUPABASE_ANON_DEFAULT;
-
-let supabaseClient = null;
-
-/* =========================
-UI helpers
-========================= */
-function $(id){ return document.getElementById(id); }
-function setCvHint(t){ const el=$("cvHint"); if(el) el.textContent=t; }
-function setFatal(t){ const el=$("fatalHint"); if(el) el.textContent=t||""; }
-
-function setOcrBadge(kind,text){
-  const b=$("ocrBadge");
-  if(!b) return;
-  b.className="badge"+(kind?(" "+kind):"");
-  b.textContent=text;
+function setBadge(id,kind,text){
+const el=$(id);
+if(!el) return;
+el.className="badge"+(kind?(" "+kind):"");
+el.textContent=text;
 }
-function setOcrMeta(t){ const el=$("ocrMeta"); if(el) el.textContent=t||""; }
 
-function hasPlan(){
-  const p = (localStorage.getItem("ja_plan")||"").trim();
-  return !!p;
-}
-function setNextButton(){
-  const btn=$("toNext");
-  if(!btn) return;
-  btn.textContent = hasPlan() ? "Continue to dashboard" : "Continue to plan";
-}
 function go(url){
-  document.body.classList.add("leaving");
-  setTimeout(()=>{ window.location.href=url; },180);
+document.body.classList.add("leaving");
+setTimeout(()=>{window.location.href=url;},180);
 }
 
-/* OCR local state (resume after reload) */
-function getOcrState(){
-  return {
-    op: (localStorage.getItem("ja_ocr_op")||"").trim(),
-    out: (localStorage.getItem("ja_ocr_out")||"").trim(),
-    text: (localStorage.getItem("ja_ocr_text")||""),
-    doneAt: (localStorage.getItem("ja_ocr_done_at")||"").trim()
-  };
-}
-function setOcrState(patch){
-  const st=getOcrState();
-  const merged={...st, ...patch};
-  localStorage.setItem("ja_ocr_op", merged.op || "");
-  localStorage.setItem("ja_ocr_out", merged.out || "");
-  localStorage.setItem("ja_ocr_text", merged.text || "");
-  localStorage.setItem("ja_ocr_done_at", merged.doneAt || "");
-  return merged;
+function isEmail(s){
+const v=String(s||"").trim();
+return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
 
-/* =========================
-Auth / backend
-========================= */
-async function getSession(){
-  const { data } = await supabaseClient.auth.getSession();
-  return data && data.session ? data.session : null;
+function resetLocalStateForNewUser(currentEmail){
+const last=(localStorage.getItem("ja_user_email")||"").trim().toLowerCase();
+const now=(currentEmail||"").trim().toLowerCase();
+if(!now) return;
+if(last && last!==now){
+Object.keys(localStorage).forEach(k=>{
+if(k.startsWith("ja_") || k.startsWith("jobapplyai_")) localStorage.removeItem(k);
+});
+sessionStorage.removeItem("sb_access_token");
+}
+localStorage.setItem("ja_user_email", now);
 }
 
-async function upsertCustomerByEmail(email){
-  const res = await fetch(`${API_BASE}/customers/upsert`,{
-    method:"POST",
-    headers:{ "content-type":"application/json" },
-    body: JSON.stringify({ email })
-  });
-  const text = await res.text().catch(()=> "");
-  if(!res.ok) throw new Error(`Customer upsert failed: ${res.status} ${text}`);
-  return JSON.parse(text);
+async function apiGet(path){
+const res=await fetch(API_BASE+path,{method:"GET",headers:{Authorization:"Bearer "+session.access_token}});
+const text=await res.text().catch(()=> "");
+let json=null;
+try{json=JSON.parse(text);}catch{json={raw:text};}
+if(!res.ok) throw new Error(path+" failed: "+res.status+" "+(json.error||json.details||text));
+return json;
 }
 
-async function requireAuthAndCustomer(){
-  const session = await getSession();
-  if(!session || !session.user || !session.user.email){
-    window.location.replace("./signup.html");
-    return null;
-  }
-  const email = session.user.email.trim().toLowerCase();
-  localStorage.setItem("ja_user_email", email);
-
-  const existingId = (localStorage.getItem("ja_customer_id")||"").trim();
-  if(existingId) return { session, email, customerId: existingId };
-
-  const data = await upsertCustomerByEmail(email);
-  if(data && data.customer_id){
-    localStorage.setItem("ja_customer_id", data.customer_id);
-    return { session, email, customerId: data.customer_id };
-  }
-  throw new Error("Signed in, but could not create customer (missing customer_id).");
+async function apiPostJson(path,body){
+const res=await fetch(API_BASE+path,{
+method:"POST",
+headers:{
+Authorization:"Bearer "+session.access_token,
+"content-type":"application/json"
+},
+body:JSON.stringify(body||{})
+});
+const text=await res.text().catch(()=> "");
+let json=null;
+try{json=JSON.parse(text);}catch{json={raw:text};}
+if(!res.ok) throw new Error(path+" failed: "+res.status+" "+(json.error||json.details||text));
+return json;
 }
 
-async function fetchCvMeta(session){
-  const res = await fetch(`${API_BASE}/me/cv`,{
-    method:"GET",
-    headers:{ "Authorization": `Bearer ${session.access_token}` }
-  });
-  const text = await res.text().catch(()=> "");
-  if(!res.ok) throw new Error(`CV meta failed: ${res.status} ${text}`);
-  return JSON.parse(text);
+async function apiPostForm(path,formData){
+const res=await fetch(API_BASE+path,{
+method:"POST",
+headers:{Authorization:"Bearer "+session.access_token},
+body:formData
+});
+const text=await res.text().catch(()=> "");
+let json=null;
+try{json=JSON.parse(text);}catch{json={raw:text};}
+if(!res.ok) throw new Error(path+" failed: "+res.status+" "+(json.error||json.details||text));
+return json;
 }
 
-async function uploadCv(session, file){
-  const fd = new FormData();
-  fd.append("cv", file);
-
-  const res = await fetch(`${API_BASE}/me/cv`,{
-    method:"POST",
-    headers:{ "Authorization": `Bearer ${session.access_token}` },
-    body: fd
-  });
-  const text = await res.text().catch(()=> "");
-  if(!res.ok) throw new Error(`CV upload failed: ${res.status} ${text}`);
-  return JSON.parse(text);
+async function ensureCustomer(email){
+const res=await fetch(API_BASE+"/customers/upsert",{
+method:"POST",
+headers:{"content-type":"application/json"},
+body:JSON.stringify({email})
+});
+const text=await res.text().catch(()=> "");
+if(!res.ok) throw new Error("customers/upsert failed: "+res.status+" "+text);
+const data=JSON.parse(text);
+if(data && data.customer_id) localStorage.setItem("ja_customer_id", data.customer_id);
+return data;
 }
 
-async function startOcr(session){
-  const res = await fetch(`${API_BASE}/me/cv/ocr`,{
-    method:"POST",
-    headers:{ "Authorization": `Bearer ${session.access_token}` }
-  });
-  const text = await res.text().catch(()=> "");
-  if(!res.ok) throw new Error(`OCR start failed: ${res.status} ${text}`);
-  return JSON.parse(text);
+function parseCsv(s,limit){
+return String(s||"").split(",").map(x=>x.trim()).filter(Boolean).slice(0,limit||30);
 }
 
-async function pollOcr(session, op, out){
-  const u = new URL(`${API_BASE}/me/cv/ocr/status`);
-  if(op) u.searchParams.set("operation", op);
-  if(out) u.searchParams.set("out", out);
+function setOnboardingUI(st){
+const signed=!!(session && session.user && session.user.email);
+setBadge("signedInBadge",signed?"good":"warn",signed?"Signed in":"Not signed in");
+setText("kSigned",signed?"Yes":"No");
 
-  const res = await fetch(u.toString(),{
-    method:"GET",
-    headers:{ "Authorization": `Bearer ${session.access_token}` }
-  });
-  const text = await res.text().catch(()=> "");
-  if(!res.ok) throw new Error(`OCR status failed: ${res.status} ${text}`);
-  return JSON.parse(text);
+const customerId=st && st.customer_id ? String(st.customer_id) : (localStorage.getItem("ja_customer_id")||"");
+setText("kCustomerId",customerId||"—");
+
+const profOk=!!(st && st.profile_complete);
+setText("kProfile",profOk?"Yes":"No");
+$("kProfile").className="kpiVal "+(profOk?"ok":"bad");
+
+const planOk=!!(st && st.plan_id);
+setText("kPlan",planOk?"Yes":"No");
+$("kPlan").className="kpiVal "+(planOk?"ok":"warn");
+
+const cvOk=!!(st && st.cv_uploaded);
+setText("kCv",cvOk?"Yes":"No");
+$("kCv").className="kpiVal "+(cvOk?"ok":"warn");
+
+const ocr=String(st && st.cv_ocr_status ? st.cv_ocr_status : "").toLowerCase();
+if(ocr==="done"){
+setText("kOcr","done");
+$("kOcr").className="kpiVal ok";
+}else if(ocr==="processing"){
+setText("kOcr","processing");
+$("kOcr").className="kpiVal warn";
+}else if(ocr==="failed"){
+setText("kOcr","failed");
+$("kOcr").className="kpiVal bad";
+}else{
+setText("kOcr","idle");
+$("kOcr").className="kpiVal warn";
 }
 
-/* NEW: authenticated profile save */
-async function upsertMeProfile(session,payload){
-  const token = session && session.access_token ? session.access_token : "";
-  if(!token) throw new Error("Missing access token. Please sign in again.");
-
-  const res=await fetch(`${API_BASE}/me/profile`,{
-    method:"POST",
-    headers:{
-      "content-type":"application/json",
-      "Authorization":`Bearer ${token}`
-    },
-    body: JSON.stringify(payload)
-  });
-  const text=await res.text().catch(()=> "");
-  if(!res.ok) throw new Error(`Profile upsert failed: ${res.status} ${text}`);
-  return JSON.parse(text);
+const next = planOk ? "dashboard.html" : "plan.html";
+setText("continueBtn",planOk ? "Continue to dashboard" : "Continue to plan");
+setText("continueHint",planOk ? "Next step: go to dashboard." : "Next step: pick a plan (1 / 5 / 10 per day).");
 }
 
-/* =========================
-Parsing helpers
-========================= */
-function parseCsvList(s){
-  return String(s||"")
-    .split(",")
-    .map(x=>x.trim())
-    .filter(Boolean)
-    .slice(0,30);
+async function loadProfileIntoForm(){
+try{
+const prof=await apiGet("/me/profile");
+const p=prof && prof.profile ? prof.profile : null;
+if(!p) return;
+
+const desired=Array.isArray(p.desired_titles)?p.desired_titles:[];
+const industries=Array.isArray(p.industries)?p.industries:[];
+const locations=Array.isArray(p.locations)?p.locations:[];
+const countries=Array.isArray(p.countries_allowed)?p.countries_allowed:[];
+const radius=p.radius_km;
+
+$("jobTitles").value=desired.join(", ");
+$("industries").value=industries.join(", ");
+$("locations").value=locations.join(", ");
+if(countries[0]) $("country").value=String(countries[0]);
+if(radius!==null && radius!==undefined) $("radiusKm").value=String(radius);
+
+setBadge("saveStatusBadge","good","Loaded");
+}catch{
+}
 }
 
-/* =========================
-Main actions
-========================= */
-async function saveProfileNow(auth){
-  const st=$("saveStatus");
-  const saveBtn=$("saveBtn");
-  saveBtn.disabled=true;
-  st.className="badge warn";
-  st.textContent="Saving...";
-
-  try{
-    // Always store local
-    const profileLocal={
-      jobTitles: $("jobTitles").value.trim(),
-      industry: $("industry").value.trim(),
-      country: $("country").value.trim(),
-      city: $("city").value.trim(),
-      radius: $("radius").value.trim()
-    };
-    localStorage.setItem("ja_profile", JSON.stringify(profileLocal));
-
-    const desired_titles = parseCsvList(profileLocal.jobTitles);
-    if(desired_titles.length === 0){
-      throw new Error("Please enter at least 1 desired job title.");
-    }
-    const industries = parseCsvList(profileLocal.industry);
-
-    const countries_allowed = [ (profileLocal.country || "DE").trim() ].filter(Boolean);
-    const locations = parseCsvList(profileLocal.city);
-
-    if(locations.length === 0){
-      throw new Error("Please enter at least 1 location (city).");
-    }
-
-    let radius_km = profileLocal.radius ? Number(profileLocal.radius) : 30;
-    if(!Number.isFinite(radius_km)) radius_km = 30;
-
-    await upsertMeProfile(auth.session,{ desired_titles, industries, countries_allowed, locations, radius_km });
-
-    localStorage.setItem("ja_profile_complete","true");
-    st.className="badge good";
-    st.textContent="Saved";
-    $("kProfile").textContent="Yes";
-    $("kProfile").className="kpiVal ok";
-    setNextButton();
-  }catch(e){
-    st.className="badge bad";
-    st.textContent="Save failed";
-    setFatal(e && e.message ? e.message : String(e));
-  }finally{
-    saveBtn.disabled=false;
-  }
+async function loadCvStatus(){
+try{
+const res=await apiGet("/me/cv");
+const cv=res && res.cv ? res.cv : null;
+if(cv && cv.cv_path){
+setBadge("cvStatusBadge","good","CV uploaded");
+setText("cvHint","Uploaded: "+(cv.cv_filename || cv.cv_path));
+const s=String(cv.cv_ocr_status||"").toLowerCase();
+if(s==="processing"){
+setText("ocrHint","OCR: processing (click refresh)");
+}else if(s==="done"){
+setText("ocrHint","OCR: done");
+}else if(s==="failed"){
+setText("ocrHint","OCR: failed "+(cv.cv_ocr_error||""));
+}else{
+setText("ocrHint","OCR: idle");
+}
+}else{
+setBadge("cvStatusBadge","warn","No CV");
+setText("cvHint","No CV uploaded yet.");
+setText("ocrHint","");
+}
+}catch{
+setBadge("cvStatusBadge","warn","Unknown");
+setText("cvHint","Could not load CV status.");
+}
 }
 
-function loadLocalProfile(){
-  try{
-    const raw = localStorage.getItem("ja_profile");
-    if(!raw) return;
-    const p = JSON.parse(raw);
-    if(p.jobTitles) $("jobTitles").value = p.jobTitles;
-    if(p.industry) $("industry").value = p.industry;
-    if(p.country) $("country").value = p.country;
-    if(p.city) $("city").value = p.city;
-    if(p.radius) $("radius").value = p.radius;
-  }catch{}
+async function refreshState(){
+state=await apiGet("/me/state");
+setOnboardingUI(state);
 }
 
-async function refreshCvUi(session){
-  try{
-    const data = await fetchCvMeta(session);
-    const cv = data && data.cv ? data.cv : null;
-
-    if(cv && cv.cv_path){
-      setCvHint(`Uploaded: ${cv.cv_filename || cv.cv_path} (${cv.cv_size || 0} bytes)`);
-      const ocrStatus = (cv.cv_ocr_status || "").toLowerCase();
-      if(ocrStatus === "processing"){
-        setOcrBadge("warn","OCR processing");
-        setOcrMeta("You can refresh status anytime.");
-      }else if(ocrStatus === "done"){
-        setOcrBadge("good","OCR done");
-        setOcrMeta("Extracted text is stored in your profile.");
-      }else if(ocrStatus === "failed"){
-        setOcrBadge("bad","OCR failed");
-        setOcrMeta(cv.cv_ocr_error || "Unknown OCR error");
-      }else{
-        setOcrBadge("","OCR idle");
-        setOcrMeta("");
-      }
-    }else{
-      setCvHint("No file uploaded yet.");
-      setOcrBadge("","OCR idle");
-      setOcrMeta("");
-    }
-  }catch(e){
-    setCvHint("Could not load CV status.");
-  }
+async function handleUploadCv(){
+clearTopError();
+const file=$("cvFile").files && $("cvFile").files[0] ? $("cvFile").files[0] : null;
+if(!file){showTopError("Please select a CV file first.");return;}
+$("uploadCvBtn").disabled=true;
+setBadge("cvStatusBadge","warn","Uploading…");
+try{
+const fd=new FormData();
+fd.append("cv",file);
+await apiPostForm("/me/cv",fd);
+await refreshState();
+await loadCvStatus();
+}catch(e){
+showTopError(e.message||String(e));
+setBadge("cvStatusBadge","bad","Upload failed");
+}finally{
+$("uploadCvBtn").disabled=false;
+}
 }
 
-/* =========================
-Boot
-========================= */
-(async function boot(){
-  try{
-    if(!SUPABASE_URL || !SUPABASE_ANON_KEY){
-      setFatal("Missing Supabase config. Set sb_url and sb_anon in localStorage or hardcode SUPABASE_ANON_DEFAULT.");
-      return;
-    }
+async function handleStartOcr(){
+clearTopError();
+$("startOcrBtn").disabled=true;
+setText("ocrHint","OCR: starting…");
+try{
+await apiPostJson("/me/cv/ocr",{});
+await refreshState();
+await loadCvStatus();
+}catch(e){
+showTopError(e.message||String(e));
+}finally{
+$("startOcrBtn").disabled=false;
+}
+}
 
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+async function handlePollOcr(){
+clearTopError();
+$("pollOcrBtn").disabled=true;
+setText("ocrHint","OCR: checking…");
+try{
+await apiGet("/me/cv/ocr/status");
+await refreshState();
+await loadCvStatus();
+}catch(e){
+showTopError(e.message||String(e));
+}finally{
+$("pollOcrBtn").disabled=false;
+}
+}
 
-    // Smooth nav
-    document.addEventListener("click",(e)=>{
-      const a=e.target.closest("a[data-nav='1']");
-      if(!a) return;
-      const url=a.getAttribute("href");
-      if(!url || url.startsWith("#")) return;
-      e.preventDefault();
-      go(url);
-    });
+async function handleSuggestTitles(){
+clearTopError();
+$("suggestTitlesBtn").disabled=true;
+try{
+const res=await apiPostJson("/me/cv/suggest-titles",{});
+const sugg=Array.isArray(res && res.suggestions)?res.suggestions:[];
+if(!sugg.length){
+showTopError("No suggestions found yet. Upload a CV and run OCR first.");
+return;
+}
+const titles=sugg.slice(0,8).map(x=>x.title).filter(Boolean);
+if(titles.length){
+const existing=parseCsv($("jobTitles").value,30);
+const merged=[...new Set([...titles,...existing])].slice(0,30);
+$("jobTitles").value=merged.join(", ");
+setBadge("saveStatusBadge","warn","Not saved");
+}
+}catch(e){
+showTopError(e.message||String(e));
+}finally{
+$("suggestTitlesBtn").disabled=false;
+}
+}
 
-    loadLocalProfile();
-    setNextButton();
+async function handleSaveProfile(){
+clearTopError();
+$("saveProfileBtn").disabled=true;
+setBadge("saveStatusBadge","warn","Saving…");
+try{
+const desired_titles=parseCsv($("jobTitles").value,30);
+const industries=parseCsv($("industries").value,30);
+const locations=parseCsv($("locations").value,20);
+const countries_allowed=[String($("country").value||"DE").trim()].filter(Boolean);
 
-    const auth = await requireAuthAndCustomer();
-    if(!auth) return;
+let radius_km=$("radiusKm").value ? Number($("radiusKm").value) : null;
+if(!Number.isFinite(radius_km)) radius_km=null;
 
-    $("signedInBadge").className="badge good";
-    $("signedInBadge").textContent="Signed in";
-    $("kSigned").textContent="Yes";
-    $("kSigned").className="kpiVal ok";
+if(!desired_titles.length) throw new Error("Please enter at least 1 desired job title.");
+if(!locations.length) throw new Error("Please enter at least 1 location.");
 
-    const profComplete = (localStorage.getItem("ja_profile_complete")||"").trim()==="true";
-    $("kProfile").textContent = profComplete ? "Yes" : "No";
-    $("kProfile").className = "kpiVal " + (profComplete ? "ok" : "bad");
+await apiPostJson("/me/profile",{desired_titles,industries,locations,countries_allowed,radius_km});
+await refreshState();
+setBadge("saveStatusBadge","good","Saved");
+}catch(e){
+showTopError(e.message||String(e));
+setBadge("saveStatusBadge","bad","Save failed");
+}finally{
+$("saveProfileBtn").disabled=false;
+}
+}
 
-    $("kPlan").textContent = hasPlan() ? "Yes" : "No";
-    $("kPlan").className = "kpiVal " + (hasPlan() ? "ok" : "bad");
+async function boot(){
+try{
+clearTopError();
+setText("subLine","Checking session…");
 
-    await refreshCvUi(auth.session);
+supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
-    $("saveBtn").addEventListener("click", ()=> saveProfileNow(auth));
+document.addEventListener("click",(e)=>{
+const a=e.target.closest("a[data-nav='1']");
+if(!a) return;
+const url=a.getAttribute("href");
+if(!url || url.startsWith("#")) return;
+e.preventDefault();
+go(url);
+});
 
-    $("toNext").addEventListener("click", ()=>{
-      if(hasPlan()) go("./dashboard.html");
-      else go("./plan.html");
-    });
+const s=await supabaseClient.auth.getSession();
+session=s && s.data ? s.data.session : null;
+if(!session || !session.user || !session.user.email){
+window.location.replace("./signup.html");
+return;
+}
 
-    $("uploadCvBtn").addEventListener("click", async ()=>{
-      setFatal("");
-      const file = $("cvFile").files && $("cvFile").files[0] ? $("cvFile").files[0] : null;
-      if(!file){ setFatal("Please choose a CV file first."); return; }
-      try{
-        setCvHint("Uploading...");
-        const r = await uploadCv(auth.session, file);
-        setCvHint(`Uploaded: ${r.cv_filename || r.cv_path}`);
-        await refreshCvUi(auth.session);
-      }catch(e){
-        setFatal(e && e.message ? e.message : String(e));
-      }
-    });
+const email=String(session.user.email||"").trim().toLowerCase();
+if(!isEmail(email)){
+showTopError("Signed in, but email is missing/invalid.");
+return;
+}
 
-    $("startOcrBtn").addEventListener("click", async ()=>{
-      setFatal("");
-      try{
-        setOcrBadge("warn","Starting OCR…");
-        setOcrMeta("This can take 1–3 minutes for longer PDFs.");
-        const r = await startOcr(auth.session);
-        const op = (r.operation || "").trim();
-        const out = (r.gcs && r.gcs.output) ? String(r.gcs.output) : "";
-        setOcrState({ op, out, text:"", doneAt:"" });
-        setOcrBadge("warn","OCR processing");
-        setOcrMeta("OCR started. Click refresh to check status.");
-      }catch(e){
-        setOcrBadge("bad","OCR failed");
-        setOcrMeta("");
-        setFatal(e && e.message ? e.message : String(e));
-      }
-    });
+resetLocalStateForNewUser(email);
+sessionStorage.setItem("sb_access_token",session.access_token);
 
-    $("pollOcrBtn").addEventListener("click", async ()=>{
-      setFatal("");
-      try{
-        const st = getOcrState();
-        if(!st.op){
-          setFatal("No OCR operation found. Start OCR first.");
-          return;
-        }
-        setOcrBadge("warn","Checking…");
-        const r = await pollOcr(auth.session, st.op, st.out);
-        if(r.status === "processing"){
-          setOcrBadge("warn","OCR processing");
-          setOcrMeta("Still running… try again in a moment.");
-        }else if(r.status === "done"){
-          setOcrBadge("good","OCR done");
-          setOcrMeta(`Saved text (${r.text_length || 0} chars).`);
-          setOcrState({ doneAt: new Date().toISOString() });
-        }else{
-          setOcrBadge("bad","OCR failed");
-          setOcrMeta(r.error || "Unknown error");
-        }
-        await refreshCvUi(auth.session);
-      }catch(e){
-        setOcrBadge("bad","OCR failed");
-        setFatal(e && e.message ? e.message : String(e));
-      }
-    });
+setText("subLine","Signed in as "+email);
 
-  }catch(e){
-    setFatal(e && e.message ? e.message : String(e));
-  }
-})();
+await ensureCustomer(email);
+await refreshState();
+await loadCvStatus();
+await loadProfileIntoForm();
+
+$("uploadCvBtn").addEventListener("click",handleUploadCv);
+$("startOcrBtn").addEventListener("click",handleStartOcr);
+$("pollOcrBtn").addEventListener("click",handlePollOcr);
+$("suggestTitlesBtn").addEventListener("click",handleSuggestTitles);
+$("saveProfileBtn").addEventListener("click",handleSaveProfile);
+
+$("continueBtn").addEventListener("click",()=>{
+const planOk=!!(state && state.plan_id);
+go(planOk ? "./dashboard.html" : "./plan.html");
+});
+
+$("btnLogout").addEventListener("click",async ()=>{
+try{
+await supabaseClient.auth.signOut();
+Object.keys(localStorage).forEach(k=>{
+if(k.startsWith("ja_") || k.startsWith("jobapplyai_")) localStorage.removeItem(k);
+});
+sessionStorage.removeItem("sb_access_token");
+window.location.replace("./index.html");
+}catch(e){
+showTopError(e.message||String(e));
+}
+});
+}catch(e){
+showTopError(e.message||String(e));
+}
+}
+
+window.addEventListener("load",boot);
 </script>
 </body>
 </html>
