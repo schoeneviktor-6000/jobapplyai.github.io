@@ -1,38 +1,62 @@
-<script>
-  // 1) Supabase config (replace these 2)
-  const SUPABASE_URL = "https://awlzvhcnjegfhjedswko.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
+// ================================
+// Supabase configuration
+// ================================
 
-  // 2) Create client (supabase-js v2)
-  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_URL = "https://awlzvhcnjegfhjedswko.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
 
-  // 3) Expose globally for debugging
-  window.supabaseClient = supabaseClient;
+// ================================
+// Make config available globally
+// ================================
 
-  // 4) Helper: require login (redirect if not logged in)
-  async function requireAuth() {
-    const { data } = await window.supabaseClient.auth.getSession();
-    if (!data?.session?.access_token) {
-      // redirect to signup page if not logged in
-      window.location.href = "./signup.html";
-      return null;
-    }
-    return data.session;
+// Some pages expect config from localStorage
+localStorage.setItem("sb_url", SUPABASE_URL);
+localStorage.setItem("sb_anon", SUPABASE_ANON_KEY);
+
+// ================================
+// Supabase client initialization
+// ================================
+
+// Safety check: supabase-js must be loaded first
+if (!window.supabase || !window.supabase.createClient) {
+  console.error(
+    "Supabase JS not loaded. Make sure @supabase/supabase-js is included before auth.js"
+  );
+} else {
+  window.supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+}
+
+// ================================
+// Auth helpers
+// ================================
+
+async function getSession() {
+  if (!window.supabaseClient) return null;
+  const { data } = await window.supabaseClient.auth.getSession();
+  return data?.session ?? null;
+}
+
+async function requireAuth() {
+  const session = await getSession();
+  if (!session) {
+    window.location.href = "/index.html";
   }
+  return session;
+}
 
-  // 5) Helper: sign in with Google
-  async function loginWithGoogle() {
-    await window.supabaseClient.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: window.location.origin + window.location.pathname
-      }
-    });
-  }
+async function logout() {
+  if (!window.supabaseClient) return;
+  await window.supabaseClient.auth.signOut();
+  window.location.href = "/index.html";
+}
 
-  // 6) Helper: logout
-  async function logout() {
-    await window.supabaseClient.auth.signOut();
-    window.location.href = "./index.html";
-  }
-</script>
+// ================================
+// Expose helpers globally
+// ================================
+
+window.getSession = getSession;
+window.requireAuth = requireAuth;
+window.logout = logout;
