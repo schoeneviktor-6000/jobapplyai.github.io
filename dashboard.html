@@ -928,10 +928,19 @@ const when=fmtDate(ev.created_at);
 const link=job.apply_url?String(job.apply_url):"";
 const titleCell=link ? ('<a href="'+escapeHtml(link)+'" target="_blank" rel="noopener">'+escapeHtml(title)+'</a>') : escapeHtml(title);
 
-let metaTxt="—";
-if(ev.meta && typeof ev.meta === "object"){
-if(ev.meta.reason_code) metaTxt = "reason: " + escapeHtml(String(ev.meta.reason_code));
+let metaTxt = "—";
+if (ev.meta && typeof ev.meta === "object") {
+  if (ev.event_type === "sent") {
+    const ch = ev.meta.channel || "email_manual";
+    const fe = ev.meta.from_email || "";
+    metaTxt =
+      "via " + escapeHtml(ch) +
+      (fe ? "<br><span class='mono'>from " + escapeHtml(fe) + "</span>" : "");
+  } else if (ev.meta.reason_code) {
+    metaTxt = "reason: " + escapeHtml(String(ev.meta.reason_code));
+  }
 }
+
 const actionBtn = (String(ev.event_type||"").toLowerCase()==="skipped" && job.id)
 ? "<button class='btn small ghost' type='button' data-unskip='"+escapeHtml(job.id)+"'>Undo</button>"
 : "—";
