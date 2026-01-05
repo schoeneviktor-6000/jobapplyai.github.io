@@ -333,6 +333,7 @@ flex-wrap:wrap;
 }
 .itemActions .btn{flex:1 1 auto;justify-content:center}
 
+/* Table swipe */
 .tableWrap{
 overflow-x:auto;
 overflow-y:hidden;
@@ -377,6 +378,7 @@ animation:shimmer 1.2s linear infinite;
 100%{background-position:-200% 0}
 }
 
+/* Modal */
 .modalBackdrop{
 position:fixed;
 inset:0;
@@ -627,8 +629,8 @@ font-size:13px;
 </div>
 
 <div class="field">
-<label for="skipNote">Note (optional)</label>
-<textarea id="skipNote" placeholder="Anything specific?"></textarea>
+<label for="skipNote">Note</label>
+<textarea id="skipNote" placeholder="Optional note…"></textarea>
 </div>
 
 <div class="modalActions">
@@ -795,20 +797,27 @@ const link=j.apply_url?String(j.apply_url):"";
 const jobId=j.id||"";
 const prio = !!(j._application && j._application.priority);
 
-const titleHtml=link ? ('<a href="'+escapeHtml(link)+'" target="_blank" rel="noopener">'+escapeHtml(title)+'</a>') : escapeHtml(title);
+const titleHtml = link
+? ('<a href="'+escapeHtml(link)+'" target="_blank" rel="noopener">'+escapeHtml(title)+'</a>')
+: escapeHtml(title);
+
 const badge = prio ? "<span class='badge prio'>prio</span>" : "<span class='badge'>new</span>";
 
 const prioBtn = prio
 ? "<button class='btn small ghost' type='button' data-unprio='"+escapeHtml(jobId)+"'>Unprio</button>"
 : "<button class='btn small' type='button' data-prio='"+escapeHtml(jobId)+"'>Prio</button>";
 
+const openBtn = link
+? ('<a class="btn small" href="'+escapeHtml(link)+'" target="_blank" rel="noopener">Open</a>')
+: "";
+
 return '<div class="item">'
 + '<div class="itemTop"><div class="itemTitle">'+titleHtml+'</div>'+badge+'</div>'
 + '<div class="itemMeta"><span>'+escapeHtml(company)+'</span><span>•</span><span>'+escapeHtml(loc)+'</span><span>•</span><span>Posted '+escapeHtml(posted)+'</span></div>'
 + '<div class="itemActions">'
 + prioBtn
-+ '<button class="btn small danger" type="button" data-skip="'+escapeHtml(jobId)+"'>Skip</button>"
-+ (link?('<a class="btn small" href="'+escapeHtml(link)+'" target="_blank" rel="noopener">Open</a>'):'')
++ '<button class="btn small danger" type="button" data-skip="'+escapeHtml(jobId)+'">Skip</button>'
++ openBtn
 + '</div>'
 + '</div>';
 }).join("");
@@ -943,6 +952,37 @@ return '<div class="tableWrap"><table class="table">'
 + '<tbody>'+rows+'</tbody></table></div>';
 }
 
+function renderApplicationsFallback(resp){
+const items=Array.isArray(resp?.data)?resp.data:[];
+if(items.length===0) return '<span class="badge warn">No activity yet</span>';
+
+const rows=items.slice(0,30).map(a=>{
+const st=String(a.status||"").toLowerCase();
+const cls = st==="applied" ? "good" : st==="rejected" ? "bad" : st==="skipped" ? "warn" : "";
+const job=a.job||{};
+const title=job.title||"Untitled";
+const company=job.company_name||"—";
+const loc=[job.city||"", job.region||""].filter(Boolean).join(", ") || "—";
+const when=fmtDate(a.updated_at || a.created_at);
+const link=job.apply_url?String(job.apply_url):"";
+const titleCell=link ? ('<a href="'+escapeHtml(link)+'" target="_blank" rel="noopener">'+escapeHtml(title)+'</a>') : escapeHtml(title);
+const actionBtn = (st==="skipped" && job.id) ? "<button class='btn small ghost' type='button' data-unskip='"+escapeHtml(job.id)+"'>Undo</button>" : "—";
+
+return "<tr>"
++ "<td><span class='badge "+cls+"'>"+escapeHtml(st||"new")+"</span></td>"
++ "<td>"+titleCell+"</td>"
++ "<td>"+escapeHtml(company)+"</td>"
++ "<td>"+escapeHtml(loc)+"</td>"
++ "<td>"+escapeHtml(when)+"</td>"
++ "<td>"+actionBtn+"</td>"
++ "</tr>";
+}).join("");
+
+return '<div class="tableWrap"><table class="table">'
++ '<thead><tr><th>Status</th><th>Job</th><th>Company</th><th>Location</th><th>Time</th><th>Action</th></tr></thead>'
++ '<tbody>'+rows+'</tbody></table></div>';
+}
+
 async function loadActivity(accessToken){
 setHtml("activityError","");
 setHtml("activityWrap",renderSkeleton());
@@ -956,10 +996,22 @@ setHtml("activityWrap",renderEventsTable(resp));
 return;
 }catch(e){
 useEventsEndpoint=false;
+setHtml("activityError",'<div class="error">Timeline endpoint failed. Fallback to applications list. Details: '+escapeHtml(e.message)+'</div>');
 }
 }
 
-setHtml("activityWrap",'<span class="badge warn">Timeline not available</span>');
+// fallback: /me/applications
+let path="/me/applications?limit=30";
+const map = { queued:"new", applied:"applied", rejected:"rejected", skipped:"skipped", prioritized:"new" };
+if(activityEventType && map[activityEventType]) path += "&status=" + encodeURIComponent(map[activityEventType]);
+
+try{
+const resp=await apiGet(path,accessToken);
+setHtml("activityWrap",renderApplicationsFallback(resp));
+}catch(e){
+setHtml("activityWrap",'<span class="badge bad">Activity failed</span>');
+setHtml("activityError",'<div class="error">'+escapeHtml(e.message)+'</div>');
+}
 }
 
 function wireActivityClicks(){
