@@ -6,26 +6,27 @@
 <title>JobApplyAI • Dashboard</title>
 <style>
 :root{
---bg:#0b1020;
---text:#e9ecf7;
---muted:rgba(233,236,247,.72);
---muted2:rgba(233,236,247,.55);
---line:rgba(255,255,255,.12);
---accent:#7c5cff;
---accent2:#00d4ff;
---ok:#00c853;
---warn:#ffb300;
---bad:#ff3d71;
---shadow:0 12px 34px rgba(0,0,0,.35);
+--bg:#f6f7fb;
+--text:#111318;
+--muted:rgba(17,19,24,.64);
+--muted2:rgba(17,19,24,.48);
+--line:rgba(17,19,24,.12);
+--accent:#5b5cff;
+--accent2:#00a6ff;
+--ok:#00a34a;
+--warn:#b86b00;
+--bad:#d81b60;
+--shadow:0 12px 34px rgba(17,19,24,.12);
 --radius:18px;
 --max:1120px;
 --safeTop: env(safe-area-inset-top, 0px);
 --safeBottom: env(safe-area-inset-bottom, 0px);
 
---surface:#0f1730;
---surface2:#0c1226;
---surface3:#111a34;
+--surface:#ffffff;
+--surface2:#ffffff;
+--surface3:#fbfcff;
 }
+
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
@@ -33,9 +34,9 @@ margin:0;
 font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
 color:var(--text);
 background:
-radial-gradient(1200px 650px at 20% -10%, rgba(124,92,255,.35), transparent 55%),
-radial-gradient(900px 500px at 90% 10%, rgba(0,212,255,.22), transparent 55%),
-radial-gradient(800px 600px at 70% 110%, rgba(0,200,83,.10), transparent 55%),
+radial-gradient(1200px 650px at 20% -10%, rgba(91,92,255,.18), transparent 55%),
+radial-gradient(900px 500px at 90% 10%, rgba(0,166,255,.12), transparent 55%),
+radial-gradient(800px 600px at 70% 110%, rgba(0,163,74,.08), transparent 55%),
 var(--bg);
 overflow-x:hidden;
 }
@@ -46,7 +47,7 @@ small{color:var(--muted)}
 position:sticky;
 top:0;
 z-index:30;
-background:rgba(11,16,32,.72);
+background:rgba(246,247,251,.86);
 backdrop-filter:saturate(1.2) blur(12px);
 border-bottom:1px solid var(--line);
 padding-top:var(--safeTop);
@@ -85,14 +86,14 @@ justify-content:flex-end;
 padding:9px 12px;
 border:1px solid var(--line);
 border-radius:999px;
-background:rgba(255,255,255,.04);
+background:rgba(17,19,24,.04);
 font-weight:750;
 font-size:13px;
 transition:.15s ease;
 cursor:pointer;
 white-space:nowrap;
 }
-.pill:hover{transform:translateY(-1px);background:rgba(255,255,255,.06)}
+.pill:hover{transform:translateY(-1px);background:rgba(17,19,24,.06)}
 .pill.active{border-color:rgba(124,92,255,.6); background:rgba(124,92,255,.18)}
 .pill.iconOnly{padding:9px 10px}
 
@@ -110,7 +111,7 @@ margin:10px 0 8px 0;
 .sub{margin:0 0 14px 0;color:var(--muted);font-weight:650}
 
 .card{
-background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
+background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.82));
 border:1px solid var(--line);
 border-radius:var(--radius);
 box-shadow:var(--shadow);
@@ -157,17 +158,17 @@ gap:8px;
 padding:7px 10px;
 border-radius:999px;
 border:1px solid var(--line);
-background:rgba(255,255,255,.05);
+background:rgba(17,19,24,.05);
 color:var(--muted);
 font-size:12px;
 font-weight:750;
 white-space:nowrap;
 max-width:100%;
 }
-.badge.good{border-color:rgba(0,200,83,.4); background:rgba(0,200,83,.12); color:#c9ffe0}
-.badge.warn{border-color:rgba(255,179,0,.5); background:rgba(255,179,0,.12); color:#fff3c4}
-.badge.bad{border-color:rgba(255,61,113,.55); background:rgba(255,61,113,.12); color:#ffd1dc}
-.badge.prio{border-color:rgba(124,92,255,.55); background:rgba(124,92,255,.18); color:#e9ecf7}
+.badge.good{border-color:rgba(0,200,83,.4); background:rgba(0,200,83,.12); color:#0a3d1f}
+.badge.warn{border-color:rgba(255,179,0,.5); background:rgba(255,179,0,.12); color:#5a3b00}
+.badge.bad{border-color:rgba(255,61,113,.55); background:rgba(255,61,113,.12); color:#5a1130}
+.badge.prio{border-color:rgba(124,92,255,.55); background:rgba(124,92,255,.18); color:#1f2a55}
 
 .actions{
 display:flex;
@@ -178,7 +179,7 @@ align-items:center;
 .btn{
 appearance:none;
 border:1px solid var(--line);
-background:rgba(255,255,255,.06);
+background:rgba(17,19,24,.06);
 color:var(--text);
 padding:11px 14px;
 border-radius:999px;
@@ -191,15 +192,15 @@ align-items:center;
 gap:8px;
 text-decoration:none;
 }
-.btn:hover{transform:translateY(-1px); background:rgba(255,255,255,.08)}
+.btn:hover{transform:translateY(-1px); background:rgba(17,19,24,.08)}
 .btn:disabled{opacity:.6; cursor:not-allowed; transform:none}
 .btn.primary{
 border-color:rgba(124,92,255,.55);
 background:linear-gradient(135deg, rgba(124,92,255,.30), rgba(0,212,255,.18));
 }
 .btn.ghost{
-border-color:rgba(255,255,255,.14);
-background:rgba(0,0,0,.22);
+border-color:rgba(17,19,24,.14);
+background:rgba(17,19,24,.04);
 }
 .btn.danger{
 border-color:rgba(255,61,113,.45);
@@ -213,8 +214,8 @@ font-weight:900;
 
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
 .chip{
-border:1px solid rgba(255,255,255,.14);
-background:rgba(0,0,0,.22);
+border:1px solid rgba(17,19,24,.14);
+background:rgba(17,19,24,.04);
 color:var(--muted);
 padding:8px 10px;
 border-radius:999px;
@@ -224,22 +225,22 @@ cursor:pointer;
 transition:.15s ease;
 }
 .chip:hover{transform:translateY(-1px); background:rgba(0,0,0,.28)}
-.chip.active{border-color:rgba(124,92,255,.55); background:rgba(124,92,255,.18); color:#e9ecf7}
+.chip.active{border-color:rgba(124,92,255,.55); background:rgba(124,92,255,.18); color:#1f2a55}
 
 .small{font-size:12px;color:var(--muted2);font-weight:650}
 .mono{
 font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
 font-size:12px;
 word-break:break-all;
-color:rgba(233,236,247,.72);
+color:rgba(17,19,24,.64);
 }
 
 .meter{
 width:100%;
 height:10px;
 border-radius:999px;
-border:1px solid rgba(255,255,255,.14);
-background:rgba(0,0,0,.18);
+border:1px solid rgba(17,19,24,.14);
+background:rgba(17,19,24,.04);
 overflow:hidden;
 margin-top:10px;
 }
@@ -257,7 +258,7 @@ padding:12px 14px;
 border-radius:16px;
 border:1px solid rgba(255,61,113,.25);
 background:rgba(255,61,113,.10);
-color:#ffd1dc;
+color:#5a1130;
 font-weight:800;
 display:none;
 }
@@ -267,7 +268,7 @@ padding:10px 12px;
 border-radius:14px;
 border:1px solid rgba(255,61,113,.25);
 background:rgba(255,61,113,.10);
-color:#ffd1dc;
+color:#5a1130;
 font-weight:750;
 font-size:13px;
 }
@@ -292,7 +293,7 @@ align-items:start;
 
 .sectionHeader{
 background:var(--surface2);
-border-bottom:1px solid rgba(255,255,255,.10);
+border-bottom:1px solid rgba(17,19,24,.10);
 padding:14px;
 }
 .sectionBody{padding:14px}
@@ -304,7 +305,7 @@ grid-template-columns:repeat(2, minmax(0,1fr));
 gap:12px;
 }
 .item{
-border:1px solid rgba(255,255,255,.12);
+border:1px solid rgba(17,19,24,.12);
 background:var(--surface3);
 border-radius:16px;
 padding:14px;
@@ -340,8 +341,8 @@ overflow-y:hidden;
 -webkit-overflow-scrolling:touch;
 touch-action:pan-x pan-y;
 border-radius:16px;
-border:1px solid rgba(255,255,255,.12);
-background:rgba(0,0,0,.16);
+border:1px solid rgba(17,19,24,.12);
+background:rgba(17,19,24,.03);
 }
 .table{
 width:100%;
@@ -353,22 +354,22 @@ border-spacing:0;
 text-align:left;
 padding:10px 10px;
 font-size:13px;
-border-bottom:1px solid rgba(255,255,255,.10);
+border-bottom:1px solid rgba(17,19,24,.10);
 vertical-align:top;
 }
 .table th{
-background:rgba(255,255,255,.06);
+background:rgba(17,19,24,.06);
 font-weight:950;
 position:sticky;
 top:0;
 }
 .table tr:last-child td{border-bottom:0}
-.table a{color:#dfe7ff;text-decoration:underline}
+.table a{color:#1d4ed8;text-decoration:underline}
 
 .skeleton{
 border-radius:12px;
 height:12px;
-background:linear-gradient(90deg, rgba(255,255,255,.10), rgba(255,255,255,.04), rgba(255,255,255,.10));
+background:linear-gradient(90deg, rgba(17,19,24,.10), rgba(17,19,24,.04), rgba(17,19,24,.10));
 background-size:200% 100%;
 animation:shimmer 1.2s linear infinite;
 }
@@ -383,7 +384,7 @@ animation:shimmer 1.2s linear infinite;
 position:fixed;
 inset:0;
 z-index:999;
-background:rgba(0,0,0,.55);
+background:rgba(17,19,24,.45);
 display:flex;
 align-items:center;
 justify-content:center;
@@ -391,7 +392,7 @@ padding:16px;
 }
 .modalCard{
 width:min(520px, 100%);
-border:1px solid rgba(255,255,255,.14);
+border:1px solid rgba(17,19,24,.14);
 background:var(--surface2);
 border-radius:18px;
 box-shadow:0 18px 50px rgba(0,0,0,.55);
@@ -410,8 +411,8 @@ margin-top:10px;
 }
 label{font-size:12px;color:var(--muted);font-weight:800}
 select,textarea{
-border:1px solid rgba(255,255,255,.14);
-background:rgba(0,0,0,.18);
+border:1px solid rgba(17,19,24,.14);
+background:rgba(17,19,24,.04);
 color:var(--text);
 border-radius:12px;
 padding:10px 12px;
@@ -564,6 +565,7 @@ font-size:13px;
 <button class="chip" type="button" data-etype="queued">Queued</button>
 <button class="chip" type="button" data-etype="prioritized">Prioritized</button>
 <button class="chip" type="button" data-etype="applied">Applied</button>
+<button class="chip" type="button" data-etype="sent">Sent</button>
 <button class="chip" type="button" data-etype="rejected">Rejected</button>
 <button class="chip" type="button" data-etype="skipped">Skipped</button>
 </div>
@@ -902,6 +904,15 @@ function fmtDate(ts){
 if(!ts) return "—";
 try{return String(ts).replace("T"," ").slice(0,16);}catch{return String(ts).slice(0,16);}
 }
+
+function timeBucket(ts){
+if(!ts) return "";
+return String(ts).slice(0,16); // minute bucket
+}
+function sentKey(ev){
+const jobId = ev && ev.job && ev.job.id ? String(ev.job.id) : "";
+return jobId + "|" + timeBucket(ev.created_at);
+}
 function eventBadge(type){
 const t=String(type||"").toLowerCase();
 if(t==="applied"||t==="sent"||t==="replied") return {cls:"good", label:t};
@@ -915,10 +926,33 @@ return {cls:"", label:t||"event"};
 }
 
 function renderEventsTable(resp){
-const items=Array.isArray(resp?.data)?resp.data:[];
+const items = Array.isArray(resp?.data) ? resp.data : [];
 if(items.length===0) return '<span class="badge warn">No events yet</span>';
 
-const rows=items.slice(0,30).map(ev=>{
+const list = items.slice(0,30);
+
+// Build sent lookup by (job_id + minute bucket)
+const sentByKey = new Map();
+for(const ev of list){
+if(String(ev.event_type||"").toLowerCase() !== "sent") continue;
+sentByKey.set(sentKey(ev), ev);
+}
+
+// Track which applied keys exist, so we can hide matching sent rows by default
+const appliedKeys = new Set();
+for(const ev of list){
+if(String(ev.event_type||"").toLowerCase() !== "applied") continue;
+appliedKeys.add(sentKey(ev));
+}
+
+// Hide "sent" rows that have a matching "applied" in same minute for the same job
+const visible = list.filter(ev=>{
+const t = String(ev.event_type||"").toLowerCase();
+if(t !== "sent") return true;
+return !appliedKeys.has(sentKey(ev));
+});
+
+const rows = visible.map(ev=>{
 const b=eventBadge(ev.event_type);
 const job=ev.job||{};
 const title=job.title||"Untitled";
@@ -929,19 +963,38 @@ const link=job.apply_url?String(job.apply_url):"";
 const titleCell=link ? ('<a href="'+escapeHtml(link)+'" target="_blank" rel="noopener">'+escapeHtml(title)+'</a>') : escapeHtml(title);
 
 let metaTxt = "—";
-if (ev.meta && typeof ev.meta === "object") {
-  if (ev.event_type === "sent") {
-    const ch = ev.meta.channel || "email_manual";
-    const fe = ev.meta.from_email || "";
-    metaTxt =
-      "via " + escapeHtml(ch) +
-      (fe ? "<br><span class='mono'>from " + escapeHtml(fe) + "</span>" : "");
-  } else if (ev.meta.reason_code) {
-    metaTxt = "reason: " + escapeHtml(String(ev.meta.reason_code));
-  }
+const t = String(ev.event_type||"").toLowerCase();
+
+// If applied: attach proof toggle if a matching "sent" exists
+if(t === "applied"){
+const s = sentByKey.get(sentKey(ev));
+if(s && s.meta && typeof s.meta === "object"){
+const ch = s.meta.channel || "email_manual";
+const fe = s.meta.from_email || "";
+const proofHtml =
+"via " + escapeHtml(ch) +
+(fe ? "<br><span class='mono'>from " + escapeHtml(fe) + "</span>" : "");
+
+metaTxt =
+"<button class='btn small ghost' type='button' data-proof='1'>Show proof</button>" +
+"<div style='display:none;margin-top:8px' class='mono' data-proof-box='1'>" + proofHtml + "</div>";
+}
 }
 
-const actionBtn = (String(ev.event_type||"").toLowerCase()==="skipped" && job.id)
+// Otherwise: show meta for sent directly, and keep skip reason rendering
+if(metaTxt === "—" && ev.meta && typeof ev.meta === "object"){
+if(t === "sent"){
+const ch = ev.meta.channel || "email_manual";
+const fe = ev.meta.from_email || "";
+metaTxt =
+"via " + escapeHtml(ch) +
+(fe ? "<br><span class='mono'>from " + escapeHtml(fe) + "</span>" : "");
+} else if(ev.meta.reason_code){
+metaTxt = "reason: " + escapeHtml(String(ev.meta.reason_code));
+}
+}
+
+const actionBtn = (t==="skipped" && job.id)
 ? "<button class='btn small ghost' type='button' data-unskip='"+escapeHtml(job.id)+"'>Undo</button>"
 : "—";
 
@@ -960,6 +1013,7 @@ return '<div class="tableWrap"><table class="table">'
 + '<thead><tr><th>Event</th><th>Job</th><th>Company</th><th>Location</th><th>Time</th><th>Meta</th><th>Action</th></tr></thead>'
 + '<tbody>'+rows+'</tbody></table></div>';
 }
+
 
 function renderApplicationsFallback(resp){
 const items=Array.isArray(resp?.data)?resp.data:[];
@@ -1027,12 +1081,27 @@ function wireActivityClicks(){
 const wrap=document.getElementById("activityWrap");
 if(!wrap) return;
 wrap.addEventListener("click",(e)=>{
-const btn=e.target.closest("button[data-unskip]");
-if(!btn) return;
-const jobId=btn.getAttribute("data-unskip")||"";
+const unskip=e.target.closest("button[data-unskip]");
+if(unskip){
+const jobId=unskip.getAttribute("data-unskip")||"";
 if(jobId) undoSkip(jobId);
+return;
+}
+
+const proofBtn = e.target.closest("button[data-proof]");
+if(proofBtn){
+const cell = proofBtn.parentElement;
+if(!cell) return;
+const box = cell.querySelector("[data-proof-box='1']");
+if(!box) return;
+
+const isOpen = box.style.display === "block";
+box.style.display = isOpen ? "none" : "block";
+proofBtn.textContent = isOpen ? "Show proof" : "Hide proof";
+}
 });
 }
+
 
 async function refreshQueueAndActivity(){
 const queue=await apiGet("/me/jobs/queue", lastSessionToken);
