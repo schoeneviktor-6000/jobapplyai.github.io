@@ -522,6 +522,8 @@ const API_BASE="https://jobapplyai-api.schoene-viktor.workers.dev";
 const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
 
+const AI_CACHE_KEY="ja_ai_titles_cache_v1";
+
 let supabaseClient=null;
 let session=null;
 let state=null;
@@ -534,6 +536,8 @@ let aiGeneratedOnce=false;
 let aiAppliedOnce=false;
 let aiAppliedTitles=[];
 let jobTitlesTouched=false;
+
+let lastCvMeta=null;
 
 function $(id){return document.getElementById(id);}
 function setText(id,t){const el=$(id);if(el) el.textContent=t;}
@@ -766,14 +770,91 @@ setBadge("saveStatusBadge","good","Loaded");
 }catch{}
 }
 
+function getAiCache(){
+try{
+const raw=localStorage.getItem(AI_CACHE_KEY);
+if(!raw) return null;
+const v=JSON.parse(raw);
+if(!v || typeof v !== "object") return null;
+return v;
+}catch{
+return null;
+}
+}
+
+function setAiCache(payload){
+try{
+localStorage.setItem(AI_CACHE_KEY, JSON.stringify(payload));
+}catch{}
+}
+
+function clearAiCache(){
+try{localStorage.removeItem(AI_CACHE_KEY);}catch{}
+}
+
+function cvMetaFromCv(cv){
+return {
+cv_path: String(cv?.cv_path || ""),
+cv_filename: String(cv?.cv_filename || ""),
+cv_uploaded_at: String(cv?.cv_uploaded_at || ""),
+cv_ocr_status: String(cv?.cv_ocr_status || ""),
+cv_ocr_updated_at: String(cv?.cv_ocr_updated_at || ""),
+cv_text_status: String(cv?.cv_text_status || "")
+};
+}
+
+function cvMetaKey(meta){
+return [
+meta.cv_path,
+meta.cv_filename,
+meta.cv_uploaded_at,
+meta.cv_ocr_status,
+meta.cv_ocr_updated_at,
+meta.cv_text_status
+].join("|");
+}
+
+function applyAiUiFromTitles(titles){
+const clean=Array.isArray(titles) ? titles.map(x=>String(x).trim()).filter(Boolean).slice(0,30) : [];
+if(!clean.length) return false;
+
+aiResult={ titles: clean };
+aiSelectedTitles=new Set(clean);
+aiGeneratedOnce=true;
+
+setBadge("aiStatusBadge","good","Suggestions ready");
+setText("aiHint","Suggestions are ready (cached). Select titles and apply them.");
+setHtml("aiTitlesWrap","<div class='small'><strong>Suggested titles</strong> (click to select/deselect)</div>");
+renderChips("aiTitlesWrap", clean, aiSelectedTitles);
+
+$("aiApplyBtn").disabled = aiSelectedTitles.size===0;
+$("aiGenerateBtn").disabled=true;
+$("aiRegenerateLink").style.display="inline";
+
+return true;
+}
+
+function tryLoadCachedAiSuggestions(){
+const cache=getAiCache();
+if(!cache || !lastCvMeta) return false;
+const currentKey=cvMetaKey(lastCvMeta);
+if(cache.cvMetaKey !== currentKey) return false;
+if(!Array.isArray(cache.titles) || !cache.titles.length) return false;
+return applyAiUiFromTitles(cache.titles);
+}
+
 async function loadCvStatusAndUpdateUx(){
 try{
 const res=await apiGet("/me/cv");
 const cv=res && res.cv ? res.cv : null;
+
 if(cv && cv.cv_path){
+lastCvMeta=cvMetaFromCv(cv);
+
 setBadge("cvStatusBadge","good","CV ready");
 setText("cvHint","Uploaded: "+(cv.cv_filename || cv.cv_path));
 const s=String(cv.cv_ocr_status||"").toLowerCase();
+
 if(s==="processing"){
 setText("ocrHint","OCR is running…");
 setProgress(true, 65, "Extracting text from your CV…", "This can take a moment. Keep this page open.");
@@ -782,8 +863,13 @@ markStep1DoneVisual(false);
 }else if(s==="done"){
 setText("ocrHint","OCR done. You can generate AI suggestions now.");
 setProgress(false, 100, "", "");
+
 unlockAiReady();
+
+const hadCache=tryLoadCachedAiSuggestions();
+if(hadCache){
 markStep1DoneVisual(aiAppliedOnce);
+}
 }else if(s==="failed"){
 setText("ocrHint","OCR failed: "+(cv.cv_ocr_error||""));
 setProgress(false, 0, "", "");
@@ -796,6 +882,7 @@ lockAi("Upload a PDF to enable OCR and AI suggestions.");
 markStep1DoneVisual(false);
 }
 }else{
+lastCvMeta=null;
 setBadge("cvStatusBadge","warn","No CV");
 setText("cvHint","No CV uploaded yet.");
 setText("ocrHint","");
@@ -804,6 +891,7 @@ lockAi("Upload your CV first. Then you can generate suggestions.");
 markStep1DoneVisual(false);
 }
 }catch{
+lastCvMeta=null;
 setBadge("cvStatusBadge","warn","Unknown");
 setText("cvHint","Could not load CV status.");
 setText("ocrHint","");
@@ -817,26 +905,35 @@ async function uploadCvThenAutoOcr(file){
 stopOcrPolling();
 clearTopError();
 lockAi("Working on your CV…");
+clearAiCache();
+
 setBadge("cvStatusBadge","warn","Uploading…");
 setProgress(true, 18, "Uploading your CV…", "Do not close this tab.");
+
 const fd=new FormData();
 fd.append("cv",file);
 await apiPostForm("/me/cv",fd);
+
 await refreshState();
 await loadCvStatusAndUpdateUx();
+
 if(!isPdfFile(file)){
 setProgress(false, 0, "", "");
 setText("ocrHint","For OCR and AI suggestions, please upload a PDF version.");
 lockAi("Upload a PDF to enable OCR and AI suggestions.");
 return;
 }
+
 setBadge("cvStatusBadge","warn","Starting OCR…");
 setProgress(true, 40, "Starting OCR…", "We are extracting text from your PDF.");
 await apiPostJson("/me/cv/ocr",{});
+
 setProgress(true, 55, "OCR in progress…", "We will update automatically.");
 setText("ocrHint","OCR is running…");
+
 const start = Date.now();
 const maxMs = 3 * 60 * 1000;
+
 ocrPollTimer=setInterval(async ()=>{
 try{
 await apiGet("/me/cv/ocr/status");
@@ -844,12 +941,16 @@ await refreshState();
 const res=await apiGet("/me/cv");
 const cv=res && res.cv ? res.cv : null;
 const s=String(cv?.cv_ocr_status||"").toLowerCase();
+
 if(s==="done"){
 stopOcrPolling();
 setProgress(false, 100, "", "");
 setBadge("cvStatusBadge","good","CV ready");
 setText("ocrHint","OCR done. You can generate AI suggestions now.");
+lastCvMeta=cvMetaFromCv(cv);
 unlockAiReady();
+
+tryLoadCachedAiSuggestions();
 return;
 }
 if(s==="failed"){
@@ -860,9 +961,11 @@ setText("ocrHint","OCR failed: "+(cv?.cv_ocr_error||""));
 lockAi("OCR failed. Try a different PDF.");
 return;
 }
+
 const elapsed = Date.now() - start;
 const pct = Math.min(90, 55 + Math.floor(elapsed / maxMs * 35));
 setProgress(true, pct, "OCR in progress…", "We will update automatically.");
+
 if(elapsed > maxMs){
 stopOcrPolling();
 setProgress(false, 0, "", "");
@@ -897,7 +1000,15 @@ showTopError(e.message||String(e));
 
 async function handleAiGenerate({ force=false } = {}){
 clearTopError();
-if(aiGeneratedOnce && !force) return;
+
+if(!force && aiGeneratedOnce){
+return;
+}
+
+if(!force && tryLoadCachedAiSuggestions()){
+return;
+}
+
 $("aiGenerateBtn").disabled=true;
 $("aiApplyBtn").disabled=true;
 $("aiRegenerateLink").style.display="none";
@@ -906,6 +1017,7 @@ aiResult=null;
 $("aiTitlesWrap").style.display="none";
 setBadge("aiStatusBadge","warn","Generating…");
 setText("aiHint","Reading your CV and generating job title suggestions…");
+
 try{
 const res=await apiPostJson("/me/ai/profile-from-cv",{});
 const r=res && res.result ? res.result : null;
@@ -917,16 +1029,13 @@ setText("aiHint","No title suggestions returned. Try a PDF CV and OCR first.");
 $("aiGenerateBtn").disabled=false;
 return;
 }
-aiResult={titles};
-titles.slice(0,30).forEach(t=>aiSelectedTitles.add(t));
-aiGeneratedOnce=true;
-setBadge("aiStatusBadge","good","Ready");
-setText("aiHint","Select titles you want to use. Then apply them to your profile.");
-setHtml("aiTitlesWrap","<div class='small'><strong>Suggested titles</strong> (click to select/deselect)</div>");
-renderChips("aiTitlesWrap", titles.slice(0,30), aiSelectedTitles);
-$("aiApplyBtn").disabled = aiSelectedTitles.size===0;
-$("aiGenerateBtn").disabled=true;
-$("aiRegenerateLink").style.display="inline";
+
+applyAiUiFromTitles(titles);
+
+if(lastCvMeta){
+setAiCache({ cvMetaKey: cvMetaKey(lastCvMeta), titles: titles.slice(0,30), created_at: new Date().toISOString() });
+}
+
 }catch(e){
 setBadge("aiStatusBadge","bad","Failed");
 setText("aiHint","AI generation failed. You can still fill preferences manually.");
@@ -947,16 +1056,23 @@ showTopError("No titles selected.");
 return;
 }
 const picked=[...aiSelectedTitles].slice(0,30);
-const existing=parseCsv($("jobTitles").value,30);
-const merged=[...new Set([...picked,...existing])].slice(0,30);
+
+const current=parseCsv($("jobTitles").value,30);
+const remaining=current.filter(t => !picked.includes(t));
+const merged=[...new Set([...picked, ...remaining])].slice(0,30);
+
 $("jobTitles").value=merged.join(", ");
+
 aiAppliedOnce=true;
 aiAppliedTitles=picked.slice(0,12);
 renderAiAppliedChips(aiAppliedTitles);
+
 setBadge("saveStatusBadge","warn","Not saved");
 setBadge("aiStatusBadge","good","Applied");
 setText("aiHint","Titles added. Now confirm your preferences below and save.");
+
 markStep1DoneVisual(true);
+
 const prefs=$("prefsCard");
 if(prefs){
 prefs.scrollIntoView({ behavior:"smooth", block:"start" });
@@ -994,6 +1110,7 @@ try{
 clearTopError();
 setText("subLine","Checking session…");
 supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
 document.addEventListener("click",(e)=>{
 const a=e.target.closest("a[data-nav='1']");
 if(!a) return;
@@ -1002,37 +1119,45 @@ if(!url || url.startsWith("#")) return;
 e.preventDefault();
 go(url);
 });
+
 const s=await supabaseClient.auth.getSession();
 session=s && s.data ? s.data.session : null;
 if(!session || !session.user || !session.user.email){
 window.location.replace("./signup.html");
 return;
 }
+
 const email=String(session.user.email||"").trim().toLowerCase();
 if(!isEmail(email)){
 showTopError("Signed in, but email is missing/invalid.");
 return;
 }
+
 resetLocalStateForNewUser(email);
 try{sessionStorage.setItem("sb_access_token",session.access_token);}catch{}
 setText("subLine","Signed in as "+email);
+
 await ensureCustomer(email);
 await refreshState();
 await loadCvStatusAndUpdateUx();
 await loadProfileIntoForm();
+
 $("cvFile").addEventListener("change",handleCvFileSelected);
 $("aiGenerateBtn").addEventListener("click",()=>handleAiGenerate({ force:false }));
 $("aiRegenerateLink").addEventListener("click",handleAiRegenerate);
 $("aiApplyBtn").addEventListener("click",handleAiApplyTitles);
+
 $("jobTitles").addEventListener("input",()=>{
 jobTitlesTouched=true;
 renderAiAppliedChips(aiAppliedTitles);
 });
+
 $("saveProfileBtn").addEventListener("click",handleSaveProfile);
 $("continueBtn").addEventListener("click",()=>{
 const planOk=!!(state && state.plan_id);
 go(planOk ? "./dashboard.html" : "./plan.html");
 });
+
 $("btnLogout").addEventListener("click",async ()=>{
 try{
 await supabaseClient.auth.signOut();
