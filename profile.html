@@ -202,6 +202,14 @@ padding:9px 12px;
 font-size:12px;
 font-weight:900;
 }
+.btn.cta{
+border-color:rgba(124,92,255,.60);
+background:linear-gradient(135deg, rgba(124,92,255,.52), rgba(0,166,255,.28));
+box-shadow:0 16px 44px rgba(124,92,255,.18);
+}
+.btn.cta:hover{
+box-shadow:0 18px 52px rgba(124,92,255,.24);
+}
 .linkBtn{
 appearance:none;
 border:none;
@@ -297,6 +305,9 @@ cursor:pointer;
 user-select:none;
 font-weight:850;
 font-size:12px;
+opacity:0;
+transform:translateY(6px);
+animation:chipIn .28s ease forwards;
 }
 .chip.selected{
 border-color:rgba(124,92,255,.55);
@@ -307,11 +318,25 @@ border-color:rgba(124,92,255,.55);
 background:rgba(124,92,255,.10);
 cursor:default;
 }
+@keyframes chipIn{
+from{opacity:0;transform:translateY(6px)}
+to{opacity:1;transform:translateY(0)}
+}
 .stepDone{
 opacity:.78;
 filter:saturate(.92);
 }
 .stepDone .helpBox,.stepDone .progressWrap{opacity:.9}
+.aiCard{
+border:1px solid rgba(124,92,255,.30);
+background:
+radial-gradient(700px 220px at 15% 0%, rgba(124,92,255,.18), transparent 60%),
+radial-gradient(700px 220px at 85% 20%, rgba(0,166,255,.12), transparent 60%),
+linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.82));
+}
+.aiGlow{
+box-shadow:0 18px 52px rgba(124,92,255,.12);
+}
 </style>
 </head>
 <body>
@@ -340,7 +365,7 @@ filter:saturate(.92);
 <h2>Step 1: Upload your CV</h2>
 <span class="badge" id="cvStatusBadge">Loading</span>
 </div>
-<p class="small">Select a file and we will upload it and run OCR automatically (PDF). Then we generate job title suggestions for you.</p>
+<p class="small">Select a file and we will upload it and run OCR automatically (PDF). Then you can generate job title suggestions.</p>
 </div>
 <div class="sectionBody">
 <div class="field">
@@ -363,10 +388,10 @@ filter:saturate(.92);
 
 <div class="hr"></div>
 
-<div class="helpBox" id="aiBox">
+<div class="helpBox aiCard aiGlow" id="aiBox">
 <div class="stepTitle">
 <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-<h2 style="margin:0;font-size:16px">✨ AI job title suggestions</h2>
+<h2 style="margin:0;font-size:16px">AI job title suggestions</h2>
 <button class="linkBtn" id="aiRegenerateLink" type="button" style="display:none">Regenerate</button>
 </div>
 <span class="badge" id="aiStatusBadge">Locked</span>
@@ -375,7 +400,7 @@ filter:saturate(.92);
 <div class="small" id="aiHint" style="margin-top:6px">Upload your CV first. When OCR is done, you can generate suggestions.</div>
 
 <div class="actions" style="margin-top:12px">
-<button class="btn primary" id="aiGenerateBtn" type="button" disabled>Generate suggestions</button>
+<button class="btn cta" id="aiGenerateBtn" type="button" disabled>✨ Generate suggestions</button>
 <button class="btn" id="aiApplyBtn" type="button" disabled>Apply selected titles</button>
 </div>
 
@@ -441,7 +466,7 @@ filter:saturate(.92);
 <h2>Step 2: Confirm your preferences</h2>
 <span class="badge" id="saveStatusBadge">Not saved</span>
 </div>
-<p class="small">After CV upload, confirm these fields. You can also edit the titles suggested by AI.</p>
+<p class="small">AI titles will be placed at the top of your job titles. Then you can add any missing details.</p>
 </div>
 <div class="sectionBody">
 <div class="field">
@@ -449,7 +474,7 @@ filter:saturate(.92);
 <textarea id="jobTitles" placeholder="Receptionist, Front Desk Agent, Rezeption"></textarea>
 <div class="small">Tip: add 3–5 variations to avoid “0 jobs found”.</div>
 <div id="aiAppliedWrap" style="display:none;margin-top:10px">
-<div class="small"><strong>AI-added titles</strong> (for transparency)</div>
+<div class="small"><strong>AI-added titles</strong></div>
 <div id="aiAppliedChips"></div>
 </div>
 </div>
@@ -645,9 +670,10 @@ wrap.style.display="block";
 wrap.innerHTML="";
 const chips=document.createElement("div");
 chips.className="chips";
-items.forEach((t)=>{
+items.forEach((t, idx)=>{
 const chip=document.createElement("div");
 chip.className="chip"+(selectedSet && selectedSet.has(t) ? " selected" : "");
+chip.style.animationDelay = (idx * 45) + "ms";
 chip.textContent=t;
 chip.addEventListener("click",()=>{
 if(!selectedSet) return;
@@ -664,20 +690,19 @@ function renderAiAppliedChips(titles){
 const wrap=$("aiAppliedWrap");
 const chipsHost=$("aiAppliedChips");
 if(!wrap || !chipsHost) return;
-
 if(!titles || !titles.length || jobTitlesTouched){
 wrap.style.display="none";
 chipsHost.innerHTML="";
 return;
 }
-
 wrap.style.display="block";
 chipsHost.innerHTML="";
 const chips=document.createElement("div");
 chips.className="chips";
-titles.forEach((t)=>{
+titles.forEach((t, idx)=>{
 const chip=document.createElement("div");
 chip.className="chip aiTag";
+chip.style.animationDelay = (idx * 35) + "ms";
 chip.textContent=t;
 chips.appendChild(chip);
 });
@@ -745,12 +770,10 @@ async function loadCvStatusAndUpdateUx(){
 try{
 const res=await apiGet("/me/cv");
 const cv=res && res.cv ? res.cv : null;
-
 if(cv && cv.cv_path){
 setBadge("cvStatusBadge","good","CV ready");
 setText("cvHint","Uploaded: "+(cv.cv_filename || cv.cv_path));
 const s=String(cv.cv_ocr_status||"").toLowerCase();
-
 if(s==="processing"){
 setText("ocrHint","OCR is running…");
 setProgress(true, 65, "Extracting text from your CV…", "This can take a moment. Keep this page open.");
@@ -794,34 +817,26 @@ async function uploadCvThenAutoOcr(file){
 stopOcrPolling();
 clearTopError();
 lockAi("Working on your CV…");
-
 setBadge("cvStatusBadge","warn","Uploading…");
 setProgress(true, 18, "Uploading your CV…", "Do not close this tab.");
-
 const fd=new FormData();
 fd.append("cv",file);
 await apiPostForm("/me/cv",fd);
-
 await refreshState();
 await loadCvStatusAndUpdateUx();
-
 if(!isPdfFile(file)){
 setProgress(false, 0, "", "");
 setText("ocrHint","For OCR and AI suggestions, please upload a PDF version.");
 lockAi("Upload a PDF to enable OCR and AI suggestions.");
 return;
 }
-
 setBadge("cvStatusBadge","warn","Starting OCR…");
 setProgress(true, 40, "Starting OCR…", "We are extracting text from your PDF.");
 await apiPostJson("/me/cv/ocr",{});
-
 setProgress(true, 55, "OCR in progress…", "We will update automatically.");
 setText("ocrHint","OCR is running…");
-
 const start = Date.now();
 const maxMs = 3 * 60 * 1000;
-
 ocrPollTimer=setInterval(async ()=>{
 try{
 await apiGet("/me/cv/ocr/status");
@@ -829,7 +844,6 @@ await refreshState();
 const res=await apiGet("/me/cv");
 const cv=res && res.cv ? res.cv : null;
 const s=String(cv?.cv_ocr_status||"").toLowerCase();
-
 if(s==="done"){
 stopOcrPolling();
 setProgress(false, 100, "", "");
@@ -846,11 +860,9 @@ setText("ocrHint","OCR failed: "+(cv?.cv_ocr_error||""));
 lockAi("OCR failed. Try a different PDF.");
 return;
 }
-
 const elapsed = Date.now() - start;
 const pct = Math.min(90, 55 + Math.floor(elapsed / maxMs * 35));
 setProgress(true, pct, "OCR in progress…", "We will update automatically.");
-
 if(elapsed > maxMs){
 stopOcrPolling();
 setProgress(false, 0, "", "");
@@ -885,27 +897,19 @@ showTopError(e.message||String(e));
 
 async function handleAiGenerate({ force=false } = {}){
 clearTopError();
-
-if(aiGeneratedOnce && !force){
-return;
-}
-
+if(aiGeneratedOnce && !force) return;
 $("aiGenerateBtn").disabled=true;
 $("aiApplyBtn").disabled=true;
 $("aiRegenerateLink").style.display="none";
-
 aiSelectedTitles=new Set();
 aiResult=null;
 $("aiTitlesWrap").style.display="none";
-
 setBadge("aiStatusBadge","warn","Generating…");
 setText("aiHint","Reading your CV and generating job title suggestions…");
-
 try{
 const res=await apiPostJson("/me/ai/profile-from-cv",{});
 const r=res && res.result ? res.result : null;
 if(!r) throw new Error("AI returned no result");
-
 const titles=Array.isArray(r.job_titles) ? r.job_titles.map(x=>String(x).trim()).filter(Boolean) : [];
 if(!titles.length){
 setBadge("aiStatusBadge","warn","No titles");
@@ -913,19 +917,14 @@ setText("aiHint","No title suggestions returned. Try a PDF CV and OCR first.");
 $("aiGenerateBtn").disabled=false;
 return;
 }
-
 aiResult={titles};
 titles.slice(0,30).forEach(t=>aiSelectedTitles.add(t));
-
 aiGeneratedOnce=true;
 setBadge("aiStatusBadge","good","Ready");
 setText("aiHint","Select titles you want to use. Then apply them to your profile.");
 setHtml("aiTitlesWrap","<div class='small'><strong>Suggested titles</strong> (click to select/deselect)</div>");
 renderChips("aiTitlesWrap", titles.slice(0,30), aiSelectedTitles);
-
 $("aiApplyBtn").disabled = aiSelectedTitles.size===0;
-
-// One-time generate: disable button after success
 $("aiGenerateBtn").disabled=true;
 $("aiRegenerateLink").style.display="inline";
 }catch(e){
@@ -951,17 +950,13 @@ const picked=[...aiSelectedTitles].slice(0,30);
 const existing=parseCsv($("jobTitles").value,30);
 const merged=[...new Set([...picked,...existing])].slice(0,30);
 $("jobTitles").value=merged.join(", ");
-
 aiAppliedOnce=true;
 aiAppliedTitles=picked.slice(0,12);
 renderAiAppliedChips(aiAppliedTitles);
-
 setBadge("saveStatusBadge","warn","Not saved");
 setBadge("aiStatusBadge","good","Applied");
 setText("aiHint","Titles added. Now confirm your preferences below and save.");
-
 markStep1DoneVisual(true);
-
 const prefs=$("prefsCard");
 if(prefs){
 prefs.scrollIntoView({ behavior:"smooth", block:"start" });
@@ -973,7 +968,9 @@ clearTopError();
 $("saveProfileBtn").disabled=true;
 setBadge("saveStatusBadge","warn","Saving…");
 try{
-const desired_titles=parseCsv($("jobTitles").value,30);
+const userTitles=parseCsv($("jobTitles").value,30);
+const aiTop=(aiAppliedTitles || []).map(x=>String(x||"").trim()).filter(Boolean);
+const desired_titles=[...new Set([...aiTop, ...userTitles])].slice(0,30);
 const industries=parseCsv($("industries").value,30);
 const locations=parseCsv($("locations").value,20);
 const countries_allowed=[String($("country").value||"DE").trim()].filter(Boolean);
@@ -997,7 +994,6 @@ try{
 clearTopError();
 setText("subLine","Checking session…");
 supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-
 document.addEventListener("click",(e)=>{
 const a=e.target.closest("a[data-nav='1']");
 if(!a) return;
@@ -1006,45 +1002,37 @@ if(!url || url.startsWith("#")) return;
 e.preventDefault();
 go(url);
 });
-
 const s=await supabaseClient.auth.getSession();
 session=s && s.data ? s.data.session : null;
 if(!session || !session.user || !session.user.email){
 window.location.replace("./signup.html");
 return;
 }
-
 const email=String(session.user.email||"").trim().toLowerCase();
 if(!isEmail(email)){
 showTopError("Signed in, but email is missing/invalid.");
 return;
 }
-
 resetLocalStateForNewUser(email);
 try{sessionStorage.setItem("sb_access_token",session.access_token);}catch{}
 setText("subLine","Signed in as "+email);
-
 await ensureCustomer(email);
 await refreshState();
 await loadCvStatusAndUpdateUx();
 await loadProfileIntoForm();
-
 $("cvFile").addEventListener("change",handleCvFileSelected);
 $("aiGenerateBtn").addEventListener("click",()=>handleAiGenerate({ force:false }));
 $("aiRegenerateLink").addEventListener("click",handleAiRegenerate);
 $("aiApplyBtn").addEventListener("click",handleAiApplyTitles);
-
 $("jobTitles").addEventListener("input",()=>{
 jobTitlesTouched=true;
 renderAiAppliedChips(aiAppliedTitles);
 });
-
 $("saveProfileBtn").addEventListener("click",handleSaveProfile);
 $("continueBtn").addEventListener("click",()=>{
 const planOk=!!(state && state.plan_id);
 go(planOk ? "./dashboard.html" : "./plan.html");
 });
-
 $("btnLogout").addEventListener("click",async ()=>{
 try{
 await supabaseClient.auth.signOut();
