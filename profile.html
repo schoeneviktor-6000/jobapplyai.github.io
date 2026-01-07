@@ -558,6 +558,12 @@ function setHtml(id,h){const el=$(id);if(el) el.innerHTML=h;}
 function showTopError(msg){const el=$("errorTop");if(!el) return;el.style.display="block";el.textContent=msg;}
 function clearTopError(){const el=$("errorTop");if(!el) return;el.style.display="none";el.textContent="";}
 
+function escapeHtml(s){
+const v=String(s??"");
+return v.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+
+
 function setBadge(id,kind,text){
 const el=$(id);
 if(!el) return;
@@ -580,7 +586,7 @@ const now=(currentEmail||"").trim().toLowerCase();
 if(!now) return;
 if(last && last!==now){
 Object.keys(localStorage).forEach(k=>{
-if(k.startsWith("ja_") || k.startsWith("jobapplyai_")) localStorage.removeItem(k);
+if(k.startsWith("ja_") || k.startsWith("jobapplyai_") || k.startsWith("sb-")) localStorage.removeItem(k);
 });
 try{sessionStorage.removeItem("sb_access_token");}catch{}
 }
@@ -1014,13 +1020,8 @@ showTopError(e.message||String(e));
 async function handleAiGenerate({ force=false } = {}){
 clearTopError();
 
-if(!force && aiGeneratedOnce){
-return;
-}
-
-if(!force && tryLoadCachedAiSuggestions()){
-return;
-}
+if(!force && aiGeneratedOnce) return;
+if(!force && tryLoadCachedAiSuggestions()) return;
 
 $("aiGenerateBtn").disabled=true;
 $("aiApplyBtn").disabled=true;
@@ -1028,6 +1029,11 @@ $("aiRegenerateLink").style.display="none";
 aiSelectedTitles=new Set();
 aiResult=null;
 $("aiTitlesWrap").style.display="none";
+$("aiAltWrap").style.display="none";
+$("aiAltChips").innerHTML="";
+$("aiSkillsWrap").style.display="none";
+$("aiSkillsChips").innerHTML="";
+
 setBadge("aiStatusBadge","warn","Generating…");
 setText("aiHint","Reading your CV and generating job title suggestions…");
 
@@ -1036,19 +1042,8 @@ const res=await apiPostJson("/me/ai/profile-from-cv",{});
 const r=res && res.result ? res.result : null;
 if(!r) throw new Error("AI returned no result");
 
+// Backward-compatible: job_titles is the flat list we render/select
 const titles=Array.isArray(r.job_titles) ? r.job_titles.map(x=>String(x).trim()).filter(Boolean) : [];
-
-// Extract structured skills if available (new API schema)
-const coreSkills = (r.skills && Array.isArray(r.skills.core)) ? r.skills.core.map(x=>String(x).trim()).filter(Boolean) : [];
-const toolSkills = (r.skills && Array.isArray(r.skills.tools)) ? r.skills.tools.map(x=>String(x).trim()).filter(Boolean) : [];
-const supportingSkills = (r.skills && Array.isArray(r.skills.supporting)) ? r.skills.supporting.map(x=>String(x).trim()).filter(Boolean) : [];
-
-const primaryTitles = Array.isArray(r.primary_job_titles) ? r.primary_job_titles : [];
-const altTitlesFromAi = Array.isArray(r.alternative_job_titles) ? r.alternative_job_titles : [];
-const summaryText = String(r.summary||"").trim();
-const seniority = String(r.seniority||"unknown").trim();
-
-if(!titles.length){
 if(!titles.length){
 setBadge("aiStatusBadge","warn","No titles");
 setText("aiHint","No title suggestions returned. Try a PDF CV and OCR first.");
@@ -1056,82 +1051,87 @@ $("aiGenerateBtn").disabled=false;
 return;
 }
 
+// New structured fields (optional)
+const coreSkills = (r.skills && Array.isArray(r.skills.core)) ? r.skills.core.map(x=>String(x).trim()).filter(Boolean) : [];
+const toolSkills = (r.skills && Array.isArray(r.skills.tools)) ? r.skills.tools.map(x=>String(x).trim()).filter(Boolean) : [];
+const supportingSkills = (r.skills && Array.isArray(r.skills.supporting)) ? r.skills.supporting.map(x=>String(x).trim()).filter(Boolean) : [];
+const primaryTitles = Array.isArray(r.primary_job_titles) ? r.primary_job_titles : [];
+const summaryText = String(r.summary||"").trim();
+const seniority = String(r.seniority||"unknown").trim();
+
 applyAiUiFromTitles(titles);
+
 // Cache AI profile insights for dashboard use
 try{
-  const cacheObj = {
-    created_at: new Date().toISOString(),
-    job_titles: titles.slice(0,15),
-    primary_job_titles: primaryTitles.slice(0,7),
-    summary: summaryText,
-    seniority: seniority,
-    skills: {
-      core: coreSkills.slice(0,12),
-      supporting: supportingSkills.slice(0,10),
-      tools: toolSkills.slice(0,10)
-    }
-  };
-  localStorage.setItem("ja_ai_profile", JSON.stringify(cacheObj));
-}catch(e){ /* ignore */ }
+localStorage.setItem("ja_ai_profile", JSON.stringify({
+created_at: new Date().toISOString(),
+job_titles: titles.slice(0,15),
+primary_job_titles: primaryTitles.slice(0,7),
+summary: summaryText,
+seniority: seniority,
+skills: {
+core: coreSkills.slice(0,12),
+supporting: supportingSkills.slice(0,10),
+tools: toolSkills.slice(0,10)
+}
+}));
+}catch{}
 
-// Render skills chips on profile
-(function(){
-  const chips = [];
-  for(const s of coreSkills.slice(0,10)) chips.push(s);
-  for(const s of toolSkills.slice(0,8)) chips.push(s);
-  const uniq = [];
-  const seen = new Set();
-  for(const s of chips){
-    const k = String(s).toLowerCase();
-    if(!k || seen.has(k)) continue;
-    seen.add(k);
-    uniq.push(s);
-  }
-  if(uniq.length){
-    $("aiSkillsWrap").style.display="block";
-    $("aiSkillsChips").innerHTML = uniq.map(s=>'<span class="pill mini">'+escapeHtml(s)+'</span>').join("");
-  } else {
-    $("aiSkillsWrap").style.display="none";
-    $("aiSkillsChips").innerHTML="";
-  }
-})();
+// Render skills chips on profile (core + tools)
+{
+const chips=[];
+for(const s of coreSkills.slice(0,10)) chips.push(s);
+for(const s of toolSkills.slice(0,8)) chips.push(s);
 
-// Fetch cluster-based alternatives (learning + deterministic suggestions)
-try{
-  const cs = await apiPostJson("/me/ai/cluster-suggestion",{});
-  const cm = cs && cs.cluster_match ? cs.cluster_match : null;
-  const alt = cm && Array.isArray(cm.alternative_titles) ? cm.alternative_titles.map(x=>String(x.title||"").trim()).filter(Boolean) : [];
-  const altUniq = [];
-  const seenAlt = new Set();
-  for(const t of alt){
-    const k = t.toLowerCase();
-    if(!k || seenAlt.has(k)) continue;
-    if(titles.map(x=>x.toLowerCase()).includes(k)) continue;
-    seenAlt.add(k);
-    altUniq.push(t);
-  }
-
-  if(altUniq.length){
-    $("aiAltWrap").style.display="block";
-    $("aiAltChips").innerHTML = altUniq.slice(0,6).map(t=>'<span class="pill mini">'+escapeHtml(t)+'</span>').join("");
-  } else {
-    $("aiAltWrap").style.display="none";
-    $("aiAltChips").innerHTML="";
-  }
-
-  // Cache cluster insights for dashboard use
-  try{
-    localStorage.setItem("ja_ai_clusters", JSON.stringify({
-      created_at: new Date().toISOString(),
-      clusters: (cm && Array.isArray(cm.clusters)) ? cm.clusters.slice(0,3) : [],
-      alternative_titles: altUniq.slice(0,10)
-    }));
-  }catch(e){ /* ignore */ }
-}catch(e){
-  // cluster-suggestion is optional; don't fail the main flow
+const uniq=[];
+const seen=new Set();
+for(const s of chips){
+const k=String(s).toLowerCase();
+if(!k || seen.has(k)) continue;
+seen.add(k);
+uniq.push(s);
 }
 
+if(uniq.length){
+$("aiSkillsWrap").style.display="block";
+$("aiSkillsChips").innerHTML = uniq.map(s=>'<span class="pill mini">'+escapeHtml(s)+'</span>').join("");
+}
+}
 
+// Call cluster-suggestion (optional; do not fail main flow if it errors)
+try{
+const cs=await apiPostJson("/me/ai/cluster-suggestion",{});
+const cm=cs && cs.cluster_match ? cs.cluster_match : null;
+const altRaw = cm && Array.isArray(cm.alternative_titles)
+? cm.alternative_titles.map(x=>String(x.title||"").trim()).filter(Boolean)
+: [];
+
+const titleSet = new Set(titles.map(t=>t.toLowerCase()));
+const altUniq=[];
+const seenAlt=new Set();
+for(const t of altRaw){
+const k=t.toLowerCase();
+if(!k || seenAlt.has(k)) continue;
+if(titleSet.has(k)) continue;
+seenAlt.add(k);
+altUniq.push(t);
+}
+
+if(altUniq.length){
+$("aiAltWrap").style.display="block";
+$("aiAltChips").innerHTML = altUniq.slice(0,6).map(t=>'<span class="pill mini">'+escapeHtml(t)+'</span>').join("");
+}
+
+try{
+localStorage.setItem("ja_ai_clusters", JSON.stringify({
+created_at: new Date().toISOString(),
+clusters: (cm && Array.isArray(cm.clusters)) ? cm.clusters.slice(0,3) : [],
+alternative_titles: altUniq.slice(0,10)
+}));
+}catch{}
+}catch{}
+
+// Keep the old CV-meta-based cache too (used by tryLoadCachedAiSuggestions)
 if(lastCvMeta){
 setAiCache({ cvMetaKey: cvMetaKey(lastCvMeta), titles: titles.slice(0,30), created_at: new Date().toISOString() });
 }
@@ -1143,6 +1143,7 @@ showTopError(e.message||String(e));
 $("aiGenerateBtn").disabled=false;
 }
 }
+
 
 function handleAiRegenerate(){
 aiGeneratedOnce=false;
@@ -1262,7 +1263,7 @@ $("btnLogout").addEventListener("click",async ()=>{
 try{
 await supabaseClient.auth.signOut();
 Object.keys(localStorage).forEach(k=>{
-if(k.startsWith("ja_") || k.startsWith("jobapplyai_")) localStorage.removeItem(k);
+if(k.startsWith("ja_") || k.startsWith("jobapplyai_") || k.startsWith("sb-")) localStorage.removeItem(k);
 });
 try{sessionStorage.removeItem("sb_access_token");}catch{}
 window.location.replace("./index.html");
