@@ -405,6 +405,8 @@ box-shadow:0 18px 52px rgba(124,92,255,.12);
 </div>
 
 <div id="aiTitlesWrap" style="margin-top:12px;display:none"></div>
+<div id="aiAltRolesWrap" style="margin-top:12px;display:none"></div>
+<div id="aiSkillsWrap" style="margin-top:12px;display:none"></div>
 </div>
 
 <div class="hr"></div>
@@ -523,6 +525,8 @@ const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
 
 const AI_CACHE_KEY="ja_ai_titles_cache_v1";
+const AI_STRUCT_CACHE_KEY="ja_ai_profile_struct_v1";
+const CLUSTER_CACHE_KEY="ja_cluster_match_cache_v1";
 
 let supabaseClient=null;
 let session=null;
@@ -653,6 +657,8 @@ $("aiRegenerateLink").style.display="none";
 aiResult=null;
 aiSelectedTitles=new Set();
 $("aiTitlesWrap").style.display="none";
+$("aiAltRolesWrap").style.display="none";
+$("aiSkillsWrap").style.display="none";
 setText("aiHint", msg || "Upload your CV first. When OCR is done, you can generate suggestions.");
 aiGeneratedOnce=false;
 aiAppliedOnce=false;
@@ -792,6 +798,61 @@ function clearAiCache(){
 try{localStorage.removeItem(AI_CACHE_KEY);}catch{}
 }
 
+function getStructCache(){
+try{
+const raw=localStorage.getItem(AI_STRUCT_CACHE_KEY);
+if(!raw) return null;
+const v=JSON.parse(raw);
+if(!v || typeof v!=="object") return null;
+return v;
+}catch{return null;}
+}
+function setStructCache(payload){
+try{localStorage.setItem(AI_STRUCT_CACHE_KEY, JSON.stringify(payload));}catch{}
+}
+function clearStructCache(){
+try{localStorage.removeItem(AI_STRUCT_CACHE_KEY);}catch{}
+}
+function getClusterCache(){
+try{
+const raw=localStorage.getItem(CLUSTER_CACHE_KEY);
+if(!raw) return null;
+const v=JSON.parse(raw);
+if(!v || typeof v!=="object") return null;
+return v;
+}catch{return null;}
+}
+function setClusterCache(payload){
+try{localStorage.setItem(CLUSTER_CACHE_KEY, JSON.stringify(payload));}catch{}
+}
+function clearClusterCache(){
+try{localStorage.removeItem(CLUSTER_CACHE_KEY);}catch{}
+}
+
+function renderInfoChips(containerId, title, items){
+const wrap=$(containerId);
+if(!wrap) return;
+const clean=(Array.isArray(items)?items:[]).map(x=>String(x||"").trim()).filter(Boolean).slice(0,24);
+if(!clean.length){
+wrap.style.display="none";
+wrap.innerHTML="";
+return;
+}
+wrap.style.display="block";
+wrap.innerHTML="<div class='small'><strong>"+title+"</strong></div>";
+const chips=document.createElement("div");
+chips.className="chips";
+clean.forEach((t, idx)=>{
+const chip=document.createElement("div");
+chip.className="chip aiTag";
+chip.style.animationDelay=(idx*35)+"ms";
+chip.textContent=t;
+chips.appendChild(chip);
+});
+wrap.appendChild(chips);
+}
+
+
 function cvMetaFromCv(cv){
 return {
 cv_path: String(cv?.cv_path || ""),
@@ -826,6 +887,23 @@ setBadge("aiStatusBadge","good","Suggestions ready");
 setText("aiHint","Suggestions are ready (cached). Select titles and apply them.");
 setHtml("aiTitlesWrap","<div class='small'><strong>Suggested titles</strong> (click to select/deselect)</div>");
 renderChips("aiTitlesWrap", clean, aiSelectedTitles);
+// Extra AI insights from cache (if available)
+const struct=getStructCache();
+if(struct && struct.cvMetaKey && lastCvMeta && struct.cvMetaKey===cvMetaKey(lastCvMeta)){
+const skillList=[]
+.concat(Array.isArray(struct.skills_core)?struct.skills_core.slice(0,8):[])
+.concat(Array.isArray(struct.skills_tools)?struct.skills_tools.slice(0,4):[]);
+renderInfoChips("aiSkillsWrap","Top skills", skillList);
+}else{
+renderInfoChips("aiSkillsWrap","Top skills", []);
+}
+const cl=getClusterCache();
+if(cl && cl.cvMetaKey && lastCvMeta && cl.cvMetaKey===cvMetaKey(lastCvMeta)){
+const alt=(Array.isArray(cl.alternative_titles)?cl.alternative_titles:[]).map(x=>x && x.title ? x.title : x).filter(Boolean).slice(0,8);
+renderInfoChips("aiAltRolesWrap","Alternative roles", alt);
+}else{
+renderInfoChips("aiAltRolesWrap","Alternative roles", []);
+}
 
 $("aiApplyBtn").disabled = aiSelectedTitles.size===0;
 $("aiGenerateBtn").disabled=true;
@@ -906,6 +984,8 @@ stopOcrPolling();
 clearTopError();
 lockAi("Working on your CV…");
 clearAiCache();
+clearStructCache();
+clearClusterCache();
 
 setBadge("cvStatusBadge","warn","Uploading…");
 setProgress(true, 18, "Uploading your CV…", "Do not close this tab.");
@@ -1015,6 +1095,8 @@ $("aiRegenerateLink").style.display="none";
 aiSelectedTitles=new Set();
 aiResult=null;
 $("aiTitlesWrap").style.display="none";
+$("aiAltRolesWrap").style.display="none";
+$("aiSkillsWrap").style.display="none";
 setBadge("aiStatusBadge","warn","Generating…");
 setText("aiHint","Reading your CV and generating job title suggestions…");
 
@@ -1023,6 +1105,11 @@ const res=await apiPostJson("/me/ai/profile-from-cv",{});
 const r=res && res.result ? res.result : null;
 if(!r) throw new Error("AI returned no result");
 const titles=Array.isArray(r.job_titles) ? r.job_titles.map(x=>String(x).trim()).filter(Boolean) : [];
+const skillsObj = r && r.skills ? r.skills : null;
+const skills_core = skillsObj && Array.isArray(skillsObj.core) ? skillsObj.core.map(x=>String(x||"").trim()).filter(Boolean).slice(0,30) : [];
+const skills_supporting = skillsObj && Array.isArray(skillsObj.supporting) ? skillsObj.supporting.map(x=>String(x||"").trim()).filter(Boolean).slice(0,30) : [];
+const skills_tools = skillsObj && Array.isArray(skillsObj.tools) ? skillsObj.tools.map(x=>String(x||"").trim()).filter(Boolean).slice(0,30) : [];
+const primaryTitles = Array.isArray(r.primary_job_titles) ? r.primary_job_titles.map(x=>String(x && x.title ? x.title : "").trim()).filter(Boolean) : [];
 if(!titles.length){
 setBadge("aiStatusBadge","warn","No titles");
 setText("aiHint","No title suggestions returned. Try a PDF CV and OCR first.");
@@ -1033,8 +1120,40 @@ return;
 applyAiUiFromTitles(titles);
 
 if(lastCvMeta){
-setAiCache({ cvMetaKey: cvMetaKey(lastCvMeta), titles: titles.slice(0,30), created_at: new Date().toISOString() });
+const key=cvMetaKey(lastCvMeta);
+setAiCache({ cvMetaKey: key, titles: titles.slice(0,30), created_at: new Date().toISOString() });
+
+// store structured insights for dashboard (local only)
+setStructCache({
+cvMetaKey: key,
+created_at: new Date().toISOString(),
+titles: primaryTitles.length ? primaryTitles.slice(0,7) : titles.slice(0,7),
+skills_core,
+skills_supporting,
+skills_tools
+});
+
+// run cluster-suggestion silently to store DB learning + cache alternative roles locally
+try{
+const cs=await apiPostJson("/me/ai/cluster-suggestion",{});
+const cm=cs && cs.cluster_match ? cs.cluster_match : null;
+setClusterCache({
+cvMetaKey: key,
+created_at: new Date().toISOString(),
+clusters: cm && Array.isArray(cm.clusters) ? cm.clusters : [],
+alternative_titles: cm && Array.isArray(cm.alternative_titles) ? cm.alternative_titles : []
+});
+}catch{}
 }
+
+// render insights immediately
+const skillList=[]
+.concat(skills_core.slice(0,8))
+.concat(skills_tools.slice(0,4));
+renderInfoChips("aiSkillsWrap","Top skills", skillList);
+
+// best-effort alt roles from cached cluster suggestion (may arrive later)
+setTimeout(()=>{ try{ const cl=getClusterCache(); if(cl && lastCvMeta && cl.cvMetaKey===cvMetaKey(lastCvMeta)){ const alt=(Array.isArray(cl.alternative_titles)?cl.alternative_titles:[]).map(x=>x && x.title ? x.title : x).filter(Boolean).slice(0,8); renderInfoChips("aiAltRolesWrap","Alternative roles", alt);} }catch{} }, 700);
 
 }catch(e){
 setBadge("aiStatusBadge","bad","Failed");
@@ -1046,6 +1165,8 @@ $("aiGenerateBtn").disabled=false;
 
 function handleAiRegenerate(){
 aiGeneratedOnce=false;
+clearStructCache();
+clearClusterCache();
 handleAiGenerate({ force:true });
 }
 
