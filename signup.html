@@ -4,16 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>JobApply-AI | Get started</title>
+
 <style>
 :root{
-  --bg:#0b0f14;
-  --card:rgba(255,255,255,.08);
-  --card2:rgba(255,255,255,.06);
-  --border:rgba(255,255,255,.14);
-  --text:#eef5ff;
-  --muted:rgba(238,245,255,.72);
-  --muted2:rgba(238,245,255,.56);
-  --shadow:0 18px 60px rgba(0,0,0,.55);
+  --bg:#f8fafc;
+  --card:#ffffff;
+  --card2:#f8fafc;
+  --border:#e5e7eb;
+  --text:#0f172a;
+  --muted:#475569;
+  --muted2:#64748b;
+  --shadow:0 18px 40px rgba(15,23,42,.08);
   --g1:#22c55e;
   --g2:#60a5fa;
   --max:1060px;
@@ -25,9 +26,9 @@ body{
   font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
   color:var(--text);
   background:
-    radial-gradient(900px 520px at 15% 5%, rgba(34,197,94,.25), transparent 55%),
-    radial-gradient(900px 520px at 85% 0%, rgba(96,165,250,.22), transparent 55%),
-    radial-gradient(1100px 720px at 50% 120%, rgba(34,197,94,.14), transparent 60%),
+    radial-gradient(900px 520px at 15% 5%, rgba(34,197,94,.14), transparent 58%),
+    radial-gradient(900px 520px at 85% 0%, rgba(96,165,250,.12), transparent 58%),
+    radial-gradient(1100px 720px at 50% 120%, rgba(34,197,94,.10), transparent 60%),
     var(--bg);
 }
 a{color:inherit}
@@ -55,40 +56,26 @@ a{color:inherit}
 .logo{
   width:42px;height:42px;border-radius:14px;
   background:linear-gradient(135deg,var(--g1),var(--g2));
-  box-shadow:0 16px 40px rgba(34,197,94,.16);
+  box-shadow:0 14px 35px rgba(34,197,94,.22);
   position:relative;
   overflow:hidden;
 }
 .logo::after{
   content:"";
   position:absolute;inset:-40%;
-  background:linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.75), transparent);
   transform:rotate(20deg);
-  animation:shine 2.6s ease-in-out infinite;
+  animation:shine 2.8s ease-in-out infinite;
 }
 @keyframes shine{
   0%{transform:translateX(-55%) rotate(20deg);opacity:0}
-  30%{opacity:.9}
-  60%{opacity:0}
+  35%{opacity:1}
+  70%{opacity:0}
   100%{transform:translateX(55%) rotate(20deg);opacity:0}
 }
-.wordmark{
-  display:flex;
-  flex-direction:column;
-  gap:2px;
-}
-.wordmark .name{
-  font-weight:950;
-  letter-spacing:.2px;
-  font-size:14px;
-  line-height:1.1;
-}
-.wordmark .tag{
-  font-weight:800;
-  font-size:12px;
-  color:var(--muted2);
-  letter-spacing:.1px;
-}
+.wordmark{display:flex;flex-direction:column;gap:2px}
+.wordmark .name{font-weight:950;letter-spacing:.2px;font-size:14px;line-height:1.1}
+.wordmark .tag{font-weight:800;font-size:12px;color:var(--muted2);letter-spacing:.1px}
 .pill{
   display:inline-flex;
   align-items:center;
@@ -96,7 +83,7 @@ a{color:inherit}
   padding:9px 12px;
   border-radius:999px;
   border:1px solid var(--border);
-  background:rgba(255,255,255,.05);
+  background:rgba(255,255,255,.9);
   font-weight:850;
   font-size:13px;
   color:var(--muted);
@@ -113,42 +100,24 @@ a{color:inherit}
   border:1px solid var(--border);
   background:linear-gradient(180deg, var(--card), var(--card2));
   box-shadow:var(--shadow);
-  backdrop-filter: blur(10px);
   padding:22px;
 }
-.hero{
-  padding:26px;
-  position:relative;
-  overflow:hidden;
-}
+.hero{padding:26px;position:relative;overflow:hidden}
 .hero::before{
   content:"";
   position:absolute;
   inset:-1px;
   background:
-    radial-gradient(700px 280px at 10% 0%, rgba(34,197,94,.18), transparent 60%),
-    radial-gradient(700px 280px at 90% 0%, rgba(96,165,250,.16), transparent 60%);
+    radial-gradient(700px 280px at 10% 0%, rgba(34,197,94,.10), transparent 60%),
+    radial-gradient(700px 280px at 90% 0%, rgba(96,165,250,.09), transparent 60%);
   pointer-events:none;
 }
 .hero > *{position:relative}
-h1{
-  margin:0 0 8px;
-  font-size:30px;
-  letter-spacing:-.4px;
-  line-height:1.15;
-}
-.sub{
-  margin:0 0 18px;
-  color:var(--muted);
-  line-height:1.55;
-  max-width:52ch;
-}
-.focus{
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-  margin-top:6px;
-}
+h1{margin:0 0 8px;font-size:30px;letter-spacing:-.4px;line-height:1.15}
+.sub{margin:0 0 18px;color:var(--muted);line-height:1.55;max-width:52ch}
+
+.focus{display:flex;flex-direction:column;gap:12px;margin-top:6px}
+
 .googleBtn{
   width:100%;
   display:flex;
@@ -157,18 +126,19 @@ h1{
   gap:10px;
   padding:12px 14px;
   border-radius:14px;
-  border:1px solid rgba(0,0,0,.18);
+  border:1px solid #d1d5db;
   background:#ffffff;
   color:#111827;
   font-weight:900;
   font-size:14px;
   cursor:pointer;
-  transition:transform .12s ease, box-shadow .18s ease, filter .15s ease;
-  box-shadow:0 18px 45px rgba(0,0,0,.25);
+  transition:transform .12s ease, box-shadow .18s ease;
+  box-shadow:0 14px 30px rgba(15,23,42,.10);
 }
-.googleBtn:hover{transform:translateY(-1px);box-shadow:0 22px 55px rgba(0,0,0,.32)}
-.googleBtn:disabled{opacity:.62;cursor:not-allowed;transform:none;box-shadow:0 14px 34px rgba(0,0,0,.22)}
+.googleBtn:hover{transform:translateY(-1px);box-shadow:0 18px 38px rgba(15,23,42,.14)}
+.googleBtn:disabled{opacity:.62;cursor:not-allowed;transform:none;box-shadow:0 12px 26px rgba(15,23,42,.10)}
 .googleIcon{width:18px;height:18px;display:inline-block}
+
 .statusRow{
   display:flex;
   align-items:center;
@@ -177,7 +147,7 @@ h1{
   padding:12px 14px;
   border-radius:16px;
   border:1px solid var(--border);
-  background:rgba(255,255,255,.05);
+  background:#ffffff;
 }
 .statusLeft{display:flex;flex-direction:column;gap:2px}
 .statusLabel{font-size:12px;font-weight:900;color:var(--muted2);letter-spacing:.15px}
@@ -186,67 +156,53 @@ h1{
   appearance:none;border:0;background:transparent;
   padding:0;
   font-weight:900;
-  color:rgba(238,245,255,.85);
+  color:#2563eb;
   cursor:pointer;
   text-decoration:underline;
   text-underline-offset:3px;
 }
-.small{
-  margin:0;
-  color:var(--muted2);
-  font-size:12px;
-  line-height:1.55;
-}
-.steps{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-  margin-top:6px;
-}
+
+.small{margin:0;color:var(--muted2);font-size:12px;line-height:1.55}
+
+.steps{display:flex;flex-direction:column;gap:10px;margin-top:6px}
 .step{
   display:flex;
   gap:12px;
   padding:12px 14px;
   border-radius:16px;
   border:1px solid var(--border);
-  background:rgba(255,255,255,.05);
+  background:#f9fafb;
 }
 .num{
   width:28px;height:28px;border-radius:10px;
   display:grid;place-items:center;
   font-weight:950;
-  background:linear-gradient(135deg, rgba(34,197,94,.22), rgba(96,165,250,.18));
-  border:1px solid rgba(255,255,255,.12);
+  background:linear-gradient(135deg, rgba(34,197,94,.18), rgba(96,165,250,.16));
+  border:1px solid rgba(15,23,42,.06);
 }
 .stepText{display:flex;flex-direction:column;gap:2px}
 .stepTitle{font-weight:950}
 .stepDesc{color:var(--muted2);font-size:12px;line-height:1.45}
-.footer{
-  margin-top:18px;
-  text-align:center;
-  color:var(--muted2);
-  font-size:12px;
-}
+
+.footer{margin-top:18px;text-align:center;color:var(--muted2);font-size:12px}
+
 .fadeIn{animation:fadeIn .35s ease both}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.leaving{opacity:.65;transform:translateY(6px);transition:all .18s ease}
-.hr{height:1px;background:rgba(255,255,255,.12);margin:14px 0}
+.leaving{opacity:.7;transform:translateY(6px);transition:all .18s ease}
+.hr{height:1px;background:rgba(15,23,42,.08);margin:14px 0}
+
 details{
-  border:1px solid rgba(255,255,255,.12);
+  border:1px solid rgba(15,23,42,.10);
   border-radius:16px;
   padding:10px 12px;
-  background:rgba(255,255,255,.04);
+  background:rgba(248,250,252,.9);
 }
-details summary{
-  cursor:pointer;
-  font-weight:950;
-  color:var(--muted);
-}
+details summary{cursor:pointer;font-weight:950;color:var(--muted)}
 .advRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
 .ghost{
   appearance:none;
-  border:1px solid rgba(255,255,255,.16);
-  background:rgba(255,255,255,.06);
+  border:1px solid rgba(15,23,42,.12);
+  background:#ffffff;
   color:var(--muted);
   font-weight:900;
   font-size:12px;
@@ -255,16 +211,17 @@ details summary{
   cursor:pointer;
   transition:transform .12s ease, box-shadow .18s ease;
 }
-.ghost:hover{transform:translateY(-1px);box-shadow:0 18px 45px rgba(0,0,0,.25)}
+.ghost:hover{transform:translateY(-1px);box-shadow:0 14px 30px rgba(15,23,42,.10)}
 .ghost:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
-@media (max-width:720px){
-  h1{font-size:28px}
-}
+
+@media (max-width:720px){h1{font-size:28px}}
 </style>
 </head>
+
 <body>
 <div class="wrap">
   <div class="shell fadeIn">
+
     <div class="top">
       <a class="brand" href="index.html" data-nav="1">
         <span class="logo" aria-hidden="true"></span>
@@ -279,7 +236,7 @@ details summary{
     <div class="grid">
       <section class="card hero">
         <h1>Continue with Google</h1>
-        <p class="sub">One click. We create your profile and send you to the next step.</p>
+        <p class="sub">One click. We set up your account and send you to the next step.</p>
 
         <div class="focus">
           <button class="googleBtn" id="btnGoogle" type="button">
@@ -341,7 +298,7 @@ details summary{
           </div>
         </div>
         <div class="hr"></div>
-        <p class="small">If sign-in loops, check your Supabase redirect allow-list includes this page URL.</p>
+        <p class="small">If sign-in loops: Supabase Auth settings must allow this page URL as a redirect URL.</p>
       </aside>
     </div>
 
@@ -351,7 +308,7 @@ details summary{
     <script>
 const API_BASE="https://jobapplyai-api.schoene-viktor.workers.dev";
 const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
-const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2F3bHp2dmhjbmplZ2ZoamVkc3drbyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzM2MTQ1ODg1LCJleHAiOjIwODIyMjc2OTh9.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
 const supabaseClient=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 function go(url){
@@ -419,14 +376,8 @@ async function upsertCustomerByEmail(email){
   return await res.json();
 }
 
-function setTopState(text){
-  const el=document.getElementById("topState");
-  if(el) el.textContent=text;
-}
-function setHint(text){
-  const el=document.getElementById("hint");
-  if(el) el.textContent=text;
-}
+function setTopState(text){ const el=document.getElementById("topState"); if(el) el.textContent=text; }
+function setHint(text){ const el=document.getElementById("hint"); if(el) el.textContent=text; }
 function setGoogleButton(disabled,text){
   const btn=document.getElementById("btnGoogle");
   const t=document.getElementById("btnGoogleText");
@@ -510,6 +461,7 @@ document.getElementById("btnGoogle").addEventListener("click", async ()=>{
       return;
     }
     setGoogleButton(true,"Opening Google…");
+    setHint("Opening Google sign-in…");
     await loginWithGoogle();
   }catch(e){
     console.error(e);
