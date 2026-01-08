@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>JobApply-AI | Get started</title>
+<title>JobApply-AI | We apply for jobs for you</title>
 
 <style>
 :root{
@@ -114,7 +114,7 @@ a{color:inherit}
 }
 .hero > *{position:relative}
 h1{margin:0 0 8px;font-size:30px;letter-spacing:-.4px;line-height:1.15}
-.sub{margin:0 0 18px;color:var(--muted);line-height:1.55;max-width:52ch}
+.sub{margin:0 0 18px;color:var(--muted);line-height:1.55;max-width:58ch}
 
 .focus{display:flex;flex-direction:column;gap:12px;margin-top:6px}
 
@@ -124,18 +124,18 @@ h1{margin:0 0 8px;font-size:30px;letter-spacing:-.4px;line-height:1.15}
   align-items:center;
   justify-content:center;
   gap:10px;
-  padding:12px 14px;
+  padding:13px 16px;
   border-radius:14px;
   border:1px solid #d1d5db;
   background:#ffffff;
   color:#111827;
   font-weight:900;
-  font-size:14px;
+  font-size:15px;
   cursor:pointer;
   transition:transform .12s ease, box-shadow .18s ease;
-  box-shadow:0 14px 30px rgba(15,23,42,.10);
+  box-shadow:0 14px 30px rgba(15,23,42,.12);
 }
-.googleBtn:hover{transform:translateY(-1px);box-shadow:0 18px 38px rgba(15,23,42,.14)}
+.googleBtn:hover{transform:translateY(-1px);box-shadow:0 18px 38px rgba(15,23,42,.16)}
 .googleBtn:disabled{opacity:.62;cursor:not-allowed;transform:none;box-shadow:0 12px 26px rgba(15,23,42,.10)}
 .googleIcon{width:18px;height:18px;display:inline-block}
 
@@ -227,7 +227,7 @@ details summary{cursor:pointer;font-weight:950;color:var(--muted)}
         <span class="logo" aria-hidden="true"></span>
         <span class="wordmark">
           <span class="name">JobApply-AI</span>
-          <span class="tag">Fast job matching from your CV</span>
+          <span class="tag">We apply for jobs for you</span>
         </span>
       </a>
       <span class="pill" id="topState">Not signed in</span>
@@ -235,8 +235,8 @@ details summary{cursor:pointer;font-weight:950;color:var(--muted)}
 
     <div class="grid">
       <section class="card hero">
-        <h1>Continue with Google</h1>
-        <p class="sub">One click. We set up your account and send you to the next step.</p>
+        <h1>We apply for jobs for you</h1>
+        <p class="sub">Sign in with Google to start. We’ll set up your account and take you to the application setup.</p>
 
         <div class="focus">
           <button class="googleBtn" id="btnGoogle" type="button">
@@ -259,7 +259,7 @@ details summary{cursor:pointer;font-weight:950;color:var(--muted)}
             <button class="linkBtn" id="btnSwitch" type="button">Switch</button>
           </div>
 
-          <p class="small" id="hint">We only use your Google email to create your account.</p>
+          <p class="small" id="hint">You stay in control. Nothing is sent without your confirmation.</p>
 
           <details id="advanced" style="display:none">
             <summary>Advanced</summary>
@@ -273,27 +273,27 @@ details summary{cursor:pointer;font-weight:950;color:var(--muted)}
       </section>
 
       <aside class="card">
-        <div style="font-weight:950;margin-bottom:8px">Next steps</div>
+        <div style="font-weight:950;margin-bottom:8px">How it works</div>
         <div class="steps">
           <div class="step">
             <div class="num">1</div>
             <div class="stepText">
-              <div class="stepTitle">Upload CV</div>
-              <div class="stepDesc">PDF upload or paste text.</div>
+              <div class="stepTitle">Set up once</div>
+              <div class="stepDesc">Upload CV + choose what you want us to apply to.</div>
             </div>
           </div>
           <div class="step">
             <div class="num">2</div>
             <div class="stepText">
-              <div class="stepTitle">Get suggested titles</div>
-              <div class="stepDesc">Based on skills in your CV.</div>
+              <div class="stepTitle">We apply for you</div>
+              <div class="stepDesc">Applications are prepared and sent on your behalf.</div>
             </div>
           </div>
           <div class="step">
             <div class="num">3</div>
             <div class="stepText">
-              <div class="stepTitle">Fetch matching jobs</div>
-              <div class="stepDesc">We build your job queue.</div>
+              <div class="stepTitle">Track everything</div>
+              <div class="stepDesc">See applied jobs and your application activity.</div>
             </div>
           </div>
         </div>
@@ -418,7 +418,7 @@ function showSignedOut(){
   const adv=document.getElementById("advanced");
   if(adv) adv.style.display="none";
   setGoogleButton(false,"Continue with Google");
-  setHint("We only use your Google email to create your account.");
+  setHint("You stay in control. Nothing is sent without your confirmation.");
 }
 
 async function hydrate(){
@@ -436,11 +436,11 @@ async function hydrate(){
 
   try{
     setGoogleButton(true,"Setting up…");
-    setHint("Creating your account…");
+    setHint("Setting up your account…");
     const data=await upsertCustomerByEmail(email);
     if(data && data.customer_id){
       syncIdentity({ customerId:data.customer_id, email });
-      setHint("Done. Redirecting…");
+      setHint("Done. Taking you to setup…");
       setTimeout(()=>go(nextStepUrl()), 700);
       return;
     }
