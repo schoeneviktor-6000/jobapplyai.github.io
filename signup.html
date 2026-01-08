@@ -6,595 +6,564 @@
 <title>JobApply-AI | Get started</title>
 <style>
 :root{
---bg:#ffffff;
---surface:#f6f7f8;
---surface2:#eef1f2;
---text:#0b0b0b;
---muted:#4a4a4a;
---muted2:#6c6c6c;
---border:#d7dadc;
---shadow:0 12px 30px rgba(0,0,0,.08);
---green:#16a34a;
---green2:#22c55e;
---blue:#2563eb;
---max:1120px;
+  --bg:#0b0f14;
+  --card:rgba(255,255,255,.08);
+  --card2:rgba(255,255,255,.06);
+  --border:rgba(255,255,255,.14);
+  --text:#eef5ff;
+  --muted:rgba(238,245,255,.72);
+  --muted2:rgba(238,245,255,.56);
+  --shadow:0 18px 60px rgba(0,0,0,.55);
+  --g1:#22c55e;
+  --g2:#60a5fa;
+  --max:1060px;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
-margin:0;
-font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-background:radial-gradient(900px 500px at 10% 0%, rgba(34,197,94,.14), transparent 60%),
-radial-gradient(900px 500px at 90% 0%, rgba(37,99,235,.10), transparent 55%),
-var(--bg);
-color:var(--text);
+  margin:0;
+  font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  color:var(--text);
+  background:
+    radial-gradient(900px 520px at 15% 5%, rgba(34,197,94,.25), transparent 55%),
+    radial-gradient(900px 520px at 85% 0%, rgba(96,165,250,.22), transparent 55%),
+    radial-gradient(1100px 720px at 50% 120%, rgba(34,197,94,.14), transparent 60%),
+    var(--bg);
 }
 a{color:inherit}
-.shell{max-width:var(--max);margin:0 auto;padding:20px 16px 36px}
-.topbar{
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:12px;
-padding:12px 0;
+.wrap{
+  min-height:100%;
+  display:grid;
+  place-items:center;
+  padding:28px 16px;
+}
+.shell{width:100%;max-width:var(--max)}
+.top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:18px;
 }
 .brand{
-display:flex;
-align-items:center;
-gap:10px;
-font-weight:950;
-letter-spacing:.2px;
-text-decoration:none;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  text-decoration:none;
+  user-select:none;
 }
 .logo{
-width:38px;height:38px;border-radius:12px;
-background:linear-gradient(135deg,var(--green),var(--green2));
-box-shadow:0 8px 20px rgba(22,163,74,.25);
-display:inline-block;
+  width:42px;height:42px;border-radius:14px;
+  background:linear-gradient(135deg,var(--g1),var(--g2));
+  box-shadow:0 16px 40px rgba(34,197,94,.16);
+  position:relative;
+  overflow:hidden;
 }
-.nav{
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:14px;
-width:100%;
+.logo::after{
+  content:"";
+  position:absolute;inset:-40%;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+  transform:rotate(20deg);
+  animation:shine 2.6s ease-in-out infinite;
 }
-.navlinks{
-display:flex;
-align-items:center;
-gap:10px;
-flex-wrap:wrap;
-justify-content:flex-end;
+@keyframes shine{
+  0%{transform:translateX(-55%) rotate(20deg);opacity:0}
+  30%{opacity:.9}
+  60%{opacity:0}
+  100%{transform:translateX(55%) rotate(20deg);opacity:0}
+}
+.wordmark{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.wordmark .name{
+  font-weight:950;
+  letter-spacing:.2px;
+  font-size:14px;
+  line-height:1.1;
+}
+.wordmark .tag{
+  font-weight:800;
+  font-size:12px;
+  color:var(--muted2);
+  letter-spacing:.1px;
 }
 .pill{
-display:inline-flex;
-align-items:center;
-gap:8px;
-padding:9px 12px;
-border-radius:999px;
-border:1px solid rgba(215,218,220,.9);
-background:rgba(246,247,248,.92);
-font-weight:800;
-font-size:13px;
-text-decoration:none;
-transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease, background .15s ease;
-cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:9px 12px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.05);
+  font-weight:850;
+  font-size:13px;
+  color:var(--muted);
 }
-.pill:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(0,0,0,.08)}
-.pill.primary{
-border-color:rgba(22,163,74,.5);
-background:linear-gradient(135deg, rgba(22,163,74,.16), rgba(34,197,94,.14));
-}
-.main{margin-top:10px}
 .grid{
-display:grid;
-grid-template-columns:1.15fr .85fr;
-gap:16px;
-align-items:start;
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:16px;
+  align-items:stretch;
 }
 @media (max-width:980px){.grid{grid-template-columns:1fr}}
 .card{
-background:rgba(246,247,248,.85);
-border:1px solid rgba(215,218,220,.9);
-border-radius:22px;
-box-shadow:var(--shadow);
-padding:18px;
-backdrop-filter: blur(8px);
+  border-radius:24px;
+  border:1px solid var(--border);
+  background:linear-gradient(180deg, var(--card), var(--card2));
+  box-shadow:var(--shadow);
+  backdrop-filter: blur(10px);
+  padding:22px;
 }
-.h1{
-font-size:28px;
-line-height:1.15;
-margin:6px 0 8px;
-letter-spacing:-.4px;
+.hero{
+  padding:26px;
+  position:relative;
+  overflow:hidden;
 }
-.sub{margin:0 0 10px;color:var(--muted);line-height:1.55}
-.hr{height:1px;background:rgba(215,218,220,.9);margin:14px 0}
-.stepper{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-margin:14px 0;
+.hero::before{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  background:
+    radial-gradient(700px 280px at 10% 0%, rgba(34,197,94,.18), transparent 60%),
+    radial-gradient(700px 280px at 90% 0%, rgba(96,165,250,.16), transparent 60%);
+  pointer-events:none;
+}
+.hero > *{position:relative}
+h1{
+  margin:0 0 8px;
+  font-size:30px;
+  letter-spacing:-.4px;
+  line-height:1.15;
+}
+.sub{
+  margin:0 0 18px;
+  color:var(--muted);
+  line-height:1.55;
+  max-width:52ch;
+}
+.focus{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin-top:6px;
+}
+.googleBtn{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid rgba(0,0,0,.18);
+  background:#ffffff;
+  color:#111827;
+  font-weight:900;
+  font-size:14px;
+  cursor:pointer;
+  transition:transform .12s ease, box-shadow .18s ease, filter .15s ease;
+  box-shadow:0 18px 45px rgba(0,0,0,.25);
+}
+.googleBtn:hover{transform:translateY(-1px);box-shadow:0 22px 55px rgba(0,0,0,.32)}
+.googleBtn:disabled{opacity:.62;cursor:not-allowed;transform:none;box-shadow:0 14px 34px rgba(0,0,0,.22)}
+.googleIcon{width:18px;height:18px;display:inline-block}
+.statusRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 14px;
+  border-radius:16px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.05);
+}
+.statusLeft{display:flex;flex-direction:column;gap:2px}
+.statusLabel{font-size:12px;font-weight:900;color:var(--muted2);letter-spacing:.15px}
+.statusValue{font-size:13px;font-weight:900;color:var(--muted)}
+.linkBtn{
+  appearance:none;border:0;background:transparent;
+  padding:0;
+  font-weight:900;
+  color:rgba(238,245,255,.85);
+  cursor:pointer;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+.small{
+  margin:0;
+  color:var(--muted2);
+  font-size:12px;
+  line-height:1.55;
+}
+.steps{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:6px;
 }
 .step{
-display:flex;align-items:center;gap:8px;
-padding:8px 10px;
-border-radius:999px;
-border:1px solid rgba(215,218,220,.9);
-background:rgba(255,255,255,.6);
-font-size:13px;
-font-weight:850;
-color:var(--muted2);
+  display:flex;
+  gap:12px;
+  padding:12px 14px;
+  border-radius:16px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.05);
 }
-.step .dot{
-width:22px;height:22px;border-radius:999px;
-display:inline-grid;place-items:center;
-background:rgba(0,0,0,.07);
-color:var(--text);
-font-size:12px;
+.num{
+  width:28px;height:28px;border-radius:10px;
+  display:grid;place-items:center;
+  font-weight:950;
+  background:linear-gradient(135deg, rgba(34,197,94,.22), rgba(96,165,250,.18));
+  border:1px solid rgba(255,255,255,.12);
 }
-.step.current{color:var(--text);border-color:rgba(37,99,235,.25);background:rgba(37,99,235,.06)}
-.step.done{color:var(--text);border-color:rgba(22,163,74,.35);background:rgba(22,163,74,.08)}
-.badge{
-display:inline-flex;
-align-items:center;
-gap:8px;
-padding:10px 12px;
-border-radius:14px;
-border:1px solid rgba(215,218,220,.9);
-background:rgba(255,255,255,.65);
-font-weight:900;
-font-size:13px;
-}
-.badge.good{border-color:rgba(22,163,74,.45);background:rgba(22,163,74,.10)}
-.badge.warn{border-color:rgba(234,179,8,.55);background:rgba(234,179,8,.12)}
-.actions{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-margin-top:14px;
-align-items:center;
-}
-.btn{
-appearance:none;
-border:0;
-cursor:pointer;
-padding:11px 14px;
-border-radius:999px;
-font-weight:900;
-font-size:13px;
-letter-spacing:.2px;
-display:inline-flex;
-align-items:center;
-gap:8px;
-transition:transform .12s ease, box-shadow .18s ease, filter .15s ease, background .15s ease;
-background:rgba(255,255,255,.9);
-border:1px solid rgba(215,218,220,.9);
-}
-.btn:hover{transform:translateY(-1px);box-shadow:0 12px 30px rgba(0,0,0,.10)}
-.btn.primary{
-border-color:rgba(22,163,74,.55);
-background:linear-gradient(135deg,var(--green),var(--green2));
-color:white;
-box-shadow:0 12px 28px rgba(22,163,74,.28);
-}
-.btn:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
-.helper{margin-top:10px;color:var(--muted);font-size:13px;line-height:1.5}
-.notice{
-border-radius:16px;
-padding:12px 13px;
-border:1px solid rgba(215,218,220,.9);
-background:rgba(255,244,214,.7);
-color:#5a3a00;
-font-weight:750;
-}
+.stepText{display:flex;flex-direction:column;gap:2px}
+.stepTitle{font-weight:950}
+.stepDesc{color:var(--muted2);font-size:12px;line-height:1.45}
 .footer{
-margin-top:18px;
-color:var(--muted2);
-font-size:13px;
-text-align:center;
+  margin-top:18px;
+  text-align:center;
+  color:var(--muted2);
+  font-size:12px;
 }
 .fadeIn{animation:fadeIn .35s ease both}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.leaving{opacity:.6;transform:translateY(6px);transition:all .18s ease}
-.list{
-margin:10px 0 0;
-padding-left:18px;
-color:var(--muted);
-line-height:1.6;
+.leaving{opacity:.65;transform:translateY(6px);transition:all .18s ease}
+.hr{height:1px;background:rgba(255,255,255,.12);margin:14px 0}
+details{
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:16px;
+  padding:10px 12px;
+  background:rgba(255,255,255,.04);
 }
-.mini{
-margin-top:14px;
-padding:12px 14px;
-border:1px solid rgba(215,218,220,.9);
-background:rgba(246,247,248,.75);
-border-radius:16px;
+details summary{
+  cursor:pointer;
+  font-weight:950;
+  color:var(--muted);
 }
-.miniTitle{
-font-weight:900;
-font-size:12px;
-letter-spacing:.2px;
-color:var(--text);
-margin-bottom:6px;
+.advRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.ghost{
+  appearance:none;
+  border:1px solid rgba(255,255,255,.16);
+  background:rgba(255,255,255,.06);
+  color:var(--muted);
+  font-weight:900;
+  font-size:12px;
+  padding:10px 12px;
+  border-radius:12px;
+  cursor:pointer;
+  transition:transform .12s ease, box-shadow .18s ease;
 }
-.details{
-border:1px solid rgba(215,218,220,.9);
-background:rgba(246,247,248,.75);
-border-radius:16px;
-padding:10px 12px;
-}
-.details summary{
-cursor:pointer;
-font-weight:900;
-}
-.small{font-size:12px;margin-top:6px;}
-.signedRow{
-margin-top:10px;
-display:flex;
-align-items:center;
-gap:10px;
-flex-wrap:wrap;
-padding:10px 12px;
-border-radius:14px;
-border:1px solid rgba(215,218,220,.9);
-background:rgba(246,247,248,.75);
-}
-.signedLabel{font-weight:900;color:var(--muted2);font-size:12px;}
-.signedValue{font-weight:900;}
-.linkBtn{
-appearance:none;
-border:0;
-background:transparent;
-padding:0;
-font-weight:900;
-color:var(--blue);
-cursor:pointer;
-text-decoration:underline;
-}
+.ghost:hover{transform:translateY(-1px);box-shadow:0 18px 45px rgba(0,0,0,.25)}
+.ghost:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
 @media (max-width:720px){
-.actions{flex-direction:column;align-items:stretch;}
-.btn{width:100%;justify-content:center;}
+  h1{font-size:28px}
 }
 </style>
 </head>
 <body>
-<div class="shell fadeIn">
-<header class="topbar">
-<nav class="nav">
-<a class="brand" href="index.html" data-nav="1"><span class="logo" aria-hidden="true"></span><span>JobApply-AI</span></a>
-<div class="navlinks">
-<a class="pill" href="index.html" data-nav="1">Home</a>
-<a class="pill primary" href="signup.html" data-nav="1">Get started</a>
-<a class="pill" href="profile.html" data-nav="1" id="navProfile" style="display:none">Profile</a>
-<a class="pill" href="plan.html" data-nav="1" id="navPlan" style="display:none">Plan</a>
-<a class="pill" href="dashboard.html" data-nav="1" id="navDashboard" style="display:none">Dashboard</a>
-<button class="pill" id="btnLogout" type="button" style="display:none">Logout</button>
-</div>
-</nav>
-</header>
+<div class="wrap">
+  <div class="shell fadeIn">
+    <div class="top">
+      <a class="brand" href="index.html" data-nav="1">
+        <span class="logo" aria-hidden="true"></span>
+        <span class="wordmark">
+          <span class="name">JobApply-AI</span>
+          <span class="tag">Fast job matching from your CV</span>
+        </span>
+      </a>
+      <span class="pill" id="topState">Not signed in</span>
+    </div>
 
-<main class="main">
-<div class="grid">
-<section>
-<h1 class="h1">Get started</h1>
-<p class="sub">Sign in with Google to start getting matching jobs in minutes.</p>
+    <div class="grid">
+      <section class="card hero">
+        <h1>Continue with Google</h1>
+        <p class="sub">One click. We create your profile and send you to the next step.</p>
 
-<div class="mini">
-<div class="miniTitle">What happens next</div>
-<ul class="list">
-<li>Upload your CV (or paste text)</li>
-<li>We suggest job titles based on your skills</li>
-<li>You pick roles, then we fetch matching jobs</li>
-</ul>
-</div>
+        <div class="focus">
+          <button class="googleBtn" id="btnGoogle" type="button">
+            <span class="googleIcon" aria-hidden="true">
+              <svg viewBox="0 0 48 48" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
+                <path fill="#EA4335" d="M24 9.5c3.5 0 6.7 1.2 9.2 3.5l6.9-6.9C35.9 2.3 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.3l8.1 6.3C12.6 13.6 17.8 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-2.8-.4-4.1H24v7.8h12.6c-.3 2-1.9 5-5.4 7l8.3 6.4c4.9-4.5 7.6-11.1 7.6-19.1z"/>
+                <path fill="#FBBC05" d="M10.7 28.4c-.5-1.4-.8-2.9-.8-4.4s.3-3 .8-4.4l-8.1-6.3C.9 16.7 0 20.3 0 24s.9 7.3 2.6 10.7l8.1-6.3z"/>
+                <path fill="#34A853" d="M24 48c6.3 0 11.6-2.1 15.5-5.7l-8.3-6.4c-2.2 1.6-5.1 2.7-7.2 2.7-6.2 0-11.4-4.1-13.3-9.9l-8.1 6.3C6.5 42.6 14.6 48 24 48z"/>
+              </svg>
+            </span>
+            <span id="btnGoogleText">Continue with Google</span>
+          </button>
 
-<div class="stepper" aria-label="Steps">
-<div class="step current" aria-current="step"><span class="dot">1</span><span>Signup</span></div>
-<div class="step" id="step2"><span class="dot">2</span><span>Profile</span></div>
-<div class="step" id="step3"><span class="dot">3</span><span>Plan</span></div>
-</div>
+          <div class="statusRow" id="statusRow" style="display:none">
+            <div class="statusLeft">
+              <div class="statusLabel">Signed in as</div>
+              <div class="statusValue" id="signedEmail">—</div>
+            </div>
+            <button class="linkBtn" id="btnSwitch" type="button">Switch</button>
+          </div>
 
-<div class="card">
-<h2>Status</h2>
-<p>Sign in once. We create your customer record and send you to the next step automatically.</p>
-<div class="hr"></div>
-<div class="badge" id="authBadge">Not signed in</div>
-<div class="signedRow" id="signedRow" style="display:none"><span class="signedLabel">Signed in as</span><span class="signedValue" id="signedInEmail">—</span><button class="linkBtn" id="btnSwitch" type="button">Switch account</button></div>
-<div class="hr"></div>
-<div class="actions">
-<button class="btn primary" id="primaryCta" type="button">Continue with Google</button>
-</div>
+          <p class="small" id="hint">We only use your Google email to create your account.</p>
 
-<details class="details" id="advancedDetails" style="margin-top:12px;display:none">
-<summary>Advanced</summary>
-<div class="muted small">For debugging only.</div>
-<div class="actions" style="margin-top:10px">
-<button class="btn" id="copyToken" type="button" disabled>Copy access token</button>
-</div>
-</details>
-<div class="helper" id="hint">Sign in to continue.</div>
-</div>
-</section>
+          <details id="advanced" style="display:none">
+            <summary>Advanced</summary>
+            <p class="small">For debugging only.</p>
+            <div class="advRow">
+              <button class="ghost" id="btnLogout" type="button">Logout</button>
+              <button class="ghost" id="copyToken" type="button" disabled>Copy access token</button>
+            </div>
+          </details>
+        </div>
+      </section>
 
-<section>
-<div class="card">
-<h2>Login help</h2>
-<p class="muted">If sign-in keeps looping, these are the most common fixes.</p>
-<ul class="list">
-<li>In Supabase Auth settings, make sure redirect URLs include this page URL (signup.html).</li>
-<li>If your browser blocks third-party cookies or tracking, try another browser or relax the setting for this site.</li>
-<li>If you are stuck on a loading screen, use “Switch account” and sign in again.</li>
-</ul>
-<div class="hr"></div>
-<div class="notice">We use Google sign-in. No password required.</div>
-</div>
-</section>
-</div>
+      <aside class="card">
+        <div style="font-weight:950;margin-bottom:8px">Next steps</div>
+        <div class="steps">
+          <div class="step">
+            <div class="num">1</div>
+            <div class="stepText">
+              <div class="stepTitle">Upload CV</div>
+              <div class="stepDesc">PDF upload or paste text.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="num">2</div>
+            <div class="stepText">
+              <div class="stepTitle">Get suggested titles</div>
+              <div class="stepDesc">Based on skills in your CV.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="num">3</div>
+            <div class="stepText">
+              <div class="stepTitle">Fetch matching jobs</div>
+              <div class="stepDesc">We build your job queue.</div>
+            </div>
+          </div>
+        </div>
+        <div class="hr"></div>
+        <p class="small">If sign-in loops, check your Supabase redirect allow-list includes this page URL.</p>
+      </aside>
+    </div>
 
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <div class="footer">Support: <a href="mailto:schonv2@gmail.com">schonv2@gmail.com</a></div>
 
-<script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
 const API_BASE="https://jobapplyai-api.schoene-viktor.workers.dev";
 const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
-const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2F3bHp2aGNuamVnZmhqZWRzd2tvLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJyZWYiOiJhd2x6dmhjbmplZ2ZoamVkc3drbyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzM2MTQ1ODg1LCJleHAiOjIwODIyMjc2OTh9.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2F3bHp2dmhjbmplZ2ZoamVkc3drbyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzM2MTQ1ODg1LCJleHAiOjIwODIyMjc2OTh9.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
 const supabaseClient=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-window.supabaseClient=supabaseClient;
+
+function go(url){
+  document.body.classList.add("leaving");
+  setTimeout(()=>{window.location.href=url;},180);
+}
+document.addEventListener("click",(e)=>{
+  const a=e.target.closest("a[data-nav='1']");
+  if(!a) return;
+  const url=a.getAttribute("href");
+  if(!url || url.startsWith("#")) return;
+  e.preventDefault();
+  go(url);
+});
 
 function resetLocalStateForNewUser(currentEmail){
-const last=(localStorage.getItem("ja_user_email")||"").trim().toLowerCase();
-const now=(currentEmail||"").trim().toLowerCase();
-if(!now) return;
-if(last && last!==now){
-Object.keys(localStorage).forEach(k=>{
-if(k.startsWith("ja_") || k.startsWith("jobapplyai_")) localStorage.removeItem(k);
-});
-sessionStorage.removeItem("sb_access_token");
+  const last=(localStorage.getItem("ja_user_email")||"").trim().toLowerCase();
+  const now=(currentEmail||"").trim().toLowerCase();
+  if(!now) return;
+  if(last && last!==now){
+    Object.keys(localStorage).forEach(k=>{
+      if(k.startsWith("ja_") || k.startsWith("jobapplyai_")) localStorage.removeItem(k);
+    });
+    sessionStorage.removeItem("sb_access_token");
+  }
+  localStorage.setItem("ja_user_email", now);
 }
-localStorage.setItem("ja_user_email", now);
+function hasProfile(){ return localStorage.getItem("ja_profile_complete")==="true"; }
+function hasPlan(){ return !!localStorage.getItem("ja_plan"); }
+function nextStepUrl(){
+  if(!hasProfile()) return "./profile.html";
+  if(!hasPlan()) return "./plan.html";
+  return "./dashboard.html";
 }
-
-function hasProfile(){
-return localStorage.getItem("ja_profile_complete")==="true";
-}
-function hasPlan(){
-return !!localStorage.getItem("ja_plan");
-}
-function nextStep(){
-if(!hasProfile()) return { url:"./profile.html", label:"Continue to profile" };
-if(!hasPlan()) return { url:"./plan.html", label:"Continue to plan" };
-return { url:"./dashboard.html", label:"Go to dashboard" };
-}
-
 function readWorkplace(){
-const raw=localStorage.getItem("jobapplyai_workplace")||"";
-try{return raw?JSON.parse(raw):{};}catch(_){return {};}
+  const raw=localStorage.getItem("jobapplyai_workplace")||"";
+  try{return raw?JSON.parse(raw):{};}catch(_){return {};}
 }
 function writeWorkplace(patch){
-const obj=readWorkplace();
-const next={...obj,...patch};
-localStorage.setItem("jobapplyai_workplace", JSON.stringify(next));
+  const obj=readWorkplace();
+  const next={...obj,...patch};
+  localStorage.setItem("jobapplyai_workplace", JSON.stringify(next));
 }
-
 function syncIdentity({customerId,email}){
-if(customerId) localStorage.setItem("ja_customer_id",customerId);
-if(email) localStorage.setItem("ja_user_email",email);
-const wp=readWorkplace();
-writeWorkplace({
-apiBase: wp.apiBase || API_BASE,
-customerId: customerId || wp.customerId || wp.customer_id || null,
-customerEmail: email || wp.customerEmail || null
-});
+  if(customerId) localStorage.setItem("ja_customer_id",customerId);
+  if(email) localStorage.setItem("ja_user_email",email);
+  const wp=readWorkplace();
+  writeWorkplace({
+    apiBase: wp.apiBase || API_BASE,
+    customerId: customerId || wp.customerId || wp.customer_id || null,
+    customerEmail: email || wp.customerEmail || null
+  });
 }
-
-function safeText(el,t){if(el)el.textContent=t;}
-function setBadge(el,type,text){if(!el)return;el.className="badge "+type;el.textContent=text;}
 
 async function upsertCustomerByEmail(email){
-const res=await fetch(`${API_BASE}/customers/upsert`,{
-method:"POST",
-headers:{ "content-type":"application/json" },
-body:JSON.stringify({ email })
-});
-if(!res.ok){
-const text=await res.text().catch(()=> "");
-throw new Error(`Customer upsert failed: ${res.status} ${text}`);
+  const res=await fetch(`${API_BASE}/customers/upsert`,{
+    method:"POST",
+    headers:{ "content-type":"application/json" },
+    body:JSON.stringify({ email })
+  });
+  if(!res.ok){
+    const text=await res.text().catch(()=> "");
+    throw new Error(`Customer upsert failed: ${res.status} ${text}`);
+  }
+  return await res.json();
 }
-return await res.json();
+
+function setTopState(text){
+  const el=document.getElementById("topState");
+  if(el) el.textContent=text;
+}
+function setHint(text){
+  const el=document.getElementById("hint");
+  if(el) el.textContent=text;
+}
+function setGoogleButton(disabled,text){
+  const btn=document.getElementById("btnGoogle");
+  const t=document.getElementById("btnGoogleText");
+  if(btn) btn.disabled=!!disabled;
+  if(t && text) t.textContent=text;
 }
 
 async function getSession(){
-const { data, error } = await supabaseClient.auth.getSession();
-if(error) return null;
-return data?.session || null;
+  const { data, error } = await supabaseClient.auth.getSession();
+  if(error) return null;
+  return data?.session || null;
 }
 
 async function loginWithGoogle(){
-const { data, error } = await supabaseClient.auth.signInWithOAuth({
-provider: "google",
-options: {
-redirectTo: window.location.href
+  const { error } = await supabaseClient.auth.signInWithOAuth({
+    provider:"google",
+    options:{ redirectTo: window.location.href }
+  });
+  if(error) throw error;
 }
-});
-if(error) throw error;
-return data;
+
+function showSignedIn(email){
+  setTopState("Signed in");
+  const row=document.getElementById("statusRow");
+  const em=document.getElementById("signedEmail");
+  if(row) row.style.display="";
+  if(em) em.textContent=email;
+  const adv=document.getElementById("advanced");
+  if(adv) adv.style.display="";
+  const copy=document.getElementById("copyToken");
+  if(copy) copy.disabled=false;
+}
+
+function showSignedOut(){
+  setTopState("Not signed in");
+  const row=document.getElementById("statusRow");
+  if(row) row.style.display="none";
+  const adv=document.getElementById("advanced");
+  if(adv) adv.style.display="none";
+  setGoogleButton(false,"Continue with Google");
+  setHint("We only use your Google email to create your account.");
 }
 
 async function hydrate(){
-const session=await getSession();
-const authBadge=document.getElementById("authBadge");
-const primaryCta=document.getElementById("primaryCta");
-const copyToken=document.getElementById("copyToken");
-const hint=document.getElementById("hint");
-const signedRow=document.getElementById("signedRow");
-const signedInEmail=document.getElementById("signedInEmail");
+  const session=await getSession();
+  if(!session || !session.user || !session.user.email){
+    showSignedOut();
+    return;
+  }
+
+  const email=session.user.email.trim().toLowerCase();
+  resetLocalStateForNewUser(email);
+  sessionStorage.setItem("sb_access_token",session.access_token);
+
+  showSignedIn(email);
+
+  try{
+    setGoogleButton(true,"Setting up…");
+    setHint("Creating your account…");
+    const data=await upsertCustomerByEmail(email);
+    if(data && data.customer_id){
+      syncIdentity({ customerId:data.customer_id, email });
+      setHint("Done. Redirecting…");
+      setTimeout(()=>go(nextStepUrl()), 700);
+      return;
+    }
+    setHint("Setup failed. Please switch account and try again.");
+    setGoogleButton(false,"Try again");
+  }catch(e){
+    console.error(e);
+    setHint("Could not finish setup. Click again to retry.");
+    setGoogleButton(false,"Try again");
+  }
+}
+
+document.getElementById("btnGoogle").addEventListener("click", async ()=>{
+  try{
+    const session=await getSession();
+    if(session && session.user && session.user.email){
+      go(nextStepUrl());
+      return;
+    }
+    setGoogleButton(true,"Opening Google…");
+    await loginWithGoogle();
+  }catch(e){
+    console.error(e);
+    setHint("Sign-in failed. Please retry.");
+    setGoogleButton(false,"Continue with Google");
+  }
+});
+
+document.getElementById("btnSwitch").addEventListener("click", async ()=>{
+  try{
+    setHint("Switching account…");
+    await supabaseClient.auth.signOut();
+    sessionStorage.removeItem("sb_access_token");
+    showSignedOut();
+  }catch(e){
+    console.error(e);
+    setHint("Could not switch. Please retry.");
+  }
+});
+
 const btnLogout=document.getElementById("btnLogout");
-const btnSwitch=document.getElementById("btnSwitch");
-const navProfile=document.getElementById("navProfile");
-const navPlan=document.getElementById("navPlan");
-const navDashboard=document.getElementById("navDashboard");
-const adv=document.getElementById("advancedDetails");
-
-function setSignedOutUI(){
-setBadge(authBadge,"warn","Not signed in");
-if(signedRow) signedRow.style.display="none";
-if(btnLogout) btnLogout.style.display="none";
-if(navProfile) navProfile.style.display="none";
-if(navPlan) navPlan.style.display="none";
-if(navDashboard) navDashboard.style.display="none";
-if(adv) adv.style.display="none";
-if(primaryCta){
-primaryCta.disabled=false;
-primaryCta.textContent="Continue with Google";
-primaryCta.dataset.mode="signin";
-}
-if(copyToken) copyToken.disabled=true;
-safeText(hint,"Sign in to continue.");
+if(btnLogout){
+  btnLogout.addEventListener("click", async ()=>{
+    try{
+      await supabaseClient.auth.signOut();
+      sessionStorage.removeItem("sb_access_token");
+      showSignedOut();
+      setHint("Signed out.");
+    }catch(e){
+      console.error(e);
+      setHint("Logout failed. Please retry.");
+    }
+  });
 }
 
-function setSignedInNav(){
-if(btnLogout) btnLogout.style.display="";
-if(navProfile) navProfile.style.display="";
-if(navPlan) navPlan.style.display="";
-if(navDashboard) navDashboard.style.display="";
-if(adv) adv.style.display="";
+const copy=document.getElementById("copyToken");
+if(copy){
+  copy.addEventListener("click", async ()=>{
+    try{
+      const tok=sessionStorage.getItem("sb_access_token")||"";
+      await navigator.clipboard.writeText(tok);
+      setHint(tok ? "Access token copied." : "No token found.");
+    }catch(e){
+      console.error(e);
+      setHint("Copy failed.");
+    }
+  });
 }
-
-if(!session || !session.user || !session.user.email){
-setSignedOutUI();
-return;
-}
-
-const email=session.user.email.trim().toLowerCase();
-resetLocalStateForNewUser(email);
-sessionStorage.setItem("sb_access_token",session.access_token);
-
-setBadge(authBadge,"good","Signed in");
-setSignedInNav();
-
-if(signedRow){
-signedRow.style.display="";
-if(signedInEmail) signedInEmail.textContent=email;
-if(btnSwitch){
-btnSwitch.onclick=async ()=>{
-try{
-safeText(hint,"Switching account…");
-await supabaseClient.auth.signOut();
-setSignedOutUI();
-}catch(e){
-console.error(e);
-safeText(hint,"Could not switch account. Please retry.");
-}
-};
-}
-}
-
-if(copyToken) copyToken.disabled=false;
-
-try{
-safeText(hint,"Creating your account…");
-if(primaryCta){ primaryCta.disabled=true; primaryCta.textContent="Setting things up…"; }
-const data=await upsertCustomerByEmail(email);
-if(data && data.customer_id){
-syncIdentity({ customerId:data.customer_id, email });
-
-const st2=document.getElementById("step2");
-const st3=document.getElementById("step3");
-if(st2) st2.classList.toggle("done",hasProfile());
-if(st3) st3.classList.toggle("done",hasPlan());
-
-const nx=nextStep();
-if(primaryCta){
-primaryCta.disabled=false;
-primaryCta.textContent=nx.label;
-primaryCta.dataset.mode="continue";
-primaryCta.dataset.nextUrl=nx.url;
-}
-safeText(hint,"Success. Redirecting…");
-setTimeout(()=>{ go(nx.url); },1200);
-}else{
-setBadge(authBadge,"warn","Signed in, but customer_id missing");
-if(primaryCta){ primaryCta.disabled=true; primaryCta.textContent="Continue"; }
-safeText(hint,"We couldn’t create your account. Please sign out and try again.");
-}
-}catch(e){
-console.error(e);
-setBadge(authBadge,"warn","Setup failed");
-if(primaryCta){ primaryCta.disabled=false; primaryCta.textContent="Retry"; primaryCta.dataset.mode="retry"; }
-safeText(hint,"We couldn’t finish setup. Click Retry.");
-}
-}
-
-document.getElementById("primaryCta").addEventListener("click",async ()=>{
-const mode=(document.getElementById("primaryCta").dataset.mode||"signin");
-try{
-if(mode==="continue"){
-const url=document.getElementById("primaryCta").dataset.nextUrl || nextStep().url;
-go(url);
-return;
-}
-if(mode==="retry"){
-await hydrate();
-return;
-}
-safeText(document.getElementById("hint"),"Opening Google sign-in…");
-await loginWithGoogle();
-await hydrate();
-}catch(e){
-console.error(e);
-safeText(document.getElementById("hint"),"Sign-in failed. Please retry.");
-}
-});
-
-document.getElementById("btnLogout").addEventListener("click",async ()=>{
-try{
-await supabaseClient.auth.signOut();
-sessionStorage.removeItem("sb_access_token");
-safeText(document.getElementById("hint"),"Signed out.");
-await hydrate();
-}catch(e){
-console.error(e);
-alert("Logout failed. Check console.");
-}
-});
-
-document.getElementById("copyToken").addEventListener("click",async ()=>{
-try{
-const tok=sessionStorage.getItem("sb_access_token")||"";
-await navigator.clipboard.writeText(tok);
-safeText(document.getElementById("hint"), tok ? "Access token copied." : "No token found yet.");
-}catch(e){
-console.error(e);
-alert("Copy failed. Check console.");
-}
-});
 
 (async ()=>{
-try{
-await hydrate();
-}catch(e){
-console.error(e);
-alert("Signup init failed. Check console.");
-}
+  try{ await hydrate(); }catch(e){ console.error(e); }
 })();
-</script>
-
-<script>
-function go(url){
-document.body.classList.add("leaving");
-setTimeout(()=>{window.location.href=url;},180);
-}
-document.addEventListener("click",(e)=>{
-const a=e.target.closest("a[data-nav='1']");
-if(!a)return;
-const url=a.getAttribute("href");
-if(!url || url.startsWith("#"))return;
-e.preventDefault();
-go(url);
-});
-</script>
-
-</main>
-
-<footer class="footer">Need help? Email <a href="mailto:schonv2@gmail.com">schonv2@gmail.com</a>.</footer>
+    </script>
+  </div>
 </div>
 </body>
 </html>
