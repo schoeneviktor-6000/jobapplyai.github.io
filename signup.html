@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>JobApply-AI | We apply for jobs for you</title>
+<title>JobMeJob | We apply for jobs for you</title>
 
 <style>
 :root{
@@ -15,8 +15,13 @@
   --muted:#475569;
   --muted2:#64748b;
   --shadow:0 18px 40px rgba(15,23,42,.08);
+
+  /* Green-only theme (no blue) */
   --g1:#22c55e;
-  --g2:#60a5fa;
+  --g2:#16a34a;
+
+  --link:#16a34a;
+
   --max:1060px;
 }
 *{box-sizing:border-box}
@@ -26,8 +31,8 @@ body{
   font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
   color:var(--text);
   background:
-    radial-gradient(900px 520px at 15% 5%, rgba(34,197,94,.14), transparent 58%),
-    radial-gradient(900px 520px at 85% 0%, rgba(96,165,250,.12), transparent 58%),
+    radial-gradient(900px 520px at 15% 5%, rgba(34,197,94,.16), transparent 58%),
+    radial-gradient(900px 520px at 85% 0%, rgba(22,163,74,.12), transparent 58%),
     radial-gradient(1100px 720px at 50% 120%, rgba(34,197,94,.10), transparent 60%),
     var(--bg);
 }
@@ -108,8 +113,8 @@ a{color:inherit}
   position:absolute;
   inset:-1px;
   background:
-    radial-gradient(700px 280px at 10% 0%, rgba(34,197,94,.10), transparent 60%),
-    radial-gradient(700px 280px at 90% 0%, rgba(96,165,250,.09), transparent 60%);
+    radial-gradient(700px 280px at 10% 0%, rgba(34,197,94,.12), transparent 60%),
+    radial-gradient(700px 280px at 90% 0%, rgba(22,163,74,.10), transparent 60%);
   pointer-events:none;
 }
 .hero > *{position:relative}
@@ -156,7 +161,7 @@ h1{margin:0 0 8px;font-size:30px;letter-spacing:-.4px;line-height:1.15}
   appearance:none;border:0;background:transparent;
   padding:0;
   font-weight:900;
-  color:#2563eb;
+  color:var(--link);
   cursor:pointer;
   text-decoration:underline;
   text-underline-offset:3px;
@@ -177,7 +182,7 @@ h1{margin:0 0 8px;font-size:30px;letter-spacing:-.4px;line-height:1.15}
   width:28px;height:28px;border-radius:10px;
   display:grid;place-items:center;
   font-weight:950;
-  background:linear-gradient(135deg, rgba(34,197,94,.18), rgba(96,165,250,.16));
+  background:linear-gradient(135deg, rgba(34,197,94,.20), rgba(22,163,74,.16));
   border:1px solid rgba(15,23,42,.06);
 }
 .stepText{display:flex;flex-direction:column;gap:2px}
@@ -226,7 +231,7 @@ details summary{cursor:pointer;font-weight:950;color:var(--muted)}
       <a class="brand" href="index.html" data-nav="1">
         <span class="logo" aria-hidden="true"></span>
         <span class="wordmark">
-          <span class="name">JobApply-AI</span>
+          <span class="name">JobMeJob</span>
           <span class="tag">We apply for jobs for you</span>
         </span>
       </a>
@@ -311,6 +316,32 @@ const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
 const supabaseClient=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+/* Storage: migrate safely from old "ja_/jobapplyai_" to new "jm_/jobmejob_" */
+const LS = {
+  userEmail: ["jm_user_email","ja_user_email"],
+  customerId: ["jm_customer_id","ja_customer_id"],
+  profileDone: ["jm_profile_complete","ja_profile_complete"],
+  plan: ["jm_plan","ja_plan"],
+  workplace: ["jobmejob_workplace","jobapplyai_workplace"]
+};
+function lsGetFirst(keys){
+  for(const k of keys){
+    const v = localStorage.getItem(k);
+    if(v !== null && v !== undefined && v !== "") return v;
+  }
+  return null;
+}
+function lsSetAll(keys, value){
+  for(const k of keys){
+    try{ localStorage.setItem(k, value); }catch(_){}
+  }
+}
+function lsRemoveAll(keys){
+  for(const k of keys){
+    try{ localStorage.removeItem(k); }catch(_){}
+  }
+}
+
 function go(url){
   document.body.classList.add("leaving");
   setTimeout(()=>{window.location.href=url;},180);
@@ -325,36 +356,43 @@ document.addEventListener("click",(e)=>{
 });
 
 function resetLocalStateForNewUser(currentEmail){
-  const last=(localStorage.getItem("ja_user_email")||"").trim().toLowerCase();
+  const last=(lsGetFirst(LS.userEmail)||"").trim().toLowerCase();
   const now=(currentEmail||"").trim().toLowerCase();
   if(!now) return;
+
   if(last && last!==now){
     Object.keys(localStorage).forEach(k=>{
-      if(k.startsWith("ja_") || k.startsWith("jobapplyai_")) localStorage.removeItem(k);
+      if(k.startsWith("ja_") || k.startsWith("jobapplyai_") || k.startsWith("jm_") || k.startsWith("jobmejob_")){
+        localStorage.removeItem(k);
+      }
     });
     sessionStorage.removeItem("sb_access_token");
   }
-  localStorage.setItem("ja_user_email", now);
+  lsSetAll(LS.userEmail, now);
 }
-function hasProfile(){ return localStorage.getItem("ja_profile_complete")==="true"; }
-function hasPlan(){ return !!localStorage.getItem("ja_plan"); }
+function hasProfile(){ return (lsGetFirst(LS.profileDone) === "true"); }
+function hasPlan(){ return !!lsGetFirst(LS.plan); }
 function nextStepUrl(){
   if(!hasProfile()) return "./profile.html";
   if(!hasPlan()) return "./plan.html";
   return "./dashboard.html";
 }
+
 function readWorkplace(){
-  const raw=localStorage.getItem("jobapplyai_workplace")||"";
-  try{return raw?JSON.parse(raw):{};}catch(_){return {};}
+  const raw = lsGetFirst(LS.workplace) || "";
+  try{ return raw ? JSON.parse(raw) : {}; }catch(_){ return {}; }
 }
 function writeWorkplace(patch){
   const obj=readWorkplace();
   const next={...obj,...patch};
-  localStorage.setItem("jobapplyai_workplace", JSON.stringify(next));
+  const payload = JSON.stringify(next);
+  // write to new + old key temporarily to avoid breaking other pages until we update them
+  lsSetAll(LS.workplace, payload);
 }
 function syncIdentity({customerId,email}){
-  if(customerId) localStorage.setItem("ja_customer_id",customerId);
-  if(email) localStorage.setItem("ja_user_email",email);
+  if(customerId) lsSetAll(LS.customerId, customerId);
+  if(email) lsSetAll(LS.userEmail, email);
+
   const wp=readWorkplace();
   writeWorkplace({
     apiBase: wp.apiBase || API_BASE,
@@ -392,9 +430,11 @@ async function getSession(){
 }
 
 async function loginWithGoogle(){
+  // Always redirect back to THIS page on the current domain (prevents falling back to github.io)
+  const redirectTo = `${window.location.origin}${window.location.pathname}`;
   const { error } = await supabaseClient.auth.signInWithOAuth({
     provider:"google",
-    options:{ redirectTo: window.location.href }
+    options:{ redirectTo }
   });
   if(error) throw error;
 }
