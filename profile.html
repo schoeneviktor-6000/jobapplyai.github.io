@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>JobApplyAI • Profile</title>
+<title>JobMeJob • Profile</title>
 <style>
 :root{
 --bg:#f6f7fb;
@@ -11,9 +11,9 @@
 --muted:rgba(17,19,24,.64);
 --muted2:rgba(17,19,24,.48);
 --line:rgba(17,19,24,.12);
---accent:#5b5cff;
---accent2:#00a6ff;
---ok:#00a34a;
+--accent:#22c55e;
+--accent2:#16a34a;
+--ok:#16a34a;
 --warn:#b86b00;
 --bad:#d81b60;
 --shadow:0 12px 34px rgba(17,19,24,.12);
@@ -32,9 +32,9 @@ margin:0;
 font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
 color:var(--text);
 background:
-radial-gradient(1200px 650px at 20% -10%, rgba(91,92,255,.18), transparent 55%),
-radial-gradient(900px 500px at 90% 10%, rgba(0,166,255,.12), transparent 55%),
-radial-gradient(800px 600px at 70% 110%, rgba(0,163,74,.08), transparent 55%),
+radial-gradient(1200px 650px at 20% -10%, rgba(34,197,94,.18), transparent 55%),
+radial-gradient(900px 500px at 90% 10%, rgba(22,163,74,.14), transparent 55%),
+radial-gradient(800px 600px at 70% 110%, rgba(34,197,94,.10), transparent 55%),
 var(--bg);
 overflow-x:hidden;
 }
@@ -69,8 +69,24 @@ min-width:0;
 .logo{
 width:34px;height:34px;border-radius:11px;
 background: linear-gradient(135deg, var(--accent), var(--accent2));
-box-shadow: 0 10px 30px rgba(124,92,255,.25);
+box-shadow: 0 10px 30px rgba(34,197,94,.22);
 flex:0 0 auto;
+position:relative;
+overflow:hidden;
+}
+.logo::after{
+content:"";
+position:absolute;
+inset:-45%;
+background:linear-gradient(90deg, transparent, rgba(255,255,255,.75), transparent);
+transform:rotate(20deg);
+animation:shine 2.8s ease-in-out infinite;
+}
+@keyframes shine{
+0%{transform:translateX(-55%) rotate(20deg);opacity:0}
+35%{opacity:1}
+70%{opacity:0}
+100%{transform:translateX(55%) rotate(20deg);opacity:0}
 }
 .navlinks{
 display:flex;
@@ -91,7 +107,7 @@ cursor:pointer;
 white-space:nowrap;
 }
 .pill:hover{transform:translateY(-1px);background:rgba(17,19,24,.06)}
-.pill.active{border-color:rgba(124,92,255,.6); background:rgba(124,92,255,.18)}
+.pill.active{border-color:rgba(34,197,94,.55); background:rgba(34,197,94,.16)}
 .pill.iconOnly{padding:9px 10px}
 .main{
 max-width:var(--max);
@@ -135,10 +151,10 @@ font-weight:750;
 white-space:nowrap;
 max-width:100%;
 }
-.badge.good{border-color:rgba(0,200,83,.4); background:rgba(0,200,83,.12); color:#0a3d1f}
+.badge.good{border-color:rgba(34,197,94,.40); background:rgba(34,197,94,.12); color:#0a3d1f}
 .badge.warn{border-color:rgba(255,179,0,.5); background:rgba(255,179,0,.12); color:#5a3b00}
 .badge.bad{border-color:rgba(255,61,113,.55); background:rgba(255,61,113,.12); color:#5a1130}
-.badge.prio{border-color:rgba(124,92,255,.55); background:rgba(124,92,255,.18); color:#1f2a55}
+.badge.prio{border-color:rgba(34,197,94,.45); background:rgba(34,197,94,.14); color:#0a3d1f}
 .grid{
 display:grid;
 grid-template-columns: 1.35fr .65fr;
@@ -190,12 +206,12 @@ text-decoration:none;
 .btn:hover{transform:translateY(-1px); background:rgba(17,19,24,.08)}
 .btn:disabled{opacity:.6; cursor:not-allowed; transform:none}
 .btn.primary{
-border-color:rgba(124,92,255,.55);
-background:linear-gradient(135deg, rgba(124,92,255,.30), rgba(0,212,255,.18));
+border-color:rgba(34,197,94,.55);
+background:linear-gradient(135deg, rgba(34,197,94,.30), rgba(22,163,74,.18));
 }
 .btn.good{
-border-color:rgba(0,200,83,.45);
-background:rgba(0,200,83,.12);
+border-color:rgba(34,197,94,.45);
+background:rgba(34,197,94,.12);
 }
 .btn.small{
 padding:9px 12px;
@@ -203,12 +219,12 @@ font-size:12px;
 font-weight:900;
 }
 .btn.cta{
-border-color:rgba(124,92,255,.60);
-background:linear-gradient(135deg, rgba(124,92,255,.52), rgba(0,166,255,.28));
-box-shadow:0 16px 44px rgba(124,92,255,.18);
+border-color:rgba(34,197,94,.60);
+background:linear-gradient(135deg, rgba(34,197,94,.55), rgba(22,163,74,.28));
+box-shadow:0 16px 44px rgba(34,197,94,.18);
 }
 .btn.cta:hover{
-box-shadow:0 18px 52px rgba(124,92,255,.24);
+box-shadow:0 18px 52px rgba(34,197,94,.24);
 }
 .linkBtn{
 appearance:none;
@@ -284,7 +300,7 @@ margin-top:8px;
 .progressBar > div{
 height:100%;
 width:0%;
-background:linear-gradient(135deg, rgba(124,92,255,.85), rgba(0,166,255,.75));
+background:linear-gradient(135deg, rgba(34,197,94,.85), rgba(22,163,74,.75));
 transition:width .25s ease;
 }
 .chips{
@@ -310,12 +326,12 @@ transform:translateY(6px);
 animation:chipIn .28s ease forwards;
 }
 .chip.selected{
-border-color:rgba(124,92,255,.55);
-background:rgba(124,92,255,.14);
+border-color:rgba(34,197,94,.55);
+background:rgba(34,197,94,.14);
 }
 .chip.aiTag{
-border-color:rgba(124,92,255,.55);
-background:rgba(124,92,255,.10);
+border-color:rgba(34,197,94,.55);
+background:rgba(34,197,94,.10);
 cursor:default;
 }
 @keyframes chipIn{
@@ -328,23 +344,22 @@ filter:saturate(.92);
 }
 .stepDone .helpBox,.stepDone .progressWrap{opacity:.9}
 .aiCard{
-border:1px solid rgba(124,92,255,.30);
+border:1px solid rgba(34,197,94,.28);
 background:
-radial-gradient(700px 220px at 15% 0%, rgba(124,92,255,.18), transparent 60%),
-radial-gradient(700px 220px at 85% 20%, rgba(0,166,255,.12), transparent 60%),
+radial-gradient(700px 220px at 15% 0%, rgba(34,197,94,.18), transparent 60%),
+radial-gradient(700px 220px at 85% 20%, rgba(22,163,74,.12), transparent 60%),
 linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.82));
 }
 .aiGlow{
-box-shadow:0 18px 52px rgba(124,92,255,.12);
+box-shadow:0 18px 52px rgba(34,197,94,.12);
 }
-
 .pill.mini{padding:7px 10px;font-size:12px;font-weight:850}
 </style>
 </head>
 <body>
 <header class="topbar">
 <nav class="nav">
-<a class="brand" href="index.html"><span class="logo" aria-hidden="true"></span><span>JobApplyAI</span></a>
+<a class="brand" href="index.html" data-nav="1"><span class="logo" aria-hidden="true"></span><span>JobMeJob</span></a>
 <div class="navlinks">
 <a class="pill" href="index.html" data-nav="1">Home</a>
 <a class="pill active" href="profile.html" data-nav="1">Profile</a>
@@ -402,7 +417,7 @@ box-shadow:0 18px 52px rgba(124,92,255,.12);
 <div class="small" id="aiHint" style="margin-top:6px">Upload your CV first. When OCR is done, you can generate suggestions.</div>
 
 <div class="actions" style="margin-top:12px">
-<button class="btn cta" id="aiGenerateBtn" type="button" disabled>✨ Generate suggestions</button>
+<button class="btn cta" id="aiGenerateBtn" type="button" disabled>Generate suggestions</button>
 <button class="btn" id="aiApplyBtn" type="button" disabled>Apply selected titles</button>
 </div>
 
@@ -417,7 +432,6 @@ box-shadow:0 18px 52px rgba(124,92,255,.12);
 <div class="small" style="font-weight:850">Top skills (core + tools)</div>
 <div class="chips" id="aiSkillsChips" style="margin-top:10px"></div>
 </div>
-
 </div>
 
 <div class="hr"></div>
@@ -535,7 +549,8 @@ const API_BASE="https://jobapplyai-api.schoene-viktor.workers.dev";
 const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
 
-const AI_CACHE_KEY="ja_ai_titles_cache_v1";
+const AI_CACHE_KEY="jm_ai_titles_cache_v1";
+const AI_CACHE_KEY_OLD="ja_ai_titles_cache_v1";
 
 let supabaseClient=null;
 let session=null;
@@ -563,7 +578,6 @@ const v=String(s??"");
 return v.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
 }
 
-
 function setBadge(id,kind,text){
 const el=$(id);
 if(!el) return;
@@ -580,17 +594,45 @@ const v=String(s||"").trim();
 return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
 
+const LS = {
+userEmail: ["jm_user_email","ja_user_email"],
+customerId: ["jm_customer_id","ja_customer_id"],
+profileDone: ["jm_profile_complete","ja_profile_complete"],
+plan: ["jm_plan","ja_plan"],
+workplace: ["jobmejob_workplace","jobapplyai_workplace"]
+};
+
+function lsGetFirst(keys){
+for(const k of keys){
+const v=localStorage.getItem(k);
+if(v !== null && v !== undefined && v !== "") return v;
+}
+return null;
+}
+function lsSetAll(keys, value){
+for(const k of keys){
+try{ localStorage.setItem(k, value); }catch(_){}
+}
+}
+function lsRemoveAll(keys){
+for(const k of keys){
+try{ localStorage.removeItem(k); }catch(_){}
+}
+}
+
 function resetLocalStateForNewUser(currentEmail){
-const last=(localStorage.getItem("ja_user_email")||"").trim().toLowerCase();
+const last=(lsGetFirst(LS.userEmail)||"").trim().toLowerCase();
 const now=(currentEmail||"").trim().toLowerCase();
 if(!now) return;
 if(last && last!==now){
 Object.keys(localStorage).forEach(k=>{
-if(k.startsWith("ja_") || k.startsWith("jobapplyai_") || k.startsWith("sb-")) localStorage.removeItem(k);
+if(k.startsWith("ja_") || k.startsWith("jobapplyai_") || k.startsWith("jm_") || k.startsWith("jobmejob_") || k.startsWith("sb-")){
+localStorage.removeItem(k);
+}
 });
 try{sessionStorage.removeItem("sb_access_token");}catch{}
 }
-localStorage.setItem("ja_user_email", now);
+lsSetAll(LS.userEmail, now);
 }
 
 async function apiGet(path){
@@ -633,7 +675,7 @@ const res=await fetch(API_BASE+"/customers/upsert",{method:"POST",headers:{"cont
 const text=await res.text().catch(()=> "");
 if(!res.ok) throw new Error("customers/upsert failed: "+res.status+" "+text);
 const data=JSON.parse(text);
-if(data && data.customer_id) localStorage.setItem("ja_customer_id", data.customer_id);
+if(data && data.customer_id) lsSetAll(LS.customerId, data.customer_id);
 return data;
 }
 
@@ -736,7 +778,7 @@ function setOnboardingUI(st){
 const signed=!!(session && session.user && session.user.email);
 setBadge("signedInBadge",signed?"good":"warn",signed?"Signed in":"Not signed in");
 setText("kSigned",signed?"Yes":"No");
-const customerId=st && st.customer_id ? String(st.customer_id) : (localStorage.getItem("ja_customer_id")||"");
+const customerId=st && st.customer_id ? String(st.customer_id) : (lsGetFirst(LS.customerId)||"");
 setText("kCustomerId",customerId||"—");
 const profOk=!!(st && st.profile_complete);
 setText("kProfile",profOk?"Yes":"No");
@@ -791,7 +833,8 @@ setBadge("saveStatusBadge","good","Loaded");
 
 function getAiCache(){
 try{
-const raw=localStorage.getItem(AI_CACHE_KEY);
+let raw=localStorage.getItem(AI_CACHE_KEY);
+if(!raw) raw=localStorage.getItem(AI_CACHE_KEY_OLD);
 if(!raw) return null;
 const v=JSON.parse(raw);
 if(!v || typeof v !== "object") return null;
@@ -804,11 +847,13 @@ return null;
 function setAiCache(payload){
 try{
 localStorage.setItem(AI_CACHE_KEY, JSON.stringify(payload));
+localStorage.setItem(AI_CACHE_KEY_OLD, JSON.stringify(payload));
 }catch{}
 }
 
 function clearAiCache(){
 try{localStorage.removeItem(AI_CACHE_KEY);}catch{}
+try{localStorage.removeItem(AI_CACHE_KEY_OLD);}catch{}
 }
 
 function cvMetaFromCv(cv){
@@ -882,13 +927,8 @@ markStep1DoneVisual(false);
 }else if(s==="done"){
 setText("ocrHint","OCR done. You can generate AI suggestions now.");
 setProgress(false, 100, "", "");
-
 unlockAiReady();
-
-const hadCache=tryLoadCachedAiSuggestions();
-if(hadCache){
-markStep1DoneVisual(aiAppliedOnce);
-}
+tryLoadCachedAiSuggestions();
 }else if(s==="failed"){
 setText("ocrHint","OCR failed: "+(cv.cv_ocr_error||""));
 setProgress(false, 0, "", "");
@@ -968,7 +1008,6 @@ setBadge("cvStatusBadge","good","CV ready");
 setText("ocrHint","OCR done. You can generate AI suggestions now.");
 lastCvMeta=cvMetaFromCv(cv);
 unlockAiReady();
-
 tryLoadCachedAiSuggestions();
 return;
 }
@@ -1041,8 +1080,6 @@ try{
 const res=await apiPostJson("/me/ai/profile-from-cv",{});
 const r=res && res.result ? res.result : null;
 if(!r) throw new Error("AI returned no result");
-
-// Backward-compatible: job_titles is the flat list we render/select
 const titles=Array.isArray(r.job_titles) ? r.job_titles.map(x=>String(x).trim()).filter(Boolean) : [];
 if(!titles.length){
 setBadge("aiStatusBadge","warn","No titles");
@@ -1050,8 +1087,6 @@ setText("aiHint","No title suggestions returned. Try a PDF CV and OCR first.");
 $("aiGenerateBtn").disabled=false;
 return;
 }
-
-// New structured fields (optional)
 const coreSkills = (r.skills && Array.isArray(r.skills.core)) ? r.skills.core.map(x=>String(x).trim()).filter(Boolean) : [];
 const toolSkills = (r.skills && Array.isArray(r.skills.tools)) ? r.skills.tools.map(x=>String(x).trim()).filter(Boolean) : [];
 const supportingSkills = (r.skills && Array.isArray(r.skills.supporting)) ? r.skills.supporting.map(x=>String(x).trim()).filter(Boolean) : [];
@@ -1061,9 +1096,8 @@ const seniority = String(r.seniority||"unknown").trim();
 
 applyAiUiFromTitles(titles);
 
-// Cache AI profile insights for dashboard use
 try{
-localStorage.setItem("ja_ai_profile", JSON.stringify({
+localStorage.setItem("jm_ai_profile", JSON.stringify({
 created_at: new Date().toISOString(),
 job_titles: titles.slice(0,15),
 primary_job_titles: primaryTitles.slice(0,7),
@@ -1075,14 +1109,13 @@ supporting: supportingSkills.slice(0,10),
 tools: toolSkills.slice(0,10)
 }
 }));
+localStorage.setItem("ja_ai_profile", localStorage.getItem("jm_ai_profile"));
 }catch{}
 
-// Render skills chips on profile (core + tools)
 {
 const chips=[];
 for(const s of coreSkills.slice(0,10)) chips.push(s);
 for(const s of toolSkills.slice(0,8)) chips.push(s);
-
 const uniq=[];
 const seen=new Set();
 for(const s of chips){
@@ -1091,21 +1124,18 @@ if(!k || seen.has(k)) continue;
 seen.add(k);
 uniq.push(s);
 }
-
 if(uniq.length){
 $("aiSkillsWrap").style.display="block";
 $("aiSkillsChips").innerHTML = uniq.map(s=>'<span class="pill mini">'+escapeHtml(s)+'</span>').join("");
 }
 }
 
-// Call cluster-suggestion (optional; do not fail main flow if it errors)
 try{
 const cs=await apiPostJson("/me/ai/cluster-suggestion",{});
 const cm=cs && cs.cluster_match ? cs.cluster_match : null;
 const altRaw = cm && Array.isArray(cm.alternative_titles)
 ? cm.alternative_titles.map(x=>String(x.title||"").trim()).filter(Boolean)
 : [];
-
 const titleSet = new Set(titles.map(t=>t.toLowerCase()));
 const altUniq=[];
 const seenAlt=new Set();
@@ -1116,22 +1146,20 @@ if(titleSet.has(k)) continue;
 seenAlt.add(k);
 altUniq.push(t);
 }
-
 if(altUniq.length){
 $("aiAltWrap").style.display="block";
 $("aiAltChips").innerHTML = altUniq.slice(0,6).map(t=>'<span class="pill mini">'+escapeHtml(t)+'</span>').join("");
 }
-
 try{
-localStorage.setItem("ja_ai_clusters", JSON.stringify({
+localStorage.setItem("jm_ai_clusters", JSON.stringify({
 created_at: new Date().toISOString(),
 clusters: (cm && Array.isArray(cm.clusters)) ? cm.clusters.slice(0,3) : [],
 alternative_titles: altUniq.slice(0,10)
 }));
+localStorage.setItem("ja_ai_clusters", localStorage.getItem("jm_ai_clusters"));
 }catch{}
 }catch{}
 
-// Keep the old CV-meta-based cache too (used by tryLoadCachedAiSuggestions)
 if(lastCvMeta){
 setAiCache({ cvMetaKey: cvMetaKey(lastCvMeta), titles: titles.slice(0,30), created_at: new Date().toISOString() });
 }
@@ -1143,7 +1171,6 @@ showTopError(e.message||String(e));
 $("aiGenerateBtn").disabled=false;
 }
 }
-
 
 function handleAiRegenerate(){
 aiGeneratedOnce=false;
@@ -1198,6 +1225,7 @@ if(!locations.length) throw new Error("Please enter at least 1 location.");
 await apiPostJson("/me/profile",{desired_titles,industries,locations,countries_allowed,radius_km});
 await refreshState();
 setBadge("saveStatusBadge","good","Saved");
+lsSetAll(LS.profileDone, "true");
 }catch(e){
 showTopError(e.message||String(e));
 setBadge("saveStatusBadge","bad","Save failed");
@@ -1263,7 +1291,9 @@ $("btnLogout").addEventListener("click",async ()=>{
 try{
 await supabaseClient.auth.signOut();
 Object.keys(localStorage).forEach(k=>{
-if(k.startsWith("ja_") || k.startsWith("jobapplyai_") || k.startsWith("sb-")) localStorage.removeItem(k);
+if(k.startsWith("ja_") || k.startsWith("jobapplyai_") || k.startsWith("jm_") || k.startsWith("jobmejob_") || k.startsWith("sb-")){
+localStorage.removeItem(k);
+}
 });
 try{sessionStorage.removeItem("sb_access_token");}catch{}
 window.location.replace("./index.html");
