@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>JobApplyAI • Plan</title>
+<title>jobmejob • Plan</title>
 <style>
 :root{
 --bg:#ffffff;
@@ -16,11 +16,15 @@
 --shadow:0 16px 42px rgba(0,0,0,.10);
 --radius:18px;
 --max:1120px;
---accent:#5b5cff;
---accent2:#00a6ff;
+
+/* Green CI (no blue) */
+--accent:#22c55e;
+--accent2:#16a34a;
+
 --ok:#0a3a1c;
 --warn:#5a3b00;
 --bad:#5a1130;
+
 --safeTop: env(safe-area-inset-top, 0px);
 --safeBottom: env(safe-area-inset-bottom, 0px);
 }
@@ -31,8 +35,8 @@ margin:0;
 font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
 color:var(--text);
 background:
-radial-gradient(1200px 650px at 20% -10%, rgba(91,92,255,.12), transparent 55%),
-radial-gradient(900px 500px at 90% 10%, rgba(0,166,255,.10), transparent 55%),
+radial-gradient(1200px 650px at 20% -10%, rgba(34,197,94,.14), transparent 55%),
+radial-gradient(900px 500px at 90% 10%, rgba(22,163,74,.12), transparent 55%),
 var(--bg);
 overflow-x:hidden;
 }
@@ -66,8 +70,24 @@ min-width:0;
 .logo{
 width:34px;height:34px;border-radius:11px;
 background: linear-gradient(135deg, var(--accent), var(--accent2));
-box-shadow: 0 10px 30px rgba(124,92,255,.20);
+box-shadow: 0 10px 30px rgba(34,197,94,.18);
 flex:0 0 auto;
+position:relative;
+overflow:hidden;
+}
+.logo::after{
+content:"";
+position:absolute;
+inset:-45%;
+background:linear-gradient(90deg, transparent, rgba(255,255,255,.75), transparent);
+transform:rotate(20deg);
+animation:shine 2.8s ease-in-out infinite;
+}
+@keyframes shine{
+0%{transform:translateX(-55%) rotate(20deg);opacity:0}
+35%{opacity:1}
+70%{opacity:0}
+100%{transform:translateX(55%) rotate(20deg);opacity:0}
 }
 .navlinks{
 display:flex;
@@ -88,7 +108,7 @@ cursor:pointer;
 white-space:nowrap;
 }
 .pill:hover{transform:translateY(-1px);background:rgba(0,0,0,.05)}
-.pill.active{border-color:rgba(124,92,255,.55); background:rgba(124,92,255,.10)}
+.pill.active{border-color:rgba(34,197,94,.55); background:rgba(34,197,94,.12)}
 .pill.iconOnly{padding:9px 10px}
 
 .main{
@@ -144,9 +164,9 @@ font-size:12px;
 font-weight:900;
 white-space:nowrap;
 }
-.badge.good{border-color:rgba(0,200,83,.35); background:rgba(0,200,83,.10); color:var(--ok)}
+.badge.good{border-color:rgba(34,197,94,.40); background:rgba(34,197,94,.12); color:var(--ok)}
 .badge.warn{border-color:rgba(255,179,0,.45); background:rgba(255,179,0,.10); color:var(--warn)}
-.badge.prio{border-color:rgba(124,92,255,.45); background:rgba(124,92,255,.12); color:#1f2a55}
+.badge.prio{border-color:rgba(34,197,94,.45); background:rgba(34,197,94,.12); color:#0a3d1f}
 
 .pricingWrap{
 display:grid;
@@ -167,14 +187,14 @@ position:relative;
 overflow:hidden;
 }
 .card.plan{min-height:360px;display:flex;flex-direction:column}
-.card.plan.selected{outline:3px solid rgba(124,92,255,.35); border-color:rgba(124,92,255,.35)}
-.card.plan.featured{border-color:rgba(124,92,255,.35); box-shadow:0 18px 46px rgba(91,92,255,.14)}
+.card.plan.selected{outline:3px solid rgba(34,197,94,.30); border-color:rgba(34,197,94,.35)}
+.card.plan.featured{border-color:rgba(34,197,94,.35); box-shadow:0 18px 46px rgba(34,197,94,.14)}
 .ribbon{
 position:absolute;
 top:14px;
 right:-44px;
 transform:rotate(30deg);
-background:linear-gradient(135deg, rgba(124,92,255,.98), rgba(0,166,255,.98));
+background:linear-gradient(135deg, rgba(34,197,94,.98), rgba(22,163,74,.98));
 color:#fff;
 font-weight:1000;
 font-size:12px;
@@ -252,8 +272,8 @@ justify-content:center;
 .btn:hover{transform:translateY(-1px); background:rgba(0,0,0,.05)}
 .btn:disabled{opacity:.6; cursor:not-allowed; transform:none}
 .btn.primary{
-border-color:rgba(124,92,255,.55);
-background:linear-gradient(135deg, rgba(124,92,255,.22), rgba(0,166,255,.14));
+border-color:rgba(34,197,94,.55);
+background:linear-gradient(135deg, rgba(34,197,94,.22), rgba(22,163,74,.14));
 }
 .fineprint{
 margin:12px 0 0 0;
@@ -262,12 +282,13 @@ font-size:12px;
 font-weight:650;
 line-height:1.45;
 }
+.leaving{opacity:.7;transform:translateY(6px);transition:all .18s ease}
 </style>
 </head>
 <body>
 <header class="topbar">
 <nav class="nav">
-<a class="brand" href="index.html"><span class="logo" aria-hidden="true"></span><span>JobApplyAI</span></a>
+<a class="brand" href="index.html" data-nav="1"><span class="logo" aria-hidden="true"></span><span>jobmejob</span></a>
 <div class="navlinks">
 <a class="pill" href="index.html" data-nav="1">Home</a>
 <a class="pill" href="profile.html" data-nav="1">Profile</a>
@@ -402,6 +423,19 @@ function clearTopError(){const el=$("errorTop");if(!el) return;el.style.display=
 function setBadge(id,cls,text){const el=$(id);if(!el) return;el.className="badge"+(cls?(" "+cls):"");el.textContent=text;}
 function setText(id,text){const el=$(id);if(!el) return;el.textContent=text;}
 
+function go(url){
+document.body.classList.add("leaving");
+setTimeout(()=>{window.location.href=url;},180);
+}
+document.addEventListener("click",(e)=>{
+const a=e.target.closest("a[data-nav='1']");
+if(!a) return;
+const url=a.getAttribute("href");
+if(!url || url.startsWith("#")) return;
+e.preventDefault();
+go(url);
+});
+
 async function apiGet(path){
 const res=await fetch(API_BASE+path,{method:"GET",headers:{Authorization:"Bearer "+session.access_token}});
 const txt=await res.text().catch(()=> "");
@@ -496,9 +530,11 @@ $("btnLogout").addEventListener("click",async ()=>{
 try{
 await supabaseClient.auth.signOut();
 Object.keys(localStorage).forEach(k=>{
-if(k.startsWith("ja_") || k.startsWith("jobapplyai_")) localStorage.removeItem(k);
+if(k.startsWith("ja_") || k.startsWith("jobapplyai_") || k.startsWith("jm_") || k.startsWith("jobmejob_") || k.startsWith("sb-")){
+localStorage.removeItem(k);
+}
 });
-sessionStorage.removeItem("sb_access_token");
+try{sessionStorage.removeItem("sb_access_token");}catch{}
 window.location.replace("./index.html");
 }catch(e){
 showTopError(e.message||String(e));
