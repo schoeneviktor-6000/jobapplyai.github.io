@@ -17,7 +17,7 @@ const SUPABASE_ANON_KEY_DEFAULT =
 
 // Cloudflare Worker API base URL (UPDATED)
 // Use the Worker that actually exists in your Cloudflare account.
-const API_BASE_DEFAULT = "https://jobmejob.schoene-viktor.workers.dev";
+const API_BASE = (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE) || "https://jobmejob.schoene-viktor.workers.dev";
 
 // ============================================================
 // 2) Safe localStorage helpers (won't crash in strict browsers)
