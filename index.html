@@ -177,7 +177,7 @@ filter:saturate(1.05);
 .btn.lime:active{transform:translateY(0)}
 .btn.small{padding:10px 12px;font-size:13px}
 
-/* Fix 1: ensure icon + text are centered as one unit */
+/* ensure icon + text are centered as one unit */
 .btn .btnLabel{
 display:inline-flex;
 align-items:center;
@@ -832,8 +832,6 @@ color:var(--ink2);
 font-weight:950;
 font-size:12px;
 }
-
-/* New: plan value row */
 .valueRow{
 display:flex;
 align-items:center;
@@ -1139,6 +1137,14 @@ color:var(--text);
 <span>See how it works</span>
 </span>
 </a>
+<a class="btn" href="dashboard.html">
+<span class="btnLabel">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+<path d="M3 13h8V3H3v10z"></path><path d="M13 21h8V11h-8v10z"></path><path d="M13 3h8v6h-8V3z"></path><path d="M3 21h8v-6H3v6z"></path>
+</svg>
+<span>Go to dashboard</span>
+</span>
+</a>
 </div>
 
 <div class="proofLine" aria-label="Key points">
@@ -1279,11 +1285,11 @@ color:var(--text);
 <div class="dashCopy">
 <div class="kicker">Dashboard</div>
 <h3>See what gets done — every day.</h3>
-<p>Customers get a simple view of what was sent and what is in progress. This creates trust and makes the service feel like a full end-to-end job application workflow, not just “content generation”.</p>
+<p>Customers get a simple view of what was sent and what is in progress. This creates trust and makes the service feel like an end-to-end workflow, not just “content generation”.</p>
 <ul class="dashPoints">
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Daily count of applications sent vs. plan quota</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Basic log view: company, role, date, and status</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Clear proof of execution, not just drafts</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Log view: company, role, date, and status</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Clear proof of execution</li>
 </ul>
 <div class="dashActions">
 <a class="btn primary" href="signup.html"><span class="btnLabel">Get started</span></a>
@@ -1451,8 +1457,8 @@ Last 7 days
 </div>
 
 <div class="card plan">
-<h3 style="margin:0 0 6px;font-weight:1000;letter-spacing:-.2px">Pro</h3>
-<p style="margin:0;color:var(--muted);font-size:14px">For faster outreach.</p>
+<h3 style="margin:0 0 6px;font-weight:1000;letter-spacing:-.2px">Max</h3>
+<p style="margin:0;color:var(--muted);font-size:14px">For high volume.</p>
 <div class="priceRow" style="margin-top:10px">
 <div class="strike">$119</div>
 <strong>$89</strong>
@@ -1474,7 +1480,7 @@ Last 7 days
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Enhanced tracking view</li>
 </ul>
 <div class="planActions">
-<a class="btn primary" href="#contact"><span class="btnLabel">Contact</span></a>
+<a class="btn primary" href="signup.html"><span class="btnLabel">Get started</span></a>
 </div>
 </div>
 </div>
