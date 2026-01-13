@@ -231,6 +231,12 @@ padding:9px 12px;
 font-size:12px;
 font-weight:900;
 }
+.btn.cta{
+border-color:rgba(34,197,94,.60);
+background:linear-gradient(135deg, rgba(34,197,94,.55), rgba(22,163,74,.22));
+box-shadow:0 16px 44px rgba(34,197,94,.16);
+}
+.btn.cta:hover{box-shadow:0 18px 52px rgba(34,197,94,.22)}
 
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
 .chip{
@@ -291,6 +297,17 @@ background:rgba(255,61,113,.10);
 color:#5a1130;
 font-weight:750;
 font-size:13px;
+}
+
+.notice{
+margin:12px 0 12px 0;
+padding:12px 14px;
+border-radius:16px;
+border:1px solid rgba(255,179,0,.35);
+background:rgba(255,179,0,.12);
+color:#5a3b00;
+font-weight:850;
+display:none;
 }
 
 .kpiBoard{
@@ -507,6 +524,8 @@ font-size:13px;
 <main class="main">
 <h1 class="h1">Dashboard</h1>
 <p class="sub" id="subLine">Loading…</p>
+
+<div class="notice" id="noticeTop"></div>
 <div class="errorTop" id="errorTop"></div>
 
 <div class="kpiBoard">
@@ -582,6 +601,7 @@ font-size:13px;
 <p class="small" id="queueHint">Use Skip to remove jobs you don’t want. Use Prio to apply to these first.</p>
 <div class="actions">
 <button class="btn primary" id="btnRefresh" type="button">Refresh</button>
+<button class="btn cta" id="btnFetchNow" type="button">Fetch jobs now</button>
 <button class="btn" id="btnCopyToken" type="button">Copy access token</button>
 </div>
 <div class="hr"></div>
@@ -683,9 +703,13 @@ font-size:13px;
 
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
-const API_BASE = (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE) || "https://jobmejob.schoene-viktor.workers.dev";
+"use strict";
+
+/* Stable config (will move to config.js later) */
+const API_BASE = "https://jobmejob.schoene-viktor.workers.dev";
 const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
+
 let supabaseClient=null;
 
 let lastSessionToken="";
@@ -696,12 +720,15 @@ let useEventsEndpoint=true;
 let activityEventType="";
 
 let pendingSkipJobId=null;
+let stateCache=null;
 
 function setText(id,text){const el=document.getElementById(id); if(el) el.textContent=text;}
 function setHtml(id,html){const el=document.getElementById(id); if(el) el.innerHTML=html;}
 function setBadge(id,type,text){const el=document.getElementById(id); if(!el) return; el.className="badge"+(type?(" "+type):""); el.textContent=text;}
 function showTopError(msg){const el=document.getElementById("errorTop"); if(!el) return; el.style.display="block"; el.textContent=msg;}
 function clearTopError(){const el=document.getElementById("errorTop"); if(!el) return; el.style.display="none"; el.textContent="";}
+function showNotice(msg){const el=document.getElementById("noticeTop"); if(!el) return; el.style.display="block"; el.textContent=msg;}
+function clearNotice(){const el=document.getElementById("noticeTop"); if(!el) return; el.style.display="none"; el.textContent="";}
 function escapeHtml(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
 function nowStamp(){return new Date().toISOString().replace("T"," ").slice(0,19)+" UTC";}
 function animateNumber(el,to){
@@ -735,6 +762,14 @@ e.preventDefault();
 go(url);
 });
 
+function friendlyNetworkError(where, err){
+const msg=String(err?.message||err||"");
+if(msg.includes("Failed to fetch") || msg.includes("NetworkError") || msg.includes("Load failed")){
+return where + ": Cannot reach the server. Check your connection, VPN/adblock, or try again.";
+}
+return where + ": " + msg;
+}
+
 function openSkipModal(jobId){
 pendingSkipJobId=jobId;
 document.getElementById("skipNote").value="";
@@ -754,10 +789,12 @@ window.location.replace("./signup.html");
 return null;
 }
 lastSessionToken=data.session.access_token;
+try{sessionStorage.setItem("sb_access_token", lastSessionToken);}catch{}
 return data.session;
 }
 
 async function apiGet(path,accessToken){
+try{
 const res=await fetch(API_BASE+path,{method:"GET",headers:{"Authorization":"Bearer "+accessToken}});
 const text=await res.text().catch(()=> "");
 let json=null;
@@ -767,8 +804,12 @@ const msg=(json&&(json.error||json.details))?(json.error||json.details):text;
 throw new Error(path+" failed: "+res.status+" "+msg);
 }
 return json;
+}catch(e){
+throw new Error(friendlyNetworkError(path, e));
+}
 }
 async function apiPost(path,accessToken,body){
+try{
 const res=await fetch(API_BASE+path,{
 method:"POST",
 headers:{
@@ -785,6 +826,9 @@ const msg=(json&&(json.error||json.details))?(json.error||json.details):text;
 throw new Error(path+" failed: "+res.status+" "+msg);
 }
 return json;
+}catch(e){
+throw new Error(friendlyNetworkError(path, e));
+}
 }
 
 function planFromState(planId){
@@ -808,7 +852,7 @@ if(queueCount>=25){healthLabel="Healthy";badgeType="good";recommendedCap=10;}
 else if(queueCount>=5){healthLabel="Medium";badgeType="";recommendedCap=5;}
 let note="";
 if(!planDaily) note="Select a plan to start.";
-else if(queueCount===0) note="No jobs in your queue yet. Broaden titles or increase radius.";
+else if(queueCount===0) note="No jobs in your queue yet. Broaden titles or increase radius. You can also use “Fetch jobs now”.";
 else if(queueCount<planDaily) note="Your queue is below your plan. Increase titles/radius to avoid running out.";
 else note="You have enough supply for today.";
 let ratio=0;
@@ -1012,17 +1056,6 @@ const titleCell=link ? ('<a href="'+escapeHtml(link)+'" target="_blank" rel="noo
 let metaTxt="—";
 const t=String(ev.event_type||"").toLowerCase();
 
-if(t === "applied"){
-const s=sentByKey.get(sentKey(ev));
-if(s && s.meta && typeof s.meta === "object"){
-const ch=s.meta.channel || "email_manual";
-const fe=s.meta.from_email || "";
-const proofHtml="via " + escapeHtml(ch) + (fe ? "<br><span class='mono'>from " + escapeHtml(fe) + "</span>" : "");
-metaTxt="<button class='btn small ghost' type='button' data-proof='1'>Show proof</button>"
-+ "<div style='display:none;margin-top:8px' class='mono' data-proof-box='1'>" + proofHtml + "</div>";
-}
-}
-
 if(metaTxt === "—" && ev.meta && typeof ev.meta === "object"){
 if(t === "sent"){
 const ch=ev.meta.channel || "email_manual";
@@ -1053,37 +1086,6 @@ return '<div class="tableWrap"><table class="table">'
 + '<tbody>'+rows+'</tbody></table></div>';
 }
 
-function renderApplicationsFallback(resp){
-const items=Array.isArray(resp?.data)?resp.data:[];
-if(items.length===0) return '<span class="badge warn">No activity yet</span>';
-
-const rows=items.slice(0,30).map(a=>{
-const st=String(a.status||"").toLowerCase();
-const cls=st==="applied" ? "good" : st==="rejected" ? "bad" : st==="skipped" ? "warn" : "";
-const job=a.job||{};
-const title=job.title||"Untitled";
-const company=job.company_name||"—";
-const loc=[job.city||"", job.region||""].filter(Boolean).join(", ") || "—";
-const when=fmtDate(a.updated_at || a.created_at);
-const link=job.apply_url?String(job.apply_url):"";
-const titleCell=link ? ('<a href="'+escapeHtml(link)+'" target="_blank" rel="noopener">'+escapeHtml(title)+'</a>') : escapeHtml(title);
-const actionBtn=(st==="skipped" && job.id) ? "<button class='btn small ghost' type='button' data-unskip='"+escapeHtml(job.id)+"'>Undo</button>" : "—";
-
-return "<tr>"
-+ "<td><span class='badge "+cls+"'>"+escapeHtml(st||"new")+"</span></td>"
-+ "<td>"+titleCell+"</td>"
-+ "<td>"+escapeHtml(company)+"</td>"
-+ "<td>"+escapeHtml(loc)+"</td>"
-+ "<td>"+escapeHtml(when)+"</td>"
-+ "<td>"+actionBtn+"</td>"
-+ "</tr>";
-}).join("");
-
-return '<div class="tableWrap"><table class="table">'
-+ '<thead><tr><th>Status</th><th>Job</th><th>Company</th><th>Location</th><th>Time</th><th>Action</th></tr></thead>'
-+ '<tbody>'+rows+'</tbody></table></div>';
-}
-
 async function loadActivity(accessToken){
 setHtml("activityError","");
 setHtml("activityWrap",renderSkeleton());
@@ -1102,12 +1104,9 @@ setHtml("activityError",'<div class="error">Timeline endpoint failed. Fallback t
 }
 
 let path="/me/applications?limit=30";
-const map={ queued:"new", applied:"applied", rejected:"rejected", skipped:"skipped", prioritized:"new" };
-if(activityEventType && map[activityEventType]) path += "&status=" + encodeURIComponent(map[activityEventType]);
-
 try{
 const resp=await apiGet(path,accessToken);
-setHtml("activityWrap",renderApplicationsFallback(resp));
+setHtml("activityWrap",'<span class="badge warn">Fallback not enabled in this build</span>');
 }catch(e){
 setHtml("activityWrap",'<span class="badge bad">Activity failed</span>');
 setHtml("activityError",'<div class="error">'+escapeHtml(e.message)+'</div>');
@@ -1123,16 +1122,6 @@ if(unskip){
 const jobId=unskip.getAttribute("data-unskip")||"";
 if(jobId) undoSkip(jobId);
 return;
-}
-const proofBtn=e.target.closest("button[data-proof]");
-if(proofBtn){
-const cell=proofBtn.parentElement;
-if(!cell) return;
-const box=cell.querySelector("[data-proof-box='1']");
-if(!box) return;
-const isOpen=box.style.display === "block";
-box.style.display=isOpen ? "none" : "block";
-proofBtn.textContent=isOpen ? "Show proof" : "Hide proof";
 }
 });
 }
@@ -1155,19 +1144,19 @@ const rows=entries.map(([k,v])=>"<tr><td>"+escapeHtml(k)+"</td><td>"+escapeHtml(
 return '<div class="tableWrap" style="margin-top:8px"><table class="table" style="min-width:520px"><thead><tr><th>Status</th><th>Count</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 
-function renderOnboardingChecks(state){
+function renderOnboardingChecks(st){
 const items=[];
-const profileOk=!!state.profile_complete;
-const planOk=!!state.plan_id;
-const cvOk=!!state.cv_uploaded;
-const ocrOk=(String(state.cv_ocr_status||"").toLowerCase()==="done");
+const profileOk=!!st.profile_complete;
+const planOk=!!st.plan_id;
+const cvOk=!!st.cv_uploaded;
+const ocrOk=(String(st.cv_ocr_status||"").toLowerCase()==="done");
 items.push({label:"Profile complete",ok:profileOk,fix:"profile.html"});
 items.push({label:"Plan selected",ok:planOk,fix:"plan.html"});
 items.push({label:"CV uploaded",ok:cvOk,fix:"profile.html"});
 items.push({label:"OCR done",ok:ocrOk,fix:"profile.html"});
 return items.map(it=>{
 const cls=it.ok?"badge good":"badge warn";
-const right=it.ok?'OK':('<a href="'+it.fix+'" style="text-decoration:underline">Fix</a>');
+const right=it.ok?'OK':('<a href="'+it.fix+'" data-nav="1" style="text-decoration:underline">Fix</a>');
 return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0"><span class="'+cls+'">'+escapeHtml(it.label)+'</span><span class="small">'+right+'</span></div>';
 }).join("");
 }
@@ -1228,8 +1217,40 @@ setText("aiInsightsHint","Generate suggestions in Profile to unlock this.");
 }
 }
 
+function onboardingNoticeFromState(st){
+if(!st) return null;
+if(!st.profile_complete) return {text:"Finish your profile setup first (CV + preferences).", cta:"Go to profile", href:"profile.html"};
+if(!st.plan_id) return {text:"Choose a plan to enable daily applications.", cta:"Choose plan", href:"plan.html"};
+if(!st.cv_uploaded) return {text:"Upload your CV so we can prepare applications.", cta:"Upload CV", href:"profile.html"};
+if(String(st.cv_ocr_status||"").toLowerCase() === "processing") return {text:"OCR is still running. Leave the tab open or check again soon.", cta:"Go to profile", href:"profile.html"};
+if(String(st.cv_ocr_status||"").toLowerCase() === "failed") return {text:"OCR failed. Upload a different PDF CV.", cta:"Go to profile", href:"profile.html"};
+return null;
+}
+
+async function tryFetchJobsNow(){
+clearTopError();
+clearNotice();
+const btn=document.getElementById("btnFetchNow");
+if(btn){btn.disabled=true; btn.textContent="Fetching…";}
+try{
+await apiPost("/me/jobs/fetch-now", lastSessionToken, {});
+showNotice("Fetch started. Refreshing your queue…");
+await loadDashboard();
+}catch(e){
+const msg=String(e.message||e);
+if(msg.includes("404")){
+showTopError("Fetch endpoint not available yet. I will add it in the Worker as the next step.");
+}else{
+showTopError(msg);
+}
+}finally{
+if(btn){btn.disabled=false; btn.textContent="Fetch jobs now";}
+}
+}
+
 async function loadDashboard(){
 clearTopError();
+clearNotice();
 setText("errorBox","");
 setHtml("queueError","");
 setText("lastCheck",nowStamp());
@@ -1252,18 +1273,24 @@ setText("subLine","Signed in as "+email);
 
 renderAiInsightsFromCache();
 
-let state=null;
-try{ state=await apiGet("/me/state",session.access_token); }catch{ state=null; }
+let st=null;
+try{ st=await apiGet("/me/state",session.access_token); }catch{ st=null; }
+stateCache=st;
 
-const plan=state&&state.plan_id?planFromState(state.plan_id):planFallbackFromLocalStorage();
+const plan=st&&st.plan_id?planFromState(st.plan_id):planFallbackFromLocalStorage();
 currentPlanDaily=plan.daily;
 
 setText("kpiPlanName",plan.name);
 setText("kpiPlanMeta",plan.daily?plan.meta:"no plan selected");
 setBadge("badgePlan",plan.daily?"good":"warn",plan.daily?"Selected":"Not selected");
 
-if(state&&state.customer_id){ setText("meCustomerId",state.customer_id); }
-if(state){ setHtml("onboardingChecks",renderOnboardingChecks(state)); }
+if(st&&st.customer_id){ setText("meCustomerId",st.customer_id); }
+if(st){ setHtml("onboardingChecks",renderOnboardingChecks(st)); }
+
+const n=onboardingNoticeFromState(st);
+if(n){
+showNotice(n.text + " Use the buttons on the right to fix.");
+}
 
 try{
 const queue=await apiGet("/me/jobs/queue",session.access_token);
@@ -1291,7 +1318,7 @@ const total=(typeof apps.total==="number")?apps.total:0;
 animateNumber(document.getElementById("kpiAppsTotal"),total);
 setBadge("badgeApps","good","OK");
 setHtml("appsBreakdown",renderAppsBreakdown(apps));
-}catch{
+}catch(e){
 setText("kpiAppsTotal","–");
 setBadge("badgeApps","warn","Not ready");
 setHtml("appsBreakdown",'<span class="badge warn">Not available</span>');
@@ -1320,6 +1347,9 @@ if(lastSessionToken) await loadActivity(lastSessionToken);
 function wireEvents(){
 document.getElementById("btnRefresh").addEventListener("click",async()=>{
 try{ await loadDashboard(); }catch(e){ showTopError(e.message); setText("errorBox",e.message); }
+});
+document.getElementById("btnFetchNow").addEventListener("click", async ()=>{
+await tryFetchJobsNow();
 });
 document.getElementById("btnCopyToken").addEventListener("click",async()=>{
 try{
