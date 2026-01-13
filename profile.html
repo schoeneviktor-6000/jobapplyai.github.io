@@ -2,371 +2,27 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>jobmejob • Profile</title>
+<link rel="stylesheet" href="./styles.css">
 <style>
-:root{
---bg:#f6f7fb;
---text:#111318;
---muted:rgba(17,19,24,.64);
---muted2:rgba(17,19,24,.48);
---line:rgba(17,19,24,.12);
---accent:#22c55e;
---accent2:#16a34a;
---ok:#16a34a;
---warn:#b86b00;
---bad:#d81b60;
---shadow:0 12px 34px rgba(17,19,24,.12);
---radius:18px;
---max:1120px;
---safeTop: env(safe-area-inset-top, 0px);
---safeBottom: env(safe-area-inset-bottom, 0px);
---surface:#ffffff;
---surface2:#ffffff;
---surface3:#fbfcff;
-}
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-margin:0;
-font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-color:var(--text);
-background:
-radial-gradient(1200px 650px at 20% -10%, rgba(34,197,94,.18), transparent 55%),
-radial-gradient(900px 500px at 90% 10%, rgba(22,163,74,.14), transparent 55%),
-radial-gradient(800px 600px at 70% 110%, rgba(34,197,94,.10), transparent 55%),
-var(--bg);
-overflow-x:hidden;
-}
-a{color:inherit;text-decoration:none}
-small{color:var(--muted)}
-.topbar{
-position:sticky;
-top:0;
-z-index:30;
-background:rgba(246,247,251,.86);
-backdrop-filter:saturate(1.2) blur(12px);
-border-bottom:1px solid var(--line);
-padding-top:var(--safeTop);
-}
-.nav{
-max-width:var(--max);
-margin:0 auto;
-padding:12px 16px;
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:12px;
-}
-.brand{
-display:flex;
-align-items:center;
-gap:10px;
-font-weight:900;
-letter-spacing:.2px;
-min-width:0;
-}
-.logo{
-width:34px;height:34px;border-radius:11px;
-background: linear-gradient(135deg, var(--accent), var(--accent2));
-box-shadow: 0 10px 30px rgba(34,197,94,.22);
-flex:0 0 auto;
-position:relative;
-overflow:hidden;
-}
-.logo::after{
-content:"";
-position:absolute;
-inset:-45%;
-background:linear-gradient(90deg, transparent, rgba(255,255,255,.75), transparent);
-transform:rotate(20deg);
-animation:shine 2.8s ease-in-out infinite;
-}
-@keyframes shine{
-0%{transform:translateX(-55%) rotate(20deg);opacity:0}
-35%{opacity:1}
-70%{opacity:0}
-100%{transform:translateX(55%) rotate(20deg);opacity:0}
-}
-.navlinks{
-display:flex;
-align-items:center;
-gap:10px;
-flex-wrap:wrap;
-justify-content:flex-end;
-}
-.pill{
-padding:9px 12px;
-border:1px solid var(--line);
-border-radius:999px;
-background:rgba(17,19,24,.04);
-font-weight:750;
-font-size:13px;
-transition:.15s ease;
-cursor:pointer;
-white-space:nowrap;
-}
-.pill:hover{transform:translateY(-1px);background:rgba(17,19,24,.06)}
-.pill.active{border-color:rgba(34,197,94,.55); background:rgba(34,197,94,.16)}
-.pill.iconOnly{padding:9px 10px}
-.main{
-max-width:var(--max);
-margin:0 auto;
-padding:18px 16px calc(18px + var(--safeBottom));
-}
-.h1{
-font-size:34px;
-line-height:1.05;
-letter-spacing:-.8px;
-margin:10px 0 8px 0;
-}
-.sub{margin:0 0 14px 0;color:var(--muted);font-weight:650}
-.card{
-background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.82));
-border:1px solid var(--line);
-border-radius:var(--radius);
-box-shadow:var(--shadow);
-padding:14px;
-overflow:hidden;
-}
-.cardNoPad{padding:0}
-.sectionHeader{
-background:var(--surface2);
-border-bottom:1px solid rgba(17,19,24,.10);
-padding:14px;
-}
-.sectionBody{padding:14px}
-.hr{height:1px;background:var(--line);margin:12px 0}
-.badge{
-display:inline-flex;
-align-items:center;
-gap:8px;
-padding:7px 10px;
-border-radius:999px;
-border:1px solid var(--line);
-background:rgba(17,19,24,.05);
-color:var(--muted);
-font-size:12px;
-font-weight:750;
-white-space:nowrap;
-max-width:100%;
-}
-.badge.good{border-color:rgba(34,197,94,.40); background:rgba(34,197,94,.12); color:#0a3d1f}
-.badge.warn{border-color:rgba(255,179,0,.5); background:rgba(255,179,0,.12); color:#5a3b00}
-.badge.bad{border-color:rgba(255,61,113,.55); background:rgba(255,61,113,.12); color:#5a1130}
-.badge.prio{border-color:rgba(34,197,94,.45); background:rgba(34,197,94,.14); color:#0a3d1f}
-.grid{
-display:grid;
-grid-template-columns: 1.35fr .65fr;
-gap:14px;
-align-items:start;
-}
-@media (max-width:1100px){
-.grid{grid-template-columns:1fr}
-}
-.field{
-display:flex;
-flex-direction:column;
-gap:6px;
-margin-top:10px;
-}
-label{font-size:12px;color:var(--muted);font-weight:800}
-input,select,textarea{
-border:1px solid rgba(17,19,24,.14);
-background:rgba(17,19,24,.04);
-color:var(--text);
-border-radius:12px;
-padding:10px 12px;
-outline:none;
-font-size:14px;
-}
-textarea{min-height:90px;resize:vertical}
-.actions{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-align-items:center;
-}
-.btn{
-appearance:none;
-border:1px solid var(--line);
-background:rgba(17,19,24,.06);
-color:var(--text);
-padding:11px 14px;
-border-radius:999px;
-font-weight:900;
-font-size:13px;
-cursor:pointer;
-transition:.15s ease;
-display:inline-flex;
-align-items:center;
-gap:8px;
-text-decoration:none;
-}
-.btn:hover{transform:translateY(-1px); background:rgba(17,19,24,.08)}
-.btn:disabled{opacity:.6; cursor:not-allowed; transform:none}
-.btn.primary{
-border-color:rgba(34,197,94,.55);
-background:linear-gradient(135deg, rgba(34,197,94,.30), rgba(22,163,74,.18));
-}
-.btn.good{
-border-color:rgba(34,197,94,.45);
-background:rgba(34,197,94,.12);
-}
-.btn.small{
-padding:9px 12px;
-font-size:12px;
-font-weight:900;
-}
-.btn.cta{
-border-color:rgba(34,197,94,.60);
-background:linear-gradient(135deg, rgba(34,197,94,.55), rgba(22,163,74,.28));
-box-shadow:0 16px 44px rgba(34,197,94,.18);
-}
-.btn.cta:hover{
-box-shadow:0 18px 52px rgba(34,197,94,.24);
-}
-.linkBtn{
-appearance:none;
-border:none;
-background:transparent;
-color:rgba(17,19,24,.68);
-font-weight:900;
-font-size:12px;
-cursor:pointer;
-padding:0;
-text-decoration:underline;
-}
-.small{font-size:12px;color:var(--muted2);font-weight:650}
-.mono{
-font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
-font-size:12px;
-word-break:break-all;
-color:rgba(17,19,24,.64);
-}
-.errorTop{
-margin:12px 0 12px 0;
-padding:12px 14px;
-border-radius:16px;
-border:1px solid rgba(255,61,113,.25);
-background:rgba(255,61,113,.10);
-color:#5a1130;
-font-weight:800;
-display:none;
-}
-.kpiCol{display:grid;gap:10px}
-.kpiRow{
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:10px;
-padding:10px 12px;
-border:1px solid rgba(17,19,24,.12);
-background:var(--surface3);
-border-radius:16px;
-}
-.kpiName{font-size:12px;color:var(--muted);font-weight:900}
-.kpiVal{font-size:12px;font-weight:950}
-.kpiVal.ok{color:#0a3d1f}
-.kpiVal.warn{color:#5a3b00}
-.kpiVal.bad{color:#5a1130}
-.stepTitle{
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:10px;
-}
-.stepTitle h2{margin:0;font-size:16px}
-.helpBox{
-border:1px solid rgba(17,19,24,.12);
-background:rgba(17,19,24,.03);
-padding:12px;
-border-radius:16px;
-}
-.progressWrap{
-margin-top:12px;
-border:1px solid rgba(17,19,24,.12);
-background:rgba(17,19,24,.03);
-border-radius:16px;
-padding:12px;
-}
-.progressBar{
-height:10px;
-border-radius:999px;
-background:rgba(17,19,24,.10);
-overflow:hidden;
-margin-top:8px;
-}
-.progressBar > div{
-height:100%;
-width:0%;
-background:linear-gradient(135deg, rgba(34,197,94,.85), rgba(22,163,74,.75));
-transition:width .25s ease;
-}
-.chips{
-display:flex;
-flex-wrap:wrap;
-gap:8px;
-margin-top:10px;
-}
-.chip{
-display:inline-flex;
-align-items:center;
-gap:8px;
-padding:9px 10px;
-border-radius:999px;
-border:1px solid rgba(17,19,24,.14);
-background:rgba(17,19,24,.03);
-cursor:pointer;
-user-select:none;
-font-weight:850;
-font-size:12px;
-opacity:0;
-transform:translateY(6px);
-animation:chipIn .28s ease forwards;
-}
-.chip.selected{
-border-color:rgba(34,197,94,.55);
-background:rgba(34,197,94,.14);
-}
-.chip.aiTag{
-border-color:rgba(34,197,94,.55);
-background:rgba(34,197,94,.10);
-cursor:default;
-}
-@keyframes chipIn{
-from{opacity:0;transform:translateY(6px)}
-to{opacity:1;transform:translateY(0)}
-}
-.stepDone{
-opacity:.78;
-filter:saturate(.92);
-}
-.stepDone .helpBox,.stepDone .progressWrap{opacity:.9}
-.aiCard{
-border:1px solid rgba(34,197,94,.28);
-background:
-radial-gradient(700px 220px at 15% 0%, rgba(34,197,94,.18), transparent 60%),
-radial-gradient(700px 220px at 85% 20%, rgba(22,163,74,.12), transparent 60%),
-linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.82));
-}
-.aiGlow{
-box-shadow:0 18px 52px rgba(34,197,94,.12);
-}
-.pill.mini{padding:7px 10px;font-size:12px;font-weight:850}
+.progressWrap{margin-top:12px;border:1px solid rgba(17,19,24,.12);background:rgba(17,19,24,.03);border-radius:16px;padding:12px;display:none}
+.progressBar{height:10px;border-radius:999px;background:rgba(17,19,24,.10);overflow:hidden;margin-top:8px}
+.progressBar>div{height:100%;width:0%;background:linear-gradient(135deg, rgba(34,197,94,.85), rgba(22,163,74,.75));transition:width .25s ease}
+.helpBox{border:1px solid rgba(17,19,24,.12);background:rgba(17,19,24,.03);padding:12px;border-radius:16px}
 </style>
 </head>
 
 <body>
 <header class="topbar">
 <nav class="nav">
-<a class="brand" href="index.html" data-nav="1"><span class="logo" aria-hidden="true"></span><span>jobmejob</span></a>
+<a class="brand" href="index.html"><span class="logo" aria-hidden="true"></span><span>jobmejob</span></a>
 <div class="navlinks">
-<a class="pill" href="index.html" data-nav="1">Home</a>
-<a class="pill active" href="profile.html" data-nav="1">Profile</a>
-<a class="pill" href="plan.html" data-nav="1">Plan</a>
-<a class="pill" href="dashboard.html" data-nav="1">Dashboard</a>
-<button class="pill iconOnly" id="btnLogout" type="button" aria-label="Logout">Logout</button>
+<a class="pill" href="index.html">Home</a>
+<a class="pill active" href="profile.html">Profile</a>
+<a class="pill" href="plan.html">Plan</a>
+<a class="pill" href="dashboard.html">Dashboard</a>
+<button class="pill iconOnly" id="btnLogout" type="button">Logout</button>
 </div>
 </nav>
 </header>
@@ -374,28 +30,26 @@ box-shadow:0 18px 52px rgba(34,197,94,.12);
 <main class="main">
 <h1 class="h1">Profile</h1>
 <p class="sub" id="subLine">Loading…</p>
+<div class="notice" id="noticeTop"></div>
 <div class="errorTop" id="errorTop"></div>
 
-<div class="grid">
-<section class="card cardNoPad" id="step1Card">
+<div class="grid2">
+<section class="card cardNoPad">
 <div class="sectionHeader">
-<div class="stepTitle">
-<h2>Step 1: Upload your CV</h2>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+<div style="font-weight:950">Step 1: Upload your CV</div>
 <span class="badge" id="cvStatusBadge">Loading</span>
 </div>
-<p class="small">Select a file and we will upload it and run OCR automatically (PDF). Then you can generate job title suggestions.</p>
+<p class="small">Upload PDF for best OCR + AI title suggestions.</p>
 </div>
 <div class="sectionBody">
-<div class="field">
-<label for="cvFile">CV file (PDF/DOC/DOCX)</label>
-<input type="file" id="cvFile" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
-</div>
 
-<div class="progressWrap" id="cvProgressWrap" style="display:none">
+<label class="small" for="cvFile" style="font-weight:850">CV file (PDF/DOC/DOCX)</label>
+<input type="file" id="cvFile" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+
+<div class="progressWrap" id="cvProgressWrap">
 <div class="small" id="cvProgressText">Preparing…</div>
-<div class="progressBar" aria-label="Upload progress">
-<div id="cvProgressFill"></div>
-</div>
+<div class="progressBar"><div id="cvProgressFill"></div></div>
 <div class="small" id="cvProgressHint" style="margin-top:8px"></div>
 </div>
 
@@ -406,969 +60,281 @@ box-shadow:0 18px 52px rgba(34,197,94,.12);
 
 <div class="hr"></div>
 
-<div class="helpBox aiCard aiGlow" id="aiBox">
-<div class="stepTitle">
-<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-<h2 style="margin:0;font-size:16px">AI job title suggestions</h2>
-<button class="linkBtn" id="aiRegenerateLink" type="button" style="display:none">Regenerate</button>
+<div class="card" style="background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.22)">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+<div style="font-weight:950">AI job title suggestions</div>
+<span class="badge warn" id="aiStatusBadge">Locked</span>
 </div>
-<span class="badge" id="aiStatusBadge">Locked</span>
-</div>
-
-<div class="small" id="aiHint" style="margin-top:6px">Upload your CV first. When OCR is done, you can generate suggestions.</div>
-
+<div class="small" id="aiHint" style="margin-top:8px">Upload a PDF CV and wait for OCR to finish.</div>
 <div class="actions" style="margin-top:12px">
 <button class="btn cta" id="aiGenerateBtn" type="button" disabled>Generate suggestions</button>
 <button class="btn" id="aiApplyBtn" type="button" disabled>Apply selected titles</button>
 </div>
-
 <div id="aiTitlesWrap" style="margin-top:12px;display:none"></div>
-<div class="hr"></div>
-<div id="aiAltWrap" style="display:none">
-<div class="small" style="font-weight:850">Alternative roles based on your skills</div>
-<div class="chips" id="aiAltChips" style="margin-top:10px"></div>
 </div>
 
-<div id="aiSkillsWrap" style="display:none;margin-top:14px">
-<div class="small" style="font-weight:850">Top skills (core + tools)</div>
-<div class="chips" id="aiSkillsChips" style="margin-top:10px"></div>
-</div>
-</div>
-
-<div class="hr"></div>
-
-<div class="helpBox">
-<div class="small"><strong>Tip:</strong> If you upload DOC/DOCX, OCR might not run. A PDF gives the best results.</div>
-</div>
 </div>
 </section>
 
-<aside class="card">
+<aside class="card cardNoPad">
 <div class="sectionHeader">
-<div class="stepTitle">
-<h2>Onboarding status</h2>
-<span class="badge" id="signedInBadge">Checking…</span>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+<div style="font-weight:950">Step 2: Preferences</div>
+<span class="badge" id="saveStatusBadge">Not saved</span>
 </div>
-<p class="small">Read from backend (/me/state).</p>
+<p class="small">Save at least 1 job title + 1 location.</p>
 </div>
 <div class="sectionBody">
-<div class="kpiCol">
-<div class="kpiRow">
-<div class="kpiName">Signed in</div>
-<div class="kpiVal" id="kSigned">…</div>
-</div>
-<div class="kpiRow">
-<div class="kpiName">Customer ID</div>
-<div class="kpiVal mono" id="kCustomerId">—</div>
-</div>
-<div class="kpiRow">
-<div class="kpiName">Profile complete</div>
-<div class="kpiVal" id="kProfile">…</div>
-</div>
-<div class="kpiRow">
-<div class="kpiName">Plan selected</div>
-<div class="kpiVal" id="kPlan">…</div>
-</div>
-<div class="kpiRow">
-<div class="kpiName">CV uploaded</div>
-<div class="kpiVal" id="kCv">…</div>
-</div>
-<div class="kpiRow">
-<div class="kpiName">OCR status</div>
-<div class="kpiVal" id="kOcr">…</div>
-</div>
-</div>
+<label class="small" for="jobTitles" style="font-weight:850">Desired job titles (comma separated)</label>
+<textarea id="jobTitles" placeholder="Business Analyst, Product Analyst, Operations Manager"></textarea>
+
+<div class="hr"></div>
+
+<label class="small" for="locations" style="font-weight:850">Main location(s) (comma separated)</label>
+<input id="locations" type="text" placeholder="Berlin, Potsdam">
+
+<div class="hr"></div>
+
+<label class="small" for="radiusKm" style="font-weight:850">Radius (km)</label>
+<input id="radiusKm" type="text" placeholder="20" inputmode="numeric">
 
 <div class="hr"></div>
 
 <div class="actions">
-<a class="btn" href="plan.html" data-nav="1">Go to plan</a>
-<a class="btn primary" href="dashboard.html" data-nav="1">Go to dashboard</a>
-</div>
-</div>
-</aside>
-
-<section class="card cardNoPad" style="grid-column:1/-1" id="prefsCard">
-<div class="sectionHeader">
-<div class="stepTitle">
-<h2>Step 2: Confirm your preferences</h2>
-<span class="badge" id="saveStatusBadge">Not saved</span>
-</div>
-<p class="small">AI titles will be placed at the top of your job titles. Then you can add any missing details.</p>
-</div>
-<div class="sectionBody">
-<div class="field">
-<label for="jobTitles">Desired job titles (comma separated)</label>
-<textarea id="jobTitles" placeholder="Receptionist, Front Desk Agent, Rezeption"></textarea>
-<div class="small">Tip: add 3–5 variations to avoid “0 jobs found”.</div>
-<div id="aiAppliedWrap" style="display:none;margin-top:10px">
-<div class="small"><strong>AI-added titles</strong></div>
-<div id="aiAppliedChips"></div>
-</div>
-</div>
-
-<div class="field">
-<label for="industries">Industries (comma separated)</label>
-<input id="industries" placeholder="Healthtech, Hospitality, Wellness">
-<div class="small">Optional.</div>
-</div>
-
-<div class="field">
-<label for="country">Country</label>
-<select id="country">
-<option value="DE">Germany (DE)</option>
-<option value="UK">United Kingdom (UK)</option>
-</select>
-</div>
-
-<div class="field">
-<label for="locations">Main location(s) (comma separated)</label>
-<input id="locations" placeholder="Berlin, Potsdam">
-</div>
-
-<div class="field">
-<label for="radiusKm">Radius (km)</label>
-<input id="radiusKm" placeholder="20" inputmode="numeric">
-</div>
-
-<div class="actions" style="margin-top:12px">
 <button class="btn primary" id="saveProfileBtn" type="button">Save preferences</button>
-<button class="btn good" id="continueBtn" type="button">Continue</button>
+<button class="btn" id="continueBtn" type="button">Continue</button>
 </div>
 
 <div class="small" id="continueHint" style="margin-top:10px"></div>
 </div>
-</section>
+</aside>
 </div>
 </main>
 
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="./config.js"></script>
+<script src="./app.js"></script>
 <script>
 "use strict";
+const { requireSession, logout, ensureCustomer, apiGet, apiPostJson, apiPostForm, getState } = window.JobMeJob.app;
 
-/* IMPORTANT:
-This page no longer depends on auth.js. It uses a stable API_BASE constant below.
-When we refactor the whole project, we'll move this into config.js/app.js.
-*/
-
-const API_BASE = "https://jobmejob.schoene-viktor.workers.dev";
-const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
-const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
-
-const AI_CACHE_KEY="jm_ai_titles_cache_v1";
-const AI_CACHE_KEY_OLD="ja_ai_titles_cache_v1";
-
-let supabaseClient=null;
 let session=null;
-let state=null;
+let poll=null;
 
-let ocrPollTimer=null;
-
-let aiResult=null;
-let aiSelectedTitles=new Set();
-let aiGeneratedOnce=false;
-let aiAppliedOnce=false;
-let aiAppliedTitles=[];
-let jobTitlesTouched=false;
-
-let lastCvMeta=null;
-let lastSelectedFileName="";
-
-function $(id){return document.getElementById(id);}
-function setText(id,t){const el=$(id);if(el) el.textContent=t;}
-function setHtml(id,h){const el=$(id);if(el) el.innerHTML=h;}
-function showTopError(msg){const el=$("errorTop");if(!el) return;el.style.display="block";el.textContent=msg;}
-function clearTopError(){const el=$("errorTop");if(!el) return;el.style.display="none";el.textContent="";}
-
-function escapeHtml(s){
-const v=String(s??"");
-return v.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
-}
-
-function setBadge(id,kind,text){
-const el=$(id);
+function show(id,msg){
+const el=document.getElementById(id);
 if(!el) return;
-el.className="badge"+(kind?(" "+kind):"");
+el.style.display = msg ? "block" : "none";
+el.textContent = msg || "";
+}
+function setBadge(id, cls, text){
+const el=document.getElementById(id);
+if(!el) return;
+el.className="badge"+(cls?(" "+cls):"");
 el.textContent=text;
 }
+function setProgress(showIt, pct, text, hint){
+document.getElementById("cvProgressWrap").style.display = showIt ? "block" : "none";
+document.getElementById("cvProgressFill").style.width = Math.max(0, Math.min(100, Number(pct)||0)) + "%";
+document.getElementById("cvProgressText").textContent = text||"";
+document.getElementById("cvProgressHint").textContent = hint||"";
+}
+function isPdf(file){
+const n=String(file?.name||"").toLowerCase();
+const t=String(file?.type||"").toLowerCase();
+return n.endsWith(".pdf") || t==="application/pdf";
+}
+function stopPoll(){ if(poll){ clearInterval(poll); poll=null; } }
 
-function go(url){
-setTimeout(()=>{window.location.href=url;},180);
-}
-
-function isEmail(s){
-const v=String(s||"").trim();
-return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-}
-
-const LS = {
-userEmail: ["jm_user_email","ja_user_email"],
-customerId: ["jm_customer_id","ja_customer_id"],
-profileDone: ["jm_profile_complete","ja_profile_complete"],
-plan: ["jm_plan","ja_plan"],
-workplace: ["jobmejob_workplace","jobapplyai_workplace"]
-};
-
-function lsGetFirst(keys){
-for(const k of keys){
-const v=localStorage.getItem(k);
-if(v !== null && v !== undefined && v !== "") return v;
-}
-return null;
-}
-function lsSetAll(keys, value){
-for(const k of keys){
-try{ localStorage.setItem(k, value); }catch(_){}
-}
-}
-
-function resetLocalStateForNewUser(currentEmail){
-const last=(lsGetFirst(LS.userEmail)||"").trim().toLowerCase();
-const now=(currentEmail||"").trim().toLowerCase();
-if(!now) return;
-if(last && last!==now){
-Object.keys(localStorage).forEach(k=>{
-if(k.startsWith("ja_") || k.startsWith("jobapplyai_") || k.startsWith("jm_") || k.startsWith("jobmejob_") || k.startsWith("sb-")){
-localStorage.removeItem(k);
-}
-});
-try{sessionStorage.removeItem("sb_access_token");}catch{}
-}
-lsSetAll(LS.userEmail, now);
-}
-
-function friendlyNetworkError(path, err){
-const msg = String(err?.message || err || "");
-if(msg.includes("Failed to fetch") || msg.includes("NetworkError") || msg.includes("Load failed")){
-return `${path}: Cannot reach the server. Please check your connection, disable VPN/adblock, or try again.`;
-}
-return `${path}: ${msg}`;
-}
-
-async function apiGet(path){
-try{
-const res=await fetch(API_BASE+path,{method:"GET",headers:{Authorization:"Bearer "+session.access_token}});
-const text=await res.text().catch(()=> "");
-let json=null;
-try{json=JSON.parse(text);}catch{json={raw:text};}
-if(!res.ok) throw new Error(path+" failed: "+res.status+" "+(json.error||json.details||text));
-return json;
-}catch(e){
-throw new Error(friendlyNetworkError(path, e));
-}
-}
-
-async function apiPostJson(path,body){
-try{
-const res=await fetch(API_BASE+path,{
-method:"POST",
-headers:{Authorization:"Bearer "+session.access_token,"content-type":"application/json"},
-body:JSON.stringify(body||{})
-});
-const text=await res.text().catch(()=> "");
-let json=null;
-try{json=JSON.parse(text);}catch{json={raw:text};}
-if(!res.ok) throw new Error(path+" failed: "+res.status+" "+(json.error||json.details||text));
-return json;
-}catch(e){
-throw new Error(friendlyNetworkError(path, e));
-}
-}
-
-async function apiPostForm(path,formData){
-try{
-const res=await fetch(API_BASE+path,{
-method:"POST",
-headers:{Authorization:"Bearer "+session.access_token},
-body:formData
-});
-const text=await res.text().catch(()=> "");
-let json=null;
-try{json=JSON.parse(text);}catch{json={raw:text};}
-if(!res.ok) throw new Error(path+" failed: "+res.status+" "+(json.error||json.details||text));
-return json;
-}catch(e){
-throw new Error(friendlyNetworkError(path, e));
-}
-}
-
-async function ensureCustomer(email){
-try{
-const res=await fetch(API_BASE+"/customers/upsert",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({email})});
-const text=await res.text().catch(()=> "");
-if(!res.ok) throw new Error("customers/upsert failed: "+res.status+" "+text);
-const data=JSON.parse(text);
-if(data && data.customer_id) lsSetAll(LS.customerId, data.customer_id);
-return data;
-}catch(e){
-throw new Error(friendlyNetworkError("/customers/upsert", e));
-}
-}
-
-function parseCsv(s,limit){
-return String(s||"").split(",").map(x=>x.trim()).filter(Boolean).slice(0,limit||30);
-}
-
-function isPdfFile(file){
-const name=String(file?.name||"").toLowerCase();
-const type=String(file?.type||"").toLowerCase();
-return name.endsWith(".pdf") || type==="application/pdf";
-}
-
-function setProgress(show, pct, text, hint){
-$("cvProgressWrap").style.display = show ? "block" : "none";
-$("cvProgressFill").style.width = Math.max(0, Math.min(100, Number(pct)||0)) + "%";
-setText("cvProgressText", text || "");
-setText("cvProgressHint", hint || "");
-}
-
-function stopOcrPolling(){
-if(ocrPollTimer){clearInterval(ocrPollTimer);ocrPollTimer=null;}
-}
-
-function markStep1DoneVisual(isDone){
-const card=$("step1Card");
-if(!card) return;
-card.classList.toggle("stepDone", !!isDone);
-}
-
-function lockAi(msg){
+async function refreshCv(){
+const res = await apiGet("/me/cv", session.access_token);
+const cv = res?.cv || null;
+if(!cv || !cv.cv_path){
+setBadge("cvStatusBadge","warn","No CV");
+document.getElementById("cvHint").textContent="No CV uploaded yet.";
+document.getElementById("ocrHint").textContent="";
 setBadge("aiStatusBadge","warn","Locked");
-$("aiGenerateBtn").disabled=true;
-$("aiApplyBtn").disabled=true;
-$("aiRegenerateLink").style.display="none";
-aiResult=null;
-aiSelectedTitles=new Set();
-$("aiTitlesWrap").style.display="none";
-setText("aiHint", msg || "Upload your CV first. When OCR is done, you can generate suggestions.");
-aiGeneratedOnce=false;
-aiAppliedOnce=false;
-}
-
-function unlockAiReady(){
-setBadge("aiStatusBadge","good","Ready");
-$("aiGenerateBtn").disabled=false;
-$("aiApplyBtn").disabled=true;
-$("aiRegenerateLink").style.display="none";
-setText("aiHint","Your CV text is ready. Generate suggestions and add them to your job titles.");
-aiGeneratedOnce=false;
-aiAppliedOnce=false;
-}
-
-function renderChips(containerId, items, selectedSet){
-const wrap=$(containerId);
-wrap.style.display="block";
-wrap.innerHTML="";
-const chips=document.createElement("div");
-chips.className="chips";
-items.forEach((t, idx)=>{
-const chip=document.createElement("div");
-chip.className="chip"+(selectedSet && selectedSet.has(t) ? " selected" : "");
-chip.style.animationDelay = (idx * 45) + "ms";
-chip.textContent=t;
-chip.addEventListener("click",()=>{
-if(!selectedSet) return;
-if(selectedSet.has(t)) selectedSet.delete(t); else selectedSet.add(t);
-renderChips(containerId, items, selectedSet);
-$("aiApplyBtn").disabled = selectedSet.size===0;
-});
-chips.appendChild(chip);
-});
-wrap.appendChild(chips);
-}
-
-function renderAiAppliedChips(titles){
-const wrap=$("aiAppliedWrap");
-const chipsHost=$("aiAppliedChips");
-if(!wrap || !chipsHost) return;
-if(!titles || !titles.length || jobTitlesTouched){
-wrap.style.display="none";
-chipsHost.innerHTML="";
+document.getElementById("aiHint").textContent="Upload a PDF CV and wait for OCR to finish.";
+document.getElementById("aiGenerateBtn").disabled=true;
 return;
 }
-wrap.style.display="block";
-chipsHost.innerHTML="";
-const chips=document.createElement("div");
-chips.className="chips";
-titles.forEach((t, idx)=>{
-const chip=document.createElement("div");
-chip.className="chip aiTag";
-chip.style.animationDelay = (idx * 35) + "ms";
-chip.textContent=t;
-chips.appendChild(chip);
-});
-chipsHost.appendChild(chips);
+document.getElementById("cvHint").textContent="Uploaded: " + (cv.cv_filename || cv.cv_path);
+const st=String(cv.cv_ocr_status||"").toLowerCase();
+if(st==="processing"){
+setBadge("cvStatusBadge","warn","OCR running");
+document.getElementById("ocrHint").textContent="OCR is running…";
+setBadge("aiStatusBadge","warn","Locked");
+document.getElementById("aiHint").textContent="OCR still running. We will unlock when done.";
+document.getElementById("aiGenerateBtn").disabled=true;
+setProgress(true, 65, "OCR in progress…", "Keep this page open.");
+return;
 }
-
-function setOnboardingUI(st){
-const signed=!!(session && session.user && session.user.email);
-setBadge("signedInBadge",signed?"good":"warn",signed?"Signed in":"Not signed in");
-setText("kSigned",signed?"Yes":"No");
-const customerId=st && st.customer_id ? String(st.customer_id) : (lsGetFirst(LS.customerId)||"");
-setText("kCustomerId",customerId||"—");
-const profOk=!!(st && st.profile_complete);
-setText("kProfile",profOk?"Yes":"No");
-$("kProfile").className="kpiVal "+(profOk?"ok":"bad");
-const planOk=!!(st && st.plan_id);
-setText("kPlan",planOk?"Yes":"No");
-$("kPlan").className="kpiVal "+(planOk?"ok":"warn");
-const cvOk=!!(st && st.cv_uploaded);
-setText("kCv",cvOk?"Yes":"No");
-$("kCv").className="kpiVal "+(cvOk?"ok":"warn");
-const ocr=String(st && st.cv_ocr_status ? st.cv_ocr_status : "").toLowerCase();
-if(ocr==="done"){
-setText("kOcr","done");
-$("kOcr").className="kpiVal ok";
-}else if(ocr==="processing"){
-setText("kOcr","processing");
-$("kOcr").className="kpiVal warn";
-}else if(ocr==="failed"){
-setText("kOcr","failed");
-$("kOcr").className="kpiVal bad";
-}else{
-setText("kOcr","idle");
-$("kOcr").className="kpiVal warn";
-}
-setText("continueBtn",planOk ? "Continue to dashboard" : "Continue to plan");
-setText("continueHint",planOk ? "Next step: go to dashboard." : "Next step: pick a plan (1 / 5 / 10 per day).");
-}
-
-async function refreshState(){
-state=await apiGet("/me/state");
-setOnboardingUI(state);
-}
-
-async function loadProfileIntoForm(){
-try{
-const prof=await apiGet("/me/profile");
-const p=prof && prof.profile ? prof.profile : null;
-if(!p) return;
-const desired=Array.isArray(p.desired_titles)?p.desired_titles:[];
-const industries=Array.isArray(p.industries)?p.industries:[];
-const locations=Array.isArray(p.locations)?p.locations:[];
-const countries=Array.isArray(p.countries_allowed)?p.countries_allowed:[];
-const radius=p.radius_km;
-$("jobTitles").value=desired.join(", ");
-$("industries").value=industries.join(", ");
-$("locations").value=locations.join(", ");
-if(countries[0]) $("country").value=String(countries[0]);
-if(radius!==null && radius!==undefined) $("radiusKm").value=String(radius);
-setBadge("saveStatusBadge","good","Loaded");
-}catch{}
-}
-
-function getAiCache(){
-try{
-let raw=localStorage.getItem(AI_CACHE_KEY);
-if(!raw) raw=localStorage.getItem(AI_CACHE_KEY_OLD);
-if(!raw) return null;
-const v=JSON.parse(raw);
-if(!v || typeof v !== "object") return null;
-return v;
-}catch{
-return null;
-}
-}
-
-function setAiCache(payload){
-try{
-localStorage.setItem(AI_CACHE_KEY, JSON.stringify(payload));
-localStorage.setItem(AI_CACHE_KEY_OLD, JSON.stringify(payload));
-}catch{}
-}
-
-function clearAiCache(){
-try{localStorage.removeItem(AI_CACHE_KEY);}catch{}
-try{localStorage.removeItem(AI_CACHE_KEY_OLD);}catch{}
-}
-
-function cvMetaFromCv(cv){
-return {
-cv_path: String(cv?.cv_path || ""),
-cv_filename: String(cv?.cv_filename || ""),
-cv_uploaded_at: String(cv?.cv_uploaded_at || ""),
-cv_ocr_status: String(cv?.cv_ocr_status || ""),
-cv_ocr_updated_at: String(cv?.cv_ocr_updated_at || ""),
-cv_text_status: String(cv?.cv_text_status || "")
-};
-}
-
-function cvMetaKey(meta){
-return [
-meta.cv_path,
-meta.cv_filename,
-meta.cv_uploaded_at,
-meta.cv_ocr_status,
-meta.cv_ocr_updated_at,
-meta.cv_text_status
-].join("|");
-}
-
-function applyAiUiFromTitles(titles){
-const clean=Array.isArray(titles) ? titles.map(x=>String(x).trim()).filter(Boolean).slice(0,30) : [];
-if(!clean.length) return false;
-
-aiResult={ titles: clean };
-aiSelectedTitles=new Set(clean);
-aiGeneratedOnce=true;
-
-setBadge("aiStatusBadge","good","Suggestions ready");
-setText("aiHint","Suggestions are ready (cached). Select titles and apply them.");
-setHtml("aiTitlesWrap","<div class='small'><strong>Suggested titles</strong> (click to select/deselect)</div>");
-renderChips("aiTitlesWrap", clean, aiSelectedTitles);
-
-$("aiApplyBtn").disabled = aiSelectedTitles.size===0;
-$("aiGenerateBtn").disabled=true;
-$("aiRegenerateLink").style.display="inline";
-
-return true;
-}
-
-function tryLoadCachedAiSuggestions(){
-const cache=getAiCache();
-if(!cache || !lastCvMeta) return false;
-const currentKey=cvMetaKey(lastCvMeta);
-if(cache.cvMetaKey !== currentKey) return false;
-if(!Array.isArray(cache.titles) || !cache.titles.length) return false;
-return applyAiUiFromTitles(cache.titles);
-}
-
-function showStableFileLabel(prefix, name){
-const safe = String(name || "").trim();
-if(!safe) return;
-setText("cvHint", `${prefix}: ${safe}`);
-}
-
-async function loadCvStatusAndUpdateUx(){
-try{
-const res=await apiGet("/me/cv");
-const cv=res && res.cv ? res.cv : null;
-
-if(cv && cv.cv_path){
-lastCvMeta=cvMetaFromCv(cv);
-
+if(st==="done"){
 setBadge("cvStatusBadge","good","CV ready");
-setText("cvHint","Uploaded: "+(cv.cv_filename || cv.cv_path));
-const s=String(cv.cv_ocr_status||"").toLowerCase();
-
-if(s==="processing"){
-setText("ocrHint","OCR is running…");
-setProgress(true, 65, "Extracting text from your CV…", "This can take a moment. Keep this page open.");
-lockAi("OCR is still running. We will unlock suggestions automatically when it is done.");
-markStep1DoneVisual(false);
-}else if(s==="done"){
-setText("ocrHint","OCR done. You can generate AI suggestions now.");
-setProgress(false, 100, "", "");
-unlockAiReady();
-tryLoadCachedAiSuggestions();
-}else if(s==="failed"){
-setText("ocrHint","OCR failed: "+(cv.cv_ocr_error||""));
-setProgress(false, 0, "", "");
-lockAi("OCR failed. You can still try with a different PDF.");
-markStep1DoneVisual(false);
-}else{
-setText("ocrHint","OCR status: idle");
-setProgress(false, 0, "", "");
-lockAi("Upload a PDF to enable OCR and AI suggestions.");
-markStep1DoneVisual(false);
+document.getElementById("ocrHint").textContent="OCR done.";
+setBadge("aiStatusBadge","good","Ready");
+document.getElementById("aiHint").textContent="Generate suggestions now.";
+document.getElementById("aiGenerateBtn").disabled=false;
+setProgress(false,100,"","");
+return;
 }
-}else{
-lastCvMeta=null;
-setBadge("cvStatusBadge","warn","No CV");
-setText("cvHint","No CV uploaded yet.");
-setText("ocrHint","");
-setProgress(false, 0, "", "");
-lockAi("Upload your CV first. Then you can generate suggestions.");
-markStep1DoneVisual(false);
+if(st==="failed"){
+setBadge("cvStatusBadge","bad","OCR failed");
+document.getElementById("ocrHint").textContent="OCR failed: " + (cv.cv_ocr_error||"");
+setBadge("aiStatusBadge","warn","Locked");
+document.getElementById("aiHint").textContent="OCR failed. Upload a different PDF.";
+document.getElementById("aiGenerateBtn").disabled=true;
+setProgress(false,0,"","");
+return;
 }
-}catch{
-lastCvMeta=null;
-setBadge("cvStatusBadge","warn","Unknown");
-setText("cvHint","Could not load CV status.");
-setText("ocrHint","");
-setProgress(false, 0, "", "");
-lockAi("Upload your CV first. Then you can generate suggestions.");
-markStep1DoneVisual(false);
-}
+setBadge("cvStatusBadge","warn","OCR idle");
+document.getElementById("ocrHint").textContent="OCR status: idle";
+document.getElementById("aiGenerateBtn").disabled=true;
 }
 
-async function uploadCvThenAutoOcr(file){
-stopOcrPolling();
-clearTopError();
-lockAi("Working on your CV…");
-clearAiCache();
-
-lastSelectedFileName = String(file?.name || "").trim();
-showStableFileLabel("Selected", lastSelectedFileName);
-
+async function uploadCv(file){
+stopPoll();
+show("errorTop","");
+show("noticeTop","");
+document.getElementById("cvHint").textContent="Selected: " + file.name;
 setBadge("cvStatusBadge","warn","Uploading…");
-setProgress(true, 18, "Uploading your CV…", "Do not close this tab.");
+setProgress(true, 20, "Uploading…", "Do not close this tab.");
 
 const fd=new FormData();
-fd.append("cv",file);
-await apiPostForm("/me/cv",fd);
+fd.append("cv", file);
+await apiPostForm("/me/cv", session.access_token, fd);
 
-setBadge("cvStatusBadge","warn","Upload complete");
-showStableFileLabel("Uploaded", lastSelectedFileName);
+document.getElementById("cvHint").textContent="Uploaded: " + file.name;
 
-await refreshState();
-await loadCvStatusAndUpdateUx();
-
-if(!isPdfFile(file)){
-setProgress(false, 0, "", "");
-setText("ocrHint","For OCR and AI suggestions, please upload a PDF version.");
-lockAi("Upload a PDF to enable OCR and AI suggestions.");
+if(!isPdf(file)){
+setBadge("cvStatusBadge","warn","Uploaded");
+setProgress(false,0,"","");
+document.getElementById("ocrHint").textContent="For OCR and AI suggestions, please upload a PDF.";
 return;
 }
 
 setBadge("cvStatusBadge","warn","Starting OCR…");
-setProgress(true, 40, "Starting OCR…", "We are extracting text from your PDF.");
-await apiPostJson("/me/cv/ocr",{});
+setProgress(true, 45, "Starting OCR…", "Extracting text from PDF.");
+await apiPostJson("/me/cv/ocr", session.access_token, {});
+document.getElementById("ocrHint").textContent="OCR is running…";
 
-setProgress(true, 55, "OCR in progress…", "We will update automatically.");
-setText("ocrHint","OCR is running…");
-
-const start = Date.now();
-const maxMs = 3 * 60 * 1000;
-
-ocrPollTimer=setInterval(async ()=>{
+poll=setInterval(async ()=>{
 try{
-await apiGet("/me/cv/ocr/status");
-await refreshState();
-const res=await apiGet("/me/cv");
-const cv=res && res.cv ? res.cv : null;
-const s=String(cv?.cv_ocr_status||"").toLowerCase();
-
-if(s==="done"){
-stopOcrPolling();
-setProgress(false, 100, "", "");
-setBadge("cvStatusBadge","good","CV ready");
-setText("ocrHint","OCR done. You can generate AI suggestions now.");
-lastCvMeta=cvMetaFromCv(cv);
-unlockAiReady();
-tryLoadCachedAiSuggestions();
-return;
-}
-if(s==="failed"){
-stopOcrPolling();
-setProgress(false, 0, "", "");
-setBadge("cvStatusBadge","bad","OCR failed");
-setText("ocrHint","OCR failed: "+(cv?.cv_ocr_error||""));
-lockAi("OCR failed. Try a different PDF.");
-return;
-}
-
-const elapsed = Date.now() - start;
-const pct = Math.min(90, 55 + Math.floor(elapsed / maxMs * 35));
-setProgress(true, pct, "OCR in progress…", "We will update automatically.");
-
-if(elapsed > maxMs){
-stopOcrPolling();
-setProgress(false, 0, "", "");
-setBadge("cvStatusBadge","warn","OCR timeout");
-setText("ocrHint","OCR is taking longer than expected. You can refresh the page later.");
-lockAi("OCR still processing. Please check again in a bit.");
-}
+await apiGet("/me/cv/ocr/status", session.access_token);
+await refreshCv();
+const cv2=(await apiGet("/me/cv", session.access_token))?.cv;
+const s=String(cv2?.cv_ocr_status||"").toLowerCase();
+if(s==="done" || s==="failed") stopPoll();
 }catch(e){
-stopOcrPolling();
-setProgress(false, 0, "", "");
-setBadge("cvStatusBadge","bad","OCR error");
-showTopError(e.message||String(e));
-lockAi("OCR error. Try again later.");
+stopPoll();
+show("errorTop", e.message||String(e));
 }
 }, 3500);
 }
 
-async function handleCvFileSelected(){
-try{
-const input=$("cvFile");
-const file=input && input.files && input.files[0] ? input.files[0] : null;
-if(!file) return;
-
-lastSelectedFileName = String(file.name || "").trim();
-showStableFileLabel("Selected", lastSelectedFileName);
-
-jobTitlesTouched=false;
-aiAppliedTitles=[];
-renderAiAppliedChips(aiAppliedTitles);
-
-await uploadCvThenAutoOcr(file);
-}catch(e){
-setBadge("cvStatusBadge","bad","Upload failed");
-setProgress(false, 0, "", "");
-showTopError(e.message||String(e));
-}
-}
-
-async function handleAiGenerate({ force=false } = {}){
-clearTopError();
-
-if(!force && aiGeneratedOnce) return;
-if(!force && tryLoadCachedAiSuggestions()) return;
-
-$("aiGenerateBtn").disabled=true;
-$("aiApplyBtn").disabled=true;
-$("aiRegenerateLink").style.display="none";
-aiSelectedTitles=new Set();
-aiResult=null;
-$("aiTitlesWrap").style.display="none";
-$("aiAltWrap").style.display="none";
-$("aiAltChips").innerHTML="";
-$("aiSkillsWrap").style.display="none";
-$("aiSkillsChips").innerHTML="";
-
+async function generateAi(){
+show("errorTop","");
 setBadge("aiStatusBadge","warn","Generating…");
-setText("aiHint","Reading your CV and generating job title suggestions…");
-
+document.getElementById("aiGenerateBtn").disabled=true;
 try{
-const res=await apiPostJson("/me/ai/profile-from-cv",{});
-const r=res && res.result ? res.result : null;
-if(!r) throw new Error("AI returned no result");
-const titles=Array.isArray(r.job_titles) ? r.job_titles.map(x=>String(x).trim()).filter(Boolean) : [];
-if(!titles.length){
-setBadge("aiStatusBadge","warn","No titles");
-setText("aiHint","No title suggestions returned. Try a PDF CV and OCR first.");
-$("aiGenerateBtn").disabled=false;
-return;
-}
-const coreSkills = (r.skills && Array.isArray(r.skills.core)) ? r.skills.core.map(x=>String(x).trim()).filter(Boolean) : [];
-const toolSkills = (r.skills && Array.isArray(r.skills.tools)) ? r.skills.tools.map(x=>String(x).trim()).filter(Boolean) : [];
-const supportingSkills = (r.skills && Array.isArray(r.skills.supporting)) ? r.skills.supporting.map(x=>String(x).trim()).filter(Boolean) : [];
-const primaryTitles = Array.isArray(r.primary_job_titles) ? r.primary_job_titles : [];
-const summaryText = String(r.summary||"").trim();
-const seniority = String(r.seniority||"unknown").trim();
+const res=await apiPostJson("/me/ai/profile-from-cv", session.access_token, {});
+const r=res?.result || null;
+const titles=(r?.job_titles||[]).map(x=>String(x).trim()).filter(Boolean).slice(0,20);
+if(!titles.length) throw new Error("No suggestions returned.");
+document.getElementById("aiTitlesWrap").style.display="block";
+document.getElementById("aiTitlesWrap").innerHTML =
+"<div class='small' style='font-weight:850'>Suggested titles (click to select)</div>" +
+"<div style='margin-top:10px;display:flex;flex-wrap:wrap;gap:8px' id='chips'></div>";
 
-applyAiUiFromTitles(titles);
+const chips=document.getElementById("chips");
+const selected=new Set(titles);
 
-try{
-localStorage.setItem("jm_ai_profile", JSON.stringify({
-created_at: new Date().toISOString(),
-job_titles: titles.slice(0,15),
-primary_job_titles: primaryTitles.slice(0,7),
-summary: summaryText,
-seniority: seniority,
-skills: {
-core: coreSkills.slice(0,12),
-supporting: supportingSkills.slice(0,10),
-tools: toolSkills.slice(0,10)
-}
-}));
-localStorage.setItem("ja_ai_profile", localStorage.getItem("jm_ai_profile"));
-}catch{}
-
-{
-const chips=[];
-for(const s of coreSkills.slice(0,10)) chips.push(s);
-for(const s of toolSkills.slice(0,8)) chips.push(s);
-const uniq=[];
-const seen=new Set();
-for(const s of chips){
-const k=String(s).toLowerCase();
-if(!k || seen.has(k)) continue;
-seen.add(k);
-uniq.push(s);
-}
-if(uniq.length){
-$("aiSkillsWrap").style.display="block";
-$("aiSkillsChips").innerHTML = uniq.map(s=>'<span class="pill mini">'+escapeHtml(s)+'</span>').join("");
-}
+for(const t of titles){
+const b=document.createElement("button");
+b.type="button";
+b.className="pill";
+b.textContent=t;
+b.onclick=()=>{
+if(selected.has(t)) { selected.delete(t); b.classList.remove("active"); }
+else { selected.add(t); b.classList.add("active"); }
+document.getElementById("aiApplyBtn").disabled = selected.size===0;
+};
+b.classList.add("active");
+chips.appendChild(b);
 }
 
-try{
-const cs=await apiPostJson("/me/ai/cluster-suggestion",{});
-const cm=cs && cs.cluster_match ? cs.cluster_match : null;
-const altRaw = cm && Array.isArray(cm.alternative_titles)
-? cm.alternative_titles.map(x=>String(x.title||"").trim()).filter(Boolean)
-: [];
-const titleSet = new Set(titles.map(t=>t.toLowerCase()));
-const altUniq=[];
-const seenAlt=new Set();
-for(const t of altRaw){
-const k=t.toLowerCase();
-if(!k || seenAlt.has(k)) continue;
-if(titleSet.has(k)) continue;
-seenAlt.add(k);
-altUniq.push(t);
-}
-if(altUniq.length){
-$("aiAltWrap").style.display="block";
-$("aiAltChips").innerHTML = altUniq.slice(0,6).map(t=>'<span class="pill mini">'+escapeHtml(t)+'</span>').join("");
-}
-try{
-localStorage.setItem("jm_ai_clusters", JSON.stringify({
-created_at: new Date().toISOString(),
-clusters: (cm && Array.isArray(cm.clusters)) ? cm.clusters.slice(0,3) : [],
-alternative_titles: altUniq.slice(0,10)
-}));
-localStorage.setItem("ja_ai_clusters", localStorage.getItem("jm_ai_clusters"));
-}catch{}
-}catch{}
-
-if(lastCvMeta){
-setAiCache({ cvMetaKey: cvMetaKey(lastCvMeta), titles: titles.slice(0,30), created_at: new Date().toISOString() });
-}
-
+document.getElementById("aiApplyBtn").disabled=false;
+document.getElementById("aiApplyBtn").onclick=()=>{
+const existing=String(document.getElementById("jobTitles").value||"").split(",").map(s=>s.trim()).filter(Boolean);
+const merged=[...new Set([...selected, ...existing])].slice(0,30);
+document.getElementById("jobTitles").value=merged.join(", ");
+setBadge("aiStatusBadge","good","Applied");
+};
+setBadge("aiStatusBadge","good","Ready");
 }catch(e){
 setBadge("aiStatusBadge","bad","Failed");
-setText("aiHint","AI generation failed. You can still fill preferences manually.");
-showTopError(e.message||String(e));
-$("aiGenerateBtn").disabled=false;
+show("errorTop", e.message||String(e));
+document.getElementById("aiGenerateBtn").disabled=false;
 }
 }
 
-function handleAiRegenerate(){
-aiGeneratedOnce=false;
-handleAiGenerate({ force:true });
-}
-
-function handleAiApplyTitles(){
-clearTopError();
-if(!aiSelectedTitles || aiSelectedTitles.size===0){
-showTopError("No titles selected.");
-return;
-}
-const picked=[...aiSelectedTitles].slice(0,30);
-
-const current=parseCsv($("jobTitles").value,30);
-const remaining=current.filter(t => !picked.includes(t));
-const merged=[...new Set([...picked, ...remaining])].slice(0,30);
-
-$("jobTitles").value=merged.join(", ");
-
-aiAppliedOnce=true;
-aiAppliedTitles=picked.slice(0,12);
-renderAiAppliedChips(aiAppliedTitles);
-
-setBadge("saveStatusBadge","warn","Not saved");
-setBadge("aiStatusBadge","good","Applied");
-setText("aiHint","Titles added. Now confirm your preferences below and save.");
-
-markStep1DoneVisual(true);
-
-const prefs=$("prefsCard");
-if(prefs){
-prefs.scrollIntoView({ behavior:"smooth", block:"start" });
-}
-}
-
-async function handleSaveProfile(){
-clearTopError();
-$("saveProfileBtn").disabled=true;
+async function savePrefs(){
+show("errorTop","");
 setBadge("saveStatusBadge","warn","Saving…");
+const titles=String(document.getElementById("jobTitles").value||"").split(",").map(s=>s.trim()).filter(Boolean);
+const locs=String(document.getElementById("locations").value||"").split(",").map(s=>s.trim()).filter(Boolean);
+let radius=null;
+if(document.getElementById("radiusKm").value.trim()){
+const n=Number(document.getElementById("radiusKm").value);
+radius = Number.isFinite(n) ? n : null;
+}
+if(!titles.length) { show("errorTop","Please enter at least 1 job title."); setBadge("saveStatusBadge","bad","Save failed"); return; }
+if(!locs.length) { show("errorTop","Please enter at least 1 location."); setBadge("saveStatusBadge","bad","Save failed"); return; }
+
 try{
-const userTitles=parseCsv($("jobTitles").value,30);
-const aiTop=(aiAppliedTitles || []).map(x=>String(x||"").trim()).filter(Boolean);
-const desired_titles=[...new Set([...aiTop, ...userTitles])].slice(0,30);
-const industries=parseCsv($("industries").value,30);
-const locations=parseCsv($("locations").value,20);
-const countries_allowed=[String($("country").value||"DE").trim()].filter(Boolean);
-let radius_km=$("radiusKm").value ? Number($("radiusKm").value) : null;
-if(!Number.isFinite(radius_km)) radius_km=null;
-if(!desired_titles.length) throw new Error("Please enter at least 1 desired job title.");
-if(!locations.length) throw new Error("Please enter at least 1 location.");
-await apiPostJson("/me/profile",{desired_titles,industries,locations,countries_allowed,radius_km});
-await refreshState();
+await apiPostJson("/me/profile", session.access_token, {
+desired_titles: titles.slice(0,30),
+industries: [],
+locations: locs.slice(0,20),
+countries_allowed: ["DE"],
+radius_km: radius
+});
 setBadge("saveStatusBadge","good","Saved");
-lsSetAll(LS.profileDone, "true");
 }catch(e){
-showTopError(e.message||String(e));
 setBadge("saveStatusBadge","bad","Save failed");
-}finally{
-$("saveProfileBtn").disabled=false;
+show("errorTop", e.message||String(e));
 }
 }
 
 async function boot(){
 try{
-clearTopError();
-
-document.addEventListener("click",(e)=>{
-const a=e.target.closest("a[data-nav='1']");
-if(!a) return;
-const url=a.getAttribute("href");
-if(!url || url.startsWith("#")) return;
-e.preventDefault();
-go(url);
-});
-
-/* Attach listeners immediately (before async work) */
-const cvInput = $("cvFile");
-if(cvInput){
-cvInput.addEventListener("change", handleCvFileSelected);
-}
-
-$("aiGenerateBtn").addEventListener("click",()=>handleAiGenerate({ force:false }));
-$("aiRegenerateLink").addEventListener("click",handleAiRegenerate);
-$("aiApplyBtn").addEventListener("click",handleAiApplyTitles);
-
-$("jobTitles").addEventListener("input",()=>{
-jobTitlesTouched=true;
-renderAiAppliedChips(aiAppliedTitles);
-});
-
-$("saveProfileBtn").addEventListener("click",handleSaveProfile);
-$("continueBtn").addEventListener("click",()=>{
-const planOk=!!(state && state.plan_id);
-go(planOk ? "./dashboard.html" : "./plan.html");
-});
-
-setText("subLine","Checking session…");
-supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-
-const s=await supabaseClient.auth.getSession();
-session=s && s.data ? s.data.session : null;
-if(!session || !session.user || !session.user.email){
-window.location.replace("./signup.html");
-return;
-}
-
+session = await requireSession("./signup.html");
+if(!session) return;
 const email=String(session.user.email||"").trim().toLowerCase();
-if(!isEmail(email)){
-showTopError("Signed in, but email is missing/invalid.");
-return;
-}
-
-resetLocalStateForNewUser(email);
-try{sessionStorage.setItem("sb_access_token",session.access_token);}catch{}
-setText("subLine","Signed in as "+email);
+document.getElementById("subLine").textContent="Signed in as "+email;
 
 await ensureCustomer(email);
-await refreshState();
-await loadCvStatusAndUpdateUx();
-await loadProfileIntoForm();
+await getState(session.access_token);
+await refreshCv();
 
-/* Catch-up: if a file is already selected (mobile/slow boot), start upload */
-try{
-const already = cvInput && cvInput.files && cvInput.files[0] ? cvInput.files[0] : null;
-if(already){
-lastSelectedFileName = String(already.name || "").trim();
-showStableFileLabel("Selected", lastSelectedFileName);
-handleCvFileSelected();
-}
-}catch{}
-
-/* Logout */
-$("btnLogout").addEventListener("click",async ()=>{
-try{
-await supabaseClient.auth.signOut();
-Object.keys(localStorage).forEach(k=>{
-if(k.startsWith("ja_") || k.startsWith("jobapplyai_") || k.startsWith("jm_") || k.startsWith("jobmejob_") || k.startsWith("sb-")){
-localStorage.removeItem(k);
-}
-});
-try{sessionStorage.removeItem("sb_access_token");}catch{}
-window.location.replace("./index.html");
-}catch(e){
-showTopError(e.message||String(e));
-}
+document.getElementById("cvFile").addEventListener("change", async ()=>{
+const f=document.getElementById("cvFile").files?.[0];
+if(f) await uploadCv(f);
 });
 
-}catch(e){
-showTopError(e.message||String(e));
-}
-}
+document.getElementById("aiGenerateBtn").addEventListener("click", generateAi);
+document.getElementById("saveProfileBtn").addEventListener("click", savePrefs);
+document.getElementById("continueBtn").addEventListener("click", async ()=>{
+const st=await getState(session.access_token);
+window.location.href = (st?.plan_id ? "./dashboard.html" : "./plan.html");
+});
+document.getElementById("btnLogout").addEventListener("click", ()=>logout("./index.html"));
 
-window.addEventListener("load",boot);
+}catch(e){
+show("errorTop", e.message||String(e));
+}
+}
+window.addEventListener("load", boot);
 </script>
 </body>
 </html>
