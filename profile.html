@@ -356,8 +356,6 @@ box-shadow:0 18px 52px rgba(34,197,94,.12);
 .pill.mini{padding:7px 10px;font-size:12px;font-weight:850}
 </style>
 </head>
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script src="./auth.js"></script>
 
 <body>
 <header class="topbar">
@@ -548,7 +546,12 @@ box-shadow:0 18px 52px rgba(34,197,94,.12);
 <script>
 "use strict";
 
-const API_BASE = (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE) || "https://jobmejob.schoene-viktor.workers.dev";
+/* IMPORTANT:
+This page no longer depends on auth.js. It uses a stable API_BASE constant below.
+When we refactor the whole project, we'll move this into config.js/app.js.
+*/
+
+const API_BASE = "https://jobmejob.schoene-viktor.workers.dev";
 const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
 
@@ -569,6 +572,7 @@ let aiAppliedTitles=[];
 let jobTitlesTouched=false;
 
 let lastCvMeta=null;
+let lastSelectedFileName="";
 
 function $(id){return document.getElementById(id);}
 function setText(id,t){const el=$(id);if(el) el.textContent=t;}
@@ -617,11 +621,6 @@ for(const k of keys){
 try{ localStorage.setItem(k, value); }catch(_){}
 }
 }
-function lsRemoveAll(keys){
-for(const k of keys){
-try{ localStorage.removeItem(k); }catch(_){}
-}
-}
 
 function resetLocalStateForNewUser(currentEmail){
 const last=(lsGetFirst(LS.userEmail)||"").trim().toLowerCase();
@@ -638,16 +637,29 @@ try{sessionStorage.removeItem("sb_access_token");}catch{}
 lsSetAll(LS.userEmail, now);
 }
 
+function friendlyNetworkError(path, err){
+const msg = String(err?.message || err || "");
+if(msg.includes("Failed to fetch") || msg.includes("NetworkError") || msg.includes("Load failed")){
+return `${path}: Cannot reach the server. Please check your connection, disable VPN/adblock, or try again.`;
+}
+return `${path}: ${msg}`;
+}
+
 async function apiGet(path){
+try{
 const res=await fetch(API_BASE+path,{method:"GET",headers:{Authorization:"Bearer "+session.access_token}});
 const text=await res.text().catch(()=> "");
 let json=null;
 try{json=JSON.parse(text);}catch{json={raw:text};}
 if(!res.ok) throw new Error(path+" failed: "+res.status+" "+(json.error||json.details||text));
 return json;
+}catch(e){
+throw new Error(friendlyNetworkError(path, e));
+}
 }
 
 async function apiPostJson(path,body){
+try{
 const res=await fetch(API_BASE+path,{
 method:"POST",
 headers:{Authorization:"Bearer "+session.access_token,"content-type":"application/json"},
@@ -658,9 +670,13 @@ let json=null;
 try{json=JSON.parse(text);}catch{json={raw:text};}
 if(!res.ok) throw new Error(path+" failed: "+res.status+" "+(json.error||json.details||text));
 return json;
+}catch(e){
+throw new Error(friendlyNetworkError(path, e));
+}
 }
 
 async function apiPostForm(path,formData){
+try{
 const res=await fetch(API_BASE+path,{
 method:"POST",
 headers:{Authorization:"Bearer "+session.access_token},
@@ -671,15 +687,22 @@ let json=null;
 try{json=JSON.parse(text);}catch{json={raw:text};}
 if(!res.ok) throw new Error(path+" failed: "+res.status+" "+(json.error||json.details||text));
 return json;
+}catch(e){
+throw new Error(friendlyNetworkError(path, e));
+}
 }
 
 async function ensureCustomer(email){
+try{
 const res=await fetch(API_BASE+"/customers/upsert",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({email})});
 const text=await res.text().catch(()=> "");
 if(!res.ok) throw new Error("customers/upsert failed: "+res.status+" "+text);
 const data=JSON.parse(text);
 if(data && data.customer_id) lsSetAll(LS.customerId, data.customer_id);
 return data;
+}catch(e){
+throw new Error(friendlyNetworkError("/customers/upsert", e));
+}
 }
 
 function parseCsv(s,limit){
@@ -910,6 +933,12 @@ if(!Array.isArray(cache.titles) || !cache.titles.length) return false;
 return applyAiUiFromTitles(cache.titles);
 }
 
+function showStableFileLabel(prefix, name){
+const safe = String(name || "").trim();
+if(!safe) return;
+setText("cvHint", `${prefix}: ${safe}`);
+}
+
 async function loadCvStatusAndUpdateUx(){
 try{
 const res=await apiGet("/me/cv");
@@ -969,12 +998,18 @@ clearTopError();
 lockAi("Working on your CV…");
 clearAiCache();
 
+lastSelectedFileName = String(file?.name || "").trim();
+showStableFileLabel("Selected", lastSelectedFileName);
+
 setBadge("cvStatusBadge","warn","Uploading…");
 setProgress(true, 18, "Uploading your CV…", "Do not close this tab.");
 
 const fd=new FormData();
 fd.append("cv",file);
 await apiPostForm("/me/cv",fd);
+
+setBadge("cvStatusBadge","warn","Upload complete");
+showStableFileLabel("Uploaded", lastSelectedFileName);
 
 await refreshState();
 await loadCvStatusAndUpdateUx();
@@ -1046,11 +1081,17 @@ lockAi("OCR error. Try again later.");
 
 async function handleCvFileSelected(){
 try{
-const file=$("cvFile").files && $("cvFile").files[0] ? $("cvFile").files[0] : null;
+const input=$("cvFile");
+const file=input && input.files && input.files[0] ? input.files[0] : null;
 if(!file) return;
+
+lastSelectedFileName = String(file.name || "").trim();
+showStableFileLabel("Selected", lastSelectedFileName);
+
 jobTitlesTouched=false;
 aiAppliedTitles=[];
 renderAiAppliedChips(aiAppliedTitles);
+
 await uploadCvThenAutoOcr(file);
 }catch(e){
 setBadge("cvStatusBadge","bad","Upload failed");
@@ -1240,8 +1281,6 @@ $("saveProfileBtn").disabled=false;
 async function boot(){
 try{
 clearTopError();
-setText("subLine","Checking session…");
-supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
 document.addEventListener("click",(e)=>{
 const a=e.target.closest("a[data-nav='1']");
@@ -1251,6 +1290,30 @@ if(!url || url.startsWith("#")) return;
 e.preventDefault();
 go(url);
 });
+
+/* Attach listeners immediately (before async work) */
+const cvInput = $("cvFile");
+if(cvInput){
+cvInput.addEventListener("change", handleCvFileSelected);
+}
+
+$("aiGenerateBtn").addEventListener("click",()=>handleAiGenerate({ force:false }));
+$("aiRegenerateLink").addEventListener("click",handleAiRegenerate);
+$("aiApplyBtn").addEventListener("click",handleAiApplyTitles);
+
+$("jobTitles").addEventListener("input",()=>{
+jobTitlesTouched=true;
+renderAiAppliedChips(aiAppliedTitles);
+});
+
+$("saveProfileBtn").addEventListener("click",handleSaveProfile);
+$("continueBtn").addEventListener("click",()=>{
+const planOk=!!(state && state.plan_id);
+go(planOk ? "./dashboard.html" : "./plan.html");
+});
+
+setText("subLine","Checking session…");
+supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
 const s=await supabaseClient.auth.getSession();
 session=s && s.data ? s.data.session : null;
@@ -1274,22 +1337,17 @@ await refreshState();
 await loadCvStatusAndUpdateUx();
 await loadProfileIntoForm();
 
-$("cvFile").addEventListener("change",handleCvFileSelected);
-$("aiGenerateBtn").addEventListener("click",()=>handleAiGenerate({ force:false }));
-$("aiRegenerateLink").addEventListener("click",handleAiRegenerate);
-$("aiApplyBtn").addEventListener("click",handleAiApplyTitles);
+/* Catch-up: if a file is already selected (mobile/slow boot), start upload */
+try{
+const already = cvInput && cvInput.files && cvInput.files[0] ? cvInput.files[0] : null;
+if(already){
+lastSelectedFileName = String(already.name || "").trim();
+showStableFileLabel("Selected", lastSelectedFileName);
+handleCvFileSelected();
+}
+}catch{}
 
-$("jobTitles").addEventListener("input",()=>{
-jobTitlesTouched=true;
-renderAiAppliedChips(aiAppliedTitles);
-});
-
-$("saveProfileBtn").addEventListener("click",handleSaveProfile);
-$("continueBtn").addEventListener("click",()=>{
-const planOk=!!(state && state.plan_id);
-go(planOk ? "./dashboard.html" : "./plan.html");
-});
-
+/* Logout */
 $("btnLogout").addEventListener("click",async ()=>{
 try{
 await supabaseClient.auth.signOut();
@@ -1304,6 +1362,7 @@ window.location.replace("./index.html");
 showTopError(e.message||String(e));
 }
 });
+
 }catch(e){
 showTopError(e.message||String(e));
 }
