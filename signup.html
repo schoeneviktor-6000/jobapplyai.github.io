@@ -16,7 +16,6 @@
   --muted2:#64748b;
   --shadow:0 18px 40px rgba(15,23,42,.08);
 
-  /* Green-only theme (no blue) */
   --g1:#22c55e;
   --g2:#16a34a;
 
@@ -168,6 +167,7 @@ h1{margin:0 0 8px;font-size:30px;letter-spacing:-.4px;line-height:1.15}
 }
 
 .small{margin:0;color:var(--muted2);font-size:12px;line-height:1.55}
+.smallStrong{font-weight:900;color:var(--muted);font-size:12px;line-height:1.55}
 
 .steps{display:flex;flex-direction:column;gap:10px;margin-top:6px}
 .step{
@@ -265,6 +265,7 @@ details summary{cursor:pointer;font-weight:950;color:var(--muted)}
           </div>
 
           <p class="small" id="hint">You stay in control. Nothing is sent without your confirmation.</p>
+          <p class="smallStrong" id="hint2" style="display:none"></p>
 
           <details id="advanced" style="display:none">
             <summary>Advanced</summary>
@@ -311,7 +312,10 @@ details summary{cursor:pointer;font-weight:950;color:var(--muted)}
 
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
-const API_BASE = (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE) || "https://jobmejob.schoene-viktor.workers.dev";
+"use strict";
+
+/* Config (will move to config.js later) */
+const API_BASE = "https://jobmejob.schoene-viktor.workers.dev";
 const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
 const supabaseClient=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -336,11 +340,6 @@ function lsSetAll(keys, value){
     try{ localStorage.setItem(k, value); }catch(_){}
   }
 }
-function lsRemoveAll(keys){
-  for(const k of keys){
-    try{ localStorage.removeItem(k); }catch(_){}
-  }
-}
 
 function go(url){
   document.body.classList.add("leaving");
@@ -362,20 +361,13 @@ function resetLocalStateForNewUser(currentEmail){
 
   if(last && last!==now){
     Object.keys(localStorage).forEach(k=>{
-      if(k.startsWith("ja_") || k.startsWith("jobapplyai_") || k.startsWith("jm_") || k.startsWith("jobmejob_")){
+      if(k.startsWith("ja_") || k.startsWith("jobapplyai_") || k.startsWith("jm_") || k.startsWith("jobmejob_") || k.startsWith("sb-")){
         localStorage.removeItem(k);
       }
     });
-    sessionStorage.removeItem("sb_access_token");
+    try{sessionStorage.removeItem("sb_access_token");}catch{}
   }
   lsSetAll(LS.userEmail, now);
-}
-function hasProfile(){ return (lsGetFirst(LS.profileDone) === "true"); }
-function hasPlan(){ return !!lsGetFirst(LS.plan); }
-function nextStepUrl(){
-  if(!hasProfile()) return "./profile.html";
-  if(!hasPlan()) return "./plan.html";
-  return "./dashboard.html";
 }
 
 function readWorkplace(){
@@ -386,7 +378,6 @@ function writeWorkplace(patch){
   const obj=readWorkplace();
   const next={...obj,...patch};
   const payload = JSON.stringify(next);
-  // write to new + old key temporarily to avoid breaking other pages until we update them
   lsSetAll(LS.workplace, payload);
 }
 function syncIdentity({customerId,email}){
@@ -401,44 +392,21 @@ function syncIdentity({customerId,email}){
   });
 }
 
-async function upsertCustomerByEmail(email){
-  const res=await fetch(`${API_BASE}/customers/upsert`,{
-    method:"POST",
-    headers:{ "content-type":"application/json" },
-    body:JSON.stringify({ email })
-  });
-  if(!res.ok){
-    const text=await res.text().catch(()=> "");
-    throw new Error(`Customer upsert failed: ${res.status} ${text}`);
-  }
-  return await res.json();
-}
-
 function setTopState(text){ const el=document.getElementById("topState"); if(el) el.textContent=text; }
 function setHint(text){ const el=document.getElementById("hint"); if(el) el.textContent=text; }
+function setHint2(text){
+  const el=document.getElementById("hint2");
+  if(!el) return;
+  if(!text){ el.style.display="none"; el.textContent=""; return; }
+  el.style.display="block";
+  el.textContent=text;
+}
 function setGoogleButton(disabled,text){
   const btn=document.getElementById("btnGoogle");
   const t=document.getElementById("btnGoogleText");
   if(btn) btn.disabled=!!disabled;
   if(t && text) t.textContent=text;
 }
-
-async function getSession(){
-  const { data, error } = await supabaseClient.auth.getSession();
-  if(error) return null;
-  return data?.session || null;
-}
-
-async function loginWithGoogle(){
-  // Always redirect back to THIS page on the current domain (prevents falling back to github.io)
-  const redirectTo = `${window.location.origin}${window.location.pathname}`;
-  const { error } = await supabaseClient.auth.signInWithOAuth({
-    provider:"google",
-    options:{ redirectTo }
-  });
-  if(error) throw error;
-}
-
 function showSignedIn(email){
   setTopState("Signed in");
   const row=document.getElementById("statusRow");
@@ -450,7 +418,6 @@ function showSignedIn(email){
   const copy=document.getElementById("copyToken");
   if(copy) copy.disabled=false;
 }
-
 function showSignedOut(){
   setTopState("Not signed in");
   const row=document.getElementById("statusRow");
@@ -459,53 +426,124 @@ function showSignedOut(){
   if(adv) adv.style.display="none";
   setGoogleButton(false,"Continue with Google");
   setHint("You stay in control. Nothing is sent without your confirmation.");
+  setHint2("");
+}
+
+function friendlyNetworkError(where, err){
+  const msg = String(err?.message || err || "");
+  if(msg.includes("Failed to fetch") || msg.includes("NetworkError") || msg.includes("Load failed")){
+    return `${where}: Cannot reach the server. Check your connection, VPN/adblock, or try again.`;
+  }
+  return `${where}: ${msg}`;
+}
+
+async function getSession(){
+  const { data, error } = await supabaseClient.auth.getSession();
+  if(error) return null;
+  return data?.session || null;
+}
+
+async function loginWithGoogle(){
+  const redirectTo = `${window.location.origin}${window.location.pathname}`;
+  const { error } = await supabaseClient.auth.signInWithOAuth({
+    provider:"google",
+    options:{ redirectTo }
+  });
+  if(error) throw error;
+}
+
+async function upsertCustomerByEmail(email){
+  try{
+    const res=await fetch(`${API_BASE}/customers/upsert`,{
+      method:"POST",
+      headers:{ "content-type":"application/json" },
+      body:JSON.stringify({ email })
+    });
+    const text=await res.text().catch(()=> "");
+    if(!res.ok) throw new Error(`Customer upsert failed: ${res.status} ${text}`);
+    return JSON.parse(text);
+  }catch(e){
+    throw new Error(friendlyNetworkError("/customers/upsert", e));
+  }
+}
+
+async function getMeState(accessToken){
+  try{
+    const res=await fetch(`${API_BASE}/me/state`,{
+      method:"GET",
+      headers:{ Authorization:`Bearer ${accessToken}` }
+    });
+    const text=await res.text().catch(()=> "");
+    if(!res.ok) throw new Error(`State failed: ${res.status} ${text}`);
+    return JSON.parse(text);
+  }catch(e){
+    throw new Error(friendlyNetworkError("/me/state", e));
+  }
+}
+
+function decideNextStepFromState(st){
+  if(!st || typeof st !== "object") return "./profile.html";
+  if(!st.profile_complete) return "./profile.html";
+  if(!st.plan_id) return "./plan.html";
+  return "./dashboard.html";
 }
 
 async function hydrate(){
-  const session=await getSession();
-  if(!session || !session.user || !session.user.email){
+  const sess=await getSession();
+  if(!sess || !sess.user || !sess.user.email){
     showSignedOut();
     return;
   }
 
-  const email=session.user.email.trim().toLowerCase();
+  const email=String(sess.user.email||"").trim().toLowerCase();
   resetLocalStateForNewUser(email);
-  sessionStorage.setItem("sb_access_token",session.access_token);
 
+  try{sessionStorage.setItem("sb_access_token", sess.access_token);}catch{}
   showSignedIn(email);
 
   try{
     setGoogleButton(true,"Setting up…");
     setHint("Setting up your account…");
+    setHint2("");
+
     const data=await upsertCustomerByEmail(email);
-    if(data && data.customer_id){
-      syncIdentity({ customerId:data.customer_id, email });
-      setHint("Done. Taking you to setup…");
-      setTimeout(()=>go(nextStepUrl()), 700);
-      return;
-    }
-    setHint("Setup failed. Please switch account and try again.");
-    setGoogleButton(false,"Try again");
+    if(data && data.customer_id) syncIdentity({ customerId:data.customer_id, email });
+
+    setHint("Checking your setup…");
+    const st = await getMeState(sess.access_token);
+
+    const next = decideNextStepFromState(st);
+    setHint("Done. Taking you to setup…");
+    setHint2(next.includes("profile") ? "Next: upload your CV and confirm preferences." :
+            next.includes("plan") ? "Next: choose your plan (how many applications per day)." :
+            "Next: dashboard.");
+    setTimeout(()=>go(next), 650);
   }catch(e){
     console.error(e);
-    setHint("Could not finish setup. Click again to retry.");
+    setHint("Could not finish setup.");
+    setHint2(e.message || String(e));
     setGoogleButton(false,"Try again");
   }
 }
 
 document.getElementById("btnGoogle").addEventListener("click", async ()=>{
   try{
-    const session=await getSession();
-    if(session && session.user && session.user.email){
-      go(nextStepUrl());
+    const sess=await getSession();
+    if(sess && sess.user && sess.user.email){
+      setGoogleButton(true,"Continuing…");
+      setHint("Checking your setup…");
+      const st = await getMeState(sess.access_token);
+      go(decideNextStepFromState(st));
       return;
     }
     setGoogleButton(true,"Opening Google…");
     setHint("Opening Google sign-in…");
+    setHint2("");
     await loginWithGoogle();
   }catch(e){
     console.error(e);
     setHint("Sign-in failed. Please retry.");
+    setHint2(e.message || String(e));
     setGoogleButton(false,"Continue with Google");
   }
 });
@@ -513,12 +551,14 @@ document.getElementById("btnGoogle").addEventListener("click", async ()=>{
 document.getElementById("btnSwitch").addEventListener("click", async ()=>{
   try{
     setHint("Switching account…");
+    setHint2("");
     await supabaseClient.auth.signOut();
-    sessionStorage.removeItem("sb_access_token");
+    try{sessionStorage.removeItem("sb_access_token");}catch{}
     showSignedOut();
   }catch(e){
     console.error(e);
     setHint("Could not switch. Please retry.");
+    setHint2(e.message || String(e));
   }
 });
 
@@ -527,12 +567,13 @@ if(btnLogout){
   btnLogout.addEventListener("click", async ()=>{
     try{
       await supabaseClient.auth.signOut();
-      sessionStorage.removeItem("sb_access_token");
+      try{sessionStorage.removeItem("sb_access_token");}catch{}
       showSignedOut();
       setHint("Signed out.");
     }catch(e){
       console.error(e);
       setHint("Logout failed. Please retry.");
+      setHint2(e.message || String(e));
     }
   });
 }
@@ -544,9 +585,11 @@ if(copy){
       const tok=sessionStorage.getItem("sb_access_token")||"";
       await navigator.clipboard.writeText(tok);
       setHint(tok ? "Access token copied." : "No token found.");
+      setHint2("");
     }catch(e){
       console.error(e);
       setHint("Copy failed.");
+      setHint2(e.message || String(e));
     }
   });
 }
