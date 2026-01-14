@@ -588,7 +588,7 @@ font-size:13px;
 <span>Include AI titles</span>
 </label>
 <button class="btn" id="btnCopyToken" type="button">Copy access token</button>
-<span class="small" id="fetchJobsStatus" style="margin-left:auto"></span>
+<span class="small" id="fetchJobsStatus" style="margin-left:auto;opacity:.85"></span>
 </div>
 <div class="hr"></div>
 <div class="small" id="skipGuardrail" style="display:none"></div>
@@ -1186,6 +1186,7 @@ async function manualFetchJobs(){
     const aiTitles=includeAi ? getAiTitlesForFetch() : [];
 
     setState(true, includeAi ? "Fetching (including AI titles)..." : "Fetching...");
+
     const resp=await apiPost("/me/jobs/fetch", lastSessionToken, {
       include_ai_titles: includeAi,
       ai_titles: aiTitles
