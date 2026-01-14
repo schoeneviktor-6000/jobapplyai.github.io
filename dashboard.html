@@ -582,7 +582,13 @@ font-size:13px;
 <p class="small" id="queueHint">Use Skip to remove jobs you don’t want. Use Prio to apply to these first.</p>
 <div class="actions">
 <button class="btn primary" id="btnRefresh" type="button">Refresh</button>
+<button class="btn" id="btnFetchJobsNow" type="button">Fetch new jobs</button>
+<label class="badge" style="gap:10px;cursor:pointer;user-select:none">
+<input type="checkbox" id="toggleIncludeAiTitles" style="accent-color:var(--accent2);transform:scale(1.05);margin:0" />
+<span>Include AI titles</span>
+</label>
 <button class="btn" id="btnCopyToken" type="button">Copy access token</button>
+<span class="small" id="fetchJobsStatus" style="margin-left:auto"></span>
 </div>
 <div class="hr"></div>
 <div class="small" id="skipGuardrail" style="display:none"></div>
@@ -1137,6 +1143,76 @@ proofBtn.textContent=isOpen ? "Show proof" : "Hide proof";
 });
 }
 
+
+// Manual fetch (button) + AI titles toggle
+function getAiTitlesForFetch(){
+  try{
+    const {p,c}=getAiJson();
+    const titles=[];
+    if(p && Array.isArray(p.job_titles)) for(const t of p.job_titles) titles.push(t);
+    if(c && Array.isArray(c.alternative_titles)) for(const t of c.alternative_titles) titles.push(t);
+    const seen=new Set();
+    const out=[];
+    for(const t of titles){
+      const s=String(t||"").trim();
+      if(!s) continue;
+      const k=s.toLowerCase();
+      if(seen.has(k)) continue;
+      seen.add(k);
+      out.push(s);
+    }
+    return out;
+  }catch{
+    return [];
+  }
+}
+
+async function manualFetchJobs(){
+  const btn=document.getElementById("btnFetchJobsNow");
+  const status=document.getElementById("fetchJobsStatus");
+  const toggle=document.getElementById("toggleIncludeAiTitles");
+
+  const setState=(loading,msg)=>{
+    if(btn){
+      btn.disabled=!!loading;
+      btn.textContent=loading ? "Fetching..." : "Fetch new jobs";
+    }
+    if(status) status.textContent=msg||"";
+  };
+
+  try{
+    if(!lastSessionToken) await requireSession();
+    const includeAi=!!(toggle && toggle.checked);
+    const aiTitles=includeAi ? getAiTitlesForFetch() : [];
+
+    setState(true, includeAi ? "Fetching (including AI titles)..." : "Fetching...");
+    const resp=await apiPost("/me/jobs/fetch", lastSessionToken, {
+      include_ai_titles: includeAi,
+      ai_titles: aiTitles
+    });
+
+    if(resp && resp.skipped){
+      if(resp.reason==="queue_full"){
+        setState(false, "Skipped: queue has "+resp.queue_new_count+" new jobs (cap "+resp.max_queue_new+").");
+      } else {
+        setState(false, "Skipped: "+String(resp.reason||""));
+      }
+      return;
+    }
+
+    const added=typeof resp.jobs_added==="number" ? resp.jobs_added : 0;
+    const q=typeof resp.queue_new_count==="number" ? resp.queue_new_count : "—";
+    const rad=(resp.used_radius!==undefined && resp.used_radius!==null) ? resp.used_radius : "—";
+    const ml=(resp.match_level!==undefined && resp.match_level!==null) ? resp.match_level : "—";
+
+    setState(false, "Added "+added+" · Queue new: "+q+" · Radius "+rad+"km · Match "+ml);
+    await refreshQueueAndActivity();
+  }catch(e){
+    setState(false, e && e.message ? e.message : "Fetch failed");
+    showTopError(e && e.message ? e.message : "Fetch failed");
+  }
+}
+
 async function refreshQueueAndActivity(){
 const queue=await apiGet("/me/jobs/queue", lastSessionToken);
 const qCount=(typeof queue.count==="number")?queue.count:(Array.isArray(queue.data)?queue.data.length:0);
@@ -1321,6 +1397,10 @@ function wireEvents(){
 document.getElementById("btnRefresh").addEventListener("click",async()=>{
 try{ await loadDashboard(); }catch(e){ showTopError(e.message); setText("errorBox",e.message); }
 });
+document.getElementById("btnFetchJobsNow").addEventListener("click",async()=>{
+  await manualFetchJobs();
+});
+
 document.getElementById("btnCopyToken").addEventListener("click",async()=>{
 try{
 const {data}=await supabaseClient.auth.getSession();
