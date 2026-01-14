@@ -510,6 +510,15 @@ font-size:13px;
 .switch input:checked + .slider{background:linear-gradient(135deg,var(--accent2),var(--accent))}
 .switch input:checked + .slider:before{transform:translateX(20px)}
 
+
+/* AI switch gated hint + fetch meta */
+.switchHint{display:inline-flex;align-items:center;gap:8px;margin-left:10px;padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.06)}
+.switchHint .lock{font-size:14px;opacity:.8}
+.switchHint a{color:var(--accent2);text-decoration:none;font-weight:700}
+.switchHint a:hover{text-decoration:underline}
+#fetchMeta{white-space:nowrap}
+.switch input:disabled + .slider{opacity:.5;cursor:not-allowed}
+
 </style>
 </head>
 <body>
@@ -611,6 +620,10 @@ font-size:13px;
 <input type="checkbox" id="toggleAiOnly" />
 <span class="slider"></span>
 </label>
+<div class="switchHint" id="aiSwitchHint" style="display:none">
+<span class="lock">🔒</span>
+<a href="profile.html">Generate AI suggestions to unlock</a>
+<span class="small" id="fetchMeta" style="margin-left:auto;opacity:.85"></span></div>
 </div>
 <button class="btn" id="btnCopyToken" type="button">Copy access token</button>
 <span class="small" id="fetchJobsStatus" style="margin-left:auto;opacity:.85"></span>
@@ -926,6 +939,8 @@ try{
 await apiPost("/me/applications/prioritize", lastSessionToken, { job_id: jobId });
 await refreshQueueAndActivity();
 updateFetchButtonCooldownUI();
+updateFetchMetaUI();
+updateAiSwitchState();
 }catch(err){ showTopError(err.message); }
 return;
 }
@@ -1193,6 +1208,48 @@ function updateFetchButtonCooldownUI(){
   }else{
     btn.disabled = false;
   }
+
+function updateFetchMetaUI(){
+  const meta=document.getElementById("fetchMeta");
+  if(!meta) return;
+
+  const lastTs = Number(localStorage.getItem("jm_last_manual_fetch_ts") || "0");
+  if(!lastTs){
+    meta.textContent = "";
+    return;
+  }
+
+  const last = new Date(lastTs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const next = lastTs + FETCH_COOLDOWN_MS;
+  const now = Date.now();
+
+  if(now < next){
+    const sec = Math.ceil((next-now)/1000);
+    const min = Math.floor(sec/60);
+    const s = sec % 60;
+    meta.textContent = "Last fetch: " + last + " · Next fetch in " + min + ":" + String(s).padStart(2,"0");
+  }else{
+    meta.textContent = "Last fetch: " + last + " · You can fetch again now";
+  }
+}
+
+function updateAiSwitchState(){
+  const toggle = document.getElementById("toggleAiOnly");
+  const hint = document.getElementById("aiSwitchHint");
+  if(!toggle || !hint) return;
+
+  const titles = Array.isArray(window.lastAiTitleSuggestions) ? window.lastAiTitleSuggestions : [];
+  const aiAvailable = titles.length > 0;
+
+  if(aiAvailable){
+    toggle.disabled = false;
+    hint.style.display = "none";
+  }else{
+    toggle.disabled = true;
+    toggle.checked = false;
+    hint.style.display = "inline-flex";
+  }
+}
 }
 
 // Manual fetch (button) + AI titles toggle
@@ -1237,12 +1294,14 @@ async function manualFetchJobs(){
       const sec = Math.ceil((next-Date.now())/1000);
       setState(false, "Please wait " + sec + "s before fetching again.");
       updateFetchButtonCooldownUI();
+      updateFetchMetaUI();
       return;
     }
     if(!lastSessionToken) await requireSession();
     // start cooldown immediately to prevent double-click spamming
     localStorage.setItem("jm_last_manual_fetch_ts", String(Date.now()));
     updateFetchButtonCooldownUI();
+    updateFetchMetaUI();
     const aiOnly=!!(toggle && toggle.checked);
     const aiTitles=aiOnly ? getAiTitlesForFetch() : [];
 
@@ -1269,6 +1328,7 @@ async function manualFetchJobs(){
     const ml=(resp.match_level!==undefined && resp.match_level!==null) ? resp.match_level : "—";
 
     setState(false, "Added "+added+" · Queue new: "+q+" · Radius "+rad+"km · Match "+ml);
+    updateFetchMetaUI();
     await refreshQueueAndActivity();
   }catch(e){
     setState(false, e && e.message ? e.message : "Fetch failed");
