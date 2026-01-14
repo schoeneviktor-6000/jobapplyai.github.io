@@ -1403,13 +1403,42 @@ document.getElementById("btnFetchJobsNow").addEventListener("click",async()=>{
 });
 
 document.getElementById("btnCopyToken").addEventListener("click",async()=>{
-try{
-const {data}=await supabaseClient.auth.getSession();
-const token=data&&data.session?data.session.access_token:"";
-if(!token){alert("No session token found. Please sign in again.");return;}
-await navigator.clipboard.writeText(token);
-alert("Access token copied.");
-}catch(e){ showTopError(e.message); }
+  try{
+    const {data}=await supabaseClient.auth.getSession();
+    const token=data&&data.session?data.session.access_token:"";
+    if(!token){ alert("No session token found. Please sign in again."); return; }
+
+    // Some browsers block clipboard access depending on context (permissions/iframes).
+    // Fallback: show the token in a prompt so you can copy manually.
+    try{
+      await navigator.clipboard.writeText(token);
+      alert("Access token copied.");
+      return;
+    }catch(_clipboardErr){
+      // Fallback 1: hidden textarea + execCommand
+      try{
+        const ta=document.createElement("textarea");
+        ta.value=token;
+        ta.setAttribute("readonly","true");
+        ta.style.position="fixed";
+        ta.style.left="-9999px";
+        ta.style.top="0";
+        document.body.appendChild(ta);
+        ta.select();
+        const ok=document.execCommand && document.execCommand("copy");
+        document.body.removeChild(ta);
+        if(ok){
+          alert("Access token copied.");
+          return;
+        }
+      }catch(_){ /* ignore */ }
+
+      // Fallback 2: prompt
+      window.prompt("Copy your access token:", token);
+    }
+  }catch(e){
+    showTopError(e.message || "Copy token failed");
+  }
 });
 document.getElementById("btnLogout").addEventListener("click",async()=>{
 try{
