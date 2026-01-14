@@ -1454,6 +1454,22 @@ renderAiInsightsFromCache();
 let state=null;
 try{ state=await apiGet("/me/state",session.access_token); }catch{ state=null; }
 
+// Load profile to get persisted AI titles (server source of truth)
+try{
+  const prof = await apiGet("/me/profile", session.access_token);
+  const ai = prof && prof.profile && Array.isArray(prof.profile.ai_titles) ? prof.profile.ai_titles : [];
+  window.lastAiTitleSuggestions = ai;
+  localStorage.setItem("jm_ai_titles_server", JSON.stringify(ai));
+}catch(e){
+  // fallback to cached AI titles
+  try{
+    const ai = JSON.parse(localStorage.getItem("jm_ai_titles_server") || "[]");
+    window.lastAiTitleSuggestions = Array.isArray(ai) ? ai : [];
+  }catch(_){
+    window.lastAiTitleSuggestions = [];
+  }
+}
+
 const plan=state&&state.plan_id?planFromState(state.plan_id):planFallbackFromLocalStorage();
 currentPlanDaily=plan.daily;
 
