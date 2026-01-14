@@ -488,6 +488,28 @@ font-size:13px;
 
 .pill.mini{padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:rgba(17,19,24,.04);font-weight:850;font-size:12px;display:inline-flex;align-items:center}
 .leaving{opacity:.7;transform:translateY(6px);transition:all .18s ease}
+
+/* Fetch button + AI switch */
+#btnFetchJobsNow{
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  border: 0;
+  color: #0b1020;
+  font-weight: 700;
+  box-shadow: 0 10px 22px rgba(79,104,255,.22);
+}
+#btnFetchJobsNow:disabled{
+  opacity: .55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.switchWrap{display:flex;align-items:center;gap:10px;padding:6px 10px;border:1px solid rgba(255,255,255,.10);border-radius:999px;background:rgba(255,255,255,.04)}
+.switch{position:relative;display:inline-block;width:44px;height:24px}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,.25);transition:.2s;border-radius:999px}
+.slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:white;transition:.2s;border-radius:50%}
+.switch input:checked + .slider{background:linear-gradient(135deg,var(--accent2),var(--accent))}
+.switch input:checked + .slider:before{transform:translateX(20px)}
+
 </style>
 </head>
 <body>
@@ -583,10 +605,13 @@ font-size:13px;
 <div class="actions">
 <button class="btn primary" id="btnRefresh" type="button">Refresh</button>
 <button class="btn" id="btnFetchJobsNow" type="button">Fetch new jobs</button>
-<label class="badge" style="gap:10px;cursor:pointer;user-select:none">
-<input type="checkbox" id="toggleIncludeAiTitles" style="accent-color:var(--accent2);transform:scale(1.05);margin:0" />
-<span>Include AI titles</span>
+<div class="switchWrap" title="When ON: search using only AI-generated titles">
+<span class="small">AI titles only</span>
+<label class="switch">
+<input type="checkbox" id="toggleAiOnly" />
+<span class="slider"></span>
 </label>
+</div>
 <button class="btn" id="btnCopyToken" type="button">Copy access token</button>
 <span class="small" id="fetchJobsStatus" style="margin-left:auto;opacity:.85"></span>
 </div>
@@ -900,6 +925,7 @@ if(!jobId) return;
 try{
 await apiPost("/me/applications/prioritize", lastSessionToken, { job_id: jobId });
 await refreshQueueAndActivity();
+updateFetchButtonCooldownUI();
 }catch(err){ showTopError(err.message); }
 return;
 }
@@ -1034,6 +1060,8 @@ if(t === "sent"){
 const ch=ev.meta.channel || "email_manual";
 const fe=ev.meta.from_email || "";
 metaTxt="via " + escapeHtml(ch) + (fe ? "<br><span class='mono'>from " + escapeHtml(fe) + "</span>" : "");
+} else if(t === "queued" && ev.meta && (ev.meta.fetch_mode || ev.meta.source)){
+metaTxt = "fetch: " + escapeHtml(String(ev.meta.fetch_mode || ev.meta.source));
 } else if(ev.meta.reason_code){
 metaTxt="reason: " + escapeHtml(String(ev.meta.reason_code));
 }
@@ -1144,6 +1172,29 @@ proofBtn.textContent=isOpen ? "Show proof" : "Hide proof";
 }
 
 
+
+const FETCH_COOLDOWN_MS = 10 * 60 * 1000;
+function getNextFetchAllowedAt(){
+  const v = Number(localStorage.getItem("jm_last_manual_fetch_ts") || "0");
+  return v ? (v + FETCH_COOLDOWN_MS) : 0;
+}
+function updateFetchButtonCooldownUI(){
+  const btn=document.getElementById("btnFetchJobsNow");
+  const status=document.getElementById("fetchJobsStatus");
+  if(!btn) return;
+  const next = getNextFetchAllowedAt();
+  const now = Date.now();
+  if(next && now < next){
+    const sec = Math.ceil((next-now)/1000);
+    btn.disabled = true;
+    btn.textContent = "Fetch new jobs";
+    if(status && !status.textContent) status.textContent = "You can fetch again in " + sec + "s";
+    setTimeout(updateFetchButtonCooldownUI, 1000);
+  }else{
+    btn.disabled = false;
+  }
+}
+
 // Manual fetch (button) + AI titles toggle
 function getAiTitlesForFetch(){
   try{
@@ -1170,7 +1221,7 @@ function getAiTitlesForFetch(){
 async function manualFetchJobs(){
   const btn=document.getElementById("btnFetchJobsNow");
   const status=document.getElementById("fetchJobsStatus");
-  const toggle=document.getElementById("toggleIncludeAiTitles");
+  const toggle=document.getElementById("toggleAiOnly");
 
   const setState=(loading,msg)=>{
     if(btn){
@@ -1181,15 +1232,26 @@ async function manualFetchJobs(){
   };
 
   try{
+    const next = getNextFetchAllowedAt();
+    if(next && Date.now() < next){
+      const sec = Math.ceil((next-Date.now())/1000);
+      setState(false, "Please wait " + sec + "s before fetching again.");
+      updateFetchButtonCooldownUI();
+      return;
+    }
     if(!lastSessionToken) await requireSession();
-    const includeAi=!!(toggle && toggle.checked);
-    const aiTitles=includeAi ? getAiTitlesForFetch() : [];
+    // start cooldown immediately to prevent double-click spamming
+    localStorage.setItem("jm_last_manual_fetch_ts", String(Date.now()));
+    updateFetchButtonCooldownUI();
+    const aiOnly=!!(toggle && toggle.checked);
+    const aiTitles=aiOnly ? getAiTitlesForFetch() : [];
 
-    setState(true, includeAi ? "Fetching (including AI titles)..." : "Fetching...");
+    setState(true, aiOnly ? "Fetching (AI titles only)..." : "Fetching...");
 
     const resp=await apiPost("/me/jobs/fetch", lastSessionToken, {
-      include_ai_titles: includeAi,
-      ai_titles: aiTitles
+      include_ai_titles: aiOnly,
+      ai_titles: aiTitles,
+      fetch_mode: aiOnly ? "ai_only" : "profile"
     });
 
     if(resp && resp.skipped){
