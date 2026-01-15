@@ -491,16 +491,16 @@ font-size:13px;
 
 /* Fetch button + AI switch */
 #btnFetchJobsNow{
-  background: linear-gradient(135deg, var(--accent2), var(--accent));
-  border: 0;
-  color: #0b1020;
-  font-weight: 700;
-  box-shadow: 0 10px 22px rgba(79,104,255,.22);
+background: linear-gradient(135deg, var(--accent2), var(--accent));
+border: 0;
+color: #0b1020;
+font-weight: 700;
+box-shadow: 0 10px 22px rgba(79,104,255,.22);
 }
 #btnFetchJobsNow:disabled{
-  opacity: .55;
-  cursor: not-allowed;
-  box-shadow: none;
+opacity: .55;
+cursor: not-allowed;
+box-shadow: none;
 }
 .switchWrap{display:flex;align-items:center;gap:10px;padding:6px 10px;border:1px solid rgba(255,255,255,.10);border-radius:999px;background:rgba(255,255,255,.04)}
 .switch{position:relative;display:inline-block;width:44px;height:24px}
@@ -518,23 +518,6 @@ font-size:13px;
 .switchHint a:hover{text-decoration:underline}
 #fetchMeta{white-space:nowrap}
 .switch input:disabled + .slider{opacity:.5;cursor:not-allowed}
-
-
-/* AI switch gated hint + fetch meta */
-.switchHint{display:inline-flex;align-items:center;gap:8px;margin-left:10px;padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.06)}
-.switchHint .lock{font-size:14px;opacity:.8}
-.switchHint a{color:var(--accent2);text-decoration:none;font-weight:700}
-.switchHint a:hover{text-decoration:underline}
-#fetchMeta{white-space:nowrap}
-
-/* Mobile: keep AI switch visible */
-@media (max-width: 720px){
-  .actions{flex-wrap:wrap;gap:10px}
-  #btnFetchJobsNow{flex:1 1 100%}
-  .switchWrap{flex:1 1 100%;justify-content:flex-start}
-  #btnCopyToken{flex:1 1 100%}
-  #fetchJobsStatus, #fetchMeta{flex:1 1 100%;margin-left:0 !important}
-}
 
 </style>
 </head>
@@ -631,28 +614,19 @@ font-size:13px;
 <div class="actions">
 <button class="btn primary" id="btnRefresh" type="button">Refresh</button>
 <button class="btn" id="btnFetchJobsNow" type="button">Fetch new jobs</button>
-
-<div class="switchWrap" title="When ON: search using only AI-generated titles (uses AI titles instead of profile titles)">
+<div class="switchWrap" title="When ON: search using only AI-generated titles">
 <span class="small">AI titles only</span>
 <label class="switch">
 <input type="checkbox" id="toggleAiOnly" />
 <span class="slider"></span>
 </label>
-<span class="badge small" id="aiCountBadge" style="display:none">0</span>
 <div class="switchHint" id="aiSwitchHint" style="display:none">
 <span class="lock">🔒</span>
 <a href="profile.html">Generate AI suggestions to unlock</a>
+<span class="small" id="fetchMeta" style="margin-left:auto;opacity:.85"></span></div>
 </div>
-</div>
-
 <button class="btn" id="btnCopyToken" type="button">Copy access token</button>
 <span class="small" id="fetchJobsStatus" style="margin-left:auto;opacity:.85"></span>
-<span class="small" id="fetchMeta" style="margin-left:12px;opacity:.85"></span>
-</div>
-</div>
-</div>
-<button class="btn" id="btnCopyToken" type="button">Copy access token</button>
-<span class="small" id="fetchJobsStatus" style="margin-left:auto;opacity:.85"></span><span class="small" id="fetchMeta" style="margin-left:12px;opacity:.85"></span>
 </div>
 <div class="hr"></div>
 <div class="small" id="skipGuardrail" style="display:none"></div>
@@ -756,35 +730,42 @@ font-size:13px;
 
 // Safety: some builds load helper functions later; ensure they exist before any event handlers run.
 if (typeof updateFetchMetaUI !== "function") {
-  function updateFetchMetaUI(){ /* no-op until defined */ }
+function updateFetchMetaUI(){ /* no-op until defined */ }
 }
 if (typeof updateAiSwitchState !== "function") {
-  function updateAiSwitchState(){
-  const toggle = document.getElementById("toggleAiOnly");
-  const hint = document.getElementById("aiSwitchHint");
-  const badge = document.getElementById("aiCountBadge");
-  if(!toggle || !hint) return;
+function updateAiSwitchState(){ /* no-op until defined */ }
 
-  const titles = Array.isArray(window.backendAiTitles) ? window.backendAiTitles : [];
-  const aiAvailable = titles.length > 0;
+async function maybeAutoPersistAiTitles(){
+  try{
+    if(!lastSessionToken) await requireSession();
 
-  if(badge){
-    if(aiAvailable){
-      badge.style.display = "inline-flex";
-      badge.textContent = String(titles.length) + " AI";
-    }else{
-      badge.style.display = "none";
+    // Backend profile
+    const prof = await apiGet("/me/profile", lastSessionToken);
+    const backendTitles = prof && Array.isArray(prof.ai_titles) ? prof.ai_titles : [];
+
+    if(backendTitles.length){
+      window.lastAiTitleSuggestions = backendTitles;
+      updateAiSwitchState();
+maybeAutoPersistAiTitles();
+      return;
     }
-  }
 
-  if(aiAvailable){
-    toggle.disabled = false;
-    hint.style.display = "none";
-  }else{
-    toggle.disabled = true;
-    toggle.checked = false;
-    hint.style.display = "inline-flex";
+    // Bridge from local AI cache once (from profile generation)
+    const local = getAiTitlesForFetch();
+    if(!local.length) return;
+
+    await apiPost("/me/ai-titles/save", lastSessionToken, { ai_titles: local });
+
+    const prof2 = await apiGet("/me/profile", lastSessionToken);
+    const backendTitles2 = prof2 && Array.isArray(prof2.ai_titles) ? prof2.ai_titles : [];
+    if(backendTitles2.length){
+      window.lastAiTitleSuggestions = backendTitles2;
+      updateAiSwitchState();
+    }
+  }catch(e){
+    // non-blocking
   }
+}
 }
 
 const API_BASE = (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE) || "https://jobmejob.schoene-viktor.workers.dev";
@@ -1250,160 +1231,150 @@ proofBtn.textContent=isOpen ? "Show proof" : "Hide proof";
 
 const FETCH_COOLDOWN_MS = 10 * 60 * 1000;
 function getNextFetchAllowedAt(){
-  const v = Number(localStorage.getItem("jm_last_manual_fetch_ts") || "0");
-  return v ? (v + FETCH_COOLDOWN_MS) : 0;
+const v = Number(localStorage.getItem("jm_last_manual_fetch_ts") || "0");
+return v ? (v + FETCH_COOLDOWN_MS) : 0;
 }
 function updateFetchButtonCooldownUI(){
-  const btn=document.getElementById("btnFetchJobsNow");
-  const status=document.getElementById("fetchJobsStatus");
-  if(!btn) return;
-  const next = getNextFetchAllowedAt();
-  const now = Date.now();
-  if(next && now < next){
-    const sec = Math.ceil((next-now)/1000);
-    btn.disabled = true;
-    btn.textContent = "Fetch new jobs";
-    if(status && !status.textContent) status.textContent = "You can fetch again in " + sec + "s";
-    setTimeout(updateFetchButtonCooldownUI, 1000);
-  }else{
-    btn.disabled = false;
-  }
+const btn=document.getElementById("btnFetchJobsNow");
+const status=document.getElementById("fetchJobsStatus");
+if(!btn) return;
+const next = getNextFetchAllowedAt();
+const now = Date.now();
+if(next && now < next){
+const sec = Math.ceil((next-now)/1000);
+btn.disabled = true;
+btn.textContent = "Fetch new jobs";
+if(status && !status.textContent) status.textContent = "You can fetch again in " + sec + "s";
+setTimeout(updateFetchButtonCooldownUI, 1000);
+}else{
+btn.disabled = false;
+}
 
 function updateFetchMetaUI(){
-  const meta=document.getElementById("fetchMeta");
-  if(!meta) return;
+const meta=document.getElementById("fetchMeta");
+if(!meta) return;
 
-  const lastTs = Number(localStorage.getItem("jm_last_manual_fetch_ts") || "0");
-  if(!lastTs){
-    meta.textContent = "";
-    return;
-  }
+const lastTs = Number(localStorage.getItem("jm_last_manual_fetch_ts") || "0");
+if(!lastTs){
+meta.textContent = "";
+return;
+}
 
-  const last = new Date(lastTs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  const next = lastTs + FETCH_COOLDOWN_MS;
-  const now = Date.now();
+const last = new Date(lastTs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+const next = lastTs + FETCH_COOLDOWN_MS;
+const now = Date.now();
 
-  if(now < next){
-    const sec = Math.ceil((next-now)/1000);
-    const min = Math.floor(sec/60);
-    const s = sec % 60;
-    meta.textContent = "Last fetch: " + last + " · Next fetch in " + min + ":" + String(s).padStart(2,"0");
-  }else{
-    meta.textContent = "Last fetch: " + last + " · You can fetch again now";
-  }
+if(now < next){
+const sec = Math.ceil((next-now)/1000);
+const min = Math.floor(sec/60);
+const s = sec % 60;
+meta.textContent = "Last fetch: " + last + " · Next fetch in " + min + ":" + String(s).padStart(2,"0");
+}else{
+meta.textContent = "Last fetch: " + last + " · You can fetch again now";
+}
 }
 
 function updateAiSwitchState(){
-  const toggle = document.getElementById("toggleAiOnly");
-  const hint = document.getElementById("aiSwitchHint");
-  if(!toggle || !hint) return;
+const toggle = document.getElementById("toggleAiOnly");
+const hint = document.getElementById("aiSwitchHint");
+if(!toggle || !hint) return;
 
-  const titles = Array.isArray(window.backendAiTitles) ? window.backendAiTitles : [];
-  const aiAvailable = titles.length > 0;
+const titles = Array.isArray(window.lastAiTitleSuggestions) ? window.lastAiTitleSuggestions : [];
+const aiAvailable = titles.length > 0;
 
-  if(aiAvailable){
-    toggle.disabled = false;
-    hint.style.display = "none";
-  }else{
-    toggle.disabled = true;
-    toggle.checked = false;
-    hint.style.display = "inline-flex";
-  }
+if(aiAvailable){
+toggle.disabled = false;
+hint.style.display = "none";
+}else{
+toggle.disabled = true;
+toggle.checked = false;
+hint.style.display = "inline-flex";
+}
 }
 }
 
 // Manual fetch (button) + AI titles toggle
 function getAiTitlesForFetch(){
-  try{
-    const {p,c}=getAiJson();
-    const titles=[];
-    if(p && Array.isArray(p.job_titles)) for(const t of p.job_titles) titles.push(t);
-    if(c && Array.isArray(c.alternative_titles)) for(const t of c.alternative_titles) titles.push(t);
-    const seen=new Set();
-    const out=[];
-    for(const t of titles){
-      const s=String(t||"").trim();
-      if(!s) continue;
-      const k=s.toLowerCase();
-      if(seen.has(k)) continue;
-      seen.add(k);
-      out.push(s);
-    }
-    return out;
-  }catch{
-    return [];
-  }
+try{
+const {p,c}=getAiJson();
+const titles=[];
+if(p && Array.isArray(p.job_titles)) for(const t of p.job_titles) titles.push(t);
+if(c && Array.isArray(c.alternative_titles)) for(const t of c.alternative_titles) titles.push(t);
+const seen=new Set();
+const out=[];
+for(const t of titles){
+const s=String(t||"").trim();
+if(!s) continue;
+const k=s.toLowerCase();
+if(seen.has(k)) continue;
+seen.add(k);
+out.push(s);
+}
+return out;
+}catch{
+return [];
+}
 }
 
 async function manualFetchJobs(){
-  const btn=document.getElementById("btnFetchJobsNow");
-  const status=document.getElementById("fetchJobsStatus");
-  const toggle=document.getElementById("toggleAiOnly");
+const btn=document.getElementById("btnFetchJobsNow");
+const status=document.getElementById("fetchJobsStatus");
+const toggle=document.getElementById("toggleAiOnly");
 
-  const setState=(loading,msg)=>{
-    if(btn){
-      btn.disabled=!!loading;
-      btn.textContent=loading ? "Fetching..." : "Fetch new jobs";
-    }
-    if(status) status.textContent=msg||"";
-  };
+const setState=(loading,msg)=>{
+if(btn){
+btn.disabled=!!loading;
+btn.textContent=loading ? "Fetching..." : "Fetch new jobs";
+}
+if(status) status.textContent=msg||"";
+};
 
-  try{
-    const next = getNextFetchAllowedAt();
-    if(next && Date.now() < next){
-      const sec = Math.ceil((next-Date.now())/1000);
-      setState(false, "Please wait " + sec + "s before fetching again.");
-      updateFetchButtonCooldownUI();
-      updateFetchMetaUI();
-      return;
-    }
-    if(!lastSessionToken) await requireSession();
-  // Load backend AI titles (source of truth for AI toggle)
-  try{
-    const profResp = await apiGet("/me/profile", lastSessionToken);
-    const p = profResp && (profResp.profile || profResp) ? (profResp.profile || profResp) : null;
-    window.backendAiTitles = p && Array.isArray(p.ai_titles) ? p.ai_titles : [];
-  }catch(_){
-    window.backendAiTitles = [];
-  }
+try{
+const next = getNextFetchAllowedAt();
+if(next && Date.now() < next){
+const sec = Math.ceil((next-Date.now())/1000);
+setState(false, "Please wait " + sec + "s before fetching again.");
+updateFetchButtonCooldownUI();
+updateFetchMetaUI();
+return;
+}
+if(!lastSessionToken) await requireSession();
+// start cooldown immediately to prevent double-click spamming
+localStorage.setItem("jm_last_manual_fetch_ts", String(Date.now()));
+updateFetchButtonCooldownUI();
+updateFetchMetaUI();
+const aiOnly=!!(toggle && toggle.checked);
+const aiTitles=aiOnly ? getAiTitlesForFetch() : [];
 
-    // start cooldown immediately to prevent double-click spamming
-    localStorage.setItem("jm_last_manual_fetch_ts", String(Date.now()));
-    updateFetchButtonCooldownUI();
-    updateFetchMetaUI();
-    const aiOnly = !!(toggle && !toggle.disabled && toggle.checked);
-    const aiTitles = []; // backend is source of truth; worker will use DB ai_titles in ai_only mode
+setState(true, aiOnly ? "Fetching (AI titles only)..." : "Fetching...");
 
+const resp=await apiPost("/me/jobs/fetch", lastSessionToken, {
+include_ai_titles: aiOnly,
+ai_titles: aiTitles,
+fetch_mode: aiOnly ? "ai_only" : "profile"
+});
 
-    setState(true, aiOnly ? "Fetching (AI titles only)..." : "Fetching...");
+if(resp && resp.skipped){
+if(resp.reason==="queue_full"){
+setState(false, "Skipped: queue has "+resp.queue_new_count+" new jobs (cap "+resp.max_queue_new+").");
+} else {
+setState(false, "Skipped: "+String(resp.reason||""));
+}
+return;
+}
 
-    const resp=await apiPost("/me/jobs/fetch", lastSessionToken, {
-      include_ai_titles: aiOnly,
-      ai_titles: aiTitles,
-      fetch_mode: aiOnly ? "ai_only" : "profile"
-    });
+const added=typeof resp.jobs_added==="number" ? resp.jobs_added : 0;
+const q=typeof resp.queue_new_count==="number" ? resp.queue_new_count : "—";
+const rad=(resp.used_radius!==undefined && resp.used_radius!==null) ? resp.used_radius : "—";
+const ml=(resp.match_level!==undefined && resp.match_level!==null) ? resp.match_level : "—";
 
-    if(resp && resp.skipped){
-      if(resp.reason==="queue_full"){
-        setState(false, "Skipped: queue has "+resp.queue_new_count+" new jobs (cap "+resp.max_queue_new+").");
-      } else {
-        setState(false, "Skipped: "+String(resp.reason||""));
-      }
-      return;
-    }
-
-    const added=typeof resp.jobs_added==="number" ? resp.jobs_added : 0;
-    const q=typeof resp.queue_new_count==="number" ? resp.queue_new_count : "—";
-    const rad=(resp.used_radius!==undefined && resp.used_radius!==null) ? resp.used_radius : "—";
-    const ml=(resp.match_level!==undefined && resp.match_level!==null) ? resp.match_level : "—";
-
-    setState(false, "Added "+added+" · Queue new: "+q+" · Radius "+rad+"km · Match "+ml);
-    updateFetchMetaUI();
-    await refreshQueueAndActivity();
-  }catch(e){
-    setState(false, e && e.message ? e.message : "Fetch failed");
-    showTopError(e && e.message ? e.message : "Fetch failed");
-  }
+setState(false, "Added "+added+" · Queue new: "+q+" · Radius "+rad+"km · Match "+ml);
+updateFetchMetaUI();
+await refreshQueueAndActivity();
+}catch(e){
+setState(false, e && e.message ? e.message : "Fetch failed");
+showTopError(e && e.message ? e.message : "Fetch failed");
+}
 }
 
 async function refreshQueueAndActivity(){
@@ -1515,6 +1486,16 @@ setHtml("activityError","");
 const session=await requireSession();
 if(!session) return;
 
+// Load profile (for persisted AI titles)
+try{
+const profResp = await apiGet("/me/profile", lastSessionToken);
+const p = profResp && profResp.profile ? profResp.profile : null;
+window.lastAiTitleSuggestions = (p && Array.isArray(p.ai_titles)) ? p.ai_titles : [];
+}catch(e){
+window.lastAiTitleSuggestions = [];
+}
+updateAiSwitchState();
+
 const email=session.user&&session.user.email?session.user.email:"—";
 setText("meEmail",email);
 setText("subLine","Signed in as "+email);
@@ -1526,18 +1507,18 @@ try{ state=await apiGet("/me/state",session.access_token); }catch{ state=null; }
 
 // Load profile to get persisted AI titles (server source of truth)
 try{
-  const prof = await apiGet("/me/profile", session.access_token);
-  const ai = prof && prof.profile && Array.isArray(prof.profile.ai_titles) ? prof.profile.ai_titles : [];
-  window.lastAiTitleSuggestions = ai;
-  localStorage.setItem("jm_ai_titles_server", JSON.stringify(ai));
+const prof = await apiGet("/me/profile", session.access_token);
+const ai = prof && prof.profile && Array.isArray(prof.profile.ai_titles) ? prof.profile.ai_titles : [];
+window.lastAiTitleSuggestions = ai;
+localStorage.setItem("jm_ai_titles_server", JSON.stringify(ai));
 }catch(e){
-  // fallback to cached AI titles
-  try{
-    const ai = JSON.parse(localStorage.getItem("jm_ai_titles_server") || "[]");
-    window.lastAiTitleSuggestions = Array.isArray(ai) ? ai : [];
-  }catch(_){
-    window.lastAiTitleSuggestions = [];
-  }
+// fallback to cached AI titles
+try{
+const ai = JSON.parse(localStorage.getItem("jm_ai_titles_server") || "[]");
+window.lastAiTitleSuggestions = Array.isArray(ai) ? ai : [];
+}catch(_){
+window.lastAiTitleSuggestions = [];
+}
 }
 
 const plan=state&&state.plan_id?planFromState(state.plan_id):planFallbackFromLocalStorage();
@@ -1607,46 +1588,46 @@ document.getElementById("btnRefresh").addEventListener("click",async()=>{
 try{ await loadDashboard(); }catch(e){ showTopError(e.message); setText("errorBox",e.message); }
 });
 document.getElementById("btnFetchJobsNow").addEventListener("click",async()=>{
-  await manualFetchJobs();
+await manualFetchJobs();
 });
 
 document.getElementById("btnCopyToken").addEventListener("click",async()=>{
-  try{
-    const {data}=await supabaseClient.auth.getSession();
-    const token=data&&data.session?data.session.access_token:"";
-    if(!token){ alert("No session token found. Please sign in again."); return; }
+try{
+const {data}=await supabaseClient.auth.getSession();
+const token=data&&data.session?data.session.access_token:"";
+if(!token){ alert("No session token found. Please sign in again."); return; }
 
-    // Some browsers block clipboard access depending on context (permissions/iframes).
-    // Fallback: show the token in a prompt so you can copy manually.
-    try{
-      await navigator.clipboard.writeText(token);
-      alert("Access token copied.");
-      return;
-    }catch(_clipboardErr){
-      // Fallback 1: hidden textarea + execCommand
-      try{
-        const ta=document.createElement("textarea");
-        ta.value=token;
-        ta.setAttribute("readonly","true");
-        ta.style.position="fixed";
-        ta.style.left="-9999px";
-        ta.style.top="0";
-        document.body.appendChild(ta);
-        ta.select();
-        const ok=document.execCommand && document.execCommand("copy");
-        document.body.removeChild(ta);
-        if(ok){
-          alert("Access token copied.");
-          return;
-        }
-      }catch(_){ /* ignore */ }
+// Some browsers block clipboard access depending on context (permissions/iframes).
+// Fallback: show the token in a prompt so you can copy manually.
+try{
+await navigator.clipboard.writeText(token);
+alert("Access token copied.");
+return;
+}catch(_clipboardErr){
+// Fallback 1: hidden textarea + execCommand
+try{
+const ta=document.createElement("textarea");
+ta.value=token;
+ta.setAttribute("readonly","true");
+ta.style.position="fixed";
+ta.style.left="-9999px";
+ta.style.top="0";
+document.body.appendChild(ta);
+ta.select();
+const ok=document.execCommand && document.execCommand("copy");
+document.body.removeChild(ta);
+if(ok){
+alert("Access token copied.");
+return;
+}
+}catch(_){ /* ignore */ }
 
-      // Fallback 2: prompt
-      window.prompt("Copy your access token:", token);
-    }
-  }catch(e){
-    showTopError(e.message || "Copy token failed");
-  }
+// Fallback 2: prompt
+window.prompt("Copy your access token:", token);
+}
+}catch(e){
+showTopError(e.message || "Copy token failed");
+}
 });
 document.getElementById("btnLogout").addEventListener("click",async()=>{
 try{
