@@ -519,6 +519,23 @@ font-size:13px;
 #fetchMeta{white-space:nowrap}
 .switch input:disabled + .slider{opacity:.5;cursor:not-allowed}
 
+
+/* AI switch gated hint + fetch meta */
+.switchHint{display:inline-flex;align-items:center;gap:8px;margin-left:10px;padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.06)}
+.switchHint .lock{font-size:14px;opacity:.8}
+.switchHint a{color:var(--accent2);text-decoration:none;font-weight:700}
+.switchHint a:hover{text-decoration:underline}
+#fetchMeta{white-space:nowrap}
+
+/* Mobile: keep AI switch visible */
+@media (max-width: 720px){
+  .actions{flex-wrap:wrap;gap:10px}
+  #btnFetchJobsNow{flex:1 1 100%}
+  .switchWrap{flex:1 1 100%;justify-content:flex-start}
+  #btnCopyToken{flex:1 1 100%}
+  #fetchJobsStatus, #fetchMeta{flex:1 1 100%;margin-left:0 !important}
+}
+
 </style>
 </head>
 <body>
@@ -623,10 +640,11 @@ font-size:13px;
 <div class="switchHint" id="aiSwitchHint" style="display:none">
 <span class="lock">🔒</span>
 <a href="profile.html">Generate AI suggestions to unlock</a>
-<span class="small" id="fetchMeta" style="margin-left:auto;opacity:.85"></span></div>
+</div>
+</div>
 </div>
 <button class="btn" id="btnCopyToken" type="button">Copy access token</button>
-<span class="small" id="fetchJobsStatus" style="margin-left:auto;opacity:.85"></span>
+<span class="small" id="fetchJobsStatus" style="margin-left:auto;opacity:.85"></span><span class="small" id="fetchMeta" style="margin-left:12px;opacity:.85"></span>
 </div>
 <div class="hr"></div>
 <div class="small" id="skipGuardrail" style="display:none"></div>
@@ -734,38 +752,6 @@ if (typeof updateFetchMetaUI !== "function") {
 }
 if (typeof updateAiSwitchState !== "function") {
   function updateAiSwitchState(){ /* no-op until defined */ }
-
-async function maybeAutoPersistAiTitles(){
-  try{
-    if(!lastSessionToken) await requireSession();
-
-    // Backend profile
-    const prof = await apiGet("/me/profile", lastSessionToken);
-    const backendTitles = prof && Array.isArray(prof.ai_titles) ? prof.ai_titles : [];
-
-    if(backendTitles.length){
-      window.lastAiTitleSuggestions = backendTitles;
-      updateAiSwitchState();
-maybeAutoPersistAiTitles();
-      return;
-    }
-
-    // Bridge from local AI cache once (from profile generation)
-    const local = getAiTitlesForFetch();
-    if(!local.length) return;
-
-    await apiPost("/me/ai-titles/save", lastSessionToken, { ai_titles: local });
-
-    const prof2 = await apiGet("/me/profile", lastSessionToken);
-    const backendTitles2 = prof2 && Array.isArray(prof2.ai_titles) ? prof2.ai_titles : [];
-    if(backendTitles2.length){
-      window.lastAiTitleSuggestions = backendTitles2;
-      updateAiSwitchState();
-    }
-  }catch(e){
-    // non-blocking
-  }
-}
 }
 
 const API_BASE = (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE) || "https://jobmejob.schoene-viktor.workers.dev";
@@ -1279,7 +1265,7 @@ function updateAiSwitchState(){
   const hint = document.getElementById("aiSwitchHint");
   if(!toggle || !hint) return;
 
-  const titles = Array.isArray(window.lastAiTitleSuggestions) ? window.lastAiTitleSuggestions : [];
+  const titles = Array.isArray(window.backendAiTitles) ? window.backendAiTitles : [];
   const aiAvailable = titles.length > 0;
 
   if(aiAvailable){
@@ -1339,6 +1325,15 @@ async function manualFetchJobs(){
       return;
     }
     if(!lastSessionToken) await requireSession();
+  // Load backend AI titles (source of truth for AI toggle)
+  try{
+    const profResp = await apiGet("/me/profile", lastSessionToken);
+    const p = profResp && (profResp.profile || profResp) ? (profResp.profile || profResp) : null;
+    window.backendAiTitles = p && Array.isArray(p.ai_titles) ? p.ai_titles : [];
+  }catch(_){
+    window.backendAiTitles = [];
+  }
+
     // start cooldown immediately to prevent double-click spamming
     localStorage.setItem("jm_last_manual_fetch_ts", String(Date.now()));
     updateFetchButtonCooldownUI();
@@ -1485,16 +1480,6 @@ setHtml("activityError","");
 
 const session=await requireSession();
 if(!session) return;
-
-// Load profile (for persisted AI titles)
-try{
-  const profResp = await apiGet("/me/profile", lastSessionToken);
-  const p = profResp && profResp.profile ? profResp.profile : null;
-  window.lastAiTitleSuggestions = (p && Array.isArray(p.ai_titles)) ? p.ai_titles : [];
-}catch(e){
-  window.lastAiTitleSuggestions = [];
-}
-updateAiSwitchState();
 
 const email=session.user&&session.user.email?session.user.email:"—";
 setText("meEmail",email);
