@@ -660,6 +660,23 @@ if(!res.ok) throw new Error(path+" failed: "+res.status+" "+(json.error||json.de
 return json;
 }
 
+async function saveAiTitlesToBackend(titles){
+  try{
+    const clean = Array.isArray(titles)
+      ? titles.map(t=>String(t||"").trim()).filter(Boolean).slice(0, 30)
+      : [];
+    if(!clean.length) return { ok:false, saved:0 };
+
+    // Persist AI titles so Dashboard can reliably use "AI titles only"
+    const resp = await apiPostJson("/me/ai-titles/save", { ai_titles: clean });
+    return resp || { ok:true, saved: clean.length };
+  }catch(e){
+    // Non-blocking: AI suggestions should still show even if persistence fails
+    return { ok:false, error: e && e.message ? e.message : String(e) };
+  }
+}
+
+
 async function apiPostForm(path,formData){
 const res=await fetch(API_BASE+path,{
 method:"POST",
@@ -1099,6 +1116,12 @@ const seniority = String(r.seniority||"unknown").trim();
 
 applyAiUiFromTitles(titles);
 
+// Persist the exact titles shown above into backend (source of truth for Dashboard toggle)
+const saved = await saveAiTitlesToBackend(titles);
+if(saved && saved.ok){
+  setText("aiHint","Suggestions are ready (cached). Select titles and apply them. Saved to your account.");
+}
+
 try{
 localStorage.setItem("jm_ai_profile", JSON.stringify({
 created_at: new Date().toISOString(),
@@ -1273,6 +1296,17 @@ await ensureCustomer(email);
 await refreshState();
 await loadCvStatusAndUpdateUx();
 await loadProfileIntoForm();
+// If backend already has AI titles (persisted), show them without forcing regeneration
+try{
+  const prof2 = await apiGet("/me/profile");
+  const p2 = prof2 && prof2.profile ? prof2.profile : null;
+  const backendAi = p2 && Array.isArray(p2.ai_titles) ? p2.ai_titles : [];
+  if(backendAi.length && !tryLoadCachedAiSuggestions()){
+    // Show persisted AI titles as suggestions (read-only)
+    applyAiUiFromTitles(backendAi);
+  }
+}catch(_){}
+
 
 $("cvFile").addEventListener("change",handleCvFileSelected);
 $("aiGenerateBtn").addEventListener("click",()=>handleAiGenerate({ force:false }));
