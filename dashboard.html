@@ -631,15 +631,23 @@ font-size:13px;
 <div class="actions">
 <button class="btn primary" id="btnRefresh" type="button">Refresh</button>
 <button class="btn" id="btnFetchJobsNow" type="button">Fetch new jobs</button>
-<div class="switchWrap" title="When ON: search using only AI-generated titles">
+
+<div class="switchWrap" title="When ON: search using only AI-generated titles (uses AI titles instead of profile titles)">
 <span class="small">AI titles only</span>
 <label class="switch">
 <input type="checkbox" id="toggleAiOnly" />
 <span class="slider"></span>
 </label>
+<span class="badge small" id="aiCountBadge" style="display:none">0</span>
 <div class="switchHint" id="aiSwitchHint" style="display:none">
 <span class="lock">🔒</span>
 <a href="profile.html">Generate AI suggestions to unlock</a>
+</div>
+</div>
+
+<button class="btn" id="btnCopyToken" type="button">Copy access token</button>
+<span class="small" id="fetchJobsStatus" style="margin-left:auto;opacity:.85"></span>
+<span class="small" id="fetchMeta" style="margin-left:12px;opacity:.85"></span>
 </div>
 </div>
 </div>
@@ -751,7 +759,32 @@ if (typeof updateFetchMetaUI !== "function") {
   function updateFetchMetaUI(){ /* no-op until defined */ }
 }
 if (typeof updateAiSwitchState !== "function") {
-  function updateAiSwitchState(){ /* no-op until defined */ }
+  function updateAiSwitchState(){
+  const toggle = document.getElementById("toggleAiOnly");
+  const hint = document.getElementById("aiSwitchHint");
+  const badge = document.getElementById("aiCountBadge");
+  if(!toggle || !hint) return;
+
+  const titles = Array.isArray(window.backendAiTitles) ? window.backendAiTitles : [];
+  const aiAvailable = titles.length > 0;
+
+  if(badge){
+    if(aiAvailable){
+      badge.style.display = "inline-flex";
+      badge.textContent = String(titles.length) + " AI";
+    }else{
+      badge.style.display = "none";
+    }
+  }
+
+  if(aiAvailable){
+    toggle.disabled = false;
+    hint.style.display = "none";
+  }else{
+    toggle.disabled = true;
+    toggle.checked = false;
+    hint.style.display = "inline-flex";
+  }
 }
 
 const API_BASE = (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE) || "https://jobmejob.schoene-viktor.workers.dev";
@@ -1338,8 +1371,9 @@ async function manualFetchJobs(){
     localStorage.setItem("jm_last_manual_fetch_ts", String(Date.now()));
     updateFetchButtonCooldownUI();
     updateFetchMetaUI();
-    const aiOnly=!!(toggle && toggle.checked);
-    const aiTitles=aiOnly ? getAiTitlesForFetch() : [];
+    const aiOnly = !!(toggle && !toggle.disabled && toggle.checked);
+    const aiTitles = []; // backend is source of truth; worker will use DB ai_titles in ai_only mode
+
 
     setState(true, aiOnly ? "Fetching (AI titles only)..." : "Fetching...");
 
