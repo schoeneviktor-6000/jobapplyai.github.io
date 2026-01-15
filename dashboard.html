@@ -1454,6 +1454,16 @@ setHtml("activityError","");
 const session=await requireSession();
 if(!session) return;
 
+// Load profile (for persisted AI titles)
+try{
+  const profResp = await apiGet("/me/profile", lastSessionToken);
+  const p = profResp && profResp.profile ? profResp.profile : null;
+  window.lastAiTitleSuggestions = (p && Array.isArray(p.ai_titles)) ? p.ai_titles : [];
+}catch(e){
+  window.lastAiTitleSuggestions = [];
+}
+updateAiSwitchState();
+
 const email=session.user&&session.user.email?session.user.email:"—";
 setText("meEmail",email);
 setText("subLine","Signed in as "+email);
