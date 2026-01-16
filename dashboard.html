@@ -723,6 +723,20 @@ box-shadow: none;
 </div>
 </div>
 
+<div class="modalBackdrop" id="descModal" style="display:none">
+  <div class="modalCard" style="max-width:920px">
+    <div class="modalTitle" id="descTitle">Job description</div>
+    <div class="small" id="descMeta" style="margin-top:-6px"></div>
+    <div class="hr" style="margin:14px 0"></div>
+    <div id="descBody" class="mono" style="white-space:pre-wrap; font-size:13px; line-height:1.45; max-height:60vh; overflow:auto; background:rgba(17,19,24,.04); border:1px solid rgba(17,19,24,.14); padding:12px; border-radius:14px;">Loading…</div>
+    <div class="modalActions">
+      <button class="btn ghost" id="descClose" type="button">Close</button>
+      <button class="btn" id="descCopy" type="button">Copy</button>
+    </div>
+  </div>
+</div>
+
+
 <footer class="footer">Support: <a href="mailto:schonv2@gmail.com">schonv2@gmail.com</a></footer>
 
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -781,6 +795,8 @@ let useEventsEndpoint=true;
 let activityEventType="";
 
 let pendingSkipJobId=null;
+let pendingDescJobId=null;
+let currentDescText="";
 
 function setText(id,text){const el=document.getElementById(id); if(el) el.textContent=text;}
 function setHtml(id,html){const el=document.getElementById(id); if(el) el.innerHTML=html;}
@@ -819,6 +835,55 @@ if(!url || url.startsWith("#")) return;
 e.preventDefault();
 go(url);
 });
+
+function openDescModal(jobId){
+pendingDescJobId=jobId;
+currentDescText="";
+document.getElementById("descTitle").textContent="Job description";
+document.getElementById("descMeta").textContent="";
+document.getElementById("descBody").textContent="Loading…";
+document.getElementById("descModal").style.display="flex";
+loadDesc(jobId);
+}
+function closeDescModal(){
+pendingDescJobId=null;
+document.getElementById("descModal").style.display="none";
+}
+async function loadDesc(jobId){
+try{
+const session=await requireSession();
+if(!session) return;
+const resp=await apiGet("/me/jobs/description?job_id="+encodeURIComponent(jobId), session.access_token);
+const job=resp && resp.job ? resp.job : null;
+const title=(job && job.title) ? job.title : "Job description";
+const company=(job && job.company_name) ? job.company_name : "";
+const source=(job && job.description_full_source) ? job.description_full_source : "";
+const fetchedAt=(job && job.description_full_fetched_at) ? job.description_full_fetched_at : "";
+document.getElementById("descTitle").textContent=title;
+document.getElementById("descMeta").textContent=[company ? ("Company: "+company) : "", source ? ("Source: "+source) : "", fetchedAt ? ("Fetched: "+fetchedAt) : ""].filter(Boolean).join(" · ");
+const text=(job && job.description_full) ? String(job.description_full) : "";
+currentDescText=text;
+if(text){
+document.getElementById("descBody").textContent=text;
+}else if(job && job.description_full_error){
+document.getElementById("descBody").textContent="No description yet. Last error: "+job.description_full_error;
+}else{
+document.getElementById("descBody").textContent="No description found.";
+}
+}catch(e){
+document.getElementById("descBody").textContent="Failed to load description: "+(e.message||e);
+}
+}
+async function copyDesc(){
+try{
+const t=currentDescText||"";
+if(!t){alert("Nothing to copy yet.");return;}
+await navigator.clipboard.writeText(t);
+alert("Description copied.");
+}catch(e){
+window.prompt("Copy description:", currentDescText||"");
+}
+}
 
 function openSkipModal(jobId){
 pendingSkipJobId=jobId;
@@ -948,12 +1013,15 @@ const openBtn=link
 ? ('<a class="btn small" href="'+escapeHtml(link)+'" target="_blank" rel="noopener">Open</a>')
 : "";
 
+const descBtn = "<button class='btn small ghost' type='button' data-desc='"+escapeHtml(jobId)+"'>Description</button>";
+
 return '<div class="item">'
 + '<div class="itemTop"><div class="itemTitle">'+titleHtml+'</div>'+badge+'</div>'
 + '<div class="itemMeta"><span>'+escapeHtml(company)+'</span><span>•</span><span>'+escapeHtml(loc)+'</span><span>•</span><span>Posted '+escapeHtml(posted)+'</span></div>'
 + '<div class="itemActions">'
 + prioBtn
 + '<button class="btn small danger" type="button" data-skip="'+escapeHtml(jobId)+'">Skip</button>'
++ descBtn
 + openBtn
 + '</div>'
 + '</div>';
@@ -970,6 +1038,13 @@ const skip=e.target.closest("button[data-skip]");
 if(skip){
 const jobId=skip.getAttribute("data-skip")||"";
 if(jobId) openSkipModal(jobId);
+return;
+}
+
+const desc=e.target.closest("button[data-desc]");
+if(desc){
+const jobId=desc.getAttribute("data-desc")||"";
+if(jobId) openDescModal(jobId);
 return;
 }
 const pr=e.target.closest("button[data-prio]");
@@ -1651,6 +1726,13 @@ document.getElementById("skipConfirm").addEventListener("click",()=>submitSkip()
 
 document.getElementById("skipModal").addEventListener("click",(e)=>{
 if(e.target && e.target.id==="skipModal") closeSkipModal();
+});
+
+// Job description modal
+document.getElementById("descClose").addEventListener("click",()=>closeDescModal());
+document.getElementById("descCopy").addEventListener("click",()=>copyDesc());
+document.getElementById("descModal").addEventListener("click",(e)=>{
+if(e.target && e.target.id==="descModal") closeDescModal();
 });
 }
 
