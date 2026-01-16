@@ -336,6 +336,8 @@ justify-content:space-between;
 gap:10px;
 align-items:flex-start;
 }
+
+.badgeGroup{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .itemTitle{font-weight:950;line-height:1.2}
 .itemMeta{
 margin-top:6px;
@@ -748,6 +750,7 @@ box-shadow: none;
       <button class="btn ghost" id="tailorClose" type="button">Close</button>
       <button class="btn ghost" id="tailorRegenerate" type="button">Regenerate</button>
       <button class="btn" id="tailorCopy" type="button">Copy</button>
+      <button class="btn" id="tailorPrint" type="button">Print / PDF</button>
       <button class="btn" id="tailorDownload" type="button">Download .txt</button>
     </div>
   </div>
@@ -804,6 +807,8 @@ const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 let supabaseClient=null;
 
 let lastSessionToken="";
+let lastQueueResponse=null;
+const tailorSummaryMap=new Map();
 let currentPlanDaily=0;
 let currentQueueCount=0;
 
@@ -922,6 +927,32 @@ function closeTailorModal(){
   document.getElementById("tailorModal").style.display="none";
 }
 
+
+function computeAtsMatchPercent(usedArr, missingArr){
+  const used=Array.isArray(usedArr)?usedArr.filter(Boolean).length:0;
+  const miss=Array.isArray(missingArr)?missingArr.filter(Boolean).length:0;
+  const total=used+miss;
+  if(total<=0) return null;
+  return Math.round((used/total)*100);
+}
+
+async function loadTailorSummariesForJobs(jobIds){
+  tailorSummaryMap.clear();
+  const ids=Array.isArray(jobIds)?jobIds.filter(Boolean):[];
+  if(!ids.length) return;
+  if(!lastSessionToken) return;
+  const slice=ids.slice(0,50);
+  try{
+    const resp=await apiGet("/me/cv/tailored?job_ids="+encodeURIComponent(slice.join(",")), lastSessionToken);
+    const rows=(resp && Array.isArray(resp.data)) ? resp.data : [];
+    for(const r of rows){
+      if(r && r.job_id) tailorSummaryMap.set(String(r.job_id), r);
+    }
+  }catch(e){
+    // silent: badges are optional
+  }
+}
+
 function formatKeywordLine(label, arr){
   const list=Array.isArray(arr)?arr.filter(Boolean):[];
   if(!list.length) return "";
@@ -947,11 +978,15 @@ async function generateTailoredCv(jobId, force){
     const model=(res && res.model) ? res.model : "";
     const fromCache=resp && resp.from_cache;
 
+    const atsPct=computeAtsMatchPercent(res ? res.ats_keywords_used : null, res ? res.ats_keywords_missing : null);
+    const atsLabel=(atsPct!==null)?("ATS match: "+atsPct+"%") : "";
+
     document.getElementById("tailorTitle").textContent=title;
     document.getElementById("tailorMeta").textContent=[
       company ? ("Company: "+company) : "",
       model ? ("Model: "+model) : "",
-      fromCache ? "cached" : ""
+      fromCache ? "cached" : "",
+      atsLabel
     ].filter(Boolean).join(" · ");
 
     if(!res || !res.cv_text){
@@ -960,6 +995,18 @@ async function generateTailoredCv(jobId, force){
     }
 
     currentTailorText=String(res.cv_text);
+
+    // Update in-memory summaries so the queue can show an ATS badge immediately
+    tailorSummaryMap.set(String(jobId), {
+      job_id: jobId,
+      ats_keywords_used: res.ats_keywords_used || [],
+      ats_keywords_missing: res.ats_keywords_missing || [],
+      confidence: res.confidence || null,
+      updated_at: new Date().toISOString()
+    });
+    if(lastQueueResponse){
+      setHtml("queueWrap", renderQueueCards(lastQueueResponse));
+    }
 
     const usedLine=formatKeywordLine("ATS keywords used", res.ats_keywords_used);
     const missingLine=formatKeywordLine("ATS keywords missing", res.ats_keywords_missing);
@@ -980,6 +1027,86 @@ async function copyTailor(){
     alert("CV copied.");
   }catch(e){
     window.prompt("Copy CV:", currentTailorText||"");
+  }
+}
+
+
+function cvTextToPrintableHtml(text){
+  const lines=String(text||"").replace(/\r\n/g,"\n").split("\n");
+  const out=[];
+  let inList=false;
+
+  const closeList=()=>{ if(inList){ out.push("</ul>"); inList=false; } };
+
+  for(const raw of lines){
+    const line=String(raw||"");
+    const trimmed=line.trim();
+    if(!trimmed){
+      closeList();
+      out.push("<div class=\"spacer\"></div>");
+      continue;
+    }
+
+    const isBullet=/^(?:[-\u2013\u2022\u2023\u25E6\u2043\u2219]|\u2022)\s+/.test(trimmed) || /^\u2022/.test(trimmed);
+    if(isBullet){
+      const item=trimmed.replace(/^(?:[-\u2013\u2022\u2023\u25E6\u2043\u2219]|\u2022)\s*/," ").trim();
+      if(!inList){ out.push("<ul>"); inList=true; }
+      out.push("<li>"+escapeHtml(item)+"</li>");
+      continue;
+    }
+
+    closeList();
+
+    // Heading heuristic: short line ending with ':'
+    if(trimmed.endsWith(":") && trimmed.length<=70){
+      out.push("<h2>"+escapeHtml(trimmed.slice(0,-1))+"</h2>");
+    } else {
+      out.push("<p>"+escapeHtml(trimmed)+"</p>");
+    }
+  }
+  closeList();
+  return out.join("\n");
+}
+
+function buildPrintHtml(title, meta, bodyText){
+  const safeTitle=escapeHtml(title||"CV");
+  const safeMeta=escapeHtml(meta||"");
+  const body=cvTextToPrintableHtml(bodyText||"");
+  return `<!doctype html>
+<html><head><meta charset="utf-8"><title>${safeTitle}</title>
+<style>
+  body{font-family:Arial,Helvetica,sans-serif; margin:40px;}
+  h1{font-size:20px; margin:0 0 6px 0;}
+  .meta{font-size:11px; margin:0 0 16px 0;}
+  h2{font-size:13px; margin:14px 0 6px 0;}
+  p,li{font-size:12px; line-height:1.4; margin:0 0 6px 0;}
+  ul{margin:0 0 8px 18px; padding:0;}
+  .spacer{height:10px;}
+  @media print{ body{margin:18mm;} }
+</style></head>
+<body>
+  <h1>${safeTitle}</h1>
+  ${safeMeta?(`<div class="meta">${safeMeta}</div>`):""}
+  ${body}
+</body></html>`;
+}
+
+function printTailor(){
+  try{
+    const t=currentTailorText||"";
+    if(!t){ alert("Nothing to print yet."); return; }
+    const title=document.getElementById("tailorTitle").textContent||"Tailored CV";
+    const meta=document.getElementById("tailorMeta").textContent||"";
+    const html=buildPrintHtml(title, meta, t);
+    const w=window.open("", "_blank");
+    if(!w){ alert("Popup blocked. Please allow popups to print."); return; }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(()=>{ try{ w.print(); }catch{} }, 450);
+  }catch(e){
+    alert("Print failed: "+(e.message||e));
   }
 }
 
@@ -1119,7 +1246,19 @@ const titleHtml=link
 ? ('<a href="'+escapeHtml(link)+'" target="_blank" rel="noopener">'+escapeHtml(title)+'</a>')
 : escapeHtml(title);
 
-const badge=prio ? "<span class='badge prio'>prio</span>" : "<span class='badge'>new</span>";
+const prioBadge=prio ? "<span class='badge prio'>prio</span>" : "<span class='badge'>new</span>";
+const tSum=tailorSummaryMap.get(String(jobId));
+let atsBadge="";
+if(tSum){
+  const pct=computeAtsMatchPercent(tSum.ats_keywords_used, tSum.ats_keywords_missing);
+  if(pct!==null){
+    const cls=(pct>=80)?"good":(pct>=60)?"warn":"bad";
+    atsBadge="<span class='badge "+cls+"'>ATS "+pct+"%</span>";
+  }else{
+    atsBadge="<span class='badge'>tailored</span>";
+  }
+}
+const badge="<div class='badgeGroup'>"+prioBadge+atsBadge+"</div>";
 
 const prioBtn=prio
 ? "<button class='btn small ghost' type='button' data-unprio='"+escapeHtml(jobId)+"'>Unprio</button>"
@@ -1579,8 +1718,10 @@ showTopError(e && e.message ? e.message : "Fetch failed");
 
 async function refreshQueueAndActivity(){
 const queue=await apiGet("/me/jobs/queue", lastSessionToken);
+lastQueueResponse=queue;
 const qCount=(typeof queue.count==="number")?queue.count:(Array.isArray(queue.data)?queue.data.length:0);
 currentQueueCount=qCount;
+await loadTailorSummariesForJobs((Array.isArray(queue.data)?queue.data.map(j=>j.id):[]));
 setHtml("queueWrap",renderQueueCards(queue));
 await loadActivity(lastSessionToken);
 }
@@ -1739,6 +1880,7 @@ currentQueueCount=qCount;
 animateNumber(document.getElementById("kpiQueue"),qCount);
 setBadge("badgeQueue",qCount>0?"good":"warn",qCount>0?"OK":"Empty");
 
+await loadTailorSummariesForJobs((Array.isArray(queue.data)?queue.data.map(j=>j.id):[]));
 setHtml("queueWrap",renderQueueCards(queue));
 renderHealth(qCount,plan);
 }catch(e){
@@ -1864,6 +2006,7 @@ if(e.target && e.target.id==="descModal") closeDescModal();
 document.getElementById("tailorClose").addEventListener("click",()=>closeTailorModal());
 document.getElementById("tailorCopy").addEventListener("click",()=>copyTailor());
 document.getElementById("tailorDownload").addEventListener("click",()=>downloadTailor());
+document.getElementById("tailorPrint").addEventListener("click",()=>printTailor());
 document.getElementById("tailorRegenerate").addEventListener("click",()=>regenerateTailor());
 document.getElementById("tailorModal").addEventListener("click",(e)=>{
 if(e.target && e.target.id==="tailorModal") closeTailorModal();
