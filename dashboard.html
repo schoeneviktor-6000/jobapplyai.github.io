@@ -737,6 +737,22 @@ box-shadow: none;
 </div>
 
 
+<div class="modalBackdrop" id="tailorModal" style="display:none">
+  <div class="modalCard" style="max-width:960px">
+    <div class="modalTitle" id="tailorTitle">Tailored CV</div>
+    <div class="small" id="tailorMeta" style="margin-top:-6px"></div>
+    <div class="hr" style="margin:14px 0"></div>
+    <div id="tailorKeywords" class="small" style="margin-bottom:10px"></div>
+    <div id="tailorBody" class="mono" style="white-space:pre-wrap; font-size:13px; line-height:1.45; max-height:60vh; overflow:auto; background:rgba(17,19,24,.04); border:1px solid rgba(17,19,24,.14); padding:12px; border-radius:14px;">Generating…</div>
+    <div class="modalActions">
+      <button class="btn ghost" id="tailorClose" type="button">Close</button>
+      <button class="btn ghost" id="tailorRegenerate" type="button">Regenerate</button>
+      <button class="btn" id="tailorCopy" type="button">Copy</button>
+      <button class="btn" id="tailorDownload" type="button">Download .txt</button>
+    </div>
+  </div>
+</div>
+
 <footer class="footer">Support: <a href="mailto:schonv2@gmail.com">schonv2@gmail.com</a></footer>
 
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -797,6 +813,9 @@ let activityEventType="";
 let pendingSkipJobId=null;
 let pendingDescJobId=null;
 let currentDescText="";
+let pendingTailorJobId=null;
+let currentTailorText="";
+let currentTailorResult=null;
 
 function setText(id,text){const el=document.getElementById(id); if(el) el.textContent=text;}
 function setHtml(id,html){const el=document.getElementById(id); if(el) el.innerHTML=html;}
@@ -885,6 +904,103 @@ window.prompt("Copy description:", currentDescText||"");
 }
 }
 
+
+// Tailored CV modal
+function openTailorModal(jobId, force){
+  pendingTailorJobId=jobId;
+  currentTailorText="";
+  currentTailorResult=null;
+  document.getElementById("tailorTitle").textContent="Tailored CV";
+  document.getElementById("tailorMeta").textContent="";
+  document.getElementById("tailorKeywords").textContent="";
+  document.getElementById("tailorBody").textContent=force ? "Regenerating…" : "Generating…";
+  document.getElementById("tailorModal").style.display="flex";
+  generateTailoredCv(jobId, !!force);
+}
+function closeTailorModal(){
+  pendingTailorJobId=null;
+  document.getElementById("tailorModal").style.display="none";
+}
+
+function formatKeywordLine(label, arr){
+  const list=Array.isArray(arr)?arr.filter(Boolean):[];
+  if(!list.length) return "";
+  return label+": "+list.slice(0,24).join(", ");
+}
+
+async function generateTailoredCv(jobId, force){
+  try{
+    const session=await requireSession();
+    if(!session) return;
+
+    document.getElementById("tailorBody").textContent=force ? "Regenerating…" : "Generating…";
+    document.getElementById("tailorKeywords").textContent="";
+
+    const resp=await apiPost("/me/cv/tailor", session.access_token, { job_id: jobId, force: !!force });
+
+    const job=resp && resp.job ? resp.job : null;
+    const res=resp && resp.result ? resp.result : null;
+    currentTailorResult=res;
+
+    const title=(job && job.title) ? job.title : "Tailored CV";
+    const company=(job && job.company_name) ? job.company_name : "";
+    const model=(res && res.model) ? res.model : "";
+    const fromCache=resp && resp.from_cache;
+
+    document.getElementById("tailorTitle").textContent=title;
+    document.getElementById("tailorMeta").textContent=[
+      company ? ("Company: "+company) : "",
+      model ? ("Model: "+model) : "",
+      fromCache ? "cached" : ""
+    ].filter(Boolean).join(" · ");
+
+    if(!res || !res.cv_text){
+      document.getElementById("tailorBody").textContent="No CV generated.";
+      return;
+    }
+
+    currentTailorText=String(res.cv_text);
+
+    const usedLine=formatKeywordLine("ATS keywords used", res.ats_keywords_used);
+    const missingLine=formatKeywordLine("ATS keywords missing", res.ats_keywords_missing);
+    const lines=[usedLine, missingLine].filter(Boolean).join("\n");
+    document.getElementById("tailorKeywords").textContent=lines;
+
+    document.getElementById("tailorBody").textContent=currentTailorText;
+  }catch(e){
+    document.getElementById("tailorBody").textContent="Failed to generate CV: "+(e.message||e);
+  }
+}
+
+async function copyTailor(){
+  try{
+    const t=currentTailorText||"";
+    if(!t){alert("Nothing to copy yet.");return;}
+    await navigator.clipboard.writeText(t);
+    alert("CV copied.");
+  }catch(e){
+    window.prompt("Copy CV:", currentTailorText||"");
+  }
+}
+
+function downloadTailor(){
+  try{
+    const t=currentTailorText||"";
+    if(!t){alert("Nothing to download yet.");return;}
+    const name=(document.getElementById("tailorTitle").textContent||"tailored_cv").replace(/[^a-z0-9\-_]+/gi,"_").slice(0,60);
+    const blob=new Blob([t], {type:"text/plain;charset=utf-8"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;
+    a.download=name+".txt";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  }catch(e){
+    alert("Download failed: "+(e.message||e));
+  }
+}
 function openSkipModal(jobId){
 pendingSkipJobId=jobId;
 document.getElementById("skipNote").value="";
@@ -1014,6 +1130,7 @@ const openBtn=link
 : "";
 
 const descBtn = "<button class='btn small ghost' type='button' data-desc='"+escapeHtml(jobId)+"'>Description</button>";
+const tailorBtn = "<button class='btn small' type='button' data-tailor='"+escapeHtml(jobId)+"'>Tailor CV</button>";
 
 return '<div class="item">'
 + '<div class="itemTop"><div class="itemTitle">'+titleHtml+'</div>'+badge+'</div>'
@@ -1022,6 +1139,7 @@ return '<div class="item">'
 + prioBtn
 + '<button class="btn small danger" type="button" data-skip="'+escapeHtml(jobId)+'">Skip</button>'
 + descBtn
++ tailorBtn
 + openBtn
 + '</div>'
 + '</div>';
@@ -1045,6 +1163,13 @@ const desc=e.target.closest("button[data-desc]");
 if(desc){
 const jobId=desc.getAttribute("data-desc")||"";
 if(jobId) openDescModal(jobId);
+return;
+}
+
+const tl=e.target.closest("button[data-tailor]");
+if(tl){
+const jobId=tl.getAttribute("data-tailor")||"";
+if(jobId) openTailorModal(jobId, false);
 return;
 }
 const pr=e.target.closest("button[data-prio]");
@@ -1733,6 +1858,15 @@ document.getElementById("descClose").addEventListener("click",()=>closeDescModal
 document.getElementById("descCopy").addEventListener("click",()=>copyDesc());
 document.getElementById("descModal").addEventListener("click",(e)=>{
 if(e.target && e.target.id==="descModal") closeDescModal();
+});
+
+// Tailored CV modal
+document.getElementById("tailorClose").addEventListener("click",()=>closeTailorModal());
+document.getElementById("tailorCopy").addEventListener("click",()=>copyTailor());
+document.getElementById("tailorDownload").addEventListener("click",()=>downloadTailor());
+document.getElementById("tailorRegenerate").addEventListener("click",()=>regenerateTailor());
+document.getElementById("tailorModal").addEventListener("click",(e)=>{
+if(e.target && e.target.id==="tailorModal") closeTailorModal();
 });
 }
 
