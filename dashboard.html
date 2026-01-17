@@ -1168,16 +1168,57 @@ li{margin:3px 0;font-size:12px;line-height:1.5;}
 
 function printTailor(){
   if(!currentTailorText){ showTopError("No tailored CV loaded"); return; }
-  const jobTitle=(document.getElementById("tailorJobTitle")?.textContent||"").trim();
+
+  const jobTitle=(document.getElementById("tailorTitle")?.textContent||"").trim();
   const title=jobTitle ? ("CV • " + jobTitle) : "CV";
   const html=buildPrintHtml(title, currentTailorText);
-  const w=window.open("","_blank","noopener,noreferrer");
+
+  // More reliable than window.open() across browsers (fixes "about:blank" white-page printing).
+  // We write a small standalone HTML document to a hidden iframe and print from there.
+  try{
+    let frame=document.getElementById("printFrame");
+    if(!frame){
+      frame=document.createElement("iframe");
+      frame.id="printFrame";
+      frame.style.position="fixed";
+      frame.style.right="0";
+      frame.style.bottom="0";
+      frame.style.width="0";
+      frame.style.height="0";
+      frame.style.border="0";
+      frame.style.opacity="0";
+      document.body.appendChild(frame);
+    }
+
+    const blob=new Blob([html], {type:"text/html;charset=utf-8"});
+    const url=URL.createObjectURL(blob);
+
+    frame.onload=()=>{
+      try{
+        // Small delay improves reliability in Safari/Chrome.
+        setTimeout(()=>{
+          try{ frame.contentWindow.focus(); }catch(_){ }
+          try{ frame.contentWindow.print(); }catch(_){ }
+        }, 50);
+      } finally {
+        setTimeout(()=>{ try{ URL.revokeObjectURL(url); }catch(_){ } }, 2000);
+      }
+    };
+    frame.src=url;
+    return;
+  }catch(e){
+    // Fallback to window.open if iframe printing fails.
+  }
+
+  const w=window.open();
   if(!w){ showTopError("Popup blocked. Please allow popups for printing."); return; }
   w.document.open();
   w.document.write(html);
   w.document.close();
-  w.focus();
-  w.print();
+  setTimeout(()=>{
+    try{ w.focus(); }catch(_){ }
+    try{ w.print(); }catch(_){ }
+  }, 100);
 }
 
 function downloadTailor(){
@@ -1298,6 +1339,20 @@ function isSingleColumn(){
 return window.matchMedia && window.matchMedia("(max-width: 1100px)").matches;
 }
 
+function daysAgo(ts){
+  if(!ts) return null;
+  let d=new Date(ts);
+  if(isNaN(d.getTime())){
+    const m=String(ts).match(/^(\d{4}-\d{2}-\d{2})/);
+    if(!m) return null;
+    d=new Date(m[1] + "T00:00:00Z");
+    if(isNaN(d.getTime())) return null;
+  }
+  const diffMs=Date.now() - d.getTime();
+  const days=Math.floor(diffMs / 86400000);
+  return days < 0 ? 0 : days;
+}
+
 function renderQueueCards(queue){
   const items=Array.isArray(queue?.data)?queue.data:[];
   if(items.length===0) return '<span class="badge warn">No jobs in queue</span>';
@@ -1330,20 +1385,12 @@ function renderQueueCards(queue){
       }
     }
 
-    const sourceBadge = (j.source_id===1) ? "<span class='badge'>BA</span>" : "";
-    const descOk = j.description_full_fetched_at && !j.description_full_error;
-    const descBad = !!j.description_full_error;
-    const descBadge = descOk ? "<span class='badge good'>desc</span>" : (descBad ? "<span class='badge bad'>desc err</span>" : "");
-    const badge="<div class='badgeGroup'>"+prioBadge+sourceBadge+descBadge+atsBadge+"</div>";
+    const badge="<div class='badgeGroup'>"+prioBadge+atsBadge+"</div>";
 
-    // Tags row (small labels)
-    const tags=[];
-    if(j.employment_type) tags.push({t:String(j.employment_type),k:""});
-    if(j.seniority) tags.push({t:String(j.seniority),k:""});
-    if(j.external_job_id && (j.source_id===1)) tags.push({t:"Refnr "+String(j.external_job_id),k:""});
-    const tagsHtml = tags.length
-      ? ('<div class="tagRow">'+tags.map(x=>'<span class="tag '+(x.k||'')+'">'+escapeHtml(x.t)+'</span>').join('')+'</div>')
-      : '';
+    const updatedDays=daysAgo(j.source_modified_at);
+    const updatedLabel=(updatedDays===null)
+      ? "Updated —"
+      : (updatedDays===0 ? "Updated today" : ("Updated " + updatedDays + "d ago"));
 
     const prioBtn=prio
       ? "<button class='btn small ghost' type='button' data-unprio='"+escapeHtml(jobId)+"'>Unprio</button>"
@@ -1354,8 +1401,11 @@ function renderQueueCards(queue){
 
     return '<div class="item">'
       + '<div class="itemTop"><div class="itemTitle">'+titleHtml+'</div>'+badge+'</div>'
-      + '<div class="itemMeta"><span>'+escapeHtml(company)+'</span><span>•</span><span>'+escapeHtml(loc)+'</span><span>•</span><span>Posted '+escapeHtml(posted)+'</span></div>'
-      + tagsHtml
+      + '<div class="itemMeta">'
+        + '<span>'+escapeHtml(company)+'</span><span>•</span><span>'+escapeHtml(loc)+'</span><span>•</span>'
+        + '<span>Posted '+escapeHtml(posted)+'</span>'
+        + (updatedLabel ? ('<span>•</span><span>'+escapeHtml(updatedLabel)+'</span>') : '')
+      + '</div>'
       + '<div class="itemActions">'
       + prioBtn
       + '<button class="btn small danger" type="button" data-skip="'+escapeHtml(jobId)+'">Skip</button>'
