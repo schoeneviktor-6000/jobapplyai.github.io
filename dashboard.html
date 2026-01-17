@@ -348,6 +348,12 @@ color:var(--muted2);
 font-size:12px;
 font-weight:750;
 }
+.tagRow{margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;}
+.tag{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:999px;border:1px solid rgba(17,19,24,.12);background:rgba(17,19,24,.04);font-size:11px;font-weight:800;color:var(--muted2);}
+.tag.ok{border-color:rgba(0,184,98,.25);background:rgba(0,184,98,.08);}
+.tag.warn{border-color:rgba(255,179,0,.28);background:rgba(255,179,0,.10);}
+.tag.bad{border-color:rgba(239,68,68,.25);background:rgba(239,68,68,.08);}
+
 .itemActions{
 margin-top:10px;
 display:flex;
@@ -1031,83 +1037,147 @@ async function copyTailor(){
 }
 
 
-function cvTextToPrintableHtml(text){
-  const lines=String(text||"").replace(/\r\n/g,"\n").split("\n");
-  const out=[];
+function cvTextToPrintableHtml(cvText){
+  const raw=String(cvText||"").replace(/\r\n?/g,"\n").replace(/\u00a0/g," ");
+  const lines=raw.split("\n");
+
+  const ALL_HEADINGS = new Set([
+    "CONTACT","PROFESSIONAL SUMMARY","WORK EXPERIENCE","EDUCATION","SKILLS","CERTIFICATIONS","LANGUAGES","PROJECTS","VOLUNTEERING","INTERESTS",
+    "KONTAKT","PROFIL","BERUFSERFAHRUNG","AUSBILDUNG","KENNTNISSE","ZERTIFIKATE","SPRACHEN","PROJEKTE","EHRENAMT","INTERESSEN"
+  ]);
+
+  function isHeadingLine(t){
+    const s=String(t||"").trim();
+    if(!s) return false;
+    const base=s.replace(/:$/,'').trim();
+    const up=base.toUpperCase();
+    if(ALL_HEADINGS.has(up)) return true;
+    if(s.endsWith(":") && s.length<=70) return true;
+    if(/^[A-ZÄÖÜẞ0-9 &/+,\.\-]{3,60}$/.test(base) && base===base.toUpperCase() && base.length<=45) return true;
+    return false;
+  }
+
+  function isBulletLine(t){
+    const s=String(t||"").trim();
+    if(!s) return false;
+    return /^(?:[-\u2013\u2014\u2022\u2023\u25E6\u2043\u2219\u00B7])(?:\s+|$)/.test(s);
+  }
+  function bulletContent(t){
+    const s=String(t||"").trim();
+    return s.replace(/^(?:[-\u2013\u2014\u2022\u2023\u25E6\u2043\u2219\u00B7])\s*/,"").trim();
+  }
+
+  let out=[];
   let inList=false;
+  let inContact=false;
+  let contactNameDone=false;
 
-  const closeList=()=>{ if(inList){ out.push("</ul>"); inList=false; } };
+  function closeList(){
+    if(inList){ out.push("</ul>"); inList=false; }
+  }
+  function closeContact(){
+    if(inContact){ closeList(); out.push("</div>"); inContact=false; contactNameDone=false; }
+  }
 
-  for(const raw of lines){
-    const line=String(raw||"");
-    const trimmed=line.trim();
-    if(!trimmed){
+  for(let i=0;i<lines.length;i++){
+    const t=String(lines[i]||"").trim();
+
+    if(!t){
       closeList();
+      if(inContact){ closeContact(); }
       out.push("<div class=\"spacer\"></div>");
       continue;
     }
 
-    const isBullet=/^(?:[-\u2013\u2022\u2023\u25E6\u2043\u2219]|\u2022)\s+/.test(trimmed) || /^\u2022/.test(trimmed);
-    if(isBullet){
-      const item=trimmed.replace(/^(?:[-\u2013\u2022\u2023\u25E6\u2043\u2219]|\u2022)\s*/," ").trim();
+    const headBase=t.replace(/:$/,'').trim().toUpperCase();
+    const isContactHeading=(headBase==="CONTACT"||headBase==="KONTAKT");
+    if(isContactHeading){
+      closeContact();
+      closeList();
+      inContact=true;
+      out.push("<div class=\"cvHeader\">");
+      continue;
+    }
+
+    if(isHeadingLine(t)){
+      closeContact();
+      closeList();
+      out.push("<h2>"+escapeHtml(t.replace(/:$/,'').trim())+"</h2>");
+      continue;
+    }
+
+    if(isBulletLine(t)){
+      let content=bulletContent(t);
+      if(!content){
+        // Merge bullet-only line with the next meaningful line
+        let j=i+1;
+        while(j<lines.length && !String(lines[j]||"").trim()) j++;
+        if(j<lines.length){
+          const next=String(lines[j]||"").trim();
+          if(next && !isHeadingLine(next) && !isBulletLine(next)){
+            content=next;
+            i=j;
+          }else{
+            continue;
+          }
+        }else{
+          continue;
+        }
+      }
       if(!inList){ out.push("<ul>"); inList=true; }
-      out.push("<li>"+escapeHtml(item)+"</li>");
+      out.push("<li>"+escapeHtml(content)+"</li>");
       continue;
     }
 
     closeList();
-
-    // Heading heuristic: short line ending with ':'
-    if(trimmed.endsWith(":") && trimmed.length<=70){
-      out.push("<h2>"+escapeHtml(trimmed.slice(0,-1))+"</h2>");
-    } else {
-      out.push("<p>"+escapeHtml(trimmed)+"</p>");
+    if(inContact){
+      if(!contactNameDone){
+        out.push("<h1 class=\"cvName\">"+escapeHtml(t)+"</h1>");
+        contactNameDone=true;
+      }else{
+        out.push("<div class=\"cvContactLine\">"+escapeHtml(t)+"</div>");
+      }
+    }else{
+      out.push("<p>"+escapeHtml(t)+"</p>");
     }
   }
+
+  closeContact();
   closeList();
   return out.join("\n");
 }
 
-function buildPrintHtml(title, meta, bodyText){
+function buildPrintHtml(title, cvText){
   const safeTitle=escapeHtml(title||"CV");
-  const safeMeta=escapeHtml(meta||"");
-  const body=cvTextToPrintableHtml(bodyText||"");
-  return `<!doctype html>
-<html><head><meta charset="utf-8"><title>${safeTitle}</title>
+  const bodyHtml=cvTextToPrintableHtml(cvText);
+  return `<!doctype html><html><head><meta charset=\"utf-8\" />
+<title>${safeTitle}</title>
 <style>
-  body{font-family:Arial,Helvetica,sans-serif; margin:40px;}
-  h1{font-size:20px; margin:0 0 6px 0;}
-  .meta{font-size:11px; margin:0 0 16px 0;}
-  h2{font-size:13px; margin:14px 0 6px 0;}
-  p,li{font-size:12px; line-height:1.4; margin:0 0 6px 0;}
-  ul{margin:0 0 8px 18px; padding:0;}
-  .spacer{height:10px;}
-  @media print{ body{margin:18mm;} }
-</style></head>
-<body>
-  <h1>${safeTitle}</h1>
-  ${safeMeta?(`<div class="meta">${safeMeta}</div>`):""}
-  ${body}
-</body></html>`;
+@page{margin:18mm 14mm;}
+body{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif;max-width:820px;margin:24px auto;padding:0 10px;color:#111;}
+.cvHeader{padding-bottom:12px;border-bottom:1px solid #ddd;margin-bottom:14px;}
+.cvName{margin:0 0 6px;font-size:26px;letter-spacing:.2px;}
+.cvContactLine{font-size:12px;color:#444;line-height:1.35;}
+h2{margin:16px 0 6px;font-size:12px;letter-spacing:.10em;text-transform:uppercase;color:#111;}
+p{margin:4px 0 6px;font-size:12px;line-height:1.5;}
+ul{margin:6px 0 10px 18px;padding:0;}
+li{margin:3px 0;font-size:12px;line-height:1.5;}
+.spacer{height:8px;}
+</style></head><body>${bodyHtml}</body></html>`;
 }
 
 function printTailor(){
-  try{
-    const t=currentTailorText||"";
-    if(!t){ alert("Nothing to print yet."); return; }
-    const title=document.getElementById("tailorTitle").textContent||"Tailored CV";
-    const meta=document.getElementById("tailorMeta").textContent||"";
-    const html=buildPrintHtml(title, meta, t);
-    const w=window.open("", "_blank");
-    if(!w){ alert("Popup blocked. Please allow popups to print."); return; }
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
-    w.focus();
-    setTimeout(()=>{ try{ w.print(); }catch{} }, 450);
-  }catch(e){
-    alert("Print failed: "+(e.message||e));
-  }
+  if(!currentTailorText){ showTopError("No tailored CV loaded"); return; }
+  const jobTitle=(document.getElementById("tailorJobTitle")?.textContent||"").trim();
+  const title=jobTitle ? ("CV • " + jobTitle) : "CV";
+  const html=buildPrintHtml(title, currentTailorText);
+  const w=window.open("","_blank","noopener,noreferrer");
+  if(!w){ showTopError("Popup blocked. Please allow popups for printing."); return; }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  w.print();
 }
 
 function downloadTailor(){
@@ -1229,62 +1299,73 @@ return window.matchMedia && window.matchMedia("(max-width: 1100px)").matches;
 }
 
 function renderQueueCards(queue){
-const items=Array.isArray(queue?.data)?queue.data:[];
-if(items.length===0) return '<span class="badge warn">No jobs in queue</span>';
-const wrapClass=isSingleColumn() ? "list" : "listGrid";
+  const items=Array.isArray(queue?.data)?queue.data:[];
+  if(items.length===0) return '<span class="badge warn">No jobs in queue</span>';
+  const wrapClass=isSingleColumn() ? "list" : "listGrid";
 
-const cards=items.slice(0,16).map(j=>{
-const title=j.title||"Untitled";
-const company=j.company_name||"—";
-const loc=[j.city||"", j.region||""].filter(Boolean).join(", ") || "—";
-const posted=j.posted_at?String(j.posted_at).slice(0,10):"—";
-const link=j.apply_url?String(j.apply_url):"";
-const jobId=j.id||"";
-const prio=!!(j._application && j._application.priority);
+  const cards=items.slice(0,16).map(j=>{
+    const title=j.title||"Untitled";
+    const company=j.company_name||"—";
+    const loc=[j.city||"", j.region||""].filter(Boolean).join(", ") || "—";
+    const posted=j.posted_at?String(j.posted_at).slice(0,10):"—";
+    const link=j.apply_url?String(j.apply_url):"";
+    const jobId=j.id||"";
+    const prio=!!(j._application && j._application.priority);
 
-const titleHtml=link
-? ('<a href="'+escapeHtml(link)+'" target="_blank" rel="noopener">'+escapeHtml(title)+'</a>')
-: escapeHtml(title);
+    const titleHtml=link
+      ? ('<a href="'+escapeHtml(link)+'" target="_blank" rel="noopener">'+escapeHtml(title)+'</a>')
+      : escapeHtml(title);
 
-const prioBadge=prio ? "<span class='badge prio'>prio</span>" : "<span class='badge'>new</span>";
-const tSum=tailorSummaryMap.get(String(jobId));
-let atsBadge="";
-if(tSum){
-  const pct=computeAtsMatchPercent(tSum.ats_keywords_used, tSum.ats_keywords_missing);
-  if(pct!==null){
-    const cls=(pct>=80)?"good":(pct>=60)?"warn":"bad";
-    atsBadge="<span class='badge "+cls+"'>ATS "+pct+"%</span>";
-  }else{
-    atsBadge="<span class='badge'>tailored</span>";
-  }
-}
-const badge="<div class='badgeGroup'>"+prioBadge+atsBadge+"</div>";
+    // Badges on the top-right (compact)
+    const prioBadge=prio ? "<span class='badge prio'>prio</span>" : "<span class='badge'>new</span>";
+    const tSum=tailorSummaryMap.get(String(jobId));
+    let atsBadge="";
+    if(tSum){
+      const pct=computeAtsMatchPercent(tSum.ats_keywords_used, tSum.ats_keywords_missing);
+      if(pct!==null){
+        const cls=(pct>=80)?"good":(pct>=60)?"warn":"bad";
+        atsBadge="<span class='badge "+cls+"'>ATS "+pct+"%</span>";
+      }else{
+        atsBadge="<span class='badge'>tailored</span>";
+      }
+    }
 
-const prioBtn=prio
-? "<button class='btn small ghost' type='button' data-unprio='"+escapeHtml(jobId)+"'>Unprio</button>"
-: "<button class='btn small' type='button' data-prio='"+escapeHtml(jobId)+"'>Prio</button>";
+    const sourceBadge = (j.source_id===1) ? "<span class='badge'>BA</span>" : "";
+    const descOk = j.description_full_fetched_at && !j.description_full_error;
+    const descBad = !!j.description_full_error;
+    const descBadge = descOk ? "<span class='badge good'>desc</span>" : (descBad ? "<span class='badge bad'>desc err</span>" : "");
+    const badge="<div class='badgeGroup'>"+prioBadge+sourceBadge+descBadge+atsBadge+"</div>";
 
-const openBtn=link
-? ('<a class="btn small" href="'+escapeHtml(link)+'" target="_blank" rel="noopener">Open</a>')
-: "";
+    // Tags row (small labels)
+    const tags=[];
+    if(j.employment_type) tags.push({t:String(j.employment_type),k:""});
+    if(j.seniority) tags.push({t:String(j.seniority),k:""});
+    if(j.external_job_id && (j.source_id===1)) tags.push({t:"Refnr "+String(j.external_job_id),k:""});
+    const tagsHtml = tags.length
+      ? ('<div class="tagRow">'+tags.map(x=>'<span class="tag '+(x.k||'')+'">'+escapeHtml(x.t)+'</span>').join('')+'</div>')
+      : '';
 
-const descBtn = "<button class='btn small ghost' type='button' data-desc='"+escapeHtml(jobId)+"'>Description</button>";
-const tailorBtn = "<button class='btn small' type='button' data-tailor='"+escapeHtml(jobId)+"'>Tailor CV</button>";
+    const prioBtn=prio
+      ? "<button class='btn small ghost' type='button' data-unprio='"+escapeHtml(jobId)+"'>Unprio</button>"
+      : "<button class='btn small' type='button' data-prio='"+escapeHtml(jobId)+"'>Prio</button>";
 
-return '<div class="item">'
-+ '<div class="itemTop"><div class="itemTitle">'+titleHtml+'</div>'+badge+'</div>'
-+ '<div class="itemMeta"><span>'+escapeHtml(company)+'</span><span>•</span><span>'+escapeHtml(loc)+'</span><span>•</span><span>Posted '+escapeHtml(posted)+'</span></div>'
-+ '<div class="itemActions">'
-+ prioBtn
-+ '<button class="btn small danger" type="button" data-skip="'+escapeHtml(jobId)+'">Skip</button>'
-+ descBtn
-+ tailorBtn
-+ openBtn
-+ '</div>'
-+ '</div>';
-}).join("");
+    const descBtn = "<button class='btn small ghost' type='button' data-desc='"+escapeHtml(jobId)+"'>Description</button>";
+    const tailorBtn = "<button class='btn small' type='button' data-tailor='"+escapeHtml(jobId)+"'>Tailor CV</button>";
 
-return '<div class="'+wrapClass+'">'+cards+'</div>';
+    return '<div class="item">'
+      + '<div class="itemTop"><div class="itemTitle">'+titleHtml+'</div>'+badge+'</div>'
+      + '<div class="itemMeta"><span>'+escapeHtml(company)+'</span><span>•</span><span>'+escapeHtml(loc)+'</span><span>•</span><span>Posted '+escapeHtml(posted)+'</span></div>'
+      + tagsHtml
+      + '<div class="itemActions">'
+      + prioBtn
+      + '<button class="btn small danger" type="button" data-skip="'+escapeHtml(jobId)+'">Skip</button>'
+      + descBtn
+      + tailorBtn
+      + '</div>'
+      + '</div>';
+  }).join("");
+
+  return '<div class="'+wrapClass+'">'+cards+'</div>';
 }
 
 function wireQueueClicks(){
