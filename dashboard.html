@@ -1009,15 +1009,22 @@ function openTailorModal(jobId, force){
   setTailorView(tailorViewMode||"preview");
 
   setText("tailorTitle", "Tailored CV");
-  setText("tailorStatus", "Generating…");
-  setText("tailorMeta", "Preparing…");
-  setText("tailorKeywords", "");
-  setHtml("tailorPreview", '<div class="small">Generating…</div>');
+  setText("tailorStatus", "Ready");
+  setText("tailorMeta", "Choose your options and click Generate.");
+  setHtml("tailorKeywords", "");
+  const kw=document.getElementById("tailorKeywords");
+  if(kw) kw.style.display="none";
+
+  setHtml("tailorPreview", '<div class="small">Choose settings above and click <b>Generate</b>.</div>');
   const tb=document.getElementById("tailorBody");
-  if(tb) tb.textContent="Generating…";
+  if(tb) tb.textContent="Choose settings above and click Generate.";
+
+  // Button state
+  const genBtn=document.getElementById("tailorRegenerate");
+  if(genBtn) genBtn.textContent="Generate";
+  updateTailorButtonsState(false);
 
   showModal("tailorModal");
-  generateTailoredCv(jobId, force);
 }
 
 function regenerateTailor(){
@@ -1072,6 +1079,7 @@ function setTailorView(mode){
 async function generateTailoredCv(jobId, force){
   try{
     setText("tailorStatus", "Generating…");
+    updateTailorButtonsState(true);
 
     const template=getTailorTemplate();
     const strength=getStrengthKeyFromSlider();
@@ -1080,7 +1088,10 @@ async function generateTailoredCv(jobId, force){
     setText("tailorMeta", `Template: ${template} · Strength: ${strength}`);
 
     const payload={ job_id: jobId, force: !!force, template, strength };
-    const resp=await apiPost("/me/cv/tailor", payload);
+    const session=await requireSession();
+    if(!session) return;
+
+    const resp=await apiPost("/me/cv/tailor", session.access_token, payload);
     if(!resp.ok) throw new Error(resp.error || "CV tailoring failed");
 
     const r=resp.result || {};
@@ -1104,6 +1115,8 @@ async function generateTailoredCv(jobId, force){
       `</div>`,
       explain,
     ].join(""));
+    const kw2=document.getElementById("tailorKeywords");
+    if(kw2) kw2.style.display="block";
 
     if(currentTailorDoc){
       setHtml("tailorPreview", cvDocToPreviewHtml(currentTailorDoc, r.language || "en"));
@@ -1116,6 +1129,7 @@ async function generateTailoredCv(jobId, force){
 
     // Update badge cache for the job card
     tailorSummaryMap.set(jobId, { ats_score: score, updated_at: r.updated_at || new Date().toISOString() });
+    updateTailorButtonsState(false);
     renderAllJobs();
   }catch(err){
     const msg = String(err?.message || err);
@@ -1124,6 +1138,7 @@ async function generateTailoredCv(jobId, force){
     setHtml("tailorPreview", `<div class="small" style="color:var(--bad)">Failed to generate CV: ${escapeHtml(msg)}</div>`);
     const tb=document.getElementById("tailorBody");
     if(tb) tb.textContent=`Failed to generate CV: ${msg}`;
+    updateTailorButtonsState(false);
   }
 }
 
@@ -1329,6 +1344,140 @@ function downloadTailor(){
   const title = currentTailorJobTitle ? `CV Tailored - ${currentTailorJobTitle}` : "CV Tailored";
   downloadTextFile(`${title}.txt`, currentTailorText);
 }
+
+function updateTailorButtonsState(isGenerating){
+  const gen=document.getElementById("tailorRegenerate");
+  const copy=document.getElementById("tailorCopy");
+  const dl=document.getElementById("tailorDownload");
+  const pr=document.getElementById("tailorPrint");
+
+  const hasOutput = !!(currentTailorText && String(currentTailorText).trim()) || !!currentTailorDoc;
+
+  if(copy) copy.disabled = !!isGenerating || !hasOutput;
+  if(dl) dl.disabled = !!isGenerating || !(currentTailorText && String(currentTailorText).trim());
+  if(pr) pr.disabled = !!isGenerating || !hasOutput;
+  if(gen) gen.disabled = !!isGenerating;
+
+  if(gen){
+    if(isGenerating) gen.textContent = "Generating…";
+    else gen.textContent = hasOutput ? "Regenerate" : "Generate";
+  }
+}
+
+function cvDocToPlainText(doc, lang){
+  const L=cvLabels(lang);
+  const lines=[];
+  const name=String(doc?.name||"").trim();
+  const role=String(doc?.target_role||"").trim();
+  if(name) lines.push(name);
+  if(role) lines.push(role);
+
+  const c = doc?.contact || {};
+  const contactLine = joinNonEmpty([
+    c.phone,
+    c.email,
+    c.linkedin,
+    c.portfolio,
+    c.location,
+  ], " | ");
+  if(contactLine) lines.push(contactLine);
+
+  function addTitle(t){
+    lines.push("");
+    lines.push(t);
+    lines.push("-".repeat(Math.min(40, t.length)));
+  }
+  function addBullets(arr){
+    const items=asStringArr(arr, 200);
+    for(const it of items){
+      lines.push("- "+it);
+    }
+  }
+
+  // Summary
+  const summary=asStringArr(doc?.summary, 20);
+  if(summary.length){ addTitle(L.summary); addBullets(summary); }
+
+  // Experience
+  const exp=Array.isArray(doc?.experience)?doc.experience:[];
+  if(exp.length){
+    addTitle(L.experience);
+    for(const e of exp){
+      const head = joinNonEmpty([e?.title, e?.company], " — ");
+      const meta = joinNonEmpty([fmtPeriod(e?.start, e?.end), e?.location], " | ");
+      if(head) lines.push(head);
+      if(meta) lines.push(meta);
+      const bullets=asStringArr(e?.bullets, 50);
+      for(const b of bullets){ lines.push("  - "+b); }
+      lines.push("");
+    }
+  }
+
+  // Education
+  const edu=Array.isArray(doc?.education)?doc.education:[];
+  if(edu.length){
+    addTitle(L.education);
+    for(const e of edu){
+      const degree=joinNonEmpty([e?.degree, e?.field], " · ");
+      const school=joinNonEmpty([e?.school, e?.location], " · ");
+      const meta=fmtPeriod(e?.start, e?.end);
+      if(degree) lines.push(degree);
+      if(school) lines.push(school);
+      if(meta) lines.push(meta);
+      lines.push("");
+    }
+  }
+
+  // Achievements
+  const ach=asStringArr(doc?.key_achievements, 50);
+  if(ach.length){ addTitle(L.achievements); addBullets(ach); }
+
+  // Skills
+  const skills=doc?.skills || {};
+  const groups=Array.isArray(skills?.groups)?skills.groups:[];
+  const additional=asStringArr(skills?.additional, 200);
+  if(groups.length || additional.length){
+    addTitle(L.skills);
+    for(const g of groups.slice(0,12)){
+      const label=String(g?.label||"").trim();
+      const items=asStringArr(g?.items, 200);
+      if(label && items.length) lines.push(label+": "+items.join(", "));
+      else if(items.length) lines.push(items.join(", "));
+    }
+    if(additional.length) lines.push(additional.join(", "));
+  }
+
+  // Courses
+  const courses=asStringArr(doc?.courses, 80);
+  if(courses.length){ addTitle(L.courses); lines.push(courses.join(" · ")); }
+
+  // Interests
+  const interests=asStringArr(doc?.interests, 80);
+  if(interests.length){ addTitle(L.interests); lines.push(interests.join(" · ")); }
+
+  // Languages
+  const langs=asStringArr(doc?.languages, 40);
+  if(langs.length){ addTitle(L.languages); lines.push(langs.join(" · ")); }
+
+  return lines.join("\n").trim()+"\n";
+}
+
+async function copyTailor(){
+  try{
+    let t = currentTailorText || "";
+    if(!t && currentTailorDoc){
+      const lang = (currentTailorResult && currentTailorResult.language) ? currentTailorResult.language : "en";
+      t = cvDocToPlainText(currentTailorDoc, lang);
+    }
+    if(!t){ alert("Nothing to copy yet."); return; }
+    await navigator.clipboard.writeText(t);
+    alert("CV copied.");
+  }catch(e){
+    const fallback = currentTailorText || "";
+    window.prompt("Copy CV:", fallback);
+  }
+}
+
 
 function openSkipModal(jobId){
 pendingSkipJobId=jobId;
