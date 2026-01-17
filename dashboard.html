@@ -1373,6 +1373,58 @@ throw new Error(path+" failed: "+res.status+" "+msg);
 return json;
 }
 
+// --- Tailored CV summaries (for ATS badge on cards) ---
+function normalizeKeywordList(x){
+  if(!x) return [];
+  if(Array.isArray(x)) return x.map(v=>String(v||"").trim()).filter(Boolean);
+  if(typeof x === "string"){
+    const s=x.trim();
+    if(!s) return [];
+    try{
+      const j=JSON.parse(s);
+      if(Array.isArray(j)) return j.map(v=>String(v||"").trim()).filter(Boolean);
+    }catch{}
+    return s.split(/[\n,;]+/).map(t=>t.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+function computeAtsMatchPercent(used, missing){
+  const u=normalizeKeywordList(used);
+  const m=normalizeKeywordList(missing);
+  const denom=u.length + m.length;
+  if(denom<=0) return null;
+  return Math.round((u.length/denom)*100);
+}
+
+async function loadTailorSummariesForJobs(jobIds){
+  // Always keep the UI usable even if this fails
+  tailorSummaryMap.clear();
+
+  const ids=Array.isArray(jobIds)?jobIds:[];
+  const uniq=[...new Set(ids.map(x=>String(x||"").trim()).filter(Boolean))];
+  if(uniq.length===0) return;
+
+  // Chunk to avoid long URLs
+  const chunkSize=40;
+  for(let i=0;i<uniq.length;i+=chunkSize){
+    const chunk=uniq.slice(i,i+chunkSize);
+    try{
+      const qs="job_ids="+encodeURIComponent(chunk.join(","));
+      const res=await apiGet("/me/cv/tailored?"+qs, lastSessionToken);
+      const rows=(res && Array.isArray(res.data))?res.data:[];
+      for(const row of rows){
+        if(row && row.job_id) tailorSummaryMap.set(String(row.job_id), row);
+      }
+    }catch(err){
+      console.warn("loadTailorSummariesForJobs failed", err);
+      // Don't break the dashboard if this fails
+      return;
+    }
+  }
+}
+
+
 function planFromState(planId){
 const pid=String(planId||"").trim().toLowerCase();
 if(pid==="starter") return {id:"starter",name:"Starter",daily:1,meta:"1 application/day",short:"Starter (1/day)"};
