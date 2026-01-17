@@ -1267,7 +1267,14 @@ const text=await res.text().catch(()=> "");
 let json=null;
 try{json=JSON.parse(text);}catch{json={raw:text};}
 if(!res.ok){
-const msg=(json&&(json.error||json.details))?(json.error||json.details):text;
+let msg=text;
+if(json){
+  const e=(json.error||json.message||"").toString().trim();
+  const d=(json.details||json.detail||"").toString().trim();
+  if(e && d && d!==e) msg=e+" — "+d;
+  else if(e) msg=e;
+  else if(d) msg=d;
+}
 throw new Error(path+" failed: "+res.status+" "+msg);
 }
 return json;
@@ -1285,7 +1292,14 @@ const text=await res.text().catch(()=> "");
 let json=null;
 try{json=JSON.parse(text);}catch{json={raw:text};}
 if(!res.ok){
-const msg=(json&&(json.error||json.details))?(json.error||json.details):text;
+let msg=text;
+if(json){
+  const e=(json.error||json.message||"").toString().trim();
+  const d=(json.details||json.detail||"").toString().trim();
+  if(e && d && d!==e) msg=e+" — "+d;
+  else if(e) msg=e;
+  else if(d) msg=d;
+}
 throw new Error(path+" failed: "+res.status+" "+msg);
 }
 return json;
