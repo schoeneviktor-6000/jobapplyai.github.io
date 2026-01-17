@@ -456,6 +456,30 @@ margin-top:12px;
 }
 .modalActions .btn{flex:0 0 auto}
 
+/* Tailor controls + CV preview */
+.tailorControls{display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin:10px 0 10px}
+.tailorControls .ctrl{display:flex; flex-direction:column; gap:6px; min-width:160px}
+.tailorControls input[type="range"]{width:100%}
+.pillRow{display:flex; gap:8px; flex-wrap:wrap}
+.pillRow .pill{cursor:pointer; user-select:none}
+
+.cvPreview{white-space:normal; font-size:13px; line-height:1.45; max-height:60vh; overflow:auto; background:rgba(255,255,255,.95); border:1px solid rgba(17,19,24,.14); padding:14px; border-radius:14px}
+.cvPaper{max-width:820px; margin:0 auto; font-family:Arial, Helvetica, sans-serif; color:#111318}
+.cvName{font-size:34px; font-weight:900; letter-spacing:-.6px; color:rgba(17,19,24,.72)}
+.cvRole{margin-top:2px; font-size:14px; font-weight:800; color:rgba(17,19,24,.55)}
+.cvContact{margin-top:6px; font-size:12.5px; color:rgba(17,19,24,.62)}
+.cvSection{margin-top:16px}
+.cvSectionTitle{font-size:14px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; border-bottom:3px solid #111318; padding-bottom:6px; margin:0 0 8px 0}
+.cvItem{margin:0 0 12px 0}
+.cvItemTitle{font-weight:900}
+.cvItemSub{margin-top:2px; font-weight:800; color:rgba(17,19,24,.62)}
+.cvMetaLine{margin-top:2px; font-size:12.5px; color:rgba(17,19,24,.62)}
+.cvUl{margin:6px 0 0 18px; padding:0}
+.cvUl li{margin:0 0 3px 0}
+.cvSkillGroup{margin:0 0 6px 0}
+.cvSkillLabel{font-weight:900}
+.cvMuted{color:rgba(17,19,24,.62)}
+
 .footer{
 max-width:var(--max);
 margin:0 auto;
@@ -750,8 +774,30 @@ box-shadow: none;
     <div class="modalTitle" id="tailorTitle">Tailored CV</div>
     <div class="small" id="tailorMeta" style="margin-top:-6px"></div>
     <div class="hr" style="margin:14px 0"></div>
-    <div id="tailorKeywords" class="small" style="margin-bottom:10px"></div>
-    <div id="tailorBody" class="mono" style="white-space:pre-wrap; font-size:13px; line-height:1.45; max-height:60vh; overflow:auto; background:rgba(17,19,24,.04); border:1px solid rgba(17,19,24,.14); padding:12px; border-radius:14px;">Generating…</div>
+    <div class="tailorControls" id="tailorControls">
+      <div class="ctrl">
+        <div class="small" style="font-weight:800">Template</div>
+        <select id="tailorTemplate" class="input" style="min-width:240px">
+          <option value="professional">Professional (ATS-safe)</option>
+        </select>
+      </div>
+      <div class="ctrl" style="flex:1; min-width:280px">
+        <div class="small" style="font-weight:800">Tailoring strength</div>
+        <input id="tailorStrength" type="range" min="0" max="2" value="1" step="1" style="width:100%">
+        <div class="small" id="tailorStrengthHelp" style="margin-top:2px; color:rgba(17,19,24,.7)"></div>
+      </div>
+      <div class="ctrl" style="min-width:220px">
+        <div class="small" style="font-weight:800">View</div>
+        <div class="pillRow" style="display:flex; gap:8px; margin-top:4px">
+          <button class="pill active" id="tailorViewPreview" type="button">Preview</button>
+          <button class="pill" id="tailorViewText" type="button">Text</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="tailorKeywords" class="small" style="margin-bottom:10px; display:none"></div>
+    <div id="tailorPreview" class="cvPreview">Generating…</div>
+    <div id="tailorBody" class="mono" style="display:none; white-space:pre-wrap; font-size:13px; line-height:1.45; max-height:60vh; overflow:auto; background:rgba(17,19,24,.04); border:1px solid rgba(17,19,24,.14); padding:12px; border-radius:14px;">Generating…</div>
     <div class="modalActions">
       <button class="btn ghost" id="tailorClose" type="button">Close</button>
       <button class="btn ghost" id="tailorRegenerate" type="button">Regenerate</button>
@@ -827,6 +873,8 @@ let currentDescText="";
 let pendingTailorJobId=null;
 let currentTailorText="";
 let currentTailorResult=null;
+let currentTailorDoc=null;
+let tailorViewMode="preview";
 
 function setText(id,text){const el=document.getElementById(id); if(el) el.textContent=text;}
 function setHtml(id,html){const el=document.getElementById(id); if(el) el.innerHTML=html;}
@@ -920,325 +968,345 @@ window.prompt("Copy description:", currentDescText||"");
 function openTailorModal(jobId, force){
   pendingTailorJobId=jobId;
   currentTailorText="";
+  currentTailorDoc=null;
   currentTailorResult=null;
-  document.getElementById("tailorTitle").textContent="Tailored CV";
-  document.getElementById("tailorMeta").textContent="";
-  document.getElementById("tailorKeywords").textContent="";
-  document.getElementById("tailorBody").textContent=force ? "Regenerating…" : "Generating…";
-  document.getElementById("tailorModal").style.display="flex";
-  generateTailoredCv(jobId, !!force);
-}
-function closeTailorModal(){
-  pendingTailorJobId=null;
-  document.getElementById("tailorModal").style.display="none";
-}
 
-
-function computeAtsMatchPercent(usedArr, missingArr){
-  const used=Array.isArray(usedArr)?usedArr.filter(Boolean).length:0;
-  const miss=Array.isArray(missingArr)?missingArr.filter(Boolean).length:0;
-  const total=used+miss;
-  if(total<=0) return null;
-  return Math.round((used/total)*100);
-}
-
-async function loadTailorSummariesForJobs(jobIds){
-  tailorSummaryMap.clear();
-  const ids=Array.isArray(jobIds)?jobIds.filter(Boolean):[];
-  if(!ids.length) return;
-  if(!lastSessionToken) return;
-  const slice=ids.slice(0,50);
+  // Restore last used settings (best-effort)
   try{
-    const resp=await apiGet("/me/cv/tailored?job_ids="+encodeURIComponent(slice.join(",")), lastSessionToken);
-    const rows=(resp && Array.isArray(resp.data)) ? resp.data : [];
-    for(const r of rows){
-      if(r && r.job_id) tailorSummaryMap.set(String(r.job_id), r);
+    const lastStrength = localStorage.getItem("tailor_strength");
+    if(lastStrength){
+      const v = String(lastStrength).trim().toLowerCase();
+      if(v==="light"||v==="balanced"||v==="strong") setStrengthSliderFromKey(v);
     }
-  }catch(e){
-    // silent: badges are optional
-  }
+    const lastView = localStorage.getItem("tailor_view");
+    if(lastView==="text"||lastView==="preview") tailorViewMode=lastView;
+  }catch(e){}
+
+  updateTailorStrengthHelp();
+  setTailorView(tailorViewMode||"preview");
+
+  setText("tailorTitle", "Tailored CV");
+  setText("tailorStatus", "Generating…");
+  setText("tailorMeta", "Preparing…");
+  setText("tailorKeywords", "");
+  setHtml("tailorPreview", '<div class="small">Generating…</div>');
+  const tb=document.getElementById("tailorBody");
+  if(tb) tb.textContent="Generating…";
+
+  showModal("tailorModal");
+  generateTailoredCv(jobId, force);
 }
 
-function formatKeywordLine(label, arr){
-  const list=Array.isArray(arr)?arr.filter(Boolean):[];
-  if(!list.length) return "";
-  return label+": "+list.slice(0,24).join(", ");
+function regenerateTailor(){
+  if(!pendingTailorJobId) return;
+  generateTailoredCv(pendingTailorJobId, true);
+}
+
+function getStrengthKeyFromSlider(){
+  const el=document.getElementById("tailorStrength");
+  const v=Number(el?.value ?? 1);
+  return (v<=0) ? "light" : (v>=2) ? "strong" : "balanced";
+}
+
+function setStrengthSliderFromKey(key){
+  const el=document.getElementById("tailorStrength");
+  if(!el) return;
+  el.value = (key==="light") ? "0" : (key==="strong") ? "2" : "1";
+}
+
+function getTailorTemplate(){
+  const el=document.getElementById("tailorTemplate");
+  const v=String(el?.value||"professional").trim().toLowerCase();
+  return (v==="professional") ? "professional" : "professional";
+}
+
+function updateTailorStrengthHelp(){
+  const help=document.getElementById("tailorStrengthHelp");
+  if(!help) return;
+  const k=getStrengthKeyFromSlider();
+  const map={
+    light:{label:"Conservative", desc:"Keeps your wording. Small adjustments + keyword ordering."},
+    balanced:{label:"Balanced", desc:"Improves summary and bullets to match the job, without over-rewriting."},
+    strong:{label:"Aggressive", desc:"Rewrites more strongly to highlight fit and align with job language (still truthful)."},
+  };
+  const m=map[k]||map.balanced;
+  help.innerHTML = `<span class="pill">${escapeHtml(m.label)}</span> <span style="color:rgba(17,19,24,.72)">${escapeHtml(m.desc)}</span>`;
+}
+
+function setTailorView(mode){
+  tailorViewMode = (mode==="text") ? "text" : "preview";
+  try{ localStorage.setItem("tailor_view", tailorViewMode); }catch(e){}
+  const preview=document.getElementById("tailorPreview");
+  const text=document.getElementById("tailorBody");
+  const bPrev=document.getElementById("tailorViewPreview");
+  const bText=document.getElementById("tailorViewText");
+  if(preview) preview.style.display = (tailorViewMode==="preview") ? "block" : "none";
+  if(text) text.style.display = (tailorViewMode==="text") ? "block" : "none";
+  if(bPrev) bPrev.classList.toggle("active", tailorViewMode==="preview");
+  if(bText) bText.classList.toggle("active", tailorViewMode==="text");
 }
 
 async function generateTailoredCv(jobId, force){
   try{
-    const session=await requireSession();
-    if(!session) return;
+    setText("tailorStatus", "Generating…");
 
-    document.getElementById("tailorBody").textContent=force ? "Regenerating…" : "Generating…";
-    document.getElementById("tailorKeywords").textContent="";
+    const template=getTailorTemplate();
+    const strength=getStrengthKeyFromSlider();
+    try{ localStorage.setItem("tailor_strength", strength); }catch(e){}
 
-    const resp=await apiPost("/me/cv/tailor", session.access_token, { job_id: jobId, force: !!force });
+    setText("tailorMeta", `Template: ${template} · Strength: ${strength}`);
 
-    const job=resp && resp.job ? resp.job : null;
-    const res=resp && resp.result ? resp.result : null;
-    currentTailorResult=res;
+    const payload={ job_id: jobId, force: !!force, template, strength };
+    const resp=await apiPost("/me/cv/tailor", payload);
+    if(!resp.ok) throw new Error(resp.error || "CV tailoring failed");
 
-    const title=(job && job.title) ? job.title : "Tailored CV";
-    const company=(job && job.company_name) ? job.company_name : "";
-    const model=(res && res.model) ? res.model : "";
-    const fromCache=resp && resp.from_cache;
+    const r=resp.result || {};
+    currentTailorResult=r;
+    currentTailorText = String(r.cv_text||"");
+    currentTailorDoc = (r.cv_doc && typeof r.cv_doc === "object") ? r.cv_doc : null;
 
-    const atsPct=computeAtsMatchPercent(res ? res.ats_keywords_used : null, res ? res.ats_keywords_missing : null);
-    const atsLabel=(atsPct!==null)?("ATS match: "+atsPct+"%") : "";
+    const score = (typeof r.ats_score === "number") ? r.ats_score : null;
+    setText("tailorStatus", score!==null ? `Done · ATS ${score}%` : "Done");
 
-    document.getElementById("tailorTitle").textContent=title;
-    document.getElementById("tailorMeta").textContent=[
-      company ? ("Company: "+company) : "",
-      model ? ("Model: "+model) : "",
-      fromCache ? "cached" : "",
-      atsLabel
-    ].filter(Boolean).join(" · ");
+    const used = Array.isArray(r.ats_keywords_used) ? r.ats_keywords_used : [];
+    const missing = Array.isArray(r.ats_keywords_missing) ? r.ats_keywords_missing : [];
 
-    if(!res || !res.cv_text){
-      document.getElementById("tailorBody").textContent="No CV generated.";
-      return;
-    }
+    const explain = `<div class="small" style="margin-top:6px; color:rgba(17,19,24,.72)">ATS match is a keyword-based indicator (not a guarantee). Best results combine a good match with truthful content and clean formatting.</div>`;
 
-    currentTailorText=String(res.cv_text);
+    setHtml("tailorKeywords", [
+      `<div class="row" style="gap:8px; flex-wrap:wrap">`,
+      `<span class="pill">ATS match: <b>${escapeHtml(score===null?"?":String(score))}%</b></span>`,
+      `<span class="pill">Keywords used: <b>${escapeHtml(String(used.length))}</b></span>`,
+      `<span class="pill">Missing: <b>${escapeHtml(String(missing.length))}</b></span>`,
+      `</div>`,
+      explain,
+    ].join(""));
 
-    // Update in-memory summaries so the queue can show an ATS badge immediately
-    tailorSummaryMap.set(String(jobId), {
-      job_id: jobId,
-      ats_keywords_used: res.ats_keywords_used || [],
-      ats_keywords_missing: res.ats_keywords_missing || [],
-      confidence: res.confidence || null,
-      updated_at: new Date().toISOString()
-    });
-    if(lastQueueResponse){
-      setHtml("queueWrap", renderQueueCards(lastQueueResponse));
-    }
-
-    const usedLine=formatKeywordLine("ATS keywords used", res.ats_keywords_used);
-    const missingLine=formatKeywordLine("ATS keywords missing", res.ats_keywords_missing);
-    const lines=[usedLine, missingLine].filter(Boolean).join("\n");
-    document.getElementById("tailorKeywords").textContent=lines;
-
-    document.getElementById("tailorBody").textContent=currentTailorText;
-  }catch(e){
-    document.getElementById("tailorBody").textContent="Failed to generate CV: "+(e.message||e);
-  }
-}
-
-async function copyTailor(){
-  try{
-    const t=currentTailorText||"";
-    if(!t){alert("Nothing to copy yet.");return;}
-    await navigator.clipboard.writeText(t);
-    alert("CV copied.");
-  }catch(e){
-    window.prompt("Copy CV:", currentTailorText||"");
-  }
-}
-
-
-function cvTextToPrintableHtml(cvText){
-  const raw=String(cvText||"").replace(/\r\n?/g,"\n").replace(/\u00a0/g," ");
-  const lines=raw.split("\n");
-
-  const ALL_HEADINGS = new Set([
-    "CONTACT","PROFESSIONAL SUMMARY","WORK EXPERIENCE","EDUCATION","SKILLS","CERTIFICATIONS","LANGUAGES","PROJECTS","VOLUNTEERING","INTERESTS",
-    "KONTAKT","PROFIL","BERUFSERFAHRUNG","AUSBILDUNG","KENNTNISSE","ZERTIFIKATE","SPRACHEN","PROJEKTE","EHRENAMT","INTERESSEN"
-  ]);
-
-  function isHeadingLine(t){
-    const s=String(t||"").trim();
-    if(!s) return false;
-    const base=s.replace(/:$/,'').trim();
-    const up=base.toUpperCase();
-    if(ALL_HEADINGS.has(up)) return true;
-    if(s.endsWith(":") && s.length<=70) return true;
-    if(/^[A-ZÄÖÜẞ0-9 &/+,\.\-]{3,60}$/.test(base) && base===base.toUpperCase() && base.length<=45) return true;
-    return false;
-  }
-
-  function isBulletLine(t){
-    const s=String(t||"").trim();
-    if(!s) return false;
-    return /^(?:[-\u2013\u2014\u2022\u2023\u25E6\u2043\u2219\u00B7])(?:\s+|$)/.test(s);
-  }
-  function bulletContent(t){
-    const s=String(t||"").trim();
-    return s.replace(/^(?:[-\u2013\u2014\u2022\u2023\u25E6\u2043\u2219\u00B7])\s*/,"").trim();
-  }
-
-  let out=[];
-  let inList=false;
-  let inContact=false;
-  let contactNameDone=false;
-
-  function closeList(){
-    if(inList){ out.push("</ul>"); inList=false; }
-  }
-  function closeContact(){
-    if(inContact){ closeList(); out.push("</div>"); inContact=false; contactNameDone=false; }
-  }
-
-  for(let i=0;i<lines.length;i++){
-    const t=String(lines[i]||"").trim();
-
-    if(!t){
-      closeList();
-      if(inContact){ closeContact(); }
-      out.push("<div class=\"spacer\"></div>");
-      continue;
-    }
-
-    const headBase=t.replace(/:$/,'').trim().toUpperCase();
-    const isContactHeading=(headBase==="CONTACT"||headBase==="KONTAKT");
-    if(isContactHeading){
-      closeContact();
-      closeList();
-      inContact=true;
-      out.push("<div class=\"cvHeader\">");
-      continue;
-    }
-
-    if(isHeadingLine(t)){
-      closeContact();
-      closeList();
-      out.push("<h2>"+escapeHtml(t.replace(/:$/,'').trim())+"</h2>");
-      continue;
-    }
-
-    if(isBulletLine(t)){
-      let content=bulletContent(t);
-      if(!content){
-        // Merge bullet-only line with the next meaningful line
-        let j=i+1;
-        while(j<lines.length && !String(lines[j]||"").trim()) j++;
-        if(j<lines.length){
-          const next=String(lines[j]||"").trim();
-          if(next && !isHeadingLine(next) && !isBulletLine(next)){
-            content=next;
-            i=j;
-          }else{
-            continue;
-          }
-        }else{
-          continue;
-        }
-      }
-      if(!inList){ out.push("<ul>"); inList=true; }
-      out.push("<li>"+escapeHtml(content)+"</li>");
-      continue;
-    }
-
-    closeList();
-    if(inContact){
-      if(!contactNameDone){
-        out.push("<h1 class=\"cvName\">"+escapeHtml(t)+"</h1>");
-        contactNameDone=true;
-      }else{
-        out.push("<div class=\"cvContactLine\">"+escapeHtml(t)+"</div>");
-      }
+    if(currentTailorDoc){
+      setHtml("tailorPreview", cvDocToPreviewHtml(currentTailorDoc, r.language || "en"));
     }else{
-      out.push("<p>"+escapeHtml(t)+"</p>");
+      setHtml("tailorPreview", `<div class="small">Preview not available for this result. Use Text view.</div>`);
     }
-  }
 
-  closeContact();
-  closeList();
-  return out.join("\n");
+    const tb=document.getElementById("tailorBody");
+    if(tb) tb.textContent=currentTailorText || "";
+
+    // Update badge cache for the job card
+    tailorSummaryMap.set(jobId, { ats_score: score, updated_at: r.updated_at || new Date().toISOString() });
+    renderAllJobs();
+  }catch(err){
+    const msg = String(err?.message || err);
+    setText("tailorStatus", "Failed");
+    setText("tailorMeta", msg);
+    setHtml("tailorPreview", `<div class="small" style="color:var(--bad)">Failed to generate CV: ${escapeHtml(msg)}</div>`);
+    const tb=document.getElementById("tailorBody");
+    if(tb) tb.textContent=`Failed to generate CV: ${msg}`;
+  }
 }
 
-function buildPrintHtml(title, cvText){
-  const safeTitle=escapeHtml(title||"CV");
-  const bodyHtml=cvTextToPrintableHtml(cvText);
-  return `<!doctype html><html><head><meta charset=\"utf-8\" />
-<title>${safeTitle}</title>
-<style>
-@page{margin:18mm 14mm;}
-body{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif;max-width:820px;margin:24px auto;padding:0 10px;color:#111;}
-.cvHeader{padding-bottom:12px;border-bottom:1px solid #ddd;margin-bottom:14px;}
-.cvName{margin:0 0 6px;font-size:26px;letter-spacing:.2px;}
-.cvContactLine{font-size:12px;color:#444;line-height:1.35;}
-h2{margin:16px 0 6px;font-size:12px;letter-spacing:.10em;text-transform:uppercase;color:#111;}
-p{margin:4px 0 6px;font-size:12px;line-height:1.5;}
-ul{margin:6px 0 10px 18px;padding:0;}
-li{margin:3px 0;font-size:12px;line-height:1.5;}
-.spacer{height:8px;}
-</style></head><body>${bodyHtml}</body></html>`;
+function cvLabels(lang){
+  const de={
+    summary:"PROFIL",
+    experience:"BERUFSERFAHRUNG",
+    education:"AUSBILDUNG",
+    achievements:"ERFOLGE",
+    skills:"KOMPETENZEN",
+    courses:"KURSE",
+    interests:"INTERESSEN",
+    languages:"SPRACHEN",
+  };
+  const en={
+    summary:"SUMMARY",
+    experience:"EXPERIENCE",
+    education:"EDUCATION",
+    achievements:"KEY ACHIEVEMENTS",
+    skills:"SKILLS",
+    courses:"COURSES",
+    interests:"INTERESTS",
+    languages:"LANGUAGES",
+  };
+  return (String(lang||"").toLowerCase()==="de") ? de : en;
+}
+
+function joinNonEmpty(parts, sep){
+  return (parts||[]).map(x=>String(x||"").trim()).filter(Boolean).join(sep||" · ");
+}
+
+function fmtPeriod(start, end){
+  const s=String(start||"").trim();
+  const e=String(end||"").trim();
+  if(s && e) return `${s} – ${e}`;
+  return s || e || "";
+}
+
+function asStringArr(v, limit){
+  const arr = Array.isArray(v) ? v : [];
+  return arr.map(x=>String(x||"").trim()).filter(Boolean).slice(0, limit||50);
+}
+
+function cvDocToPreviewHtml(doc, lang){
+  const L=cvLabels(lang);
+  const name=String(doc?.name||"YOUR NAME");
+  const role=String(doc?.target_role||"The role you are applying for?");
+
+  const c = doc?.contact || {};
+  const contactLine = joinNonEmpty([
+    c.phone,
+    c.email,
+    c.linkedin,
+    c.portfolio,
+    c.location,
+  ], " · ");
+
+  const summary=asStringArr(doc?.summary, 8);
+  const exp=Array.isArray(doc?.experience) ? doc.experience : [];
+  const edu=Array.isArray(doc?.education) ? doc.education : [];
+  const ach=asStringArr(doc?.key_achievements, 10);
+  const courses=asStringArr(doc?.courses, 10);
+  const interests=asStringArr(doc?.interests, 10);
+  const langs=asStringArr(doc?.languages, 10);
+
+  const skills = doc?.skills || {};
+  const skillGroups = Array.isArray(skills?.groups) ? skills.groups : [];
+  const skillAdditional = asStringArr(skills?.additional, 30);
+
+  const sec = (title, inner) => inner ? `<div class="cvSection"><div class="cvSectionTitle">${escapeHtml(title)}</div>${inner}</div>` : "";
+
+  const ul = (items) => items && items.length ? `<ul class="cvUl">${items.map(it=>`<li>${escapeHtml(it)}</li>`).join("")}</ul>` : "";
+
+  const expHtml = exp.length ? exp.slice(0, 12).map(e=>{
+    const t=String(e?.title||"");
+    const company=String(e?.company||"");
+    const meta = joinNonEmpty([fmtPeriod(e?.start, e?.end), e?.location], " · ");
+    const bullets = asStringArr(e?.bullets, 8);
+    return [
+      `<div class="cvItem">`,
+      `<div class="cvItemTitle">${escapeHtml(joinNonEmpty([t, company], " — ") || (t||company||""))}</div>`,
+      meta ? `<div class="cvMetaLine">${escapeHtml(meta)}</div>` : "",
+      ul(bullets),
+      `</div>`,
+    ].join("");
+  }).join("") : "";
+
+  const eduHtml = edu.length ? edu.slice(0, 10).map(e=>{
+    const degree = joinNonEmpty([e?.degree, e?.field], " · ");
+    const school = joinNonEmpty([e?.school, e?.location], " · ");
+    const meta = fmtPeriod(e?.start, e?.end);
+    return [
+      `<div class="cvItem">`,
+      degree ? `<div class="cvItemTitle">${escapeHtml(degree)}</div>` : "",
+      school ? `<div class="cvItemSub">${escapeHtml(school)}</div>` : "",
+      meta ? `<div class="cvMetaLine">${escapeHtml(meta)}</div>` : "",
+      `</div>`,
+    ].join("");
+  }).join("") : "";
+
+  const skillsInner = (skillGroups.length || skillAdditional.length) ? [
+    skillGroups.slice(0,6).map(g=>{
+      const label = String(g?.label||"").trim();
+      const items = asStringArr(g?.items, 30);
+      if(!label && !items.length) return "";
+      const line = label ? `<b>${escapeHtml(label)}:</b> ${escapeHtml(items.join(", "))}` : escapeHtml(items.join(", "));
+      return `<div class="cvSkillLine">${line}</div>`;
+    }).join(""),
+    skillAdditional.length ? `<div class="cvSkillLine">${escapeHtml(skillAdditional.join(", "))}</div>` : "",
+  ].join("") : "";
+
+  const coursesInner = courses.length ? `<div class="cvPara">${escapeHtml(courses.join(" · "))}</div>` : "";
+  const interestsInner = interests.length ? `<div class="cvPara">${escapeHtml(interests.join(" · "))}</div>` : "";
+  const langsInner = langs.length ? `<div class="cvPara">${escapeHtml(langs.join(" · "))}</div>` : "";
+
+  return [
+    `<div class="cvPaper">`,
+    `<div class="cvName">${escapeHtml(name)}</div>`,
+    `<div class="cvRole">${escapeHtml(role)}</div>`,
+    contactLine ? `<div class="cvContact">${escapeHtml(contactLine)}</div>` : "",
+    sec(L.summary, ul(summary)),
+    sec(L.experience, expHtml),
+    sec(L.education, eduHtml),
+    sec(L.achievements, ul(ach)),
+    sec(L.skills, skillsInner),
+    sec(L.courses, coursesInner),
+    sec(L.interests, interestsInner),
+    sec(L.languages, langsInner),
+    `</div>`,
+  ].join("");
+}
+
+function cvDocToPrintableHtml(cvDoc, lang, title){
+  const css = `
+    @page{ size:A4; margin:14mm 14mm 14mm 14mm; }
+    body{ margin:0; padding:0; font-family: Arial, Helvetica, sans-serif; color:#111318; }
+    .cvPaper{ max-width:820px; margin:0 auto; }
+    .cvName{ font-size:34px; font-weight:900; letter-spacing:-.6px; color:rgba(17,19,24,.72); }
+    .cvRole{ margin-top:2px; font-size:14px; font-weight:800; color:rgba(17,19,24,.55); }
+    .cvContact{ margin-top:6px; font-size:12.5px; color:rgba(17,19,24,.62); }
+    .cvSection{ margin-top:16px; }
+    .cvSectionTitle{ font-size:14px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; border-bottom:3px solid #111318; padding-bottom:6px; margin:0 0 8px 0; }
+    .cvItem{ margin-top:10px; }
+    .cvItemTitle{ font-size:13.5px; font-weight:900; }
+    .cvItemSub{ margin-top:2px; font-size:12.5px; font-weight:800; color:rgba(17,19,24,.62); }
+    .cvMetaLine{ margin-top:2px; font-size:12.5px; color:rgba(17,19,24,.62); }
+    .cvUl{ margin:6px 0 0 18px; padding:0; }
+    .cvUl li{ margin:0 0 3px 0; font-size:13px; }
+    .cvPara{ font-size:13px; line-height:1.45; }
+    .cvSkillLine{ font-size:13px; line-height:1.45; margin:2px 0; }
+  `;
+
+  const body = cvDocToPreviewHtml(cvDoc, lang);
+  const docTitle = title || "Tailored CV";
+  return `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(docTitle)}</title><style>${css}</style></head><body>${body}</body></html>`;
+}
+
+function cvTextToPrintableHtml(title, cvText){
+  const safe = escapeHtml(cvText||"").replace(/\n/g, "<br>");
+  return `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(title||"CV")}</title></head><body style="font-family:Arial, Helvetica, sans-serif"><div style="white-space:normal; font-size:13px; line-height:1.45">${safe}</div></body></html>`;
 }
 
 function printTailor(){
-  if(!currentTailorText){ showTopError("No tailored CV loaded"); return; }
-
-  const jobTitle=(document.getElementById("tailorTitle")?.textContent||"").trim();
-  const title=jobTitle ? ("CV • " + jobTitle) : "CV";
-  const html=buildPrintHtml(title, currentTailorText);
-
-  // More reliable than window.open() across browsers (fixes "about:blank" white-page printing).
-  // We write a small standalone HTML document to a hidden iframe and print from there.
-  try{
-    let frame=document.getElementById("printFrame");
-    if(!frame){
-      frame=document.createElement("iframe");
-      frame.id="printFrame";
-      frame.style.position="fixed";
-      frame.style.right="0";
-      frame.style.bottom="0";
-      frame.style.width="0";
-      frame.style.height="0";
-      frame.style.border="0";
-      frame.style.opacity="0";
-      document.body.appendChild(frame);
-    }
-
-    const blob=new Blob([html], {type:"text/html;charset=utf-8"});
-    const url=URL.createObjectURL(blob);
-
-    frame.onload=()=>{
-      try{
-        // Small delay improves reliability in Safari/Chrome.
-        setTimeout(()=>{
-          try{ frame.contentWindow.focus(); }catch(_){ }
-          try{ frame.contentWindow.print(); }catch(_){ }
-        }, 50);
-      } finally {
-        setTimeout(()=>{ try{ URL.revokeObjectURL(url); }catch(_){ } }, 2000);
-      }
-    };
-    frame.src=url;
+  if(!currentTailorText && !currentTailorDoc){
+    alert("No tailored CV to print.");
     return;
-  }catch(e){
-    // Fallback to window.open if iframe printing fails.
+  }
+  const jobTitle = currentTailorJobTitle || "Tailored CV";
+  const lang = (currentTailorResult && currentTailorResult.language) ? currentTailorResult.language : "en";
+
+  const html = (currentTailorDoc)
+    ? cvDocToPrintableHtml(currentTailorDoc, lang, jobTitle)
+    : cvTextToPrintableHtml(jobTitle, currentTailorText);
+
+  // Use hidden iframe to avoid popup blockers
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  let iframe = document.getElementById('printFrame');
+  if(!iframe){
+    iframe = document.createElement('iframe');
+    iframe.id='printFrame';
+    iframe.style.position='fixed';
+    iframe.style.right='0';
+    iframe.style.bottom='0';
+    iframe.style.width='0';
+    iframe.style.height='0';
+    iframe.style.border='0';
+    document.body.appendChild(iframe);
   }
 
-  const w=window.open();
-  if(!w){ showTopError("Popup blocked. Please allow popups for printing."); return; }
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-  setTimeout(()=>{
-    try{ w.focus(); }catch(_){ }
-    try{ w.print(); }catch(_){ }
-  }, 100);
+  iframe.onload = () => {
+    try{ iframe.contentWindow.focus(); iframe.contentWindow.print(); }catch(e){}
+    setTimeout(()=>{ try{ URL.revokeObjectURL(url); }catch(e){} }, 1000);
+  };
+  iframe.src = url;
 }
 
 function downloadTailor(){
-  try{
-    const t=currentTailorText||"";
-    if(!t){alert("Nothing to download yet.");return;}
-    const name=(document.getElementById("tailorTitle").textContent||"tailored_cv").replace(/[^a-z0-9\-_]+/gi,"_").slice(0,60);
-    const blob=new Blob([t], {type:"text/plain;charset=utf-8"});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement("a");
-    a.href=url;
-    a.download=name+".txt";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url), 2000);
-  }catch(e){
-    alert("Download failed: "+(e.message||e));
+  if(!currentTailorText){
+    alert("No tailored CV to download.");
+    return;
   }
+  const title = currentTailorJobTitle ? `CV Tailored - ${currentTailorJobTitle}` : "CV Tailored";
+  downloadTextFile(`${title}.txt`, currentTailorText);
 }
+
 function openSkipModal(jobId){
 pendingSkipJobId=jobId;
 document.getElementById("skipNote").value="";
@@ -2156,6 +2224,39 @@ document.getElementById("tailorRegenerate").addEventListener("click",()=>regener
 document.getElementById("tailorModal").addEventListener("click",(e)=>{
 if(e.target && e.target.id==="tailorModal") closeTailorModal();
 });
+
+// Tailor controls
+const strengthEl=document.getElementById("tailorStrength");
+if(strengthEl){
+  strengthEl.addEventListener("input",()=>{
+    updateTailorStrengthHelp();
+    try{localStorage.setItem("tailor_strength", String(strengthEl.value));}catch{}
+  });
+  // Load saved value (if any)
+  try{
+    const saved=localStorage.getItem("tailor_strength");
+    if(saved!==null && saved!==undefined && saved!=="") strengthEl.value=saved;
+  }catch{}
+}
+
+const tplEl=document.getElementById("tailorTemplate");
+if(tplEl){
+  tplEl.addEventListener("change",()=>{
+    try{localStorage.setItem("tailor_template", String(tplEl.value||"professional"));}catch{}
+  });
+  try{
+    const saved=localStorage.getItem("tailor_template");
+    if(saved) tplEl.value=saved;
+  }catch{}
+}
+
+const viewPrev=document.getElementById("tailorViewPreview");
+if(viewPrev){viewPrev.addEventListener("click",()=>setTailorView("preview"));}
+const viewText=document.getElementById("tailorViewText");
+if(viewText){viewText.addEventListener("click",()=>setTailorView("text"));}
+
+updateTailorStrengthHelp();
+
 }
 
 window.addEventListener("load",async()=>{
