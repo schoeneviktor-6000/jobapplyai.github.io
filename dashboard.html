@@ -874,6 +874,7 @@ let pendingTailorJobId=null;
 let currentTailorText="";
 let currentTailorResult=null;
 let currentTailorDoc=null;
+let currentTailorJobTitle="";
 let tailorViewMode="preview";
 
 function setText(id,text){const el=document.getElementById(id); if(el) el.textContent=text;}
@@ -882,6 +883,21 @@ function setBadge(id,type,text){const el=document.getElementById(id); if(!el) re
 function showTopError(msg){const el=document.getElementById("errorTop"); if(!el) return; el.style.display="block"; el.textContent=msg;}
 function clearTopError(){const el=document.getElementById("errorTop"); if(!el) return; el.style.display="none"; el.textContent="";}
 function escapeHtml(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
+
+function showModal(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.style.display="flex";
+}
+function hideModal(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.style.display="none";
+}
+function closeTailorModal(){
+  pendingTailorJobId=null;
+  hideModal("tailorModal");
+}
 function nowStamp(){return new Date().toISOString().replace("T"," ").slice(0,19)+" UTC";}
 function animateNumber(el,to){
 const prefersReduced=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -970,6 +986,13 @@ function openTailorModal(jobId, force){
   currentTailorText="";
   currentTailorDoc=null;
   currentTailorResult=null;
+
+  currentTailorJobTitle="";
+  try{
+    const jobs = (lastQueueResponse && Array.isArray(lastQueueResponse.jobs)) ? lastQueueResponse.jobs : [];
+    const j = jobs.find(x => String(x && x.id) === String(jobId));
+    if(j && j.title) currentTailorJobTitle = String(j.title);
+  }catch(e){}
 
   // Restore last used settings (best-effort)
   try{
