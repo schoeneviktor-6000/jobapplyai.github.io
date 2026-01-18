@@ -599,6 +599,86 @@ margin-top:2px;
 }
 .bulletIco svg{width:12px;height:12px}
 
+/* ATS score */
+.atsBand{
+  padding:58px 0;
+  background:
+    radial-gradient(900px 420px at 20% 0%, rgba(0,166,63,.12), transparent 60%),
+    radial-gradient(900px 420px at 85% 10%, rgba(0,0,0,.05), transparent 62%),
+    linear-gradient(180deg, var(--surface), var(--bg));
+  border-top:1px solid rgba(215,218,220,.85);
+  border-bottom:1px solid rgba(215,218,220,.85);
+}
+.atsGrid{
+  display:grid;
+  grid-template-columns:1.05fr .95fr;
+  gap:14px;
+  align-items:start;
+}
+.atsCopy h3{
+  margin:0 0 8px;
+  font-size:18px;
+  letter-spacing:-.2px;
+  font-weight:1000;
+}
+.atsCopy p{
+  margin:0 0 14px;
+  color:var(--muted);
+  font-size:15px;
+  max-width:72ch;
+}
+.atsBullets{
+  margin:0;
+  padding:0;
+  list-style:none;
+  display:grid;
+  gap:10px;
+}
+.atsBullets li{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  color:var(--muted);
+  font-size:14px;
+}
+.atsNote{
+  margin-top:12px;
+  font-size:12px;
+  color:var(--muted2);
+  font-weight:850;
+}
+.atsPills{
+  margin-top:14px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.atsPill{
+  padding:10px 12px;
+  border-radius:999px;
+  background:rgba(255,255,255,.90);
+  border:1px solid rgba(215,218,220,.95);
+  color:var(--muted);
+  font-size:13px;
+  font-weight:950;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.atsPill .mini{
+  width:16px;
+  height:16px;
+  border-radius:6px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  background:#e9f7ee;
+  border:1px solid rgba(0,166,63,.28);
+  color:#0a3a1c;
+}
+.atsPill .mini svg{width:11px;height:11px}
+
+
 /* Dashboard */
 .dashBand{
 padding:64px 0;
@@ -1076,6 +1156,7 @@ color:var(--text);
 .heroGrid{grid-template-columns:1fr}
 .stepper{grid-template-columns:1fr}
 .dashGrid{grid-template-columns:1fr}
+.atsGrid{grid-template-columns:1fr}
 .pricingWrap{grid-template-columns:1fr}
 .whyGrid{grid-template-columns:1fr}
 .ctaBox{grid-template-columns:1fr}
@@ -1101,6 +1182,7 @@ color:var(--text);
 <div class="navlinks" aria-label="Site links">
 <a href="#how">How it works</a>
 <a href="#dashboard">Dashboard</a>
+<a href="#ats">ATS score</a>
 <a href="#pricing">Pricing</a>
 <a href="#why">Why this works</a>
 <a href="#contact">Contact</a>
@@ -1168,7 +1250,7 @@ color:var(--text);
 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path>
 </svg>
 </div>
-<div class="miniText"><strong>Tailor CV & letter</strong><span>Role-specific and consistent.</span></div>
+<div class="miniText"><strong>Tailor CV & letter</strong><span>Role-specific, ATS-ready, scored.</span></div>
 </li>
 <li class="miniItem">
 <div class="miniIcon lime" aria-hidden="true">
@@ -1272,6 +1354,106 @@ color:var(--text);
 </div>
 </div>
 </section>
+
+<section id="ats" class="atsBand anchor">
+<div class="container">
+<div class="sectionHead">
+<div class="kicker">ATS score</div>
+<h2 class="sectionTitle">A match score you can actually use.</h2>
+<p class="sectionDesc">Every tailored CV comes with an ATS match score and a keyword gap list — so you can see what improved and why.</p>
+</div>
+
+<div class="atsGrid">
+<div class="atsCopy">
+<div class="card">
+<h3>What the ATS match score measures</h3>
+<p>We compare the job description with your CV and check if the most important requirements show up clearly in an ATS-friendly format.</p>
+<ul class="atsBullets">
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><strong>Keyword coverage:</strong>&nbsp;skills, tools, and responsibilities found in your CV.</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><strong>Priority terms:</strong>&nbsp;we weight the “must-haves” higher than nice-to-haves.</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><strong>ATS basics:</strong>&nbsp;clear headings, readable structure, and consistent wording.</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><strong>Keyword gaps:</strong>&nbsp;you see missing terms we recommend adding (only if they match your experience).</li>
+</ul>
+<div class="atsPills" aria-label="ATS outputs">
+<div class="atsPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Score (0–100)</div>
+<div class="atsPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Missing keywords</div>
+<div class="atsPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Section suggestions</div>
+</div>
+<div class="atsNote">Note: Different companies use different ATS tools. The score is a practical indicator, not a guarantee of an interview.</div>
+</div>
+</div>
+
+<div class="dashFrame" aria-label="ATS score preview">
+<div class="dashTop">
+<div class="dashDots" aria-hidden="true"><span></span><span></span><span></span></div>
+<div class="dashLabel">
+<span>ATS Match</span>
+<span class="dashChip" aria-hidden="true">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block">
+<path d="M20 6 9 17l-5-5"></path>
+</svg>
+Keyword insights
+</span>
+</div>
+</div>
+
+<div class="dashBody">
+<div class="dashRow">
+<div class="dashCard">
+<h4>Match score</h4>
+<div class="kpi">
+<strong>82%</strong>
+<span>strong</span>
+</div>
+<div style="margin-top:8px" class="kpiBadge"><i aria-hidden="true"></i>Tailored to the job post</div>
+</div>
+
+<div class="dashCard">
+<h4>Keyword gaps</h4>
+<div class="kpi">
+<strong>7</strong>
+<span>missing</span>
+</div>
+<div style="margin-top:8px" class="kpiBadge"><i aria-hidden="true"></i>Suggested improvements</div>
+</div>
+</div>
+
+<div class="log" aria-label="ATS keyword preview">
+<div class="logHead">
+<strong>Examples</strong>
+<span class="logFilter" aria-hidden="true">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block">
+<path d="M4 6h16"></path><path d="M7 12h10"></path><path d="M10 18h4"></path>
+</svg>
+From a job post
+</span>
+</div>
+
+<div class="logList">
+<div class="logItem">
+<div class="logLeft">
+<div class="logTitle">Good coverage</div>
+<div class="logMeta">Leadership · Integrations · Data quality · GDPR</div>
+</div>
+<div class="status sent"><i aria-hidden="true"></i>Found</div>
+</div>
+
+<div class="logItem">
+<div class="logLeft">
+<div class="logTitle">Still missing</div>
+<div class="logMeta">Workday Studio · REST/SOAP · SFTP</div>
+</div>
+<div class="status review"><i aria-hidden="true"></i>Add</div>
+</div>
+</div>
+</div>
+
+<div class="noteSmall">We use the score to guide the tailoring — without inventing experience.</div>
+</div>
+</div>
+</div>
+</section>
+
 
 <section id="dashboard" class="dashBand anchor">
 <div class="container">
@@ -1412,6 +1594,7 @@ Last 7 days
 
 <ul class="features">
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Tailored CV + cover letter</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>ATS match score + keyword gaps</li>
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Sent from your Gmail</li>
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Simple application log</li>
 </ul>
@@ -1441,6 +1624,7 @@ Last 7 days
 
 <ul class="features">
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Better matching & shortlisting</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>ATS match score + keyword gaps</li>
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Weekly progress summary</li>
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Priority turnaround</li>
 </ul>
@@ -1470,6 +1654,7 @@ Last 7 days
 
 <ul class="features">
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Priority turnaround</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>ATS match score + keyword gaps</li>
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Follow-up templates</li>
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Enhanced tracking view</li>
 </ul>
@@ -1590,6 +1775,7 @@ Last 7 days
 <div class="footerLinks" aria-label="Footer links">
 <a href="#how">How it works</a>
 <a href="#dashboard">Dashboard</a>
+<a href="#ats">ATS score</a>
 <a href="#pricing">Pricing</a>
 <a href="#why">Why it works</a>
 <a href="#contact">Contact</a>
