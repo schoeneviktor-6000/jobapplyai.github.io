@@ -864,6 +864,19 @@ const tailorSummaryMap=new Map();
 let currentPlanDaily=0;
 let currentQueueCount=0;
 
+// Rerender job cards (used after actions like Tailor CV to refresh ATS badge)
+function renderAllJobs(){
+  try{
+    if(!lastQueueResponse){
+      return;
+    }
+    setHtml("queueWrap", renderQueueCards(lastQueueResponse));
+  }catch(e){
+    // Never break the UI because of a rerender
+    console.warn("renderAllJobs failed", e);
+  }
+}
+
 let useEventsEndpoint=true;
 let activityEventType="";
 
@@ -989,7 +1002,7 @@ function openTailorModal(jobId, force){
 
   currentTailorJobTitle="";
   try{
-    const jobs = (lastQueueResponse && Array.isArray(lastQueueResponse.jobs)) ? lastQueueResponse.jobs : [];
+    const jobs = (lastQueueResponse && Array.isArray(lastQueueResponse.data)) ? lastQueueResponse.data : ((lastQueueResponse && Array.isArray(lastQueueResponse.jobs)) ? lastQueueResponse.jobs : []);
     const j = jobs.find(x => String(x && x.id) === String(jobId));
     if(j && j.title) currentTailorJobTitle = String(j.title);
   }catch(e){}
