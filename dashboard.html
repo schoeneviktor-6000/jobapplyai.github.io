@@ -1133,6 +1133,17 @@ let currentTailorJobTitle="";
 let tailorViewMode="preview";
 let tailorProcessTimers=[];
 
+// Tailor CV client-side guards
+// - Prevents double-click / duplicate requests
+// - Allows re-opening the same tailored CV without re-inserting the same (customer_id, job_id, input_hash)
+const tailorResultCache = new Map(); // cacheKey -> normalized tailor result
+const tailorInFlight = new Map();    // cacheKey -> Promise resolving to a normalized tailor result
+
+function tailorCacheKey(jobId, template, strength){
+  return [String(jobId||""), String(template||""), String(strength||"")].join("::");
+}
+
+
 function setText(id,text){const el=document.getElementById(id); if(el) el.textContent=text;}
 function setHtml(id,html){const el=document.getElementById(id); if(el) el.innerHTML=html;}
 function setBadge(id,type,text){const el=document.getElementById(id); if(!el) return; el.className="badge"+(type?(" "+type):""); el.textContent=text;}
@@ -1458,17 +1469,242 @@ function setTailorView(mode){
   if(bText) bText.classList.toggle("active", tailorViewMode==="text");
 }
 
+
+/* Tailor CV duplicate guard helpers */
+function isDuplicateTailorError(msg){
+  const s=String(msg||"").toLowerCase();
+  return s.includes('23505') || s.includes('duplicate key') || s.includes('already exists') || s.includes('tailored_cvs_customer_job_input_unique');
+}
+
+function extractInputHashFromError(msg){
+  const s=String(msg||"");
+  const m=s.match(/input_hash\)\=\([^,]+,\s*[^,]+,\s*([0-9a-f]{16,})\)/i);
+  return m ? m[1] : null;
+}
+
+function rowTemplateValue(row){
+  const v = (row && (row.template ?? row.cv_template ?? row.cv_template_id ?? row.template_id ?? row.cv_format)) ? (row.template ?? row.cv_template ?? row.cv_template_id ?? row.template_id ?? row.cv_format) : "";
+  return String(v||"").trim().toLowerCase();
+}
+function rowStrengthValue(row){
+  const v = (row && (row.strength ?? row.tailor_strength ?? row.tailoring_strength ?? row.strength_key)) ? (row.strength ?? row.tailor_strength ?? row.tailoring_strength ?? row.strength_key) : "";
+  return String(v||"").trim().toLowerCase();
+}
+function safeDateMs(ts){
+  if(!ts) return 0;
+  const d=new Date(ts);
+  const ms=d.getTime();
+  return (ms===ms) ? ms : 0;
+}
+
+function pickBestTailoredRow(rows, template, strength, preferInputHash){
+  const t=String(template||"").trim().toLowerCase();
+  const s=String(strength||"").trim().toLowerCase();
+  const ih=preferInputHash ? String(preferInputHash).trim().toLowerCase() : "";
+  let best=null;
+  let bestScore=-1e18;
+  for(const r of (Array.isArray(rows)?rows:[])){
+    let score=0;
+    const rowIh = (r && (r.input_hash||r.inputHash||r.hash)) ? String(r.input_hash||r.inputHash||r.hash).trim().toLowerCase() : "";
+    if(ih && rowIh && rowIh===ih) score += 1000000;
+    const rt=rowTemplateValue(r);
+    const rs=rowStrengthValue(r);
+    if(t && rt && rt===t) score += 10000;
+    if(s && rs && rs===s) score += 5000;
+    score += safeDateMs(r.updated_at || r.updatedAt || r.created_at || r.createdAt) / 1000; // prefer newer
+    if(score>bestScore){
+      bestScore=score;
+      best=r;
+    }
+  }
+  return best || (Array.isArray(rows) && rows.length ? rows[0] : null);
+}
+
+function normalizeMaybeJson(v){
+  if(!v) return v;
+  if(typeof v === "object") return v;
+  if(typeof v === "string"){
+    const s=v.trim();
+    if(!s) return v;
+    if((s.startsWith("{") && s.endsWith("}")) || (s.startsWith("[") && s.endsWith("]"))){
+      try{ return JSON.parse(s); }catch(e){ return v; }
+    }
+  }
+  return v;
+}
+
+function normalizeTailorResultFromAny(any){
+  const r = (any && typeof any === "object") ? (any.result && typeof any.result === "object" ? any.result : any) : {};
+  const out = Object.assign({}, r);
+  // common aliases
+  if(out.cv_text==null && out.text!=null) out.cv_text = out.text;
+  if(out.cv_doc==null && out.doc!=null) out.cv_doc = out.doc;
+  out.cv_doc = normalizeMaybeJson(out.cv_doc);
+  out.updated_at = out.updated_at || out.updatedAt || null;
+  out.language = out.language || out.lang || "en";
+  return out;
+}
+
+function normalizeTailorResultFromRow(row){
+  if(!row || typeof row !== "object") return null;
+  const out = normalizeTailorResultFromAny(row);
+  // Map DB row fields -> result fields (best-effort)
+  if(!out.cv_text && row.cv_text) out.cv_text = row.cv_text;
+  if(!out.cv_doc && row.cv_doc) out.cv_doc = normalizeMaybeJson(row.cv_doc);
+  if(out.ats_score==null && row.ats_score!=null) out.ats_score = row.ats_score;
+  if(out.ats_keywords_used==null && row.ats_keywords_used!=null) out.ats_keywords_used = row.ats_keywords_used;
+  if(out.ats_keywords_missing==null && row.ats_keywords_missing!=null) out.ats_keywords_missing = row.ats_keywords_missing;
+  out.updated_at = out.updated_at || row.updated_at || row.created_at || null;
+  out.language = out.language || row.language || row.lang || "en";
+  // Keep these for debugging/selection
+  out.input_hash = out.input_hash || row.input_hash || row.inputHash || null;
+  out.template = out.template || row.template || row.cv_template || null;
+  out.strength = out.strength || row.strength || row.tailor_strength || row.tailoring_strength || null;
+  return out;
+}
+
+async function tryLoadExistingTailoredFromServer(jobId, template, strength, preferInputHash, accessToken){
+  try{
+    const qs = "job_ids=" + encodeURIComponent(String(jobId||""));
+    const res = await apiGet("/me/cv/tailored?"+qs, accessToken);
+    const rows = (res && Array.isArray(res.data)) ? res.data : [];
+    const list = Array.isArray(rows) ? rows : [rows];
+    if(!list.length) return null;
+
+    const candidates = list.filter(r => String(r && (r.job_id ?? r.jobId ?? "")) === String(jobId));
+    const pick = pickBestTailoredRow(candidates.length ? candidates : list, template, strength, preferInputHash);
+    const normalized = normalizeTailorResultFromRow(pick);
+    if(!normalized) return null;
+
+    const hasOutput = !!((normalized.cv_text && String(normalized.cv_text).trim()) || (normalized.cv_doc && typeof normalized.cv_doc === "object"));
+    if(!hasOutput) return null;
+
+    return normalized;
+  }catch(e){
+    return null;
+  }
+}
+
+function applyTailorResultUI(jobId, rAny, opts){
+  const template = (opts && opts.template) ? opts.template : getTailorTemplate();
+  const strength = (opts && opts.strength) ? opts.strength : getStrengthKeyFromSlider();
+  const note = (opts && opts.note) ? String(opts.note) : "";
+
+  const r = normalizeTailorResultFromAny(rAny) || {};
+  currentTailorResult=r;
+  currentTailorText = String(r.cv_text||"");
+  currentTailorDoc = (r.cv_doc && typeof r.cv_doc === "object") ? r.cv_doc : null;
+
+  const used = normalizeKeywordList(r.ats_keywords_used);
+  const missing = normalizeKeywordList(r.ats_keywords_missing);
+
+  let score = normalizeAtsScore(r.ats_score);
+  if(score===null) score = computeAtsMatchPercent(used, missing);
+
+  // Status badge
+  let sType="";
+  if(score!==null){
+    sType = (score>=80)?"good":(score>=60)?"warn":"bad";
+    setBadge("tailorStatus", sType, `Done · ATS ${score}%`);
+  }else{
+    setBadge("tailorStatus", "good", "Done");
+  }
+
+  const jobLabel = currentTailorJobTitle ? (" · Job: " + currentTailorJobTitle) : "";
+  const noteLabel = note ? (" · " + note) : "";
+  setText("tailorMeta", `Template: ${template} · Strength: ${strength}${jobLabel}${noteLabel}`);
+
+  const kwBadgeCls = sType ? (" " + sType) : "";
+
+  function renderChips(arr, cls, max){
+    const a=normalizeKeywordList(arr);
+    const shown=a.slice(0, max||14);
+    const more=a.length - shown.length;
+    const chips=shown.map(k=>`<span class="kwChip ${cls}">${escapeHtml(k)}</span>`).join("");
+    const moreChip = (more>0) ? `<span class="kwChip more">+${more} more</span>` : "";
+    return `<div class="kwChips">${chips}${moreChip}</div>`;
+  }
+
+  const scoreText = (score===null) ? "—" : (String(score) + "%");
+
+  setHtml("tailorKeywords", [
+    '<div class="kwRow">',
+      `<span class="badge${kwBadgeCls}">ATS match ${escapeHtml(scoreText)}</span>`,
+      '<button class="infoDot" type="button" data-ats-info>What's ATS?</button>',
+      `<span class="pill">Used: <b>${escapeHtml(String(used.length))}</b></span>`,
+      `<span class="pill">Missing: <b>${escapeHtml(String(missing.length))}</b></span>`,
+    '</div>',
+    '<div class="small" style="margin-top:10px;font-weight:900">Keywords used</div>',
+    renderChips(used, 'used', 14),
+    '<div class="small" style="margin-top:10px;font-weight:900">Missing keywords (only include if true)</div>',
+    renderChips(missing, 'missing', 14),
+    '<div class="small" style="margin-top:10px;color:rgba(17,19,24,.72)">Missing keywords are not automatically bad. Only add keywords you genuinely have experience with.</div>',
+  ].join(''));
+
+  const kw2=document.getElementById("tailorKeywords");
+  if(kw2) kw2.style.display="block";
+
+  if(currentTailorDoc){
+    setHtml("tailorPreview", cvDocToPreviewHtml(currentTailorDoc, r.language || "en"));
+  }else{
+    setHtml("tailorPreview", `<div class="small">Preview not available for this result. Switch to Text view.</div>`);
+  }
+
+  const tb=document.getElementById("tailorBody");
+  if(tb) tb.textContent=currentTailorText || "";
+
+  // Update badge cache for the job card
+  tailorSummaryMap.set(String(jobId), {
+    job_id: String(jobId),
+    ats_score: score,
+    ats_keywords_used: used,
+    ats_keywords_missing: missing,
+    updated_at: r.updated_at || new Date().toISOString(),
+  });
+
+  markTailorProcessDone();
+  updateTailorButtonsState(false);
+  renderAllJobs();
+}
+
 async function generateTailoredCv(jobId, force){
+  const template=getTailorTemplate();
+  const strength=getStrengthKeyFromSlider();
+  try{ localStorage.setItem("tailor_strength", strength); }catch(e){}
+
+  const cacheKey = tailorCacheKey(jobId, template, strength);
+
+  // If a request is already running for the same job + settings, wait for it and render the result.
+  if(tailorInFlight.has(cacheKey)){
+    try{
+      setBadge("tailorStatus","warn","Working…");
+      updateTailorButtonsState(true);
+      const r = await tailorInFlight.get(cacheKey);
+      if(r){
+        const norm = normalizeTailorResultFromAny(r);
+        tailorResultCache.set(cacheKey, norm);
+        applyTailorResultUI(jobId, norm, {template, strength, note:"Loaded"});
+        return;
+      }
+    }catch(e){
+      // fallthrough
+    }finally{
+      updateTailorButtonsState(false);
+    }
+  }
+
+  // Local cache prevents accidental duplicate inserts and makes the UX snappy.
+  if(!force && tailorResultCache.has(cacheKey)){
+    applyTailorResultUI(jobId, tailorResultCache.get(cacheKey), {template, strength, note:"Loaded (cached)"});
+    return;
+  }
+
   try{
     // Reset UI
-    setBadge("tailorStatus","warn","Generating…");
+    setBadge("tailorStatus","warn", force ? "Regenerating…" : "Preparing…");
     updateTailorButtonsState(true);
     toggleAtsExplain(false);
     simulateTailorProcess();
-
-    const template=getTailorTemplate();
-    const strength=getStrengthKeyFromSlider();
-    try{ localStorage.setItem("tailor_strength", strength); }catch(e){}
 
     const jobLabel = currentTailorJobTitle ? (" · Job: " + currentTailorJobTitle) : "";
     setText("tailorMeta", `Template: ${template} · Strength: ${strength}${jobLabel}`);
@@ -1477,93 +1713,66 @@ async function generateTailoredCv(jobId, force){
     const kw0=document.getElementById("tailorKeywords");
     if(kw0) kw0.style.display="none";
 
-    setHtml("tailorPreview", '<div class="small">Generating tailored CV…</div>');
+    setHtml("tailorPreview", `<div class="small">${force ? "Regenerating" : "Generating"} tailored CV…</div>`);
     const tb0=document.getElementById("tailorBody");
-    if(tb0) tb0.textContent="Generating tailored CV…";
+    if(tb0) tb0.textContent = force ? "Regenerating tailored CV…" : "Generating tailored CV…";
 
-    const payload={ job_id: jobId, force: !!force, template, strength };
     const session=await requireSession();
     if(!session){
       updateTailorButtonsState(false);
       return;
     }
 
-    const resp=await apiPost("/me/cv/tailor", session.access_token, payload);
-    if(!resp.ok) throw new Error(resp.error || "CV tailoring failed");
-
-    const r=resp.result || {};
-    currentTailorResult=r;
-    currentTailorText = String(r.cv_text||"");
-    currentTailorDoc = (r.cv_doc && typeof r.cv_doc === "object") ? r.cv_doc : null;
-
-    const used = normalizeKeywordList(r.ats_keywords_used);
-    const missing = normalizeKeywordList(r.ats_keywords_missing);
-
-    let score = normalizeAtsScore(r.ats_score);
-    if(score===null) score = computeAtsMatchPercent(used, missing);
-
-    // Status badge
-    let sType="";
-    if(score!==null){
-      sType = (score>=80)?"good":(score>=60)?"warn":"bad";
-      setBadge("tailorStatus", sType, `Done · ATS ${score}%`);
-    }else{
-      setBadge("tailorStatus", "good", "Done");
+    // IMPORTANT: avoid Supabase unique-key collisions by loading an existing tailored CV first (when force=false).
+    if(!force){
+      setBadge("tailorStatus","warn","Checking existing…");
+      const existing = await tryLoadExistingTailoredFromServer(jobId, template, strength, null, session.access_token);
+      if(existing){
+        tailorResultCache.set(cacheKey, existing);
+        applyTailorResultUI(jobId, existing, {template, strength, note:"Loaded (existing)"});
+        return;
+      }
     }
 
-    const kwBadgeCls = sType ? (" " + sType) : "";
+    // Create request promise and store as in-flight to prevent double submissions.
+    const requestPromise = (async ()=>{
+      const payload={ job_id: jobId, force: !!force, template, strength };
+      const resp=await apiPost("/me/cv/tailor", session.access_token, payload);
+      if(!resp.ok) throw new Error(resp.error || "CV tailoring failed");
+      const r=resp.result || {};
+      return normalizeTailorResultFromAny(r);
+    })();
 
-    function renderChips(arr, cls, max){
-      const a=normalizeKeywordList(arr);
-      const shown=a.slice(0, max||14);
-      const more=a.length - shown.length;
-      const chips=shown.map(k=>`<span class="kwChip ${cls}">${escapeHtml(k)}</span>`).join("");
-      const moreChip = (more>0) ? `<span class="kwChip more">+${more} more</span>` : "";
-      return `<div class="kwChips">${chips}${moreChip}</div>`;
-    }
+    tailorInFlight.set(cacheKey, requestPromise);
 
-    const scoreText = (score===null) ? "—" : (String(score) + "%");
+    setBadge("tailorStatus","warn", force ? "Regenerating…" : "Generating…");
+    const r = await requestPromise;
+    tailorResultCache.set(cacheKey, r);
+    applyTailorResultUI(jobId, r, {template, strength, note: force ? "Regenerated" : "Generated"});
 
-    setHtml("tailorKeywords", [
-      '<div class="kwRow">',
-        `<span class="badge${kwBadgeCls}">ATS match ${escapeHtml(scoreText)}</span>`,
-        '<button class="infoDot" type="button" data-ats-info>What\'s ATS?</button>',
-        `<span class="pill">Used: <b>${escapeHtml(String(used.length))}</b></span>`,
-        `<span class="pill">Missing: <b>${escapeHtml(String(missing.length))}</b></span>`,
-      '</div>',
-      '<div class="small" style="margin-top:10px;font-weight:900">Keywords used</div>',
-      renderChips(used, 'used', 14),
-      '<div class="small" style="margin-top:10px;font-weight:900">Missing keywords (only include if true)</div>',
-      renderChips(missing, 'missing', 14),
-      '<div class="small" style="margin-top:10px;color:rgba(17,19,24,.72)">Missing keywords are not automatically bad. Only add keywords you genuinely have experience with.</div>',
-    ].join(''));
-
-    const kw2=document.getElementById("tailorKeywords");
-    if(kw2) kw2.style.display="block";
-
-    if(currentTailorDoc){
-      setHtml("tailorPreview", cvDocToPreviewHtml(currentTailorDoc, r.language || "en"));
-    }else{
-      setHtml("tailorPreview", `<div class="small">Preview not available for this result. Switch to Text view.</div>`);
-    }
-
-    const tb=document.getElementById("tailorBody");
-    if(tb) tb.textContent=currentTailorText || "";
-
-    // Update badge cache for the job card
-    tailorSummaryMap.set(String(jobId), {
-      job_id: String(jobId),
-      ats_score: score,
-      ats_keywords_used: used,
-      ats_keywords_missing: missing,
-      updated_at: r.updated_at || new Date().toISOString(),
-    });
-
-    markTailorProcessDone();
-    updateTailorButtonsState(false);
-    renderAllJobs();
   }catch(err){
     const msg = String(err?.message || err);
+
+    // If the backend attempted to insert the same (customer_id, job_id, input_hash) twice,
+    // Supabase returns a 23505 (unique violation). Treat this as "already generated" and load the existing CV.
+    if(isDuplicateTailorError(msg)){
+      try{
+        const session=await requireSession();
+        if(session){
+          const ih = extractInputHashFromError(msg);
+          setBadge("tailorStatus","warn","Already generated — loading…");
+          const existing = await tryLoadExistingTailoredFromServer(jobId, template, strength, ih, session.access_token);
+          if(existing){
+            tailorResultCache.set(cacheKey, existing);
+            applyTailorResultUI(jobId, existing, {template, strength, note:"Loaded (already generated)"});
+            return;
+          }
+        }
+      }catch(_){
+        // ignore
+      }
+    }
+
     setBadge("tailorStatus","bad","Failed");
     setText("tailorMeta", msg);
     setHtml("tailorPreview", `<div class="small" style="color:var(--bad)">Failed to generate CV: ${escapeHtml(msg)}</div>`);
@@ -1573,6 +1782,8 @@ async function generateTailoredCv(jobId, force){
     if(kw) kw.style.display="none";
     markTailorProcessError();
     updateTailorButtonsState(false);
+  }finally{
+    tailorInFlight.delete(cacheKey);
   }
 }
 
