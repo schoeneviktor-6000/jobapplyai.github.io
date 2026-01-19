@@ -1630,7 +1630,7 @@ function applyTailorResultUI(jobId, rAny, opts){
   setHtml("tailorKeywords", [
     '<div class="kwRow">',
       `<span class="badge${kwBadgeCls}">ATS match ${escapeHtml(scoreText)}</span>`,
-      '<button class="infoDot" type="button" data-ats-info>What's ATS?</button>',
+      `<button class="infoDot" type="button" data-ats-info>What's ATS?</button>`,
       `<span class="pill">Used: <b>${escapeHtml(String(used.length))}</b></span>`,
       `<span class="pill">Missing: <b>${escapeHtml(String(missing.length))}</b></span>`,
     '</div>',
