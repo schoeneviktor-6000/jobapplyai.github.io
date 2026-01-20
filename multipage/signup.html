@@ -1,794 +1,384 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sign in · jobmejob</title>
-  <meta name="description" content="Sign in to jobmejob to start job search, CV tailoring and auto-apply." />
-
-  <style>
-    :root{
-      --bg: #f6f7fb;
-      --card: rgba(255,255,255,0.92);
-      --text: #0f172a;
-      --muted:#5b6474;
-      --muted2:#7a8394;
-      --border: rgba(15, 23, 42, 0.12);
-      --shadow: 0 18px 60px rgba(15, 23, 42, 0.10);
-      --shadow2: 0 10px 24px rgba(15, 23, 42, 0.08);
-      --good: #16a34a;
-      --warn: #b45309;
-      --bad:  #b42318;
-      --ring: rgba(34, 197, 94, 0.22);
-      --radius: 18px;
-    }
-
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      color:var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-      background:
-        radial-gradient(900px 300px at 20% 0%, rgba(34,197,94,.14), transparent 55%),
-        radial-gradient(900px 320px at 90% 10%, rgba(56,189,248,.10), transparent 55%),
-        linear-gradient(180deg, var(--bg), #fff 60%, var(--bg));
-    }
-
-    a{color:inherit}
-    .leaving{opacity:.7; transform:translateY(6px); transition:all .18s ease}
-
-    /* Top bar */
-    .topbar{
-      position:sticky; top:0; z-index:10;
-      background: rgba(255,255,255,0.72);
-      backdrop-filter: blur(10px);
-      border-bottom:1px solid rgba(15,23,42,.08);
-    }
-    .nav{
-      max-width:1100px;
-      margin:0 auto;
-      padding:12px 16px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-    }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      text-decoration:none;
-      font-weight:1000;
-      letter-spacing:-.2px;
-    }
-    .logo{
-      width:34px; height:34px;
-      border-radius:12px;
-      background:
-        radial-gradient(12px 12px at 30% 30%, rgba(34,197,94,.85), transparent 60%),
-        radial-gradient(14px 14px at 75% 40%, rgba(56,189,248,.70), transparent 62%),
-        radial-gradient(18px 18px at 55% 85%, rgba(16,185,129,.55), transparent 60%),
-        linear-gradient(135deg, rgba(15,23,42,.10), rgba(15,23,42,.02));
-      border:1px solid rgba(15,23,42,.10);
-      box-shadow: 0 10px 26px rgba(15,23,42,.10);
-      flex:0 0 auto;
-    }
-    .navlinks{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-    }
-    .pill{
-      appearance:none;
-      border:1px solid var(--border);
-      background: rgba(15,23,42,0.03);
-      color:var(--text);
-      padding:9px 12px;
-      border-radius:999px;
-      font-weight:900;
-      font-size:13px;
-      cursor:pointer;
-      text-decoration:none;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      transition: transform .15s ease, background .15s ease, border-color .15s ease;
-    }
-    .pill:hover{transform:translateY(-1px); background: rgba(15,23,42,0.05);}
-    .pill.active{
-      border-color: rgba(34,197,94,0.55);
-      background: linear-gradient(135deg, rgba(34,197,94,0.18), rgba(22,163,74,0.10));
-    }
-    .pill:disabled{opacity:.55; cursor:not-allowed; transform:none}
-    .pill.iconOnly{padding:9px 12px}
-
-    /* Layout */
-    .main{
-      max-width:1100px;
-      margin:0 auto;
-      padding:22px 16px 48px;
-    }
-    .h1{
-      margin:0;
-      font-size:28px;
-      letter-spacing:-.4px;
-      line-height:1.15;
-      font-weight:1000;
-    }
-    .sub{
-      margin:8px 0 0 0;
-      color:var(--muted);
-      font-weight:700;
-      line-height:1.45;
-      max-width:70ch;
-    }
-
-    .grid{
-      margin-top:18px;
-      display:grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap:14px;
-      align-items:start;
-    }
-    @media (max-width: 900px){
-      .grid{grid-template-columns:1fr}
-    }
-
-    .card{
-      border:1px solid var(--border);
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow2);
-      padding:16px;
-    }
-    .card.hero{
-      box-shadow: var(--shadow);
-      background:
-        radial-gradient(900px 240px at 10% 0%, rgba(34,197,94,.18), transparent 60%),
-        radial-gradient(900px 240px at 95% 10%, rgba(56,189,248,.10), transparent 62%),
-        linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.86));
-    }
-    .sectionTitle{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      margin-bottom:8px;
-    }
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid rgba(15,23,42,.14);
-      background: rgba(15,23,42,.03);
-      font-weight:900;
-      font-size:12px;
-      color: var(--text);
-      white-space:nowrap;
-    }
-    .badge.good{border-color: rgba(34,197,94,.40); background: rgba(34,197,94,.10); color:#0c4a2a;}
-    .badge.warn{border-color: rgba(245,158,11,.38); background: rgba(245,158,11,.10); color:#6b3b00;}
-    .badge.bad{border-color: rgba(244,63,94,.32); background: rgba(244,63,94,.08); color:#7a1020;}
-
-    .googleBtn{
-      width:100%;
-      appearance:none;
-      border:1px solid rgba(15,23,42,.14);
-      background: rgba(255,255,255,.95);
-      color:var(--text);
-      padding:12px 14px;
-      border-radius:14px;
-      font-weight:1000;
-      font-size:14px;
-      cursor:pointer;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-      box-shadow: 0 10px 22px rgba(15,23,42,.08);
-      transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
-    }
-    .googleBtn:hover{transform:translateY(-1px); box-shadow: 0 14px 28px rgba(15,23,42,.10)}
-    .googleBtn:disabled{opacity:.65; cursor:not-allowed; transform:none}
-    .googleIcon{
-      width:18px;height:18px; display:inline-flex; align-items:center; justify-content:center;
-    }
-
-    .hint{
-      margin:10px 0 0 0;
-      color:var(--muted);
-      font-weight:750;
-      font-size:13px;
-      line-height:1.45;
-    }
-
-    .statusRow{
-      margin-top:12px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding:12px;
-      border-radius:14px;
-      border:1px solid rgba(15,23,42,.12);
-      background: rgba(15,23,42,.03);
-    }
-    .statusLeft{min-width:0}
-    .statusLabel{font-size:12px; font-weight:900; color:var(--muted2)}
-    .statusValue{font-size:13px; font-weight:1000; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60ch}
-    .linkBtn{
-      appearance:none;
-      border:0;
-      background:transparent;
-      font-weight:1000;
-      color: rgba(22,163,74,1);
-      cursor:pointer;
-      padding:8px 10px;
-      border-radius:12px;
-    }
-    .linkBtn:hover{background: rgba(34,197,94,.10)}
-
-    details{margin-top:12px}
-    summary{cursor:pointer; font-weight:950}
-    .advRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
-    .ghost{
-      appearance:none;
-      border:1px solid var(--border);
-      background: rgba(15,23,42,.03);
-      color:var(--text);
-      padding:10px 12px;
-      border-radius:999px;
-      font-weight:900;
-      font-size:13px;
-      cursor:pointer;
-    }
-    .ghost:hover{background: rgba(15,23,42,.05)}
-    .ghost:disabled{opacity:.55; cursor:not-allowed}
-
-    .steps{display:grid; gap:10px; margin-top:10px}
-    .step{display:flex; gap:10px; align-items:flex-start}
-    .num{
-      width:26px; height:26px;
-      border-radius:10px;
-      display:flex; align-items:center; justify-content:center;
-      border:1px solid rgba(15,23,42,.14);
-      background: rgba(15,23,42,.03);
-      font-weight:1000;
-      flex:0 0 auto;
-    }
-    .stepTitle{font-weight:1000; margin:0}
-    .stepDesc{margin:3px 0 0 0; color:var(--muted); font-weight:750; font-size:13px; line-height:1.4}
-
-    .hr{height:1px;background:rgba(15,23,42,.10);margin:12px 0}
-    .small{color:var(--muted); font-weight:750; font-size:12px; line-height:1.5}
-
-    .errorTop{
-      display:none;
-      margin-top:12px;
-      padding:12px 12px;
-      border-radius:14px;
-      border:1px solid rgba(244,63,94,.30);
-      background: rgba(244,63,94,.08);
-      color:#7a1020;
-      font-weight:800;
-      font-size:13px;
-      white-space:pre-wrap;
-    }
-
-    .footer{
-      margin-top:18px;
-      color:var(--muted2);
-      font-weight:750;
-      font-size:12px;
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>jobmejob • Sign in</title>
+<style>
+:root{
+  --bg:#f6f7fb;
+  --text:#111318;
+  --muted:rgba(17,19,24,.64);
+  --line:rgba(17,19,24,.12);
+  --accent:#22c55e;
+  --accent2:#16a34a;
+  --shadow:0 12px 34px rgba(17,19,24,.12);
+  --radius:18px;
+  --max:1120px;
+  --safeTop: env(safe-area-inset-top, 0px);
+  --safeBottom: env(safe-area-inset-bottom, 0px);
+  --surface:#ffffff;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  color:var(--text);
+  background:
+    radial-gradient(1200px 650px at 20% -10%, rgba(34,197,94,.18), transparent 55%),
+    radial-gradient(900px 500px at 90% 10%, rgba(22,163,74,.14), transparent 55%),
+    radial-gradient(800px 600px at 70% 110%, rgba(34,197,94,.10), transparent 55%),
+    var(--bg);
+  overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+.topbar{
+  position:sticky; top:0; z-index:30;
+  background:rgba(246,247,251,.86);
+  backdrop-filter:saturate(1.2) blur(12px);
+  border-bottom:1px solid var(--line);
+  padding-top:var(--safeTop);
+}
+.nav{
+  max-width:var(--max);
+  margin:0 auto;
+  padding:12px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:950;
+  letter-spacing:.2px;
+  min-width:0;
+}
+.logo{
+  width:34px;height:34px;border-radius:11px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  box-shadow: 0 10px 30px rgba(34,197,94,.22);
+  flex:0 0 auto;
+  position:relative;
+  overflow:hidden;
+}
+.logo::after{
+  content:"";
+  position:absolute;
+  inset:-45%;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.75), transparent);
+  transform:rotate(20deg);
+  animation:shine 2.8s ease-in-out infinite;
+}
+@keyframes shine{
+  0%{transform:translateX(-55%) rotate(20deg);opacity:0}
+  35%{opacity:1}
+  70%{opacity:0}
+  100%{transform:translateX(55%) rotate(20deg);opacity:0}
+}
+.navlinks{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.pill{
+  padding:9px 12px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:rgba(17,19,24,.04);
+  font-weight:850;
+  font-size:13px;
+  transition:.15s ease;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.pill:hover{transform:translateY(-1px);background:rgba(17,19,24,.06)}
+.pill.active{border-color:rgba(34,197,94,.60); background:rgba(34,197,94,.16)}
+.main{
+  max-width:var(--max);
+  margin:0 auto;
+  padding:18px 16px calc(18px + var(--safeBottom));
+}
+.h1{
+  font-size:34px;
+  line-height:1.05;
+  letter-spacing:-.8px;
+  margin:10px 0 8px 0;
+}
+.sub{margin:0 0 14px 0;color:var(--muted);font-weight:650}
+.card{
+  background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.82));
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:14px;
+  overflow:hidden;
+}
+.grid{
+  display:grid;
+  grid-template-columns: 1.1fr .9fr;
+  gap:14px;
+  align-items:stretch;
+}
+@media (max-width:980px){ .grid{grid-template-columns:1fr} }
+.btn{
+  appearance:none;
+  border:1px solid var(--line);
+  background:rgba(17,19,24,.06);
+  color:var(--text);
+  padding:12px 14px;
+  border-radius:14px;
+  font-weight:950;
+  font-size:14px;
+  cursor:pointer;
+  transition:.15s ease;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  width:100%;
+}
+.btn:hover{transform:translateY(-1px); background:rgba(17,19,24,.08)}
+.btn:disabled{opacity:.6; cursor:not-allowed; transform:none}
+.btn.primary{
+  border-color:rgba(34,197,94,.55);
+  background:linear-gradient(135deg, rgba(34,197,94,.30), rgba(22,163,74,.18));
+}
+.badge{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:7px 10px;border-radius:999px;border:1px solid var(--line);
+  background:rgba(17,19,24,.05);color:var(--muted);
+  font-size:12px;font-weight:900;white-space:nowrap;
+}
+.badge.good{border-color:rgba(34,197,94,.40); background:rgba(34,197,94,.12); color:#0a3d1f}
+.badge.warn{border-color:rgba(255,179,0,.5); background:rgba(255,179,0,.12); color:#5a3b00}
+.errorTop{
+  display:none;
+  margin:12px 0 12px 0;
+  padding:12px 14px;
+  border-radius:16px;
+  border:1px solid rgba(255,61,113,.25);
+  background:rgba(255,61,113,.10);
+  color:#5a1130;
+  font-weight:800;
+  white-space:pre-wrap;
+}
+.small{font-size:12px;color:rgba(17,19,24,.55);font-weight:650;line-height:1.45}
+.steps{display:grid;gap:10px;margin-top:10px}
+.step{display:flex;gap:12px;padding:12px 14px;border-radius:16px;border:1px solid rgba(17,19,24,.10);background:rgba(17,19,24,.03)}
+.num{width:28px;height:28px;border-radius:10px;display:grid;place-items:center;font-weight:950;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);flex:0 0 auto}
+</style>
 </head>
 
 <body>
-  <header class="topbar">
-    <nav class="nav">
-      <a class="brand" href="index.html" data-nav="1">
-        <span class="logo" aria-hidden="true"></span>
-        <span>jobmejob</span>
-      </a>
+<header class="topbar">
+  <nav class="nav">
+    <a class="brand" href="index.html" data-nav="1"><span class="logo" aria-hidden="true"></span><span>jobmejob</span></a>
+    <div class="navlinks">
+      <a class="pill" href="index.html" data-nav="1">Home</a>
+      <a class="pill active" href="signup.html" data-nav="1">Sign in</a>
+      <a class="pill" href="profile.html" data-nav="1">Profile</a>
+      <a class="pill" href="plan.html" data-nav="1">Plan</a>
+      <a class="pill" href="jobs.html" data-nav="1">Jobs</a>
+      <a class="pill" href="dashboard.html" data-nav="1">Dashboard</a>
+    </div>
+  </nav>
+</header>
 
-      <div class="navlinks">
-        <a class="pill" href="index.html" data-nav="1">Home</a>
-        <a class="pill active" href="signup.html" data-nav="1">Sign in</a>
-        <a class="pill" href="profile.html" data-nav="1" title="Requires sign-in">Profile</a>
-        <a class="pill" href="plan.html" data-nav="1" title="Requires sign-in">Plan</a>
-        <a class="pill" href="jobs.html" data-nav="1" title="Requires sign-in">Jobs</a>
-        <a class="pill" href="dashboard.html" data-nav="1" title="Requires sign-in">Dashboard</a>
+<main class="main">
+  <h1 class="h1">Sign in to start</h1>
+  <p class="sub">Continue with Google. We will create (or reuse) your customer record, then send you to the next step.</p>
+
+  <div class="errorTop" id="errorTop"></div>
+
+  <div class="grid">
+    <section class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div class="badge warn" id="stateBadge">Not signed in</div>
+        <div class="small" id="who"></div>
       </div>
-    </nav>
-  </header>
 
-  <main class="main">
-    <div class="sectionTitle">
-      <h1 class="h1">Sign in to start</h1>
-      <span class="badge warn" id="topState">Not signed in</span>
-    </div>
-    <p class="sub">
-      Continue with Google. We will create (or reuse) your customer record, then send you to the next step.
-    </p>
+      <div style="margin-top:12px">
+        <button class="btn primary" id="btnGoogle" type="button">Continue with Google</button>
+      </div>
 
-    <div class="errorTop" id="errorTop"></div>
+      <div class="small" id="hint" style="margin-top:10px">You stay in control. Nothing is sent without your confirmation.</div>
 
-    <div class="grid">
-      <section class="card hero">
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <button class="googleBtn" id="btnGoogle" type="button">
-            <span class="googleIcon" aria-hidden="true">
-              <svg viewBox="0 0 48 48" width="18" height="18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path fill="#EA4335" d="M24 9.5c3.5 0 6.7 1.2 9.2 3.5l6.9-6.9C35.9 2.3 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.3l8.1 6.3C12.6 13.6 17.8 9.5 24 9.5z"/>
-                <path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-2.8-.4-4.1H24v7.8h12.6c-.3 2-1.9 5-5.4 7l8.3 6.4c4.9-4.5 7.6-11.1 7.6-19.1z"/>
-                <path fill="#FBBC05" d="M10.7 28.4c-.5-1.4-.8-2.9-.8-4.4s.3-3 .8-4.4l-8.1-6.3C.9 16.7 0 20.3 0 24s.9 7.3 2.6 10.7l8.1-6.3z"/>
-                <path fill="#34A853" d="M24 48c6.3 0 11.6-2.1 15.5-5.7l-8.3-6.4c-2.2 1.6-5.1 2.7-7.2 2.7-6.2 0-11.4-4.1-13.3-9.9l-8.1 6.3C6.5 42.6 14.6 48 24 48z"/>
-              </svg>
-            </span>
-            <span id="btnGoogleText">Continue with Google</span>
-          </button>
+      <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn" id="btnSwitch" type="button" style="width:auto;display:none;">Switch account</button>
+        <button class="btn" id="btnLogout" type="button" style="width:auto;display:none;">Logout</button>
+        <button class="btn" id="btnCopyToken" type="button" style="width:auto;display:none;">Copy access token</button>
+      </div>
 
-          <div class="statusRow" id="statusRow" style="display:none">
-            <div class="statusLeft">
-              <div class="statusLabel">Signed in as</div>
-              <div class="statusValue" id="signedEmail">—</div>
-            </div>
-            <button class="linkBtn" id="btnSwitch" type="button">Switch</button>
-          </div>
+      <div class="small" style="margin-top:12px">Support: <a href="mailto:team@jobmejob.com">team@jobmejob.com</a></div>
+    </section>
 
-          <p class="hint" id="hint">You stay in control. Nothing is sent without your confirmation.</p>
+    <aside class="card">
+      <div style="font-weight:950;margin-bottom:8px">What happens next</div>
+      <div class="steps">
+        <div class="step"><div class="num">1</div><div><div style="font-weight:950">Profile</div><div class="small">Upload your CV and set job preferences (titles, locations, radius).</div></div></div>
+        <div class="step"><div class="num">2</div><div><div style="font-weight:950">Plan</div><div class="small">Choose how many applications per day you want us to send.</div></div></div>
+        <div class="step"><div class="num">3</div><div><div style="font-weight:950">Dashboard</div><div class="small">See your queue, tailor CVs, and (later) start paid auto-apply.</div></div></div>
+      </div>
+      <div class="small" style="margin-top:12px">
+        If sign-in loops: Supabase → Auth → URL Configuration, ensure your current URL is allowed.
+      </div>
+    </aside>
+  </div>
+</main>
 
-          <details id="advanced" style="display:none">
-            <summary>Advanced (debug)</summary>
-            <p class="small">Only use this if you are troubleshooting auth issues.</p>
-            <div class="advRow">
-              <button class="ghost" id="btnLogout" type="button">Logout</button>
-              <button class="ghost" id="copyToken" type="button" disabled>Copy access token</button>
-            </div>
-          </details>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="./auth.js"></script>
+<script>
+"use strict";
 
-          <div class="footer">Support: <a href="mailto:team@jobmejob.com">team@jobmejob.com</a></div>
-        </div>
-      </section>
+function $(id){ return document.getElementById(id); }
+function showError(msg){
+  const el=$("errorTop");
+  if(!el) return;
+  if(!msg){ el.style.display="none"; el.textContent=""; return; }
+  el.style.display="block";
+  el.textContent=String(msg);
+}
+function setState(kind, text){
+  const b=$("stateBadge");
+  if(!b) return;
+  b.className="badge " + (kind||"warn");
+  b.textContent=text||"";
+}
+function go(url){
+  document.body.classList.add("leaving");
+  setTimeout(()=>{ window.location.href=url; }, 180);
+}
+document.addEventListener("click",(e)=>{
+  const a=e.target.closest("a[data-nav='1']");
+  if(!a) return;
+  const url=a.getAttribute("href");
+  if(!url || url.startsWith("#")) return;
+  e.preventDefault();
+  go(url);
+});
 
-      <aside class="card">
-        <div style="font-weight:1000;">What happens next</div>
-        <div class="steps">
-          <div class="step">
-            <div class="num">1</div>
-            <div>
-              <div class="stepTitle">Profile</div>
-              <div class="stepDesc">Upload your CV and set job preferences (titles, locations, radius).</div>
-            </div>
-          </div>
-          <div class="step">
-            <div class="num">2</div>
-            <div>
-              <div class="stepTitle">Plan</div>
-              <div class="stepDesc">Choose how many applications per day you want us to send.</div>
-            </div>
-          </div>
-          <div class="step">
-            <div class="num">3</div>
-            <div>
-              <div class="stepTitle">Dashboard</div>
-              <div class="stepDesc">See your queue, tailor CVs, and (later) start paid auto-apply.</div>
-            </div>
-          </div>
-        </div>
-        <div class="hr"></div>
-        <p class="small">
-          If sign-in loops: in Supabase → Auth → URL Configuration, make sure your current page URL is allowed as a redirect URL.
-        </p>
-      </aside>
-    </div>
-  </main>
-
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script>
-  "use strict";
-
-  /* ============================================================
-    Config
-  ============================================================ */
-
-  const API_BASE = (
-    (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE)
-      ? String(window.JobApplyAI.config.API_BASE).trim().replace(/\\/+$/, "")
-      : ""
-  ) || (localStorage.getItem("ja_api_base") || "").trim().replace(/\\/+$/, "") || "https://jobmejob.schoene-viktor.workers.dev";
-
-  const SUPABASE_URL_DEFAULT = "https://awlzvhcnjegfhjedswko.supabase.co";
-  const SUPABASE_ANON_FALLBACK = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
-
+async function routeNext(session){
   try{
-    if(!localStorage.getItem("sb_url")) localStorage.setItem("sb_url", SUPABASE_URL_DEFAULT);
-    if(!localStorage.getItem("sb_anon")) localStorage.setItem("sb_anon", SUPABASE_ANON_FALLBACK);
+    const state = await window.JobApplyAI.auth.syncStateToLocalStorage(session);
+    if(state){
+      if(!state.profile_complete) return go("./profile.html");
+      if(!state.plan_id) return go("./plan.html");
+      return go("./dashboard.html");
+    }
   }catch(_){}
 
-  const SUPABASE_URL = (localStorage.getItem("sb_url") || SUPABASE_URL_DEFAULT).trim() || SUPABASE_URL_DEFAULT;
-  const SUPABASE_ANON_KEY = (localStorage.getItem("sb_anon") || SUPABASE_ANON_FALLBACK).trim() || SUPABASE_ANON_FALLBACK;
+  const prof = localStorage.getItem("jm_profile_complete") || localStorage.getItem("ja_profile_complete");
+  const plan = localStorage.getItem("jm_plan") || localStorage.getItem("ja_plan");
+  if(prof !== "true") return go("./profile.html");
+  if(!plan) return go("./plan.html");
+  return go("./dashboard.html");
+}
 
-  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-  });
+async function refreshUi(){
+  showError("");
+  const session = await window.JobApplyAI.auth.getSession();
+  const who = $("who");
+  const btnSwitch=$("btnSwitch");
+  const btnLogout=$("btnLogout");
+  const btnCopy=$("btnCopyToken");
+  const btnGoogle=$("btnGoogle");
 
-  /* ============================================================
-    Simple navigation transitions
-  ============================================================ */
-
-  function go(url){
-    document.body.classList.add("leaving");
-    setTimeout(()=>{ window.location.href = url; }, 180);
+  if(!session || !session.user || !session.user.email){
+    setState("warn","Not signed in");
+    if(who) who.textContent="";
+    if(btnSwitch) btnSwitch.style.display="none";
+    if(btnLogout) btnLogout.style.display="none";
+    if(btnCopy) btnCopy.style.display="none";
+    if(btnGoogle) btnGoogle.disabled=false;
+    return;
   }
-  document.addEventListener("click",(e)=>{
-    const a = e.target.closest("a[data-nav='1']");
-    if(!a) return;
-    const url = a.getAttribute("href");
-    if(!url || url.startsWith("#")) return;
-    e.preventDefault();
-    go(url);
-  });
 
-  /* ============================================================
-    App storage keys (keep backward compatibility)
-  ============================================================ */
+  setState("good","Signed in");
+  if(who) who.textContent="Signed in as " + String(session.user.email||"");
+  if(btnSwitch) btnSwitch.style.display="";
+  if(btnLogout) btnLogout.style.display="";
+  if(btnCopy) btnCopy.style.display="";
+  if(btnGoogle) btnGoogle.disabled=false;
+}
 
-  const LS = {
-    userEmail: ["jm_user_email","ja_user_email"],
-    customerId: ["jm_customer_id","ja_customer_id"],
-    profileDone: ["jm_profile_complete","ja_profile_complete"],
-    plan: ["jm_plan","ja_plan"],
-    workplace: ["jobmejob_workplace","jobapplyai_workplace"]
-  };
-
-  function lsGetFirst(keys){
-    for(const k of keys){
-      let v = null;
-      try{ v = localStorage.getItem(k); }catch(_){}
-      if(v !== null && v !== undefined && v !== "") return v;
+async function handleGoogle(){
+  try{
+    showError("");
+    const session = await window.JobApplyAI.auth.getSession();
+    if(session && session.user && session.user.email){
+      setState("good","Signed in");
+      await window.JobApplyAI.auth.requireAuthAndCustomer({ redirectTo:"./signup.html" });
+      return routeNext(session);
     }
-    return null;
-  }
-  function lsSetAll(keys, value){
-    for(const k of keys){
-      try{ localStorage.setItem(k, value); }catch(_){}
-    }
-  }
-  function lsRemoveAll(keys){
-    for(const k of keys){
-      try{ localStorage.removeItem(k); }catch(_){}
-    }
-  }
 
-  function readWorkplace(){
-    const raw = lsGetFirst(LS.workplace) || "";
-    try{ return raw ? JSON.parse(raw) : {}; }catch(_){ return {}; }
+    $("btnGoogle").disabled=true;
+    setState("warn","Opening Google…");
+    const redirectTo = window.location.href.split("#")[0];
+    await window.JobApplyAI.auth.loginWithGoogle(redirectTo);
+  }catch(e){
+    $("btnGoogle").disabled=false;
+    setState("warn","Not signed in");
+    showError(e && e.message ? e.message : String(e));
   }
-  function writeWorkplace(patch){
-    const obj = readWorkplace();
-    const next = { ...obj, ...patch };
-    const payload = JSON.stringify(next);
-    lsSetAll(LS.workplace, payload);
+}
+
+async function handleSwitch(){
+  try{
+    showError("");
+    setState("warn","Switching…");
+    await window.JobApplyAI.auth.logout("./signup.html");
+  }catch(e){
+    showError(e && e.message ? e.message : String(e));
   }
+}
 
-  function syncIdentity({ customerId, email }){
-    if(customerId) lsSetAll(LS.customerId, customerId);
-    if(email) lsSetAll(LS.userEmail, email);
-
-    const wp = readWorkplace();
-    writeWorkplace({
-      apiBase: wp.apiBase || API_BASE,
-      customerId: customerId || wp.customerId || wp.customer_id || null,
-      customerEmail: email || wp.customerEmail || null
-    });
+async function handleLogout(){
+  try{
+    showError("");
+    await window.JobApplyAI.auth.logout("./index.html");
+  }catch(e){
+    showError(e && e.message ? e.message : String(e));
   }
+}
 
-  function resetLocalStateForNewUser(currentEmail){
-    const prev = (lsGetFirst(LS.userEmail) || "").trim().toLowerCase();
-    const now  = (currentEmail || "").trim().toLowerCase();
-    if(!prev || !now) return;
+async function copyToken(){
+  try{
+    const session = await window.JobApplyAI.auth.getSession();
+    const tok = session && session.access_token ? session.access_token : "";
+    if(!tok){ showError("No token found. Sign in first."); return; }
+    await navigator.clipboard.writeText(tok);
+  }catch(e){
+    showError("Copy failed. Try again.");
+  }
+}
 
-    if(prev !== now){
-      // Only clear app-specific keys; keep sb_url / sb_anon and other system keys.
+window.addEventListener("load", async ()=>{
+  try{
+    await refreshUi();
+    const session = await window.JobApplyAI.auth.getSession();
+    if(session && session.user && session.user.email){
       try{
-        const keys = [];
-        for(let i=0;i<localStorage.length;i++){
-          const k = localStorage.key(i);
-          if(k) keys.push(k);
-        }
-        for(const k of keys){
-          if(
-            k.startsWith("jm_") ||
-            k.startsWith("ja_") ||
-            k.startsWith("jobmejob_") ||
-            k.startsWith("jobapplyai_") ||
-            k.startsWith("tailor_")
-          ){
-            localStorage.removeItem(k);
-          }
-        }
+        await window.JobApplyAI.auth.requireAuthAndCustomer({ redirectTo:"./signup.html" });
+        await routeNext(session);
+        return;
       }catch(_){}
-
-      // Also clear our known arrays
-      lsRemoveAll(LS.customerId);
-      lsRemoveAll(LS.profileDone);
-      lsRemoveAll(LS.plan);
-      lsRemoveAll(LS.workplace);
     }
+  }catch(e){
+    showError(e && e.message ? e.message : String(e));
   }
+});
 
-  /* ============================================================
-    UI helpers
-  ============================================================ */
-
-  function $(id){ return document.getElementById(id); }
-
-  function showTopError(msg){
-    const el = $("errorTop");
-    if(!el) return;
-    if(!msg){
-      el.style.display="none";
-      el.textContent="";
-      return;
-    }
-    el.style.display="block";
-    el.textContent=String(msg);
-  }
-
-  function setTopState(text, kind){
-    const el = $("topState");
-    if(!el) return;
-    el.textContent = text || "";
-    el.className = "badge " + (kind || "warn");
-  }
-  function setHint(text){
-    const el = $("hint");
-    if(el) el.textContent = text || "";
-  }
-  function setGoogleButton(disabled, text){
-    const btn = $("btnGoogle");
-    const t = $("btnGoogleText");
-    if(btn) btn.disabled = !!disabled;
-    if(t && typeof text === "string") t.textContent = text;
-  }
-
-  function showSignedIn(email){
-    setTopState("Signed in", "good");
-    const row = $("statusRow");
-    const em  = $("signedEmail");
-    if(row) row.style.display = "";
-    if(em) em.textContent = email || "—";
-    const adv = $("advanced");
-    if(adv) adv.style.display = "";
-    const copy = $("copyToken");
-    if(copy) copy.disabled = false;
-  }
-
-  function showSignedOut(){
-    setTopState("Not signed in", "warn");
-    const row = $("statusRow");
-    if(row) row.style.display = "none";
-    const adv = $("advanced");
-    if(adv) adv.style.display = "none";
-    setGoogleButton(false, "Continue with Google");
-    setHint("You stay in control. Nothing is sent without your confirmation.");
-  }
-
-  /* ============================================================
-    Auth + backend setup
-  ============================================================ */
-
-  async function getSession(){
-    const { data, error } = await supabaseClient.auth.getSession();
-    if(error) return null;
-    return data && data.session ? data.session : null;
-  }
-
-  async function loginWithGoogle(){
-    // Always redirect back to THIS page on the current domain
-    const redirectTo = `${window.location.origin}${window.location.pathname}`;
-    const { error } = await supabaseClient.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo }
-    });
-    if(error) throw error;
-  }
-
-  async function upsertCustomerByEmail(email){
-    const res = await fetch(`${API_BASE}/customers/upsert`, {
-      method: "POST",
-      headers: { "content-type":"application/json" },
-      body: JSON.stringify({ email })
-    });
-    const txt = await res.text().catch(()=> "");
-    if(!res.ok){
-      throw new Error(`customers/upsert failed: ${res.status} ${txt}`);
-    }
-    return txt ? JSON.parse(txt) : {};
-  }
-
-  async function fetchState(accessToken){
-    const res = await fetch(`${API_BASE}/me/state`, {
-      method: "GET",
-      headers: { Authorization: "Bearer " + accessToken }
-    });
-    const txt = await res.text().catch(()=> "");
-    if(!res.ok){
-      // Non-fatal: we can still proceed with local fallback
-      return null;
-    }
-    try{ return JSON.parse(txt); }catch(_){ return null; }
-  }
-
-  function syncStateToLocal(state){
-    if(!state) return;
-
-    const profileComplete = !!state.profile_complete;
-    const planId = state.plan_id ? String(state.plan_id) : "";
-
-    if(profileComplete) lsSetAll(LS.profileDone, "true");
-    else lsRemoveAll(LS.profileDone);
-
-    if(planId) lsSetAll(LS.plan, planId);
-    else lsRemoveAll(LS.plan);
-  }
-
-  function computeNextStep(state){
-    // Prefer backend truth
-    if(state){
-      const profileComplete = !!state.profile_complete;
-      const planId = state.plan_id ? String(state.plan_id) : "";
-      if(!profileComplete) return "./profile.html";
-      if(!planId) return "./plan.html";
-      return "./dashboard.html";
-    }
-
-    // Fallback to local flags
-    const hasProfile = !!lsGetFirst(LS.profileDone);
-    const plan = (lsGetFirst(LS.plan) || "").trim();
-    if(!hasProfile) return "./profile.html";
-    if(!plan) return "./plan.html";
-    return "./dashboard.html";
-  }
-
-  let hydrating = false;
-
-  async function hydrate(){
-    if(hydrating) return;
-    hydrating = true;
-
-    try{
-      showTopError("");
-      const session = await getSession();
-      if(!session || !session.user || !session.user.email){
-        showSignedOut();
-        return;
-      }
-
-      const email = String(session.user.email || "").trim().toLowerCase();
-      resetLocalStateForNewUser(email);
-
-      try{ sessionStorage.setItem("sb_access_token", session.access_token); }catch(_){}
-
-      showSignedIn(email);
-
-      setGoogleButton(true, "Setting up…");
-      setHint("Setting up your account…");
-
-      const data = await upsertCustomerByEmail(email);
-      if(data && data.customer_id){
-        syncIdentity({ customerId: data.customer_id, email });
-      }else{
-        // still store email so the app recognizes user
-        syncIdentity({ email });
-      }
-
-      const state = await fetchState(session.access_token);
-      syncStateToLocal(state);
-
-      setHint("Done. Taking you to the next step…");
-      setTimeout(()=> go(computeNextStep(state)), 420);
-    }catch(e){
-      console.error(e);
-      showTopError(e && e.message ? e.message : String(e));
-      setHint("Could not finish setup. Please retry (or switch account).");
-      setGoogleButton(false, "Try again");
-      setTopState("Setup failed", "bad");
-    }finally{
-      hydrating = false;
-    }
-  }
-
-  /* ============================================================
-    Event wiring
-  ============================================================ */
-
-  $("btnGoogle").addEventListener("click", async ()=>{
-    try{
-      showTopError("");
-      const session = await getSession();
-      if(session && session.user && session.user.email){
-        // Already signed in -> run setup (sync + redirect)
-        await hydrate();
-        return;
-      }
-
-      setGoogleButton(true, "Opening Google…");
-      setHint("Opening Google sign-in…");
-      await loginWithGoogle();
-    }catch(e){
-      console.error(e);
-      showTopError(e && e.message ? e.message : String(e));
-      setHint("Sign-in failed. Please retry.");
-      setGoogleButton(false, "Continue with Google");
-    }
-  });
-
-  $("btnSwitch").addEventListener("click", async ()=>{
-    try{
-      setHint("Switching account…");
-      await supabaseClient.auth.signOut();
-      try{ sessionStorage.removeItem("sb_access_token"); }catch(_){}
-      showSignedOut();
-      showTopError("");
-    }catch(e){
-      console.error(e);
-      showTopError(e && e.message ? e.message : String(e));
-      setHint("Could not switch. Please retry.");
-    }
-  });
-
-  $("btnLogout").addEventListener("click", async ()=>{
-    try{
-      await supabaseClient.auth.signOut();
-      try{ sessionStorage.removeItem("sb_access_token"); }catch(_){}
-      showSignedOut();
-      setHint("Signed out.");
-    }catch(e){
-      console.error(e);
-      showTopError(e && e.message ? e.message : String(e));
-      setHint("Logout failed. Please retry.");
-    }
-  });
-
-  $("copyToken").addEventListener("click", async ()=>{
-    try{
-      const tok = sessionStorage.getItem("sb_access_token") || "";
-      if(!tok){
-        setHint("No token found.");
-        return;
-      }
-      await navigator.clipboard.writeText(tok);
-      setHint("Access token copied.");
-    }catch(e){
-      console.error(e);
-      setHint("Copy failed.");
-    }
-  });
-
-  // Keep UI in sync when supabase updates session after OAuth redirect
-  supabaseClient.auth.onAuthStateChange((event, session)=>{
-    if(event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED"){
-      // If the user came back from OAuth, hydrate will run and redirect.
-      hydrate();
-    }
-    if(event === "SIGNED_OUT"){
-      showSignedOut();
-    }
-  });
-
-  // Initial
-  (async ()=>{
-    try{ await hydrate(); }catch(e){ console.error(e); }
-  })();
-
-  </script>
+$("btnGoogle").addEventListener("click", handleGoogle);
+$("btnSwitch").addEventListener("click", handleSwitch);
+$("btnLogout").addEventListener("click", handleLogout);
+$("btnCopyToken").addEventListener("click", copyToken);
+</script>
 </body>
 </html>
