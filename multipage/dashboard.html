@@ -567,6 +567,7 @@ box-shadow: none;
 <a class="pill" href="index.html" data-nav="1">Home</a>
 <a class="pill" href="profile.html" data-nav="1">Profile</a>
 <a class="pill" href="plan.html" data-nav="1">Plan</a>
+<a class="pill" href="jobs.html" data-nav="1">Jobs</a>
 <a class="pill active" href="dashboard.html" data-nav="1">Dashboard</a>
 <button class="pill iconOnly" id="btnLogout" type="button" aria-label="Logout">Logout</button>
 </div>
@@ -2431,9 +2432,13 @@ if(qaFetch){
 const qaView=document.getElementById("qaViewQueue");
 if(qaView){
   qaView.addEventListener("click",()=>{
-    const anchor=document.getElementById("btnRefresh") || document.getElementById("queueWrap");
-    if(anchor && anchor.scrollIntoView){
-      anchor.scrollIntoView({behavior:"smooth", block:"start"});
+    // The queue now lives primarily on Jobs page.
+    // Keep the dashboard lighter and send users directly there.
+    try{ window.location.href="jobs.html"; }catch(_e){
+      const anchor=document.getElementById("btnRefresh") || document.getElementById("queueWrap");
+      if(anchor && anchor.scrollIntoView){
+        anchor.scrollIntoView({behavior:"smooth", block:"start"});
+      }
     }
   });
 }
