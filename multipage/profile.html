@@ -1,384 +1,248 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>jobmejob • Profile</title>
-<style>
-:root{
---bg:#f6f7fb;
---text:#111318;
---muted:rgba(17,19,24,.64);
---muted2:rgba(17,19,24,.48);
---line:rgba(17,19,24,.12);
---accent:#22c55e;
---accent2:#16a34a;
---ok:#16a34a;
---warn:#b86b00;
---bad:#d81b60;
---shadow:0 12px 34px rgba(17,19,24,.12);
---radius:18px;
---max:1120px;
---safeTop: env(safe-area-inset-top, 0px);
---safeBottom: env(safe-area-inset-bottom, 0px);
---surface:#ffffff;
---surface2:#ffffff;
---surface3:#fbfcff;
-}
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-margin:0;
-font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-color:var(--text);
-background:
-radial-gradient(1200px 650px at 20% -10%, rgba(34,197,94,.18), transparent 55%),
-radial-gradient(900px 500px at 90% 10%, rgba(22,163,74,.14), transparent 55%),
-radial-gradient(800px 600px at 70% 110%, rgba(34,197,94,.10), transparent 55%),
-var(--bg);
-overflow-x:hidden;
-}
-a{color:inherit;text-decoration:none}
-small{color:var(--muted)}
-.topbar{
-position:sticky;
-top:0;
-z-index:30;
-background:rgba(246,247,251,.86);
-backdrop-filter:saturate(1.2) blur(12px);
-border-bottom:1px solid var(--line);
-padding-top:var(--safeTop);
-}
-.nav{
-max-width:var(--max);
-margin:0 auto;
-padding:12px 16px;
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:12px;
-}
-.brand{
-display:flex;
-align-items:center;
-gap:10px;
-font-weight:900;
-letter-spacing:.2px;
-min-width:0;
-}
-.logo{
-width:34px;height:34px;border-radius:11px;
-background: linear-gradient(135deg, var(--accent), var(--accent2));
-box-shadow: 0 10px 30px rgba(34,197,94,.22);
-flex:0 0 auto;
-position:relative;
-overflow:hidden;
-}
-.logo::after{
-content:"";
-position:absolute;
-inset:-45%;
-background:linear-gradient(90deg, transparent, rgba(255,255,255,.75), transparent);
-transform:rotate(20deg);
-animation:shine 2.8s ease-in-out infinite;
-}
-@keyframes shine{
-0%{transform:translateX(-55%) rotate(20deg);opacity:0}
-35%{opacity:1}
-70%{opacity:0}
-100%{transform:translateX(55%) rotate(20deg);opacity:0}
-}
-.navlinks{
-display:flex;
-align-items:center;
-gap:10px;
-flex-wrap:wrap;
-justify-content:flex-end;
-}
-.pill{
-padding:9px 12px;
-border:1px solid var(--line);
-border-radius:999px;
-background:rgba(17,19,24,.04);
-font-weight:750;
-font-size:13px;
-transition:.15s ease;
-cursor:pointer;
-white-space:nowrap;
-}
-.pill:hover{transform:translateY(-1px);background:rgba(17,19,24,.06)}
-.pill.active{border-color:rgba(34,197,94,.55); background:rgba(34,197,94,.16)}
-.pill.iconOnly{padding:9px 10px}
-.main{
-max-width:var(--max);
-margin:0 auto;
-padding:18px 16px calc(18px + var(--safeBottom));
-}
-.h1{
-font-size:34px;
-line-height:1.05;
-letter-spacing:-.8px;
-margin:10px 0 8px 0;
-}
-.sub{margin:0 0 14px 0;color:var(--muted);font-weight:650}
-.card{
-background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.82));
-border:1px solid var(--line);
-border-radius:var(--radius);
-box-shadow:var(--shadow);
-padding:14px;
-overflow:hidden;
-}
-.cardNoPad{padding:0}
-.sectionHeader{
-background:var(--surface2);
-border-bottom:1px solid rgba(17,19,24,.10);
-padding:14px;
-}
-.sectionBody{padding:14px}
-.hr{height:1px;background:var(--line);margin:12px 0}
-.badge{
-display:inline-flex;
-align-items:center;
-gap:8px;
-padding:7px 10px;
-border-radius:999px;
-border:1px solid var(--line);
-background:rgba(17,19,24,.05);
-color:var(--muted);
-font-size:12px;
-font-weight:750;
-white-space:nowrap;
-max-width:100%;
-}
-.badge.good{border-color:rgba(34,197,94,.40); background:rgba(34,197,94,.12); color:#0a3d1f}
-.badge.warn{border-color:rgba(255,179,0,.5); background:rgba(255,179,0,.12); color:#5a3b00}
-.badge.bad{border-color:rgba(255,61,113,.55); background:rgba(255,61,113,.12); color:#5a1130}
-.badge.prio{border-color:rgba(34,197,94,.45); background:rgba(34,197,94,.14); color:#0a3d1f}
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>jobmejob • Profile</title>
+  <meta name="description" content="Upload your CV, run OCR, and set job preferences."/>
+
+  <!-- Shared styles -->
+  <link rel="stylesheet" href="./shared.css"/>
+
+  <style>
+
+/* Page-specific layout for Profile (shared.css provides the base UI) */
+
 .grid{
-display:grid;
-grid-template-columns: 1.35fr .65fr;
-gap:14px;
-align-items:start;
+  display:grid;
+  grid-template-columns: 1.35fr .65fr;
+  gap:14px;
+  align-items:start;
 }
 @media (max-width:1100px){
-.grid{grid-template-columns:1fr}
+  .grid{grid-template-columns:1fr}
 }
-.field{
-display:flex;
-flex-direction:column;
-gap:6px;
-margin-top:10px;
+
+/* Cards with internal sections */
+.cardNoPad{padding:0}
+.sectionHeader{
+  padding:14px 14px 0 14px;
 }
-label{font-size:12px;color:var(--muted);font-weight:800}
-input,select,textarea{
-border:1px solid rgba(17,19,24,.14);
-background:rgba(17,19,24,.04);
-color:var(--text);
-border-radius:12px;
-padding:10px 12px;
-outline:none;
-font-size:14px;
+.sectionBody{
+  padding:14px;
 }
-textarea{min-height:90px;resize:vertical}
-.actions{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-align-items:center;
+.stepTitle{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
 }
-.btn{
-appearance:none;
-border:1px solid var(--line);
-background:rgba(17,19,24,.06);
-color:var(--text);
-padding:11px 14px;
-border-radius:999px;
-font-weight:900;
-font-size:13px;
-cursor:pointer;
-transition:.15s ease;
-display:inline-flex;
-align-items:center;
-gap:8px;
-text-decoration:none;
+.stepTitle h2{
+  margin:0;
+  font-size:16px;
+  font-weight:950;
+  letter-spacing:-.2px;
 }
-.btn:hover{transform:translateY(-1px); background:rgba(17,19,24,.08)}
-.btn:disabled{opacity:.6; cursor:not-allowed; transform:none}
-.btn.primary{
-border-color:rgba(34,197,94,.55);
-background:linear-gradient(135deg, rgba(34,197,94,.30), rgba(22,163,74,.18));
+
+/* Form layout */
+.field{display:grid; gap:8px; margin-top:12px}
+.field label{font-size:13px; font-weight:850; color:rgba(17,19,24,.72)}
+.field .small{margin-top:0}
+.fieldRow{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
 }
-.btn.good{
-border-color:rgba(34,197,94,.45);
-background:rgba(34,197,94,.12);
+@media (max-width:700px){
+  .fieldRow{grid-template-columns:1fr}
 }
-.btn.small{
-padding:9px 12px;
-font-size:12px;
-font-weight:900;
+
+/* Progress UI (CV upload + OCR) */
+.progressWrap{
+  margin-top:12px;
+  border:1px solid rgba(17,19,24,.10);
+  background:rgba(17,19,24,.03);
+  border-radius:16px;
+  padding:12px;
 }
-.btn.cta{
-border-color:rgba(34,197,94,.60);
-background:linear-gradient(135deg, rgba(34,197,94,.55), rgba(22,163,74,.28));
-box-shadow:0 16px 44px rgba(34,197,94,.18);
+.progressTop{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
 }
-.btn.cta:hover{
-box-shadow:0 18px 52px rgba(34,197,94,.24);
+.progressBar{
+  height:10px;
+  border-radius:999px;
+  background:rgba(17,19,24,.08);
+  overflow:hidden;
+  border:1px solid rgba(17,19,24,.10);
+  margin-top:10px;
 }
-.linkBtn{
-appearance:none;
-border:none;
-background:transparent;
-color:rgba(17,19,24,.68);
-font-weight:900;
-font-size:12px;
-cursor:pointer;
-padding:0;
-text-decoration:underline;
+
+/* Progress fill element (used by this page via id) */
+#cvProgressFill{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg, rgba(34,197,94,.85), rgba(22,163,74,.85));
+  border-radius:999px;
+  transition:width .25s ease;
 }
-.small{font-size:12px;color:var(--muted2);font-weight:650}
-.mono{
-font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
-font-size:12px;
-word-break:break-all;
-color:rgba(17,19,24,.64);
+
+.progressFill{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg, rgba(34,197,94,.85), rgba(22,163,74,.85));
+  border-radius:999px;
+  transition:width .25s ease;
 }
-.errorTop{
-margin:12px 0 12px 0;
-padding:12px 14px;
-border-radius:16px;
-border:1px solid rgba(255,61,113,.25);
-background:rgba(255,61,113,.10);
-color:#5a1130;
-font-weight:800;
-display:none;
+.progressHint{
+  margin-top:10px;
+  font-size:12px;
+  color:rgba(17,19,24,.58);
+  font-weight:650;
+  line-height:1.45;
 }
-.kpiCol{display:grid;gap:10px}
+
+/* KPIs (right column) */
+.kpiCol{display:grid; gap:10px}
 .kpiRow{
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:10px;
-padding:10px 12px;
-border:1px solid rgba(17,19,24,.12);
-background:var(--surface3);
-border-radius:16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 0;
+  border-top:1px solid rgba(17,19,24,.08);
 }
-.kpiName{font-size:12px;color:var(--muted);font-weight:900}
-.kpiVal{font-size:12px;font-weight:950}
+.kpiRow:first-child{border-top:0;padding-top:0}
+.kpiName{font-size:12px; color:rgba(17,19,24,.58); font-weight:800}
+.kpiVal{font-size:12px; font-weight:950}
 .kpiVal.ok{color:#0a3d1f}
 .kpiVal.warn{color:#5a3b00}
 .kpiVal.bad{color:#5a1130}
-.stepTitle{
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:10px;
+.mono{
+  font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size:12px;
+  word-break:break-all;
+  color:rgba(17,19,24,.64);
 }
-.stepTitle h2{margin:0;font-size:16px}
+
+/* Small helper box */
 .helpBox{
-border:1px solid rgba(17,19,24,.12);
-background:rgba(17,19,24,.03);
-padding:12px;
-border-radius:16px;
+  padding:12px 14px;
+  border-radius:16px;
+  border:1px solid rgba(17,19,24,.10);
+  background:rgba(17,19,24,.03);
 }
-.progressWrap{
-margin-top:12px;
-border:1px solid rgba(17,19,24,.12);
-background:rgba(17,19,24,.03);
-border-radius:16px;
-padding:12px;
-}
-.progressBar{
-height:10px;
-border-radius:999px;
-background:rgba(17,19,24,.10);
-overflow:hidden;
-margin-top:8px;
-}
-.progressBar > div{
-height:100%;
-width:0%;
-background:linear-gradient(135deg, rgba(34,197,94,.85), rgba(22,163,74,.75));
-transition:width .25s ease;
-}
+
+/* Chips (AI suggestions) */
 .chips{
-display:flex;
-flex-wrap:wrap;
-gap:8px;
-margin-top:10px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
 }
 .chip{
-display:inline-flex;
-align-items:center;
-gap:8px;
-padding:9px 10px;
-border-radius:999px;
-border:1px solid rgba(17,19,24,.14);
-background:rgba(17,19,24,.03);
-cursor:pointer;
-user-select:none;
-font-weight:850;
-font-size:12px;
-opacity:0;
-transform:translateY(6px);
-animation:chipIn .28s ease forwards;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:9px 10px;
+  border-radius:999px;
+  border:1px solid rgba(17,19,24,.14);
+  background:rgba(17,19,24,.03);
+  cursor:pointer;
+  user-select:none;
+  font-weight:850;
+  font-size:12px;
+  opacity:0;
+  transform:translateY(6px);
+  animation:chipIn .28s ease forwards;
 }
 .chip.selected{
-border-color:rgba(34,197,94,.55);
-background:rgba(34,197,94,.14);
+  border-color:rgba(34,197,94,.55);
+  background:rgba(34,197,94,.14);
 }
 .chip.aiTag{
-border-color:rgba(34,197,94,.55);
-background:rgba(34,197,94,.10);
-cursor:default;
+  border-color:rgba(34,197,94,.55);
+  background:rgba(34,197,94,.10);
+  cursor:default;
 }
 @keyframes chipIn{
-from{opacity:0;transform:translateY(6px)}
-to{opacity:1;transform:translateY(0)}
+  from{opacity:0;transform:translateY(6px)}
+  to{opacity:1;transform:translateY(0)}
 }
+
+/* Step complete (subtle dim) */
 .stepDone{
-opacity:.78;
-filter:saturate(.92);
+  opacity:.78;
+  filter:saturate(.92);
 }
-.stepDone .helpBox,.stepDone .progressWrap{opacity:.9}
+.stepDone .helpBox, .stepDone .progressWrap{opacity:.9}
+
+/* AI card highlight */
 .aiCard{
-border:1px solid rgba(34,197,94,.28);
-background:
-radial-gradient(700px 220px at 15% 0%, rgba(34,197,94,.18), transparent 60%),
-radial-gradient(700px 220px at 85% 20%, rgba(22,163,74,.12), transparent 60%),
-linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.82));
+  border:1px solid rgba(34,197,94,.28);
+  background:
+    radial-gradient(700px 220px at 15% 0%, rgba(34,197,94,.18), transparent 60%),
+    radial-gradient(700px 220px at 85% 20%, rgba(22,163,74,.12), transparent 60%),
+    linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.82));
 }
-.aiGlow{
-box-shadow:0 18px 52px rgba(34,197,94,.12);
+.aiGlow{box-shadow:0 18px 52px rgba(34,197,94,.12)}
+
+/* Compatibility: older button variants used in this page */
+.btn.cta{ /* treat as primary */
+  border-color:rgba(34,197,94,.45);
+  background:linear-gradient(180deg, rgba(34,197,94,.16), rgba(34,197,94,.10));
 }
-.pill.mini{padding:7px 10px;font-size:12px;font-weight:850}
-</style>
+.btn.good{ /* soft green */
+  border-color:rgba(34,197,94,.38);
+  background:rgba(34,197,94,.10);
+}
+
+/* Small pill variant used for AI labels */
+.pill.mini{
+  padding:7px 10px;
+  font-size:12px;
+  font-weight:850;
+}
+
+
+/* Link-like button (used for Regenerate) */
+.linkBtn{
+  background:transparent;
+  border:0;
+  padding:0;
+  font:inherit;
+  color:rgba(22,163,74,.95);
+  font-weight:950;
+  cursor:pointer;
+}
+.linkBtn:hover{ text-decoration:underline }
+.linkBtn:disabled{ opacity:.55; cursor:not-allowed; text-decoration:none }
+
+  </style>
 </head>
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script src="./auth.js"></script>
 
 <body>
 <header class="topbar">
 <nav class="nav">
-<a class="brand" href="index.html" data-nav="1"><span class="logo" aria-hidden="true"></span><span>jobmejob</span></a>
+<a class="brand" data-nav="1" href="./index.html"><span aria-hidden="true" class="logo"></span><span>jobmejob</span></a>
 <div class="navlinks">
-<a class="pill" href="index.html" data-nav="1">Home</a>
-<a class="pill active" href="profile.html" data-nav="1">Profile</a>
-<a class="pill" href="plan.html" data-nav="1">Plan</a>
-<a class="pill" href="jobs.html" data-nav="1">Jobs</a>
-<a class="pill" href="dashboard.html" data-nav="1">Dashboard</a>
-<button class="pill iconOnly" id="btnLogout" type="button" aria-label="Logout">Logout</button>
+<a class="pill" data-nav="1" href="./index.html">Home</a>
+<a class="pill active" data-nav="1" href="./profile.html">Profile</a>
+<a class="pill" data-nav="1" href="./plan.html">Plan</a>
+<a class="pill" data-nav="1" href="./jobs.html">Jobs</a>
+<a class="pill" data-nav="1" href="./dashboard.html">Dashboard</a>
+<button aria-label="Logout" class="pill iconOnly" id="btnLogout" type="button">Logout</button>
 </div>
 </nav>
 </header>
-
 <main class="main">
 <h1 class="h1">Profile</h1>
 <p class="sub" id="subLine">Loading…</p>
 <div class="errorTop" id="errorTop"></div>
-
 <div class="grid">
 <section class="card cardNoPad" id="step1Card">
 <div class="sectionHeader">
@@ -391,61 +255,50 @@ box-shadow:0 18px 52px rgba(34,197,94,.12);
 <div class="sectionBody">
 <div class="field">
 <label for="cvFile">CV file (PDF/DOC/DOCX)</label>
-<input type="file" id="cvFile" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+<input accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" id="cvFile" type="file"/>
 </div>
-
 <div class="progressWrap" id="cvProgressWrap" style="display:none">
 <div class="small" id="cvProgressText">Preparing…</div>
-<div class="progressBar" aria-label="Upload progress">
+<div aria-label="Upload progress" class="progressBar">
 <div id="cvProgressFill"></div>
 </div>
 <div class="small" id="cvProgressHint" style="margin-top:8px"></div>
 </div>
-
 <div class="helpBox" style="margin-top:12px">
 <div class="small" id="cvHint">No CV uploaded yet.</div>
 <div class="small" id="ocrHint" style="margin-top:6px"></div>
 </div>
-
 <div class="hr"></div>
-
 <div class="helpBox aiCard aiGlow" id="aiBox">
 <div class="stepTitle">
 <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
 <h2 style="margin:0;font-size:16px">AI job title suggestions</h2>
-<button class="linkBtn" id="aiRegenerateLink" type="button" style="display:none">Regenerate</button>
+<button class="linkBtn" id="aiRegenerateLink" style="display:none" type="button">Regenerate</button>
 </div>
 <span class="badge" id="aiStatusBadge">Locked</span>
 </div>
-
 <div class="small" id="aiHint" style="margin-top:6px">Upload your CV first. When OCR is done, you can generate suggestions.</div>
-
 <div class="actions" style="margin-top:12px">
-<button class="btn cta" id="aiGenerateBtn" type="button" disabled>Generate suggestions</button>
-<button class="btn" id="aiApplyBtn" type="button" disabled>Apply selected titles</button>
+<button class="btn cta" disabled="" id="aiGenerateBtn" type="button">Generate suggestions</button>
+<button class="btn" disabled="" id="aiApplyBtn" type="button">Apply selected titles</button>
 </div>
-
 <div id="aiTitlesWrap" style="margin-top:12px;display:none"></div>
 <div class="hr"></div>
 <div id="aiAltWrap" style="display:none">
 <div class="small" style="font-weight:850">Alternative roles based on your skills</div>
 <div class="chips" id="aiAltChips" style="margin-top:10px"></div>
 </div>
-
 <div id="aiSkillsWrap" style="display:none;margin-top:14px">
 <div class="small" style="font-weight:850">Top skills (core + tools)</div>
 <div class="chips" id="aiSkillsChips" style="margin-top:10px"></div>
 </div>
 </div>
-
 <div class="hr"></div>
-
 <div class="helpBox">
 <div class="small"><strong>Tip:</strong> If you upload DOC/DOCX, OCR might not run. A PDF gives the best results.</div>
 </div>
 </div>
 </section>
-
 <aside class="card">
 <div class="sectionHeader">
 <div class="stepTitle">
@@ -481,17 +334,14 @@ box-shadow:0 18px 52px rgba(34,197,94,.12);
 <div class="kpiVal" id="kOcr">…</div>
 </div>
 </div>
-
 <div class="hr"></div>
-
 <div class="actions">
-<a class="btn" href="plan.html" data-nav="1">Go to plan</a>
-<a class="btn primary" href="dashboard.html" data-nav="1">Go to dashboard</a>
+<a class="btn" data-nav="1" href="plan.html">Go to plan</a>
+<a class="btn primary" data-nav="1" href="dashboard.html">Go to dashboard</a>
 </div>
 </div>
 </aside>
-
-<section class="card cardNoPad" style="grid-column:1/-1" id="prefsCard">
+<section class="card cardNoPad" id="prefsCard" style="grid-column:1/-1">
 <div class="sectionHeader">
 <div class="stepTitle">
 <h2>Step 2: Confirm your preferences</h2>
@@ -509,13 +359,11 @@ box-shadow:0 18px 52px rgba(34,197,94,.12);
 <div id="aiAppliedChips"></div>
 </div>
 </div>
-
 <div class="field">
 <label for="industries">Industries (comma separated)</label>
-<input id="industries" placeholder="Healthtech, Hospitality, Wellness">
+<input id="industries" placeholder="Healthtech, Hospitality, Wellness"/>
 <div class="small">Optional.</div>
 </div>
-
 <div class="field">
 <label for="country">Country</label>
 <select id="country">
@@ -523,33 +371,38 @@ box-shadow:0 18px 52px rgba(34,197,94,.12);
 <option value="UK">United Kingdom (UK)</option>
 </select>
 </div>
-
 <div class="field">
 <label for="locations">Main location(s) (comma separated)</label>
-<input id="locations" placeholder="Berlin, Potsdam">
+<input id="locations" placeholder="Berlin, Potsdam"/>
 </div>
-
 <div class="field">
 <label for="radiusKm">Radius (km)</label>
-<input id="radiusKm" placeholder="20" inputmode="numeric">
+<input id="radiusKm" inputmode="numeric" placeholder="20"/>
 </div>
-
 <div class="actions" style="margin-top:12px">
 <button class="btn primary" id="saveProfileBtn" type="button">Save preferences</button>
 <button class="btn good" id="continueBtn" type="button">Continue</button>
 </div>
-
 <div class="small" id="continueHint" style="margin-top:10px"></div>
 </div>
 </section>
 </div>
 </main>
 
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script>
+  <!-- Scripts: order matters -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="./auth.js"></script>
+  <script src="./shared.js"></script>
+
+  <script>
 "use strict";
 
-const API_BASE = (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE) || "https://jobmejob.schoene-viktor.workers.dev";
+const S = window.JobMeJobShared || null;
+if (S && S.wireNavTransitions) { try { S.wireNavTransitions(); } catch {} }
+
+
+const API_BASE = (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE)
+  || (S && S.resolveApiBase ? S.resolveApiBase("https://jobmejob.schoene-viktor.workers.dev") : "https://jobmejob.schoene-viktor.workers.dev");
 const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
 
@@ -574,8 +427,14 @@ let lastCvMeta=null;
 function $(id){return document.getElementById(id);}
 function setText(id,t){const el=$(id);if(el) el.textContent=t;}
 function setHtml(id,h){const el=$(id);if(el) el.innerHTML=h;}
-function showTopError(msg){const el=$("errorTop");if(!el) return;el.style.display="block";el.textContent=msg;}
-function clearTopError(){const el=$("errorTop");if(!el) return;el.style.display="none";el.textContent="";}
+function showTopError(msg){
+  if (S && S.showTopError) return S.showTopError("errorTop", msg);
+  const el=$("errorTop"); if(!el) return; el.style.display="block"; el.textContent=String(msg||"");
+}
+function clearTopError(){
+  if (S && S.showTopError) return S.showTopError("errorTop", "");
+  const el=$("errorTop"); if(!el) return; el.style.display="none"; el.textContent="";
+}
 
 function escapeHtml(s){
 const v=String(s??"");
@@ -583,14 +442,16 @@ return v.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace
 }
 
 function setBadge(id,kind,text){
-const el=$(id);
-if(!el) return;
-el.className="badge"+(kind?(" "+kind):"");
-el.textContent=text;
+  if (S && S.setBadge) return S.setBadge(id, kind, text);
+  const el=$(id);
+  if(!el) return;
+  el.className="badge"+(kind?(" "+kind):"");
+  el.textContent=String(text??"");
 }
 
 function go(url){
-setTimeout(()=>{window.location.href=url;},180);
+  if (S && S.go) return S.go(url);
+  setTimeout(()=>{window.location.href=url;},180);
 }
 
 function isEmail(s){
@@ -1265,19 +1126,19 @@ async function boot(){
 try{
 clearTopError();
 setText("subLine","Checking session…");
-supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+supabaseClient = (window.JobApplyAI && window.JobApplyAI.auth && window.JobApplyAI.auth.supabaseClient)
+  ? window.JobApplyAI.auth.supabaseClient
+  : window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-document.addEventListener("click",(e)=>{
-const a=e.target.closest("a[data-nav='1']");
-if(!a) return;
-const url=a.getAttribute("href");
-if(!url || url.startsWith("#")) return;
-e.preventDefault();
-go(url);
-});
 
-const s=await supabaseClient.auth.getSession();
-session=s && s.data ? s.data.session : null;
+
+session = (window.JobApplyAI && window.JobApplyAI.auth && typeof window.JobApplyAI.auth.getSession === "function")
+  ? await window.JobApplyAI.auth.getSession()
+  : null;
+if(!session){
+  const s=await supabaseClient.auth.getSession();
+  session=s && s.data ? s.data.session : null;
+}
 if(!session || !session.user || !session.user.email){
 window.location.replace("./signup.html");
 return;
@@ -1345,6 +1206,6 @@ showTopError(e.message||String(e));
 }
 
 window.addEventListener("load",boot);
-</script>
+  </script>
 </body>
 </html>
