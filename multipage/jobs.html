@@ -1,0 +1,1257 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Jobs • jobmejob</title>
+
+  <!-- Optional: if you have window.JobApplyAI.config.API_BASE in config.js -->
+  <script src="../config.js"></script>
+
+  <style>
+    :root{
+      --bg0:#f7f9fb;
+      --bg1:#eef4f1;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --line:rgba(15, 23, 42, 0.10);
+      --shadow: 0 18px 40px rgba(2,6,23,0.10);
+      --shadow2: 0 10px 22px rgba(2,6,23,0.08);
+      --radius: 18px;
+      --green:#16a34a;
+      --green2:#0f7a36;
+      --amber:#f59e0b;
+      --red:#ef4444;
+      --blue:#2563eb;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background:
+        radial-gradient(1100px 700px at 70% 0%, rgba(22,163,74,0.12), transparent 55%),
+        radial-gradient(900px 600px at 0% 20%, rgba(37,99,235,0.10), transparent 55%),
+        linear-gradient(180deg, var(--bg1), var(--bg0));
+    }
+
+    /* Top bar */
+    .topbar{
+      position:sticky; top:0; z-index:20;
+      backdrop-filter: blur(10px);
+      background: rgba(247,249,251,0.70);
+      border-bottom: 1px solid var(--line);
+    }
+    .topbarInner{
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 14px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+    .logo{
+      width:34px;height:34px;border-radius:10px;
+      background: radial-gradient(circle at 30% 30%, rgba(34,197,94,0.85), rgba(22,163,74,0.85));
+      box-shadow: 0 10px 18px rgba(22,163,74,0.25);
+    }
+    .nav{
+      display:flex; align-items:center; gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .nav a{
+      text-decoration:none;
+      color:var(--text);
+      font-weight: 800;
+      font-size: 13px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(2,6,23,0.03);
+      border: 1px solid rgba(2,6,23,0.06);
+      transition: transform .12s ease, background .12s ease;
+    }
+    .nav a:hover{ transform: translateY(-1px); background: rgba(2,6,23,0.05); }
+    .nav a.active{
+      background: rgba(22,163,74,0.14);
+      border-color: rgba(22,163,74,0.35);
+    }
+
+    /* Page */
+    .wrap{
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 24px 16px 28px;
+    }
+    h1{
+      margin: 10px 0 4px;
+      font-size: 44px;
+      letter-spacing: -0.03em;
+      line-height: 1.02;
+    }
+    .sub{
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.7fr 1fr;
+      gap: 16px;
+      align-items:start;
+    }
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+      h1{ font-size: 38px; }
+    }
+
+    /* Cards */
+    .card{
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow2);
+      overflow:hidden;
+    }
+    .cardTop{
+      padding: 14px 14px 10px;
+      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+    }
+    .cardTitle{
+      font-weight: 950;
+      letter-spacing: -0.02em;
+      margin:0;
+    }
+    .cardBody{ padding: 12px 14px 14px; }
+
+    .small{ font-size: 12px; color: var(--muted); }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .hr{ height:1px; background: var(--line); margin: 10px 0; }
+
+    /* Badges */
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      border: 1px solid rgba(2,6,23,0.10);
+      background: rgba(2,6,23,0.04);
+      color: var(--text);
+      white-space:nowrap;
+    }
+    .badge.good{ background: rgba(22,163,74,0.14); border-color: rgba(22,163,74,0.35); }
+    .badge.warn{ background: rgba(245,158,11,0.14); border-color: rgba(245,158,11,0.35); }
+    .badge.bad{ background: rgba(239,68,68,0.14); border-color: rgba(239,68,68,0.35); }
+
+    /* Buttons */
+    .row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .btn{
+      appearance:none;
+      border: 1px solid rgba(2,6,23,0.12);
+      background: rgba(2,6,23,0.03);
+      color: var(--text);
+      font-weight: 900;
+      font-size: 13px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      cursor:pointer;
+      transition: transform .12s ease, background .12s ease, opacity .12s ease;
+    }
+    .btn:hover{ transform: translateY(-1px); background: rgba(2,6,23,0.05); }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; transform:none; }
+    .btn.primary{
+      background: rgba(22,163,74,0.90);
+      border-color: rgba(15,122,54,0.55);
+      color: #04130a;
+      box-shadow: 0 10px 18px rgba(22,163,74,0.20);
+    }
+    .btn.primary:hover{ background: rgba(22,163,74,0.95); }
+    .btn.ghost{ background: transparent; }
+    .btn.danger{
+      background: rgba(239,68,68,0.10);
+      border-color: rgba(239,68,68,0.30);
+    }
+
+    /* Switch */
+    .switchRow{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
+      border: 1px solid var(--line);
+      background: rgba(2,6,23,0.02);
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+    .switchLeft{ display:flex; flex-direction:column; gap:2px; }
+    .switchLabel{ font-weight: 950; }
+    .switchHint{ font-size: 12px; color: var(--muted); font-weight: 700; }
+    .switch{
+      position:relative; width: 46px; height: 26px;
+      flex: 0 0 auto;
+    }
+    .switch input{ display:none; }
+    .switchTrack{
+      position:absolute; inset:0;
+      background: rgba(2,6,23,0.10);
+      border: 1px solid rgba(2,6,23,0.12);
+      border-radius: 999px;
+      transition: background .15s ease;
+    }
+    .switchKnob{
+      position:absolute; top:3px; left:3px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 8px 16px rgba(2,6,23,0.18);
+      transition: transform .15s ease;
+    }
+    .switch input:checked + .switchTrack{
+      background: rgba(22,163,74,0.40);
+      border-color: rgba(22,163,74,0.35);
+    }
+    .switch input:checked + .switchTrack .switchKnob{
+      transform: translateX(20px);
+    }
+
+    /* Queue */
+    .queueTop{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+      flex-wrap:wrap;
+      margin-bottom: 10px;
+    }
+    .queueMeta{
+      display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    .jobGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 900px){
+      .jobGrid{ grid-template-columns: 1fr; }
+    }
+    .jobCard{
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(2,6,23,0.02);
+    }
+    .jobTitleRow{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+    }
+    .jobTitle{
+      font-weight: 950;
+      letter-spacing: -0.02em;
+      margin:0;
+      font-size: 14px;
+      line-height: 1.2;
+    }
+    .jobTitle a{
+      color: var(--text);
+      text-decoration:none;
+    }
+    .jobTitle a:hover{ text-decoration: underline; }
+    .jobSub{
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 750;
+      display:flex; flex-wrap:wrap; gap:8px;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(2,6,23,0.04);
+      border: 1px solid rgba(2,6,23,0.08);
+      font-weight: 900;
+      font-size: 12px;
+      color: var(--text);
+      white-space:nowrap;
+    }
+    .pill.mini{ padding: 4px 8px; font-size: 11px; font-weight: 900; }
+    .pill.good{ background: rgba(22,163,74,0.14); border-color: rgba(22,163,74,0.35); }
+    .pill.warn{ background: rgba(245,158,11,0.14); border-color: rgba(245,158,11,0.35); }
+    .pill.bad{ background: rgba(239,68,68,0.14); border-color: rgba(239,68,68,0.35); }
+
+    .jobActions{
+      display:flex; gap:8px; flex-wrap:wrap;
+      margin-top: 10px;
+    }
+    .jobActions .btn{ padding: 8px 10px; font-size: 12px; }
+
+    /* Errors */
+    .errorTop{
+      display:none;
+      margin: 14px 0 16px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(239,68,68,0.35);
+      background: rgba(239,68,68,0.10);
+      color: #7f1d1d;
+      font-weight: 850;
+    }
+
+    /* Modals */
+    .modal{
+      display:none;
+      position:fixed; inset:0;
+      background: rgba(2,6,23,0.55);
+      z-index: 50;
+      padding: 18px 14px;
+      overflow:auto;
+    }
+    .modal.open{ display:block; }
+    .modalCard{
+      width: min(760px, 100%);
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .modalHeader{
+      padding: 14px 14px 10px;
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .modalTitle{ font-weight: 950; margin:0; }
+    .modalBody{
+      padding: 12px 14px 14px;
+      max-height: 70vh;
+      overflow:auto;
+    }
+    .modalFooter{
+      padding: 12px 14px 14px;
+      border-top: 1px solid var(--line);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      flex-wrap:wrap;
+    }
+    textarea{
+      width:100%;
+      min-height: 220px;
+      resize: vertical;
+      border-radius: 14px;
+      border: 1px solid rgba(2,6,23,0.14);
+      padding: 10px 12px;
+      font: inherit;
+      background: rgba(2,6,23,0.02);
+    }
+    select, input[type="text"]{
+      width:100%;
+      border-radius: 14px;
+      border: 1px solid rgba(2,6,23,0.14);
+      padding: 10px 12px;
+      font: inherit;
+      background: rgba(2,6,23,0.02);
+    }
+    .field{ display:flex; flex-direction:column; gap:6px; margin: 10px 0; }
+    .label{ font-weight: 900; font-size: 12px; color: var(--muted); }
+    .skeleton{
+      border-radius: 12px;
+      height: 92px;
+      background: linear-gradient(90deg,
+        rgba(2,6,23,0.05),
+        rgba(2,6,23,0.09),
+        rgba(2,6,23,0.05));
+      background-size: 200% 100%;
+      animation: sk 1.2s ease-in-out infinite;
+    }
+    @keyframes sk{
+      0%{ background-position: 200% 0; }
+      100%{ background-position: -200% 0; }
+    }
+
+    /* Page transition (optional) */
+    body.leaving{ opacity: .7; transition: opacity .18s ease; }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="topbarInner">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>jobmejob</div>
+      </div>
+      <nav class="nav">
+        <a data-nav="1" href="./index.html">Home</a>
+        <a data-nav="1" href="./profile.html">Profile</a>
+        <a data-nav="1" href="./plan.html">Plan</a>
+        <a data-nav="1" href="./dashboard.html">Dashboard</a>
+        <a class="active" data-nav="1" href="./jobs.html">Jobs</a>
+        <a href="#" id="logoutLink">Logout</a>
+      </nav>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <h1>Jobs</h1>
+    <div class="sub" id="subLine">Loading…</div>
+
+    <div class="errorTop" id="errorTop"></div>
+
+    <div class="grid">
+      <!-- Left: Queue -->
+      <section class="card">
+        <div class="cardTop">
+          <div>
+            <div class="cardTitle">Job queue</div>
+            <div class="small">Prioritize or skip jobs. Open description to review quickly.</div>
+          </div>
+          <span id="badgeQueue" class="badge">Loading</span>
+        </div>
+
+        <div class="cardBody">
+          <div class="queueTop">
+            <div class="row">
+              <button class="btn" id="btnRefreshQueue">Refresh</button>
+              <button class="btn ghost" id="btnCopyToken">Copy access token</button>
+            </div>
+            <div class="queueMeta">
+              <span id="queueCountText">—</span>
+              <span>•</span>
+              <span id="planHint">Plan: —</span>
+            </div>
+          </div>
+
+          <div class="small mono" id="queueError" style="color:#7f1d1d;"></div>
+
+          <div id="queueWrap">
+            <div class="skeleton" style="margin-bottom:10px;"></div>
+            <div class="skeleton"></div>
+          </div>
+
+          <div class="row" style="margin-top:12px;">
+            <button class="btn" id="btnLoadMore" style="display:none;">Load more</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: Fetch + Tips -->
+      <aside class="card">
+        <div class="cardTop">
+          <div>
+            <div class="cardTitle">Search jobs (fetch)</div>
+            <div class="small">Uses your saved profile preferences. Cooldown prevents spam.</div>
+          </div>
+          <span class="badge" id="fetchBadge">Ready</span>
+        </div>
+        <div class="cardBody">
+          <div class="switchRow">
+            <div class="switchLeft">
+              <div class="switchLabel">AI titles only</div>
+              <div class="switchHint">Fetch using your AI-suggested titles (Profile → AI).</div>
+            </div>
+            <label class="switch" aria-label="AI titles only">
+              <input id="toggleAiOnly" type="checkbox" />
+              <span class="switchTrack"><span class="switchKnob"></span></span>
+            </label>
+          </div>
+
+          <div id="aiSwitchHint" class="badge warn" style="display:none; margin-top:10px;">
+            AI titles are not available. Generate suggestions in Profile.
+          </div>
+
+          <div class="row" style="margin-top:10px;">
+            <button class="btn primary" id="btnFetchJobsNow">Fetch new jobs</button>
+          </div>
+
+          <div class="small mono" id="fetchJobsStatus" style="margin-top:10px;"></div>
+          <div class="small mono" id="fetchMeta" style="margin-top:6px;"></div>
+
+          <div class="hr"></div>
+
+          <div class="small">
+            <div style="font-weight:950; margin-bottom:6px;">Tips</div>
+            <ul style="margin:0; padding-left:18px; color:var(--muted); font-weight:750;">
+              <li>Use <strong>Prio</strong> to push jobs to the top of the apply pipeline.</li>
+              <li>Use <strong>Skip</strong> to remove jobs you don’t want.</li>
+              <li>Open <strong>Description</strong> to review before tailoring or applying.</li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- Skip modal -->
+  <div class="modal" id="skipModal" role="dialog" aria-modal="true" aria-labelledby="skipTitle">
+    <div class="modalCard">
+      <div class="modalHeader">
+        <h3 class="modalTitle" id="skipTitle">Skip job</h3>
+        <button class="btn" id="skipClose">Close</button>
+      </div>
+      <div class="modalBody">
+        <div class="small" id="skipJobLine" style="margin-bottom:10px;">—</div>
+
+        <div class="field">
+          <div class="label">Reason</div>
+          <select id="skipReason">
+            <option value="not_relevant">Not relevant</option>
+            <option value="location">Location mismatch</option>
+            <option value="salary">Salary mismatch</option>
+            <option value="seniority">Seniority mismatch</option>
+            <option value="industry">Industry mismatch</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <div class="label">Optional note</div>
+          <input type="text" id="skipNote" placeholder="Short note (optional)" />
+        </div>
+      </div>
+      <div class="modalFooter">
+        <div class="small">This removes the job from your “new” queue.</div>
+        <div class="row">
+          <button class="btn" id="skipCancel">Cancel</button>
+          <button class="btn danger" id="skipConfirm">Confirm skip</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Description modal -->
+  <div class="modal" id="descModal" role="dialog" aria-modal="true" aria-labelledby="descTitle">
+    <div class="modalCard">
+      <div class="modalHeader">
+        <h3 class="modalTitle" id="descTitle">Job description</h3>
+        <button class="btn" id="descClose">Close</button>
+      </div>
+      <div class="modalBody">
+        <div class="small" id="descJobLine" style="margin-bottom:10px;">—</div>
+        <textarea id="descText" readonly></textarea>
+      </div>
+      <div class="modalFooter">
+        <div class="small mono" id="descStatus"></div>
+        <div class="row">
+          <button class="btn" id="descCopy">Copy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script>
+    /******************************************************************
+     * Jobs page (multipage/jobs.html)
+     * Focus: job fetch + queue review (prio/skip/description)
+     ******************************************************************/
+
+    /* -------- Config -------- */
+    const SUPABASE_URL = "https://awlzvhcnjegfhjedswko.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
+
+    const DEFAULT_API_BASE =
+      (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE)
+      || "https://jobmejob.schoene-viktor.workers.dev";
+
+    /* Storage: migrate safely from old "ja_/jobapplyai_" to new "jm_/jobmejob_" */
+    const LS = {
+      userEmail: ["jm_user_email","ja_user_email"],
+      customerId: ["jm_customer_id","ja_customer_id"],
+      plan: ["jm_plan","ja_plan"],
+      workplace: ["jobmejob_workplace","jobapplyai_workplace"]
+    };
+
+    function $(id){ return document.getElementById(id); }
+
+    function escapeHtml(s){
+      const v=String(s??"");
+      return v.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+              .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+    }
+    function setText(id,t){ const el=$(id); if(el) el.textContent=t; }
+    function setHtml(id,h){ const el=$(id); if(el) el.innerHTML=h; }
+    function setBadge(id,kind,text){
+      const el=$(id); if(!el) return;
+      el.className="badge"+(kind?(" "+kind):"");
+      el.textContent=text;
+    }
+    function showTopError(msg){
+      const el=$("errorTop"); if(!el) return;
+      el.style.display="block";
+      el.textContent=String(msg||"");
+    }
+    function clearTopError(){
+      const el=$("errorTop"); if(!el) return;
+      el.style.display="none";
+      el.textContent="";
+    }
+
+    function lsGetFirst(keys){
+      for(const k of keys){
+        const v = localStorage.getItem(k);
+        if(v !== null && v !== undefined && v !== "") return v;
+      }
+      return null;
+    }
+    function lsSetAll(keys, value){
+      for(const k of keys){
+        try{ localStorage.setItem(k, value); }catch(_){}
+      }
+    }
+
+    function readWorkplace(){
+      const raw = lsGetFirst(LS.workplace) || "";
+      try{ return raw ? JSON.parse(raw) : {}; }catch(_){ return {}; }
+    }
+    function writeWorkplace(patch){
+      const obj=readWorkplace();
+      const next={...obj,...patch};
+      const payload = JSON.stringify(next);
+      lsSetAll(LS.workplace, payload);
+    }
+
+    const workplace = readWorkplace();
+    const API_BASE = workplace.apiBase || DEFAULT_API_BASE;
+
+    function go(url){
+      document.body.classList.add("leaving");
+      setTimeout(()=>{ window.location.href=url; },180);
+    }
+    document.addEventListener("click",(e)=>{
+      const a=e.target.closest("a[data-nav='1']");
+      if(!a) return;
+      const url=a.getAttribute("href");
+      if(!url || url.startsWith("#")) return;
+      if(/^https?:\/\//i.test(url)) return; // don't intercept external
+      e.preventDefault();
+      go(url);
+    });
+
+    /* -------- Auth / API helpers -------- */
+    let supabaseClient = null;
+    let lastSessionToken = null;
+    let currentEmail = null;
+
+    async function requireSession(){
+      if(!supabaseClient){
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+      const { data } = await supabaseClient.auth.getSession();
+      const session = data && data.session ? data.session : null;
+
+      if(!session || !session.access_token){
+        // not logged in
+        go("./signup.html");
+        return null;
+      }
+
+      lastSessionToken = session.access_token;
+      try{ sessionStorage.setItem("sb_access_token", lastSessionToken); }catch(_){}
+
+      currentEmail = (session.user && session.user.email) ? session.user.email : null;
+      if(currentEmail){
+        const prev = (lsGetFirst(LS.userEmail)||"").trim().toLowerCase();
+        const now = String(currentEmail).trim().toLowerCase();
+        // If user switched accounts in same browser, clear old cached state
+        if(prev && prev !== now){
+          Object.keys(localStorage).forEach(k=>{
+            if(k.startsWith("ja_") || k.startsWith("jobapplyai_") || k.startsWith("jm_") || k.startsWith("jobmejob_") || k.startsWith("sb-")){
+              try{ localStorage.removeItem(k); }catch(_){}
+            }
+          });
+          try{ sessionStorage.removeItem("sb_access_token"); }catch(_){}
+        }
+        lsSetAll(LS.userEmail, now);
+      }
+
+      return session;
+    }
+
+    async function apiFetch(path, token, opts){
+      const res = await fetch(API_BASE + path, {
+        method: (opts && opts.method) ? opts.method : "GET",
+        headers: {
+          ...(token ? { Authorization: "Bearer " + token } : {}),
+          ...(opts && opts.headers ? opts.headers : {})
+        },
+        body: opts && opts.body ? opts.body : undefined
+      });
+
+      const text = await res.text().catch(()=> "");
+      let json=null;
+      try{ json = text ? JSON.parse(text) : null; }catch(_){ json = { raw:text }; }
+
+      if(!res.ok){
+        const msg = (json && (json.error||json.message||json.details)) ? (json.error||json.message||json.details) : text;
+        throw new Error(path + " failed: " + res.status + " " + msg);
+      }
+      return json;
+    }
+
+    async function apiGet(path, token){
+      return apiFetch(path, token, { method:"GET" });
+    }
+    async function apiPost(path, token, bodyObj){
+      return apiFetch(path, token, {
+        method:"POST",
+        headers:{ "content-type":"application/json" },
+        body: JSON.stringify(bodyObj || {})
+      });
+    }
+
+    async function upsertCustomerByEmail(email){
+      const res = await fetch(`${API_BASE}/customers/upsert`, {
+        method:"POST",
+        headers:{ "content-type":"application/json" },
+        body: JSON.stringify({ email })
+      });
+      const text = await res.text().catch(()=> "");
+      let json=null;
+      try{ json = text ? JSON.parse(text) : null; }catch(_){ json={raw:text}; }
+      if(!res.ok){
+        const msg=(json && (json.error||json.message||json.details)) ? (json.error||json.message||json.details) : text;
+        throw new Error("Customer upsert failed: " + res.status + " " + msg);
+      }
+      return json;
+    }
+
+    async function logout(){
+      try{ if(supabaseClient) await supabaseClient.auth.signOut(); }catch(_){}
+      // clear app storage
+      Object.keys(localStorage).forEach(k=>{
+        if(k.startsWith("ja_") || k.startsWith("jobapplyai_") || k.startsWith("jm_") || k.startsWith("jobmejob_") || k.startsWith("sb-")){
+          try{ localStorage.removeItem(k); }catch(_){}
+        }
+      });
+      try{ sessionStorage.removeItem("sb_access_token"); }catch(_){}
+      go("./index.html");
+    }
+
+    /* -------- AI titles toggle + cooldown -------- */
+    function getAiJson(){
+      try{
+        const pRaw = localStorage.getItem("jm_ai_profile") || localStorage.getItem("ja_ai_profile");
+        const cRaw = localStorage.getItem("jm_ai_clusters") || localStorage.getItem("ja_ai_clusters");
+        return {
+          p: pRaw ? JSON.parse(pRaw) : null,
+          c: cRaw ? JSON.parse(cRaw) : null
+        };
+      }catch{
+        return {p:null,c:null};
+      }
+    }
+
+    function updateAiSwitchState(){
+      const toggle = $("toggleAiOnly");
+      const hint = $("aiSwitchHint");
+      if(!toggle || !hint) return;
+
+      const titles = Array.isArray(window.lastAiTitleSuggestions) ? window.lastAiTitleSuggestions : [];
+      const aiAvailable = titles.length > 0;
+
+      if(aiAvailable){
+        toggle.disabled = false;
+        hint.style.display = "none";
+      }else{
+        toggle.disabled = true;
+        toggle.checked = false;
+        hint.style.display = "inline-flex";
+      }
+    }
+
+    function getAiTitlesForFetch(){
+      try{
+        const {p,c}=getAiJson();
+        const titles=[];
+        if(p && Array.isArray(p.job_titles)) for(const t of p.job_titles) titles.push(t);
+        if(c && Array.isArray(c.alternative_titles)) for(const t of c.alternative_titles) titles.push(t);
+        const seen=new Set();
+        const out=[];
+        for(const t of titles){
+          const s=String(t||"").trim();
+          if(!s) continue;
+          const k=s.toLowerCase();
+          if(seen.has(k)) continue;
+          seen.add(k);
+          out.push(s);
+        }
+        return out;
+      }catch{
+        return [];
+      }
+    }
+
+    const FETCH_COOLDOWN_MS = 10 * 60 * 1000;
+    function getNextFetchAllowedAt(){
+      const v = Number(localStorage.getItem("jm_last_manual_fetch_ts") || "0");
+      return v ? (v + FETCH_COOLDOWN_MS) : 0;
+    }
+    function updateFetchButtonCooldownUI(){
+      const btn=$("btnFetchJobsNow");
+      const status=$("fetchJobsStatus");
+      if(!btn) return;
+      const next = getNextFetchAllowedAt();
+      const now = Date.now();
+      if(next && now < next){
+        const sec = Math.ceil((next-now)/1000);
+        btn.disabled = true;
+        btn.textContent = "Fetch new jobs";
+        if(status && !status.textContent) status.textContent = "You can fetch again in " + sec + "s";
+        setTimeout(updateFetchButtonCooldownUI, 1000);
+      }else{
+        btn.disabled = false;
+      }
+    }
+    function updateFetchMetaUI(){
+      const meta=$("fetchMeta");
+      if(!meta) return;
+
+      const lastTs = Number(localStorage.getItem("jm_last_manual_fetch_ts") || "0");
+      if(!lastTs){
+        meta.textContent = "";
+        return;
+      }
+
+      const last = new Date(lastTs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      const next = lastTs + FETCH_COOLDOWN_MS;
+      const now = Date.now();
+
+      if(now < next){
+        const sec = Math.ceil((next-now)/1000);
+        const min = Math.floor(sec/60);
+        const s = sec % 60;
+        meta.textContent = "Last fetch: " + last + " · Next fetch in " + min + ":" + String(s).padStart(2,"0");
+      }else{
+        meta.textContent = "Last fetch: " + last + " · You can fetch again now";
+      }
+    }
+
+    async function manualFetchJobs(){
+      const btn=$("btnFetchJobsNow");
+      const status=$("fetchJobsStatus");
+      const toggle=$("toggleAiOnly");
+
+      const setState=(loading,msg)=>{
+        if(btn){
+          btn.disabled=!!loading;
+          btn.textContent=loading ? "Fetching..." : "Fetch new jobs";
+        }
+        if(status) status.textContent=msg||"";
+      };
+
+      try{
+        const next = getNextFetchAllowedAt();
+        if(next && Date.now() < next){
+          const sec = Math.ceil((next-Date.now())/1000);
+          setState(false, "Please wait " + sec + "s before fetching again.");
+          updateFetchButtonCooldownUI();
+          updateFetchMetaUI();
+          return;
+        }
+
+        if(!lastSessionToken) await requireSession();
+
+        // start cooldown immediately to prevent double-click spamming
+        localStorage.setItem("jm_last_manual_fetch_ts", String(Date.now()));
+        updateFetchButtonCooldownUI();
+        updateFetchMetaUI();
+
+        const aiOnly=!!(toggle && toggle.checked);
+        const aiTitles=aiOnly ? getAiTitlesForFetch() : [];
+
+        setState(true, aiOnly ? "Fetching (AI titles only)..." : "Fetching...");
+
+        const resp=await apiPost("/me/jobs/fetch", lastSessionToken, {
+          include_ai_titles: aiOnly,
+          ai_titles: aiTitles,
+          fetch_mode: aiOnly ? "ai_only" : "profile"
+        });
+
+        if(resp && resp.skipped){
+          if(resp.reason==="queue_full"){
+            setState(false, "Skipped: queue has "+resp.queue_new_count+" new jobs (cap "+resp.max_queue_new+").");
+          } else {
+            setState(false, "Skipped: "+String(resp.reason||""));
+          }
+          return;
+        }
+
+        const added=typeof resp.jobs_added==="number" ? resp.jobs_added : 0;
+        const q=typeof resp.queue_new_count==="number" ? resp.queue_new_count : "—";
+        const rad=(resp.used_radius!==undefined && resp.used_radius!==null) ? resp.used_radius : "—";
+        const ml=(resp.match_level!==undefined && resp.match_level!==null) ? resp.match_level : "—";
+
+        setState(false, "Added "+added+" · Queue new: "+q+" · Radius "+rad+"km · Match "+ml);
+        updateFetchMetaUI();
+
+        await refreshQueue();
+      }catch(e){
+        setState(false, e && e.message ? e.message : "Fetch failed");
+        showTopError(e && e.message ? e.message : "Fetch failed");
+      }
+    }
+
+    /* -------- Queue rendering -------- */
+    let currentQueue = [];
+    let showLimit = 24;
+
+    function renderSkeleton(n){
+      const rows=[];
+      for(let i=0;i<n;i++){
+        rows.push('<div class="skeleton" style="height:92px;"></div>');
+      }
+      return '<div class="jobGrid">'+rows.join("")+'</div>';
+    }
+
+    function fmtWhen(ts){
+      if(!ts) return "";
+      try{
+        const d = new Date(ts);
+        if(String(d)==="Invalid Date") return "";
+        return d.toLocaleDateString([], { year:"numeric", month:"short", day:"2-digit" });
+      }catch{ return ""; }
+    }
+
+    function normalizeUrl(u){
+      const s=String(u||"").trim();
+      if(!s) return "";
+      return s;
+    }
+
+    function renderQueueCards(queue){
+      const arr = Array.isArray(queue) ? queue : [];
+      if(!arr.length){
+        return '<div class="small" style="color:var(--muted);font-weight:800;">No jobs in queue.</div>';
+      }
+
+      const slice = arr.slice(0, showLimit);
+      const cards = slice.map(j=>{
+        const id = j.id || j.job_id || j.uuid || "";
+        const title = escapeHtml(j.title || j.position_title || "Job");
+        const company = escapeHtml(j.company || j.employer || "—");
+        const loc = escapeHtml(j.location || j.city || j.location_city || j.location_text || "—");
+        const src = escapeHtml(j.source || j.platform || "");
+        const created = fmtWhen(j.created_at || j.added_at || j.inserted_at || j.posted_at || "");
+        const url = normalizeUrl(j.url || j.apply_url || j.link || "");
+
+        const isPrio = !!(j.prioritized || j.is_prioritized);
+        const prioPill = isPrio ? '<span class="pill mini good">Prio</span>' : '<span class="pill mini">New</span>';
+
+        const openBtn = url
+          ? '<a class="btn" target="_blank" rel="noopener" href="'+escapeHtml(url)+'">Open</a>'
+          : '<button class="btn" disabled>Open</button>';
+
+        const prioBtn = isPrio
+          ? '<button class="btn" data-unprio="'+escapeHtml(id)+'">Unprio</button>'
+          : '<button class="btn" data-prio="'+escapeHtml(id)+'">Prio</button>';
+
+        return (
+          '<div class="jobCard" data-job="'+escapeHtml(id)+'">' +
+            '<div class="jobTitleRow">' +
+              '<div class="jobTitle">' +
+                (url
+                  ? '<a target="_blank" rel="noopener" href="'+escapeHtml(url)+'">'+title+'</a>'
+                  : title) +
+              '</div>' +
+              '<div class="row" style="gap:6px;">'+prioPill+'</div>' +
+            '</div>' +
+            '<div class="jobSub">' +
+              '<span class="pill mini">'+company+'</span>' +
+              '<span class="pill mini">'+loc+'</span>' +
+              (src ? '<span class="pill mini">'+src+'</span>' : '') +
+              (created ? '<span class="pill mini">'+escapeHtml(created)+'</span>' : '') +
+            '</div>' +
+            '<div class="jobActions">' +
+              openBtn +
+              prioBtn +
+              '<button class="btn" data-desc="'+escapeHtml(id)+'">Description</button>' +
+              '<button class="btn danger" data-skip="'+escapeHtml(id)+'">Skip</button>' +
+            '</div>' +
+          '</div>'
+        );
+      }).join("");
+
+      return '<div class="jobGrid">'+cards+'</div>';
+    }
+
+    async function refreshQueue(){
+      clearTopError();
+      setBadge("badgeQueue", "", "Loading");
+      setText("queueError", "");
+      setHtml("queueWrap", renderSkeleton(6));
+
+      try{
+        if(!lastSessionToken) await requireSession();
+
+        const q = await apiGet("/me/jobs/queue", lastSessionToken);
+        const jobs = q && Array.isArray(q.jobs) ? q.jobs : (Array.isArray(q) ? q : []);
+        currentQueue = jobs;
+
+        const count = typeof q.queue_new_count === "number"
+          ? q.queue_new_count
+          : (typeof q.count === "number" ? q.count : jobs.length);
+
+        setText("queueCountText", "Queue: " + count);
+        setBadge("badgeQueue", "good", "Ready");
+
+        // Load more button
+        const moreBtn = $("btnLoadMore");
+        if(moreBtn){
+          if(jobs.length > showLimit){
+            moreBtn.style.display = "inline-flex";
+            moreBtn.textContent = "Load more ("+(jobs.length - showLimit)+")";
+          }else{
+            moreBtn.style.display = "none";
+          }
+        }
+
+        setHtml("queueWrap", renderQueueCards(jobs));
+      }catch(e){
+        setBadge("badgeQueue", "bad", "Failed");
+        setText("queueError", e && e.message ? e.message : String(e));
+        setHtml("queueWrap", "");
+      }
+    }
+
+    function wireQueueClicks(){
+      const wrap = $("queueWrap");
+      if(!wrap) return;
+
+      wrap.addEventListener("click", async (e)=>{
+        const prio = e.target.closest("[data-prio]");
+        const unprio = e.target.closest("[data-unprio]");
+        const skip = e.target.closest("[data-skip]");
+        const desc = e.target.closest("[data-desc]");
+
+        try{
+          if(prio){
+            const jobId = prio.getAttribute("data-prio");
+            await apiPost("/me/applications/prioritize", lastSessionToken, { job_id: jobId });
+            await refreshQueue();
+            return;
+          }
+          if(unprio){
+            const jobId = unprio.getAttribute("data-unprio");
+            await apiPost("/me/applications/unprioritize", lastSessionToken, { job_id: jobId });
+            await refreshQueue();
+            return;
+          }
+          if(skip){
+            const jobId = skip.getAttribute("data-skip");
+            openSkipModal(jobId);
+            return;
+          }
+          if(desc){
+            const jobId = desc.getAttribute("data-desc");
+            openDescModal(jobId);
+            return;
+          }
+        }catch(err){
+          showTopError(err && err.message ? err.message : String(err));
+        }
+      });
+    }
+
+    /* -------- Skip modal -------- */
+    let pendingSkipJobId = null;
+
+    function findJobLine(jobId){
+      const j = (currentQueue || []).find(x => String(x.id||x.job_id||"") === String(jobId));
+      if(!j) return "Job: " + String(jobId);
+      const title = j.title || j.position_title || "Job";
+      const company = j.company || j.employer || "—";
+      return title + " @ " + company;
+    }
+
+    function openSkipModal(jobId){
+      pendingSkipJobId = jobId;
+      setText("skipJobLine", findJobLine(jobId));
+      $("skipReason").value = "not_relevant";
+      $("skipNote").value = "";
+      $("skipModal").classList.add("open");
+    }
+    function closeSkipModal(){
+      $("skipModal").classList.remove("open");
+      pendingSkipJobId = null;
+    }
+    async function submitSkip(){
+      if(!pendingSkipJobId) return;
+      const reason = $("skipReason").value || "not_relevant";
+      const note = String($("skipNote").value||"").trim();
+      const payload = { job_id: pendingSkipJobId, reason: reason };
+      if(note) payload.note = note;
+
+      await apiPost("/me/applications/skip", lastSessionToken, payload);
+      closeSkipModal();
+      await refreshQueue();
+    }
+
+    /* -------- Description modal -------- */
+    let currentDescJobId = null;
+
+    function openDescModal(jobId){
+      currentDescJobId = jobId;
+      setText("descJobLine", findJobLine(jobId));
+      setText("descStatus", "Loading…");
+      $("descText").value = "";
+      $("descModal").classList.add("open");
+      loadDescription(jobId);
+    }
+    function closeDescModal(){
+      $("descModal").classList.remove("open");
+      currentDescJobId = null;
+    }
+    async function loadDescription(jobId){
+      try{
+        const res = await apiGet("/me/jobs/description?job_id=" + encodeURIComponent(jobId), lastSessionToken);
+        const text =
+          (res && typeof res.description === "string") ? res.description :
+          (res && typeof res.text === "string") ? res.text :
+          (res && typeof res.raw === "string") ? res.raw :
+          JSON.stringify(res || {}, null, 2);
+
+        $("descText").value = text || "";
+        setText("descStatus", text ? "Loaded" : "No description available");
+      }catch(e){
+        setText("descStatus", e && e.message ? e.message : "Failed to load");
+      }
+    }
+    async function copyDesc(){
+      const text = $("descText").value || "";
+      try{
+        await navigator.clipboard.writeText(text);
+        setText("descStatus", "Copied!");
+        setTimeout(()=>{ if($("descStatus")) setText("descStatus","Loaded"); }, 900);
+      }catch{
+        setText("descStatus", "Copy failed");
+      }
+    }
+
+    /* -------- Plan hint -------- */
+    function planDailyLabel(state){
+      const planId = state && state.plan_id ? String(state.plan_id) : (lsGetFirst(LS.plan)||"");
+      if(!planId) return "—";
+      return planId;
+    }
+
+    /* -------- Boot -------- */
+    async function boot(){
+      clearTopError();
+      setText("subLine", "Checking session…");
+      setText("queueCountText", "Queue: —");
+      setBadge("badgeQueue", "", "Loading");
+      setBadge("fetchBadge", "", "Ready");
+
+      // Wire UI events
+      $("logoutLink").addEventListener("click",(e)=>{ e.preventDefault(); logout(); });
+
+      $("btnRefreshQueue").addEventListener("click", ()=> refreshQueue());
+      $("btnFetchJobsNow").addEventListener("click", ()=> manualFetchJobs());
+      $("btnCopyToken").addEventListener("click", async ()=>{
+        const tok = lastSessionToken || sessionStorage.getItem("sb_access_token") || "";
+        if(!tok){ showTopError("No token available."); return; }
+        try{
+          await navigator.clipboard.writeText(tok);
+        }catch(_){}
+      });
+
+      $("btnLoadMore").addEventListener("click", ()=>{
+        showLimit += 24;
+        // re-render using cached list
+        setHtml("queueWrap", renderQueueCards(currentQueue));
+        // update button
+        const moreBtn = $("btnLoadMore");
+        if(moreBtn){
+          if(currentQueue.length > showLimit){
+            moreBtn.style.display = "inline-flex";
+            moreBtn.textContent = "Load more ("+(currentQueue.length - showLimit)+")";
+          }else{
+            moreBtn.style.display = "none";
+          }
+        }
+      });
+
+      // Modals
+      $("skipClose").addEventListener("click", closeSkipModal);
+      $("skipCancel").addEventListener("click", closeSkipModal);
+      $("skipConfirm").addEventListener("click", ()=> submitSkip().catch(err=>showTopError(err.message||String(err))));
+      $("skipModal").addEventListener("click",(e)=>{ if(e.target && e.target.id==="skipModal") closeSkipModal(); });
+
+      $("descClose").addEventListener("click", closeDescModal);
+      $("descCopy").addEventListener("click", copyDesc);
+      $("descModal").addEventListener("click",(e)=>{ if(e.target && e.target.id==="descModal") closeDescModal(); });
+
+      wireQueueClicks();
+
+      // Session
+      const session = await requireSession();
+      if(!session) return;
+
+      const email = (session.user && session.user.email) ? session.user.email : "—";
+      setText("subLine", "Signed in as " + email);
+
+      // Ensure customer exists
+      try{
+        const resp = await upsertCustomerByEmail(email);
+        const customerId = resp && (resp.customer_id || resp.id) ? (resp.customer_id || resp.id) : null;
+        if(customerId){
+          lsSetAll(LS.customerId, String(customerId));
+          writeWorkplace({ apiBase: API_BASE, customerId: String(customerId), customerEmail: email });
+        }
+      }catch(e){
+        // non-blocking
+      }
+
+      // Load state for plan label
+      try{
+        const state = await apiGet("/me/state", lastSessionToken);
+        setText("planHint", "Plan: " + planDailyLabel(state));
+      }catch(_){
+        setText("planHint", "Plan: —");
+      }
+
+      // Load profile (persisted AI titles for toggle)
+      try{
+        const profResp = await apiGet("/me/profile", lastSessionToken);
+        const p = profResp && profResp.profile ? profResp.profile : null;
+        window.lastAiTitleSuggestions = (p && Array.isArray(p.ai_titles)) ? p.ai_titles : [];
+      }catch(_){
+        window.lastAiTitleSuggestions = [];
+      }
+      updateAiSwitchState();
+
+      // Restore toggle choice
+      try{
+        const saved = localStorage.getItem("jm_fetch_ai_only");
+        if(saved === "true" && !$("toggleAiOnly").disabled){
+          $("toggleAiOnly").checked = true;
+        }
+      }catch(_){}
+
+      $("toggleAiOnly").addEventListener("change", ()=>{
+        try{ localStorage.setItem("jm_fetch_ai_only", $("toggleAiOnly").checked ? "true" : "false"); }catch(_){}
+      });
+
+      updateFetchButtonCooldownUI();
+      updateFetchMetaUI();
+
+      // Load queue
+      await refreshQueue();
+    }
+
+    boot().catch(e=>{
+      showTopError(e && e.message ? e.message : String(e));
+    });
+  </script>
+</body>
+</html>
