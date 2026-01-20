@@ -408,8 +408,6 @@ animation:shimmer 1.2s linear infinite;
 }
 
 /* Modal */
-body.modalOpen{overflow:hidden}
-
 .modalBackdrop{
 position:fixed;
 inset:0;
@@ -419,68 +417,20 @@ display:flex;
 align-items:center;
 justify-content:center;
 padding:16px;
-padding-top:calc(16px + var(--safeTop));
-padding-bottom:calc(16px + var(--safeBottom));
-overflow:auto;
-overscroll-behavior:contain;
 }
-
 .modalCard{
 width:min(520px, 100%);
 border:1px solid rgba(17,19,24,.14);
 background:var(--surface2);
 border-radius:18px;
 box-shadow:0 18px 50px rgba(0,0,0,.55);
-max-height:calc(100vh - 32px - var(--safeTop) - var(--safeBottom));
-max-height:calc(100dvh - 32px - var(--safeTop) - var(--safeBottom));
-display:flex;
-flex-direction:column;
-overflow:hidden;
-}
-.modalCardWide{width:min(920px, 100%)}
-.modalCardXL{width:min(960px, 100%)}
-
-.modalScroll{
-flex:1 1 auto;
-min-height:0;
 padding:14px;
-overflow:auto;
--webkit-overflow-scrolling:touch;
 }
-
-.modalHeader{
-display:flex;
-align-items:flex-start;
-justify-content:space-between;
-gap:12px;
-}
-
-.modalTitleRow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-
 .modalTitle{
 font-weight:950;
 font-size:16px;
-margin:0;
+margin:0 0 10px 0;
 }
-
-.iconBtn{
-appearance:none;
-border:1px solid rgba(17,19,24,.14);
-background:rgba(17,19,24,.04);
-color:var(--text);
-border-radius:999px;
-width:38px;
-height:38px;
-display:inline-flex;
-align-items:center;
-justify-content:center;
-cursor:pointer;
-font-weight:950;
-transition:.15s ease;
-flex:0 0 auto;
-}
-.iconBtn:hover{transform:translateY(-1px); background:rgba(17,19,24,.06)}
-
 .field{
 display:flex;
 flex-direction:column;
@@ -497,127 +447,23 @@ padding:10px 12px;
 outline:none;
 }
 textarea{min-height:80px;resize:vertical}
-
 .modalActions{
 display:flex;
 gap:10px;
 flex-wrap:wrap;
 justify-content:flex-end;
-padding:12px 14px calc(12px + var(--safeBottom));
-border-top:1px solid rgba(17,19,24,.10);
-background:rgba(255,255,255,.92);
-backdrop-filter:saturate(1.2) blur(10px);
+margin-top:12px;
 }
 .modalActions .btn{flex:0 0 auto}
 
-.modalMonoBox{
-white-space:pre-wrap;
-font-size:13px;
-line-height:1.45;
-background:rgba(17,19,24,.04);
-border:1px solid rgba(17,19,24,.14);
-padding:12px;
-border-radius:14px;
-}
-
-/* Info / help UI */
-.infoDot{
-appearance:none;
-border:1px solid rgba(17,19,24,.14);
-background:rgba(17,19,24,.04);
-color:rgba(17,19,24,.72);
-padding:4px 10px;
-border-radius:999px;
-font-weight:900;
-font-size:11px;
-cursor:pointer;
-}
-.infoDot:hover{background:rgba(17,19,24,.06)}
-
-.infoCallout{
-border:1px solid rgba(34,197,94,.35);
-background:rgba(34,197,94,.10);
-border-radius:16px;
-padding:10px 12px;
-margin:10px 0 12px;
-display:none;
-}
-.infoCalloutTitle{font-weight:950;margin:0 0 4px 0}
-
-.infoBox{
-border:1px solid rgba(17,19,24,.12);
-background:rgba(17,19,24,.03);
-border-radius:16px;
-padding:10px 12px;
-margin:12px 0;
-}
-.infoBox summary{
-cursor:pointer;
-list-style:none;
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:10px;
-font-weight:950;
-}
-.infoBox summary::-webkit-details-marker{display:none}
-.infoBoxBody{margin-top:10px}
-
-.processGrid{
-display:grid;
-grid-template-columns:repeat(2, minmax(0,1fr));
-gap:10px;
-}
-.processStep{
-border:1px solid rgba(17,19,24,.10);
-background:rgba(255,255,255,.82);
-border-radius:14px;
-padding:10px 10px;
-display:flex;
-gap:10px;
-align-items:flex-start;
-}
-.stepIcon{
-width:24px;
-height:24px;
-border-radius:999px;
-border:1px solid rgba(17,19,24,.14);
-background:rgba(17,19,24,.04);
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:13px;
-font-weight:950;
-flex:0 0 auto;
-}
-.processStepTitle{font-weight:950}
-.processStep.active .stepIcon{border-color:rgba(34,197,94,.55); background:rgba(34,197,94,.16)}
-.processStep.done .stepIcon{border-color:rgba(34,197,94,.55); background:rgba(34,197,94,.18)}
-.processStep.error .stepIcon{border-color:rgba(255,61,113,.45); background:rgba(255,61,113,.14)}
-
-.strengthHelpRow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
-.strengthHelpText{color:rgba(17,19,24,.72);font-weight:650}
-
-.kwRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.kwChips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
-.kwChip{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;border:1px solid rgba(17,19,24,.12);background:rgba(17,19,24,.04);font-size:11px;font-weight:850;color:rgba(17,19,24,.70)}
-.kwChip.used{border-color:rgba(0,184,98,.25);background:rgba(0,184,98,.08)}
-.kwChip.missing{border-color:rgba(255,179,0,.28);background:rgba(255,179,0,.10)}
-.kwChip.more{border-style:dashed}
-
-@media (max-width:620px){
-.processGrid{grid-template-columns:1fr}
-}
-
 /* Tailor controls + CV preview */
-
 .tailorControls{display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin:10px 0 10px}
 .tailorControls .ctrl{display:flex; flex-direction:column; gap:6px; min-width:160px}
 .tailorControls input[type="range"]{width:100%}
 .pillRow{display:flex; gap:8px; flex-wrap:wrap}
 .pillRow .pill{cursor:pointer; user-select:none}
 
-.cvPreview{white-space:normal; font-size:13px; line-height:1.45; background:rgba(255,255,255,.95); border:1px solid rgba(17,19,24,.14); padding:14px; border-radius:14px; min-height:180px}
+.cvPreview{white-space:normal; font-size:13px; line-height:1.45; max-height:60vh; overflow:auto; background:rgba(255,255,255,.95); border:1px solid rgba(17,19,24,.14); padding:14px; border-radius:14px}
 .cvPaper{max-width:820px; margin:0 auto; font-family:Arial, Helvetica, sans-serif; color:#111318}
 .cvName{font-size:34px; font-weight:900; letter-spacing:-.6px; color:rgba(17,19,24,.72)}
 .cvRole{margin-top:2px; font-size:14px; font-weight:800; color:rgba(17,19,24,.55)}
@@ -705,6 +551,12 @@ box-shadow: none;
 #fetchMeta{white-space:nowrap}
 .switch input:disabled + .slider{opacity:.5;cursor:not-allowed}
 
+
+
+/* Quick actions (Dashboard) */
+.actionsStack{display:flex;flex-direction:column;gap:10px;align-items:stretch}
+.actionsStack .btn{width:100%;justify-content:center}
+
 </style>
 </head>
 <body>
@@ -789,6 +641,24 @@ box-shadow: none;
 <div style="height:10px"></div>
 <div class="small" style="font-weight:850">Top skills</div>
 <div class="chips" id="aiTopSkills" style="margin-top:10px"></div>
+</div>
+
+
+<div class="card" id="quickActionsCard">
+  <h2>Quick actions</h2>
+  <div class="small">Free: job search + CV tailoring. Paid: auto-apply.</div>
+  <div class="hr"></div>
+
+  <div class="actionsStack">
+    <button class="btn primary" id="qaFetchJobs" type="button">Search jobs (fetch)</button>
+    <button class="btn" id="qaViewQueue" type="button">View job queue</button>
+    <button class="btn" id="qaTailorTop" type="button">Tailor CV (top job)</button>
+
+    <a class="btn ghost" id="qaSettings" href="profile.html">Settings</a>
+    <a class="btn" id="qaAutoApply" href="plan.html">Auto-apply (upgrade)</a>
+  </div>
+
+  <div class="small" style="margin-top:10px" id="qaStatus"></div>
 </div>
 </div>
 
@@ -881,57 +751,40 @@ box-shadow: none;
 </div>
 </main>
 
-<div class="modalBackdrop" id="skipModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="skipTitle">
-  <div class="modalCard">
-    <div class="modalScroll">
-      <div class="modalHeader">
-        <div>
-          <div class="modalTitle" id="skipTitle">Skip this job</div>
-          <div class="small" style="margin-top:4px">This removes the job from your queue. You can undo from the activity log.</div>
-        </div>
-        <button class="iconBtn" id="skipCloseX" type="button" aria-label="Close">✕</button>
-      </div>
+<div class="modalBackdrop" id="skipModal" style="display:none">
+<div class="modalCard">
+<div class="modalTitle">Skip this job</div>
 
-      <div class="field">
-        <label for="skipReason">Reason</label>
-        <select id="skipReason">
-          <option value="not_relevant">Not relevant</option>
-          <option value="too_far">Too far</option>
-          <option value="wrong_industry">Wrong industry</option>
-          <option value="salary_too_low">Salary too low</option>
-          <option value="already_applied">Already applied</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label for="skipNote">Note</label>
-        <textarea id="skipNote" placeholder="Optional note…"></textarea>
-      </div>
-    </div>
-
-    <div class="modalActions">
-      <button class="btn ghost" id="skipCancel" type="button">Cancel</button>
-      <button class="btn danger" id="skipConfirm" type="button">Skip</button>
-    </div>
-  </div>
+<div class="field">
+<label for="skipReason">Reason</label>
+<select id="skipReason">
+<option value="not_relevant">Not relevant</option>
+<option value="too_far">Too far</option>
+<option value="wrong_industry">Wrong industry</option>
+<option value="salary_too_low">Salary too low</option>
+<option value="already_applied">Already applied</option>
+<option value="other">Other</option>
+</select>
 </div>
 
-<div class="modalBackdrop" id="descModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="descTitle">
-  <div class="modalCard modalCardWide">
-    <div class="modalScroll">
-      <div class="modalHeader">
-        <div>
-          <div class="modalTitle" id="descTitle">Job description</div>
-          <div class="small" id="descMeta" style="margin-top:4px"></div>
-        </div>
-        <button class="iconBtn" id="descCloseX" type="button" aria-label="Close">✕</button>
-      </div>
+<div class="field">
+<label for="skipNote">Note</label>
+<textarea id="skipNote" placeholder="Optional note…"></textarea>
+</div>
 
-      <div class="hr" style="margin:14px 0"></div>
-      <div id="descBody" class="mono modalMonoBox">Loading…</div>
-    </div>
+<div class="modalActions">
+<button class="btn ghost" id="skipCancel" type="button">Cancel</button>
+<button class="btn danger" id="skipConfirm" type="button">Skip</button>
+</div>
+</div>
+</div>
 
+<div class="modalBackdrop" id="descModal" style="display:none">
+  <div class="modalCard" style="max-width:920px">
+    <div class="modalTitle" id="descTitle">Job description</div>
+    <div class="small" id="descMeta" style="margin-top:-6px"></div>
+    <div class="hr" style="margin:14px 0"></div>
+    <div id="descBody" class="mono" style="white-space:pre-wrap; font-size:13px; line-height:1.45; max-height:60vh; overflow:auto; background:rgba(17,19,24,.04); border:1px solid rgba(17,19,24,.14); padding:12px; border-radius:14px;">Loading…</div>
     <div class="modalActions">
       <button class="btn ghost" id="descClose" type="button">Close</button>
       <button class="btn" id="descCopy" type="button">Copy</button>
@@ -939,112 +792,41 @@ box-shadow: none;
   </div>
 </div>
 
-<div class="modalBackdrop" id="tailorModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="tailorTitle">
-  <div class="modalCard modalCardXL">
-    <div class="modalScroll">
-      <div class="modalHeader">
-        <div>
-          <div class="modalTitleRow">
-            <div class="modalTitle" id="tailorTitle">Tailored CV</div>
-            <span class="badge" id="tailorStatus">Ready</span>
-          </div>
-          <div class="small" id="tailorMeta" style="margin-top:4px">Choose your options and click Generate.</div>
-        </div>
-        <button class="iconBtn" id="tailorCloseX" type="button" aria-label="Close">✕</button>
+
+<div class="modalBackdrop" id="tailorModal" style="display:none">
+  <div class="modalCard" style="max-width:960px">
+    <div class="modalTitle" id="tailorTitle">Tailored CV</div>
+    <div class="small" id="tailorMeta" style="margin-top:-6px"></div>
+    <div class="hr" style="margin:14px 0"></div>
+    <div class="tailorControls" id="tailorControls">
+      <div class="ctrl">
+        <div class="small" style="font-weight:800">Template</div>
+        <select id="tailorTemplate" class="input" style="min-width:240px">
+          <option value="professional">Professional (ATS-safe)</option>
+        </select>
       </div>
-
-      <div class="hr" style="margin:14px 0"></div>
-
-      <div class="tailorControls" id="tailorControls">
-        <div class="ctrl">
-          <div class="small" style="font-weight:800; display:flex; align-items:center; gap:8px">
-            <span>Template</span>
-            <button class="infoDot" type="button" id="tplAtsInfoBtn" title="What is ATS?" aria-label="What is ATS?">ATS?</button>
-          </div>
-          <select id="tailorTemplate" class="input" style="min-width:240px">
-            <option value="professional">Professional (ATS-safe)</option>
-          </select>
-          <div class="small" style="color:rgba(17,19,24,.68); margin-top:2px">ATS-safe formatting = simple headings, no tables/columns, easy-to-parse structure.</div>
-        </div>
-
-        <div class="ctrl" style="flex:1; min-width:280px">
-          <div class="small" style="font-weight:800">Tailoring strength</div>
-          <input id="tailorStrength" type="range" min="0" max="2" value="1" step="1" style="width:100%">
-          <div id="tailorStrengthHelp"></div>
-        </div>
-
-        <div class="ctrl" style="min-width:220px">
-          <div class="small" style="font-weight:800">View</div>
-          <div class="pillRow" style="display:flex; gap:8px; margin-top:4px">
-            <button class="pill active" id="tailorViewPreview" type="button">Preview</button>
-            <button class="pill" id="tailorViewText" type="button">Text</button>
-          </div>
+      <div class="ctrl" style="flex:1; min-width:280px">
+        <div class="small" style="font-weight:800">Tailoring strength</div>
+        <input id="tailorStrength" type="range" min="0" max="2" value="1" step="1" style="width:100%">
+        <div class="small" id="tailorStrengthHelp" style="margin-top:2px; color:rgba(17,19,24,.7)"></div>
+      </div>
+      <div class="ctrl" style="min-width:220px">
+        <div class="small" style="font-weight:800">View</div>
+        <div class="pillRow" style="display:flex; gap:8px; margin-top:4px">
+          <button class="pill active" id="tailorViewPreview" type="button">Preview</button>
+          <button class="pill" id="tailorViewText" type="button">Text</button>
         </div>
       </div>
-
-      <div class="infoCallout" id="atsExplainCallout">
-        <div class="infoCalloutTitle">ATS explained</div>
-        <div class="small">ATS stands for <b>Applicant Tracking System</b>—software that parses resumes. Our <b>ATS match</b> is a keyword-coverage estimate against the job description (not a guarantee). We keep formatting simple and avoid elements that ATS systems often misread.</div>
-      </div>
-
-      <details class="infoBox" open id="tailorWhatBox">
-        <summary>
-          <span>What we tailor (step-by-step)</span>
-          <span class="small">Tap to collapse</span>
-        </summary>
-        <div class="infoBoxBody">
-          <div class="processGrid" id="tailorProcessGrid">
-            <div class="processStep" data-step="keywords">
-              <div class="stepIcon" aria-hidden="true">•</div>
-              <div>
-                <div class="processStepTitle">Extract job keywords</div>
-                <div class="small">Read the job description and identify skills, tools, and responsibilities.</div>
-              </div>
-            </div>
-            <div class="processStep" data-step="rewrite">
-              <div class="stepIcon" aria-hidden="true">•</div>
-              <div>
-                <div class="processStepTitle">Align summary & bullets</div>
-                <div class="small">Highlight the most relevant accomplishments (without changing facts).</div>
-              </div>
-            </div>
-            <div class="processStep" data-step="format">
-              <div class="stepIcon" aria-hidden="true">•</div>
-              <div>
-                <div class="processStepTitle">Keep ATS-safe structure</div>
-                <div class="small">Plain headings and consistent formatting for reliable parsing.</div>
-              </div>
-            </div>
-            <div class="processStep" data-step="score">
-              <div class="stepIcon" aria-hidden="true">•</div>
-              <div>
-                <div class="processStepTitle">Compute ATS match</div>
-                <div class="small">Estimate keyword coverage (used vs missing).</div>
-              </div>
-            </div>
-            <div class="processStep" data-step="export">
-              <div class="stepIcon" aria-hidden="true">•</div>
-              <div>
-                <div class="processStepTitle">Prepare preview & export</div>
-                <div class="small">Enable Copy, Download, and Export PDF.</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="small" style="margin-top:10px; color:rgba(17,19,24,.72)"><b>We stay truthful:</b> we never invent experience or certifications. We only rephrase / reorder based on your uploaded CV + profile.</div>
-        </div>
-      </details>
-
-      <div id="tailorKeywords" class="small" style="margin-bottom:10px; display:none"></div>
-      <div id="tailorPreview" class="cvPreview">Choose settings above and click <b>Generate</b>.</div>
-      <div id="tailorBody" class="mono modalMonoBox" style="display:none">Choose settings above and click Generate.</div>
     </div>
 
+    <div id="tailorKeywords" class="small" style="margin-bottom:10px; display:none"></div>
+    <div id="tailorPreview" class="cvPreview">Generating…</div>
+    <div id="tailorBody" class="mono" style="display:none; white-space:pre-wrap; font-size:13px; line-height:1.45; max-height:60vh; overflow:auto; background:rgba(17,19,24,.04); border:1px solid rgba(17,19,24,.14); padding:12px; border-radius:14px;">Generating…</div>
     <div class="modalActions">
       <button class="btn ghost" id="tailorClose" type="button">Close</button>
-      <button class="btn primary" id="tailorRegenerate" type="button">Generate</button>
+      <button class="btn ghost" id="tailorRegenerate" type="button">Regenerate</button>
       <button class="btn" id="tailorCopy" type="button">Copy</button>
-      <button class="btn" id="tailorPrint" type="button">Export PDF</button>
+      <button class="btn" id="tailorPrint" type="button">Print / PDF</button>
       <button class="btn" id="tailorDownload" type="button">Download .txt</button>
     </div>
   </div>
@@ -1131,18 +913,6 @@ let currentTailorResult=null;
 let currentTailorDoc=null;
 let currentTailorJobTitle="";
 let tailorViewMode="preview";
-let tailorProcessTimers=[];
-
-// Tailor CV client-side guards
-// - Prevents double-click / duplicate requests
-// - Allows re-opening the same tailored CV without re-inserting the same (customer_id, job_id, input_hash)
-const tailorResultCache = new Map(); // cacheKey -> normalized tailor result
-const tailorInFlight = new Map();    // cacheKey -> Promise resolving to a normalized tailor result
-
-function tailorCacheKey(jobId, template, strength){
-  return [String(jobId||""), String(template||""), String(strength||"")].join("::");
-}
-
 
 function setText(id,text){const el=document.getElementById(id); if(el) el.textContent=text;}
 function setHtml(id,html){const el=document.getElementById(id); if(el) el.innerHTML=html;}
@@ -1155,126 +925,16 @@ function showModal(id){
   const el=document.getElementById(id);
   if(!el) return;
   el.style.display="flex";
-  document.body.classList.add("modalOpen");
-  // Accessibility: move focus into the modal
-  try{
-    const focusEl = el.querySelector("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
-    if(focusEl) focusEl.focus({preventScroll:true});
-  }catch(e){}
 }
 function hideModal(id){
   const el=document.getElementById(id);
   if(!el) return;
   el.style.display="none";
-  // Remove body scroll lock if no modals are open
-  try{
-    const anyOpen=[...document.querySelectorAll('.modalBackdrop')].some(m=>window.getComputedStyle(m).display!=="none");
-    if(!anyOpen) document.body.classList.remove("modalOpen");
-  }catch(e){
-    document.body.classList.remove("modalOpen");
-  }
 }
 function closeTailorModal(){
   pendingTailorJobId=null;
-  clearTailorProcessTimers();
   hideModal("tailorModal");
 }
-function clearTailorProcessTimers(){
-  try{ for(const t of (tailorProcessTimers||[])) clearTimeout(t); }catch(e){}
-  tailorProcessTimers=[];
-}
-
-function resetTailorProcessUI(){
-  clearTailorProcessTimers();
-  const steps=document.querySelectorAll('#tailorProcessGrid .processStep');
-  steps.forEach(s=>{
-    s.classList.remove('active','done','error');
-    const ic=s.querySelector('.stepIcon');
-    if(ic) ic.textContent='•';
-  });
-}
-
-function setTailorStepState(stepKey, state){
-  const el=document.querySelector(`#tailorProcessGrid .processStep[data-step="${stepKey}"]`);
-  if(!el) return;
-  el.classList.remove('active','done','error');
-  const ic=el.querySelector('.stepIcon');
-  if(state==='active'){
-    el.classList.add('active');
-    if(ic) ic.textContent='…';
-  }else if(state==='done'){
-    el.classList.add('done');
-    if(ic) ic.textContent='✓';
-  }else if(state==='error'){
-    el.classList.add('error');
-    if(ic) ic.textContent='!';
-  }else{
-    if(ic) ic.textContent='•';
-  }
-}
-
-function simulateTailorProcess(){
-  resetTailorProcessUI();
-  const seq=[
-    ['keywords', 250],
-    ['rewrite', 550],
-    ['format', 900],
-    ['score', 1200],
-    ['export', 1500],
-  ];
-  // Start first step
-  if(seq.length) setTailorStepState(seq[0][0],'active');
-  for(let i=1;i<seq.length;i++){
-    const prev=seq[i-1][0];
-    const cur=seq[i][0];
-    const delay=seq[i][1];
-    tailorProcessTimers.push(setTimeout(()=>{
-      setTailorStepState(prev,'done');
-      setTailorStepState(cur,'active');
-    }, delay));
-  }
-}
-
-function markTailorProcessDone(){
-  clearTailorProcessTimers();
-  const keys=['keywords','rewrite','format','score','export'];
-  for(const k of keys) setTailorStepState(k,'done');
-}
-
-function markTailorProcessError(){
-  clearTailorProcessTimers();
-  const active=document.querySelector('#tailorProcessGrid .processStep.active');
-  if(active){
-    const key=active.getAttribute('data-step')||'';
-    if(key) setTailorStepState(key,'error');
-  }
-}
-
-function toggleAtsExplain(force){
-  const el=document.getElementById('atsExplainCallout');
-  if(!el) return;
-  const show = (typeof force==='boolean') ? force : (el.style.display==='none' || !el.style.display);
-  el.style.display = show ? 'block' : 'none';
-  if(show){
-    try{ el.scrollIntoView({behavior:'smooth', block:'nearest'}); }catch(e){}
-  }
-}
-
-window.addEventListener("keydown", (e)=>{
-  if(e.key!=="Escape" && e.key!=="Esc") return;
-  // Close the top-most open modal (Tailor > Description > Skip)
-  const order=["tailorModal","descModal","skipModal"];
-  for(const id of order){
-    const el=document.getElementById(id);
-    if(el && window.getComputedStyle(el).display!=="none"){
-      if(id==="tailorModal") closeTailorModal();
-      else if(id==="descModal") closeDescModal();
-      else if(id==="skipModal") closeSkipModal();
-      break;
-    }
-  }
-});
-
 function nowStamp(){return new Date().toISOString().replace("T"," ").slice(0,19)+" UTC";}
 function animateNumber(el,to){
 const prefersReduced=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -1364,10 +1024,6 @@ function openTailorModal(jobId, force){
   currentTailorDoc=null;
   currentTailorResult=null;
 
-  // Reset helper UI
-  resetTailorProcessUI();
-  toggleAtsExplain(false);
-
   currentTailorJobTitle="";
   try{
     const jobs = (lastQueueResponse && Array.isArray(lastQueueResponse.data)) ? lastQueueResponse.data : ((lastQueueResponse && Array.isArray(lastQueueResponse.jobs)) ? lastQueueResponse.jobs : []);
@@ -1377,48 +1033,41 @@ function openTailorModal(jobId, force){
 
   // Restore last used settings (best-effort)
   try{
-    const strengthEl=document.getElementById('tailorStrength');
-    const lastStrength = localStorage.getItem('tailor_strength');
-    if(strengthEl && lastStrength!==null && lastStrength!==undefined){
+    const lastStrength = localStorage.getItem("tailor_strength");
+    if(lastStrength){
       const v = String(lastStrength).trim().toLowerCase();
-      if(v==='light'||v==='balanced'||v==='strong'){
-        setStrengthSliderFromKey(v);
-      }else if(v==='0'||v==='1'||v==='2'){
-        strengthEl.value=v;
-      }
+      if(v==="light"||v==="balanced"||v==="strong") setStrengthSliderFromKey(v);
     }
-    const lastView = localStorage.getItem('tailor_view');
-    if(lastView==='text'||lastView==='preview') tailorViewMode=lastView;
+    const lastView = localStorage.getItem("tailor_view");
+    if(lastView==="text"||lastView==="preview") tailorViewMode=lastView;
   }catch(e){}
 
   updateTailorStrengthHelp();
-  setTailorView(tailorViewMode||'preview');
+  setTailorView(tailorViewMode||"preview");
 
-  setText('tailorTitle', 'Tailored CV');
-  setBadge('tailorStatus', '', 'Ready');
-  setText('tailorMeta', 'Choose your options and click Generate.');
-  setHtml('tailorKeywords', '');
-  const kw=document.getElementById('tailorKeywords');
-  if(kw) kw.style.display='none';
+  setText("tailorTitle", "Tailored CV");
+  setText("tailorStatus", "Ready");
+  setText("tailorMeta", "Choose your options and click Generate.");
+  setHtml("tailorKeywords", "");
+  const kw=document.getElementById("tailorKeywords");
+  if(kw) kw.style.display="none";
 
-  setHtml('tailorPreview', '<div class="small">Choose settings above and click <b>Generate</b>.</div>');
-  const tb=document.getElementById('tailorBody');
-  if(tb) tb.textContent='Choose settings above and click Generate.';
+  setHtml("tailorPreview", '<div class="small">Choose settings above and click <b>Generate</b>.</div>');
+  const tb=document.getElementById("tailorBody");
+  if(tb) tb.textContent="Choose settings above and click Generate.";
 
   // Button state
-  const genBtn=document.getElementById('tailorRegenerate');
-  if(genBtn) genBtn.textContent='Generate';
+  const genBtn=document.getElementById("tailorRegenerate");
+  if(genBtn) genBtn.textContent="Generate";
   updateTailorButtonsState(false);
 
-  showModal('tailorModal');
+  showModal("tailorModal");
 }
 
 function regenerateTailor(){
   if(!pendingTailorJobId) return;
-  const hasOutput = !!(currentTailorText && String(currentTailorText).trim()) || !!currentTailorDoc;
-  generateTailoredCv(pendingTailorJobId, hasOutput);
+  generateTailoredCv(pendingTailorJobId, true);
 }
-
 
 function getStrengthKeyFromSlider(){
   const el=document.getElementById("tailorStrength");
@@ -1443,17 +1092,12 @@ function updateTailorStrengthHelp(){
   if(!help) return;
   const k=getStrengthKeyFromSlider();
   const map={
-    light:{label:"Conservative", desc:"Keeps your wording. Small adjustments and gentle keyword ordering."},
+    light:{label:"Conservative", desc:"Keeps your wording. Small adjustments + keyword ordering."},
     balanced:{label:"Balanced", desc:"Improves summary and bullets to match the job, without over-rewriting."},
     strong:{label:"Aggressive", desc:"Rewrites more strongly to highlight fit and align with job language (still truthful)."},
   };
   const m=map[k]||map.balanced;
-  help.innerHTML = [
-    '<div class="strengthHelpRow">',
-      '<span class="pill">'+escapeHtml(m.label)+'</span>',
-      '<span class="strengthHelpText">'+escapeHtml(m.desc)+'</span>',
-    '</div>'
-  ].join('');
+  help.innerHTML = `<span class="pill">${escapeHtml(m.label)}</span> <span style="color:rgba(17,19,24,.72)">${escapeHtml(m.desc)}</span>`;
 }
 
 function setTailorView(mode){
@@ -1469,324 +1113,71 @@ function setTailorView(mode){
   if(bText) bText.classList.toggle("active", tailorViewMode==="text");
 }
 
-
-/* Tailor CV duplicate guard helpers */
-function isDuplicateTailorError(msg){
-  const s=String(msg||"").toLowerCase();
-  return s.includes('23505') || s.includes('duplicate key') || s.includes('already exists') || s.includes('tailored_cvs_customer_job_input_unique');
-}
-
-function extractInputHashFromError(msg){
-  const s=String(msg||"");
-  const m=s.match(/input_hash\)\=\([^,]+,\s*[^,]+,\s*([0-9a-f]{16,})\)/i);
-  return m ? m[1] : null;
-}
-
-function rowTemplateValue(row){
-  const v = (row && (row.template ?? row.cv_template ?? row.cv_template_id ?? row.template_id ?? row.cv_format)) ? (row.template ?? row.cv_template ?? row.cv_template_id ?? row.template_id ?? row.cv_format) : "";
-  return String(v||"").trim().toLowerCase();
-}
-function rowStrengthValue(row){
-  const v = (row && (row.strength ?? row.tailor_strength ?? row.tailoring_strength ?? row.strength_key)) ? (row.strength ?? row.tailor_strength ?? row.tailoring_strength ?? row.strength_key) : "";
-  return String(v||"").trim().toLowerCase();
-}
-function safeDateMs(ts){
-  if(!ts) return 0;
-  const d=new Date(ts);
-  const ms=d.getTime();
-  return (ms===ms) ? ms : 0;
-}
-
-function pickBestTailoredRow(rows, template, strength, preferInputHash){
-  const t=String(template||"").trim().toLowerCase();
-  const s=String(strength||"").trim().toLowerCase();
-  const ih=preferInputHash ? String(preferInputHash).trim().toLowerCase() : "";
-  let best=null;
-  let bestScore=-1e18;
-  for(const r of (Array.isArray(rows)?rows:[])){
-    let score=0;
-    const rowIh = (r && (r.input_hash||r.inputHash||r.hash)) ? String(r.input_hash||r.inputHash||r.hash).trim().toLowerCase() : "";
-    if(ih && rowIh && rowIh===ih) score += 1000000;
-    const rt=rowTemplateValue(r);
-    const rs=rowStrengthValue(r);
-    if(t && rt && rt===t) score += 10000;
-    if(s && rs && rs===s) score += 5000;
-    score += safeDateMs(r.updated_at || r.updatedAt || r.created_at || r.createdAt) / 1000; // prefer newer
-    if(score>bestScore){
-      bestScore=score;
-      best=r;
-    }
-  }
-  return best || (Array.isArray(rows) && rows.length ? rows[0] : null);
-}
-
-function normalizeMaybeJson(v){
-  if(!v) return v;
-  if(typeof v === "object") return v;
-  if(typeof v === "string"){
-    const s=v.trim();
-    if(!s) return v;
-    if((s.startsWith("{") && s.endsWith("}")) || (s.startsWith("[") && s.endsWith("]"))){
-      try{ return JSON.parse(s); }catch(e){ return v; }
-    }
-  }
-  return v;
-}
-
-function normalizeTailorResultFromAny(any){
-  const r = (any && typeof any === "object") ? (any.result && typeof any.result === "object" ? any.result : any) : {};
-  const out = Object.assign({}, r);
-  // common aliases
-  if(out.cv_text==null && out.text!=null) out.cv_text = out.text;
-  if(out.cv_doc==null && out.doc!=null) out.cv_doc = out.doc;
-  out.cv_doc = normalizeMaybeJson(out.cv_doc);
-  out.updated_at = out.updated_at || out.updatedAt || null;
-  out.language = out.language || out.lang || "en";
-  return out;
-}
-
-function normalizeTailorResultFromRow(row){
-  if(!row || typeof row !== "object") return null;
-  const out = normalizeTailorResultFromAny(row);
-  // Map DB row fields -> result fields (best-effort)
-  if(!out.cv_text && row.cv_text) out.cv_text = row.cv_text;
-  if(!out.cv_doc && row.cv_doc) out.cv_doc = normalizeMaybeJson(row.cv_doc);
-  if(out.ats_score==null && row.ats_score!=null) out.ats_score = row.ats_score;
-  if(out.ats_keywords_used==null && row.ats_keywords_used!=null) out.ats_keywords_used = row.ats_keywords_used;
-  if(out.ats_keywords_missing==null && row.ats_keywords_missing!=null) out.ats_keywords_missing = row.ats_keywords_missing;
-  out.updated_at = out.updated_at || row.updated_at || row.created_at || null;
-  out.language = out.language || row.language || row.lang || "en";
-  // Keep these for debugging/selection
-  out.input_hash = out.input_hash || row.input_hash || row.inputHash || null;
-  out.template = out.template || row.template || row.cv_template || null;
-  out.strength = out.strength || row.strength || row.tailor_strength || row.tailoring_strength || null;
-  return out;
-}
-
-async function tryLoadExistingTailoredFromServer(jobId, template, strength, preferInputHash, accessToken){
-  try{
-    const qs = "job_ids=" + encodeURIComponent(String(jobId||""));
-    const res = await apiGet("/me/cv/tailored?"+qs, accessToken);
-    const rows = (res && Array.isArray(res.data)) ? res.data : [];
-    const list = Array.isArray(rows) ? rows : [rows];
-    if(!list.length) return null;
-
-    const candidates = list.filter(r => String(r && (r.job_id ?? r.jobId ?? "")) === String(jobId));
-    const pick = pickBestTailoredRow(candidates.length ? candidates : list, template, strength, preferInputHash);
-    const normalized = normalizeTailorResultFromRow(pick);
-    if(!normalized) return null;
-
-    const hasOutput = !!((normalized.cv_text && String(normalized.cv_text).trim()) || (normalized.cv_doc && typeof normalized.cv_doc === "object"));
-    if(!hasOutput) return null;
-
-    return normalized;
-  }catch(e){
-    return null;
-  }
-}
-
-function applyTailorResultUI(jobId, rAny, opts){
-  const template = (opts && opts.template) ? opts.template : getTailorTemplate();
-  const strength = (opts && opts.strength) ? opts.strength : getStrengthKeyFromSlider();
-  const note = (opts && opts.note) ? String(opts.note) : "";
-
-  const r = normalizeTailorResultFromAny(rAny) || {};
-  currentTailorResult=r;
-  currentTailorText = String(r.cv_text||"");
-  currentTailorDoc = (r.cv_doc && typeof r.cv_doc === "object") ? r.cv_doc : null;
-
-  const used = normalizeKeywordList(r.ats_keywords_used);
-  const missing = normalizeKeywordList(r.ats_keywords_missing);
-
-  let score = normalizeAtsScore(r.ats_score);
-  if(score===null) score = computeAtsMatchPercent(used, missing);
-
-  // Status badge
-  let sType="";
-  if(score!==null){
-    sType = (score>=80)?"good":(score>=60)?"warn":"bad";
-    setBadge("tailorStatus", sType, `Done · ATS ${score}%`);
-  }else{
-    setBadge("tailorStatus", "good", "Done");
-  }
-
-  const jobLabel = currentTailorJobTitle ? (" · Job: " + currentTailorJobTitle) : "";
-  const noteLabel = note ? (" · " + note) : "";
-  setText("tailorMeta", `Template: ${template} · Strength: ${strength}${jobLabel}${noteLabel}`);
-
-  const kwBadgeCls = sType ? (" " + sType) : "";
-
-  function renderChips(arr, cls, max){
-    const a=normalizeKeywordList(arr);
-    const shown=a.slice(0, max||14);
-    const more=a.length - shown.length;
-    const chips=shown.map(k=>`<span class="kwChip ${cls}">${escapeHtml(k)}</span>`).join("");
-    const moreChip = (more>0) ? `<span class="kwChip more">+${more} more</span>` : "";
-    return `<div class="kwChips">${chips}${moreChip}</div>`;
-  }
-
-  const scoreText = (score===null) ? "—" : (String(score) + "%");
-
-  setHtml("tailorKeywords", [
-    '<div class="kwRow">',
-      `<span class="badge${kwBadgeCls}">ATS match ${escapeHtml(scoreText)}</span>`,
-      `<button class="infoDot" type="button" data-ats-info>What's ATS?</button>`,
-      `<span class="pill">Used: <b>${escapeHtml(String(used.length))}</b></span>`,
-      `<span class="pill">Missing: <b>${escapeHtml(String(missing.length))}</b></span>`,
-    '</div>',
-    '<div class="small" style="margin-top:10px;font-weight:900">Keywords used</div>',
-    renderChips(used, 'used', 14),
-    '<div class="small" style="margin-top:10px;font-weight:900">Missing keywords (only include if true)</div>',
-    renderChips(missing, 'missing', 14),
-    '<div class="small" style="margin-top:10px;color:rgba(17,19,24,.72)">Missing keywords are not automatically bad. Only add keywords you genuinely have experience with.</div>',
-  ].join(''));
-
-  const kw2=document.getElementById("tailorKeywords");
-  if(kw2) kw2.style.display="block";
-
-  if(currentTailorDoc){
-    setHtml("tailorPreview", cvDocToPreviewHtml(currentTailorDoc, r.language || "en"));
-  }else{
-    setHtml("tailorPreview", `<div class="small">Preview not available for this result. Switch to Text view.</div>`);
-  }
-
-  const tb=document.getElementById("tailorBody");
-  if(tb) tb.textContent=currentTailorText || "";
-
-  // Update badge cache for the job card
-  tailorSummaryMap.set(String(jobId), {
-    job_id: String(jobId),
-    ats_score: score,
-    ats_keywords_used: used,
-    ats_keywords_missing: missing,
-    updated_at: r.updated_at || new Date().toISOString(),
-  });
-
-  markTailorProcessDone();
-  updateTailorButtonsState(false);
-  renderAllJobs();
-}
-
 async function generateTailoredCv(jobId, force){
-  const template=getTailorTemplate();
-  const strength=getStrengthKeyFromSlider();
-  try{ localStorage.setItem("tailor_strength", strength); }catch(e){}
-
-  const cacheKey = tailorCacheKey(jobId, template, strength);
-
-  // If a request is already running for the same job + settings, wait for it and render the result.
-  if(tailorInFlight.has(cacheKey)){
-    try{
-      setBadge("tailorStatus","warn","Working…");
-      updateTailorButtonsState(true);
-      const r = await tailorInFlight.get(cacheKey);
-      if(r){
-        const norm = normalizeTailorResultFromAny(r);
-        tailorResultCache.set(cacheKey, norm);
-        applyTailorResultUI(jobId, norm, {template, strength, note:"Loaded"});
-        return;
-      }
-    }catch(e){
-      // fallthrough
-    }finally{
-      updateTailorButtonsState(false);
-    }
-  }
-
-  // Local cache prevents accidental duplicate inserts and makes the UX snappy.
-  if(!force && tailorResultCache.has(cacheKey)){
-    applyTailorResultUI(jobId, tailorResultCache.get(cacheKey), {template, strength, note:"Loaded (cached)"});
-    return;
-  }
-
   try{
-    // Reset UI
-    setBadge("tailorStatus","warn", force ? "Regenerating…" : "Preparing…");
+    setText("tailorStatus", "Generating…");
     updateTailorButtonsState(true);
-    toggleAtsExplain(false);
-    simulateTailorProcess();
 
-    const jobLabel = currentTailorJobTitle ? (" · Job: " + currentTailorJobTitle) : "";
-    setText("tailorMeta", `Template: ${template} · Strength: ${strength}${jobLabel}`);
+    const template=getTailorTemplate();
+    const strength=getStrengthKeyFromSlider();
+    try{ localStorage.setItem("tailor_strength", strength); }catch(e){}
 
-    setHtml("tailorKeywords", "");
-    const kw0=document.getElementById("tailorKeywords");
-    if(kw0) kw0.style.display="none";
+    setText("tailorMeta", `Template: ${template} · Strength: ${strength}`);
 
-    setHtml("tailorPreview", `<div class="small">${force ? "Regenerating" : "Generating"} tailored CV…</div>`);
-    const tb0=document.getElementById("tailorBody");
-    if(tb0) tb0.textContent = force ? "Regenerating tailored CV…" : "Generating tailored CV…";
-
+    const payload={ job_id: jobId, force: !!force, template, strength };
     const session=await requireSession();
-    if(!session){
-      updateTailorButtonsState(false);
-      return;
+    if(!session) return;
+
+    const resp=await apiPost("/me/cv/tailor", session.access_token, payload);
+    if(!resp.ok) throw new Error(resp.error || "CV tailoring failed");
+
+    const r=resp.result || {};
+    currentTailorResult=r;
+    currentTailorText = String(r.cv_text||"");
+    currentTailorDoc = (r.cv_doc && typeof r.cv_doc === "object") ? r.cv_doc : null;
+
+    const score = (typeof r.ats_score === "number") ? r.ats_score : null;
+    setText("tailorStatus", score!==null ? `Done · ATS ${score}%` : "Done");
+
+    const used = Array.isArray(r.ats_keywords_used) ? r.ats_keywords_used : [];
+    const missing = Array.isArray(r.ats_keywords_missing) ? r.ats_keywords_missing : [];
+
+    const explain = `<div class="small" style="margin-top:6px; color:rgba(17,19,24,.72)">ATS match is a keyword-based indicator (not a guarantee). Best results combine a good match with truthful content and clean formatting.</div>`;
+
+    setHtml("tailorKeywords", [
+      `<div class="row" style="gap:8px; flex-wrap:wrap">`,
+      `<span class="pill">ATS match: <b>${escapeHtml(score===null?"?":String(score))}%</b></span>`,
+      `<span class="pill">Keywords used: <b>${escapeHtml(String(used.length))}</b></span>`,
+      `<span class="pill">Missing: <b>${escapeHtml(String(missing.length))}</b></span>`,
+      `</div>`,
+      explain,
+    ].join(""));
+    const kw2=document.getElementById("tailorKeywords");
+    if(kw2) kw2.style.display="block";
+
+    if(currentTailorDoc){
+      setHtml("tailorPreview", cvDocToPreviewHtml(currentTailorDoc, r.language || "en"));
+    }else{
+      setHtml("tailorPreview", `<div class="small">Preview not available for this result. Use Text view.</div>`);
     }
 
-    // IMPORTANT: avoid Supabase unique-key collisions by loading an existing tailored CV first (when force=false).
-    if(!force){
-      setBadge("tailorStatus","warn","Checking existing…");
-      const existing = await tryLoadExistingTailoredFromServer(jobId, template, strength, null, session.access_token);
-      if(existing){
-        tailorResultCache.set(cacheKey, existing);
-        applyTailorResultUI(jobId, existing, {template, strength, note:"Loaded (existing)"});
-        return;
-      }
-    }
+    const tb=document.getElementById("tailorBody");
+    if(tb) tb.textContent=currentTailorText || "";
 
-    // Create request promise and store as in-flight to prevent double submissions.
-    const requestPromise = (async ()=>{
-      const payload={ job_id: jobId, force: !!force, template, strength };
-      const resp=await apiPost("/me/cv/tailor", session.access_token, payload);
-      if(!resp.ok) throw new Error(resp.error || "CV tailoring failed");
-      const r=resp.result || {};
-      return normalizeTailorResultFromAny(r);
-    })();
-
-    tailorInFlight.set(cacheKey, requestPromise);
-
-    setBadge("tailorStatus","warn", force ? "Regenerating…" : "Generating…");
-    const r = await requestPromise;
-    tailorResultCache.set(cacheKey, r);
-    applyTailorResultUI(jobId, r, {template, strength, note: force ? "Regenerated" : "Generated"});
-
+    // Update badge cache for the job card
+    tailorSummaryMap.set(jobId, { ats_score: score, updated_at: r.updated_at || new Date().toISOString() });
+    updateTailorButtonsState(false);
+    renderAllJobs();
   }catch(err){
     const msg = String(err?.message || err);
-
-    // If the backend attempted to insert the same (customer_id, job_id, input_hash) twice,
-    // Supabase returns a 23505 (unique violation). Treat this as "already generated" and load the existing CV.
-    if(isDuplicateTailorError(msg)){
-      try{
-        const session=await requireSession();
-        if(session){
-          const ih = extractInputHashFromError(msg);
-          setBadge("tailorStatus","warn","Already generated — loading…");
-          const existing = await tryLoadExistingTailoredFromServer(jobId, template, strength, ih, session.access_token);
-          if(existing){
-            tailorResultCache.set(cacheKey, existing);
-            applyTailorResultUI(jobId, existing, {template, strength, note:"Loaded (already generated)"});
-            return;
-          }
-        }
-      }catch(_){
-        // ignore
-      }
-    }
-
-    setBadge("tailorStatus","bad","Failed");
+    setText("tailorStatus", "Failed");
     setText("tailorMeta", msg);
     setHtml("tailorPreview", `<div class="small" style="color:var(--bad)">Failed to generate CV: ${escapeHtml(msg)}</div>`);
     const tb=document.getElementById("tailorBody");
     if(tb) tb.textContent=`Failed to generate CV: ${msg}`;
-    const kw=document.getElementById("tailorKeywords");
-    if(kw) kw.style.display="none";
-    markTailorProcessError();
     updateTailorButtonsState(false);
-  }finally{
-    tailorInFlight.delete(cacheKey);
   }
 }
-
 
 function cvLabels(lang){
   const de={
@@ -2225,30 +1616,6 @@ function computeAtsMatchPercent(used, missing){
   return Math.round((u.length/denom)*100);
 }
 
-function normalizeAtsScore(v){
-  if(v===null || v===undefined) return null;
-  let n=null;
-  if(typeof v === 'number'){
-    n=v;
-  }else if(typeof v === 'string'){
-    const s=v.trim();
-    if(!s) return null;
-    const m=s.match(/-?\d+(?:\.\d+)?/);
-    if(!m) return null;
-    n=Number(m[0]);
-  }else{
-    return null;
-  }
-  if(!isFinite(n)) return null;
-  // Many backends return 0..1 as a fraction. Treat <=1 as a fraction of 100.
-  if(n>=0 && n<=1){
-    n=n*100;
-  }
-  if(n<0) n=0;
-  if(n>100) n=100;
-  return Math.round(n);
-}
-
 async function loadTailorSummariesForJobs(jobIds){
   // Always keep the UI usable even if this fails
   tailorSummaryMap.clear();
@@ -2362,13 +1729,12 @@ function renderQueueCards(queue){
     const tSum=tailorSummaryMap.get(String(jobId));
     let atsBadge="";
     if(tSum){
-      let pct=normalizeAtsScore(tSum.ats_score);
-      if(pct===null) pct=computeAtsMatchPercent(tSum.ats_keywords_used, tSum.ats_keywords_missing);
+      const pct=computeAtsMatchPercent(tSum.ats_keywords_used, tSum.ats_keywords_missing);
       if(pct!==null){
         const cls=(pct>=80)?"good":(pct>=60)?"warn":"bad";
-        atsBadge="<span class='badge "+cls+"' title='ATS match is a keyword-coverage estimate (not a guarantee).'>ATS "+pct+"%</span>";
+        atsBadge="<span class='badge "+cls+"'>ATS "+pct+"%</span>";
       }else{
-        atsBadge="<span class='badge' title='Tailored CV exists for this job.'>tailored</span>";
+        atsBadge="<span class='badge'>tailored</span>";
       }
     }
 
@@ -2384,7 +1750,7 @@ function renderQueueCards(queue){
       : "<button class='btn small' type='button' data-prio='"+escapeHtml(jobId)+"'>Prio</button>";
 
     const descBtn = "<button class='btn small ghost' type='button' data-desc='"+escapeHtml(jobId)+"'>Description</button>";
-    const tailorBtn = "<button class='btn small' type='button' data-tailor='"+escapeHtml(jobId)+"' title='Tailor your CV for this job (includes ATS match estimate)'>Tailor CV</button>";
+    const tailorBtn = "<button class='btn small' type='button' data-tailor='"+escapeHtml(jobId)+"'>Tailor CV</button>";
 
     return '<div class="item">'
       + '<div class="itemTop"><div class="itemTitle">'+titleHtml+'</div>'+badge+'</div>'
@@ -3051,6 +2417,52 @@ document.getElementById("btnFetchJobsNow").addEventListener("click",async()=>{
 await manualFetchJobs();
 });
 
+
+// Quick actions
+const qaFetch=document.getElementById("qaFetchJobs");
+if(qaFetch){
+  qaFetch.addEventListener("click",()=>{
+    const b=document.getElementById("btnFetchJobsNow");
+    if(b) b.click();
+    else manualFetchJobs();
+  });
+}
+
+const qaView=document.getElementById("qaViewQueue");
+if(qaView){
+  qaView.addEventListener("click",()=>{
+    const anchor=document.getElementById("btnRefresh") || document.getElementById("queueWrap");
+    if(anchor && anchor.scrollIntoView){
+      anchor.scrollIntoView({behavior:"smooth", block:"start"});
+    }
+  });
+}
+
+const qaTailor=document.getElementById("qaTailorTop");
+if(qaTailor){
+  qaTailor.addEventListener("click",()=>{
+    try{
+      const jobs=(lastQueueResponse && Array.isArray(lastQueueResponse.data)) ? lastQueueResponse.data : [];
+      if(!jobs.length){
+        setText("qaStatus","No jobs in your queue yet. Click “Search jobs (fetch)” first.");
+        return;
+      }
+      const prioJob = jobs.find(j=>j && j._application && j._application.priority);
+      const top = prioJob || jobs[0];
+      const jobId = top && top.id ? String(top.id) : "";
+      if(!jobId){
+        setText("qaStatus","Could not find a job to tailor. Please refresh and try again.");
+        return;
+      }
+      // Open tailoring modal (existing function)
+      openTailorModal(jobId, false);
+      setText("qaStatus","");
+    }catch(e){
+      setText("qaStatus","Could not open Tailor CV. Please select a job from the queue.");
+    }
+  });
+}
+
 document.getElementById("btnCopyToken").addEventListener("click",async()=>{
 try{
 const {data}=await supabaseClient.auth.getSession();
@@ -3109,10 +2521,6 @@ wireActivityClicks();
 document.getElementById("skipCancel").addEventListener("click",()=>closeSkipModal());
 document.getElementById("skipConfirm").addEventListener("click",()=>submitSkip());
 
-// Header close (X)
-const skipCloseX=document.getElementById("skipCloseX");
-if(skipCloseX){skipCloseX.addEventListener("click",()=>closeSkipModal());}
-
 document.getElementById("skipModal").addEventListener("click",(e)=>{
 if(e.target && e.target.id==="skipModal") closeSkipModal();
 });
@@ -3120,8 +2528,6 @@ if(e.target && e.target.id==="skipModal") closeSkipModal();
 // Job description modal
 document.getElementById("descClose").addEventListener("click",()=>closeDescModal());
 document.getElementById("descCopy").addEventListener("click",()=>copyDesc());
-const descCloseX=document.getElementById("descCloseX");
-if(descCloseX){descCloseX.addEventListener("click",()=>closeDescModal());}
 document.getElementById("descModal").addEventListener("click",(e)=>{
 if(e.target && e.target.id==="descModal") closeDescModal();
 });
@@ -3136,41 +2542,17 @@ document.getElementById("tailorModal").addEventListener("click",(e)=>{
 if(e.target && e.target.id==="tailorModal") closeTailorModal();
 });
 
-// Header close (X)
-const tailorCloseX=document.getElementById("tailorCloseX");
-if(tailorCloseX){tailorCloseX.addEventListener("click",()=>closeTailorModal());}
-
-// ATS info helpers
-const tplAtsInfoBtn=document.getElementById("tplAtsInfoBtn");
-if(tplAtsInfoBtn){tplAtsInfoBtn.addEventListener("click",()=>toggleAtsExplain());}
-const kwBox=document.getElementById("tailorKeywords");
-if(kwBox){
-  kwBox.addEventListener("click",(e)=>{
-    const btn=e.target.closest("[data-ats-info]");
-    if(btn) toggleAtsExplain();
-  });
-}
-
 // Tailor controls
 const strengthEl=document.getElementById("tailorStrength");
 if(strengthEl){
   strengthEl.addEventListener("input",()=>{
     updateTailorStrengthHelp();
-    // Persist as a semantic key for stability across UI changes
-    try{localStorage.setItem("tailor_strength", getStrengthKeyFromSlider());}catch{}
+    try{localStorage.setItem("tailor_strength", String(strengthEl.value));}catch{}
   });
   // Load saved value (if any)
   try{
     const saved=localStorage.getItem("tailor_strength");
-    if(saved!==null && saved!==undefined && saved!==""){
-      const v=String(saved).trim().toLowerCase();
-      if(v==="light"||v==="balanced"||v==="strong"){
-        setStrengthSliderFromKey(v);
-      }else if(v==="0"||v==="1"||v==="2"){
-        // Backward compat from older builds that stored slider values
-        strengthEl.value=v;
-      }
-    }
+    if(saved!==null && saved!==undefined && saved!=="") strengthEl.value=saved;
   }catch{}
 }
 
