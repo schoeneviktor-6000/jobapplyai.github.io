@@ -2,546 +2,488 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Home · jobmejob</title>
-  <meta name="description" content="jobmejob helps you search jobs, tailor your CV, and (with a plan) auto-apply." />
-
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>jobmejob — Home</title>
+  <meta name="description" content="Search jobs and tailor your CV per role (free). Auto-apply runs applications for you (paid)." />
   <style>
     :root{
-      --bg: #f6f7fb;
-      --card: rgba(255,255,255,0.92);
-      --text: #0f172a;
-      --muted:#5b6474;
-      --muted2:#7a8394;
-      --border: rgba(15, 23, 42, 0.12);
-      --shadow: 0 18px 60px rgba(15, 23, 42, 0.10);
-      --shadow2: 0 10px 24px rgba(15, 23, 42, 0.08);
-      --good: #16a34a;
-      --warn: #b45309;
-      --bad:  #b42318;
-      --radius: 18px;
-      --max: 1100px;
+      --bg:#f4f6f8;
+      --card:#ffffffcc;
+      --cardSolid:#fff;
+      --text:#0e1116;
+      --muted:rgba(14,17,22,.66);
+      --muted2:rgba(14,17,22,.52);
+      --border:rgba(14,17,22,.10);
+      --shadow:0 20px 50px rgba(0,0,0,.10);
+      --shadow2:0 12px 28px rgba(0,0,0,.10);
+      --accent:#16a34a;   /* green */
+      --accent2:#0ea5e9;  /* blue */
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --radius:18px;
+      --radius2:14px;
+      --max:1100px;
     }
-
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0;
-      color:var(--text);
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
       background:
-        radial-gradient(900px 300px at 20% 0%, rgba(34,197,94,.14), transparent 55%),
-        radial-gradient(900px 320px at 90% 10%, rgba(56,189,248,.10), transparent 55%),
-        linear-gradient(180deg, var(--bg), #fff 60%, var(--bg));
+        radial-gradient(900px 600px at 12% 10%, rgba(14,165,233,.16), transparent 60%),
+        radial-gradient(900px 600px at 90% 18%, rgba(22,163,74,.18), transparent 60%),
+        radial-gradient(900px 600px at 30% 90%, rgba(59,130,246,.12), transparent 60%),
+        var(--bg);
     }
-    a{color:inherit}
-    .leaving{opacity:.7; transform:translateY(6px); transition:all .18s ease}
 
-    /* Top bar (consistent with multipage app) */
+    /* Top nav */
     .topbar{
-      position:sticky; top:0; z-index:30;
-      background:rgba(246,247,251,86);
-      backdrop-filter:saturate(1.2) blur(12px);
-      border-bottom:1px solid rgba(15,23,42,.10);
-      padding-top: env(safe-area-inset-top, 0px);
+      position:sticky; top:0; z-index:20;
+      backdrop-filter: blur(10px);
+      background: rgba(244,246,248,.75);
+      border-bottom: 1px solid var(--border);
     }
     .nav{
-      max-width:var(--max);
-      margin:0 auto;
-      padding:12px 16px;
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 14px 16px;
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:12px;
+      gap: 12px;
     }
     .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      font-weight:950;
-      letter-spacing:.2px;
-      text-decoration:none;
-      min-width:0;
+      display:flex; align-items:center; gap:10px;
+      text-decoration:none; color:var(--text);
+      font-weight: 950; letter-spacing:-.2px;
     }
     .logo{
-      width:34px;height:34px;border-radius:11px;
-      background: linear-gradient(135deg, rgba(34,197,94,.92), rgba(56,189,248,.70));
-      box-shadow: 0 10px 30px rgba(34,197,94,22);
-      flex:0 0 auto;
-      position:relative;
-      overflow:hidden;
+      width: 34px; height:34px; border-radius: 10px;
+      background:
+        radial-gradient(12px 12px at 30% 35%, rgba(22,163,74,.65), transparent 60%),
+        radial-gradient(12px 12px at 65% 65%, rgba(14,165,233,.55), transparent 60%),
+        radial-gradient(16px 16px at 60% 35%, rgba(34,197,94,.40), transparent 60%),
+        rgba(255,255,255,.7);
+      border: 1px solid rgba(0,0,0,.08);
+      box-shadow: 0 10px 24px rgba(0,0,0,.08) inset;
     }
-    .logo::after{
-      content:"";
-      position:absolute;
-      inset:-45%;
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.55), transparent 40%);
-      transform: rotate(20deg);
-    }
-    .navlinks{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-    }
+    .navlinks{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
     .pill{
       appearance:none;
-      border:1px solid rgba(15,23,42,.10);
-      background: rgba(255,255,255,.70);
-      color:var(--text);
-      padding:9px 12px;
-      border-radius:999px;
-      font-weight:900;
-      font-size:13px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.65);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 800;
       cursor:pointer;
       text-decoration:none;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      transition:transform .12s ease, box-shadow .18s ease, background .12s ease;
+      display:inline-flex; align-items:center; gap:10px;
+      transition: transform .14s ease, box-shadow .14s ease, background .14s ease;
+      box-shadow: 0 10px 24px rgba(0,0,0,.08);
     }
-    .pill:hover{
-      transform:translateY(-1px);
-      box-shadow: 0 14px 30px rgba(15,23,42,.10);
-      background:#fff;
-    }
-    .pill.active{
-      border-color: rgba(34,197,94,.55);
-      background: linear-gradient(135deg, rgba(34,197,94,.20), rgba(22,163,74,.14));
-    }
-    .pill.iconOnly{padding:9px 12px}
-    .pill:disabled{opacity:.55; cursor:not-allowed; transform:none; box-shadow:none}
+    .pill:hover{ transform: translateY(-1px); background: rgba(255,255,255,.78); }
+    .pill.active{ border-color: rgba(22,163,74,.35); box-shadow: 0 16px 34px rgba(22,163,74,.10); }
+    .pill.iconOnly{padding:10px 12px}
+    .pill[disabled]{opacity:.55;cursor:not-allowed;transform:none}
 
-    /* Page layout */
-    .main{
-      max-width:var(--max);
-      margin:0 auto;
-      padding:22px 16px 54px;
-    }
-    .hero{
-      border:1px solid var(--border);
-      background:
-        radial-gradient(900px 240px at 10% 0%, rgba(34,197,94,.18), transparent 60%),
-        radial-gradient(900px 240px at 95% 10%, rgba(56,189,248,.10), transparent 62%),
-        linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.86));
-      border-radius: var(--radius);
+    /* Layout */
+    .wrap{max-width: var(--max); margin: 0 auto; padding: 18px 16px 44px;}
+    .heroCard{
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.70);
+      border-radius: 24px;
+      padding: 20px;
       box-shadow: var(--shadow);
-      padding: 18px;
       overflow:hidden;
+    }
+    .heroTop{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
     }
     h1{
       margin:0;
-      font-size:38px;
-      letter-spacing:-.6px;
-      line-height:1.1;
-      font-weight:1000;
+      font-size: clamp(30px, 4vw, 44px);
+      letter-spacing:-1px;
+      line-height:1.05;
     }
     .sub{
-      margin:10px 0 0;
-      color:var(--muted);
-      font-weight:750;
-      line-height:1.5;
-      max-width: 72ch;
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-weight: 700;
+      max-width: 820px;
+      line-height: 1.4;
     }
-    .heroRow{
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.7);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 900;
+      font-size: 12px;
+      color: rgba(14,17,22,.78);
+      white-space: nowrap;
+    }
+    .badge.good{ border-color: rgba(22,163,74,.28); background: rgba(22,163,74,.12); color: rgba(8,88,33,.90); }
+    .badge.warn{ border-color: rgba(245,158,11,.30); background: rgba(245,158,11,.14); color: rgba(122,74,0,.92); }
+    .badge.bad{ border-color: rgba(239,68,68,.30); background: rgba(239,68,68,.12); color: rgba(128,20,20,.92); }
+    .badge.free{ border-color: rgba(22,163,74,.28); background: rgba(22,163,74,.12); }
+    .badge.paid{ border-color: rgba(245,158,11,.30); background: rgba(245,158,11,.14); }
+
+    .heroGrid{
       display:grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap:14px;
-      align-items:start;
-      margin-top: 14px;
+      grid-template-columns: 1.4fr .9fr;
+      gap: 14px;
+      margin-top: 16px;
     }
-    @media (max-width: 900px){
-      h1{font-size:32px}
-      .heroRow{grid-template-columns:1fr}
+    @media (max-width: 980px){
+      .heroGrid{grid-template-columns:1fr}
     }
 
     .card{
-      border:1px solid var(--border);
-      background: var(--card);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.72);
       border-radius: var(--radius);
       box-shadow: var(--shadow2);
       padding: 16px;
     }
-    .sectionTitle{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin: 0 0 10px 0;
-    }
-    .h2{
+    .card h2{
       margin:0;
-      font-size:16px;
-      font-weight:1000;
+      font-size: 16px;
       letter-spacing:-.2px;
     }
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:7px 10px;
-      border-radius:999px;
-      border:1px solid rgba(15,23,42,.14);
-      background: rgba(15,23,42,.03);
-      font-weight:900;
-      font-size:12px;
-      color: var(--text);
-      white-space:nowrap;
-    }
-    .badge.good{border-color: rgba(34,197,94,.40); background: rgba(34,197,94,.10); color:#0c4a2a;}
-    .badge.warn{border-color: rgba(245,158,11,.38); background: rgba(245,158,11,.10); color:#6b3b00;}
-    .badge.bad{border-color: rgba(244,63,94,.32); background: rgba(244,63,94,.08); color:#7a1020;}
-
-    .actions{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top: 12px;
-    }
+    .small{font-size: 13px; color: var(--muted); font-weight: 650;}
+    .hr{height:1px;background: var(--border); margin: 12px 0;}
+    .btnRow{display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px;}
     .btn{
       appearance:none;
-      border:1px solid rgba(15,23,42,.12);
-      background: rgba(255,255,255,.90);
-      color:var(--text);
-      padding:10px 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.85);
+      color: var(--text);
+      padding: 11px 14px;
       border-radius: 999px;
-      font-weight:1000;
-      font-size:13px;
+      font-weight: 900;
       cursor:pointer;
-      transition:transform .12s ease, box-shadow .18s ease, background .12s ease;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      text-decoration:none;
+      display:inline-flex; align-items:center; gap:10px;
+      transition: transform .14s ease, box-shadow .14s ease, background .14s ease;
     }
-    .btn:hover{
-      transform:translateY(-1px);
-      box-shadow:0 14px 30px rgba(15,23,42,.10);
-      background:#fff;
-    }
+    .btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.95); }
     .btn.primary{
-      border:0;
-      background: linear-gradient(135deg, rgba(34,197,94,.95), rgba(22,163,74,.85));
-      color:#04130a;
-      box-shadow:0 14px 30px rgba(34,197,94,.18);
+      border-color: rgba(22,163,74,.35);
+      background: rgba(22,163,74,.12);
     }
-    .btn.primary:hover{
-      box-shadow:0 18px 42px rgba(34,197,94,.20);
-    }
-    .btn:disabled{opacity:.6; cursor:not-allowed; transform:none; box-shadow:none}
-    .btn.ghost{background:transparent}
+    .btn.primary:hover{ box-shadow: 0 16px 34px rgba(22,163,74,.12); }
+    .btn[disabled]{opacity:.55; cursor:not-allowed; transform:none; box-shadow:none}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;}
 
-    .grid{
-      margin-top: 14px;
+    details.ats{
+      margin-top: 12px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.65);
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+    details.ats summary{
+      cursor:pointer;
+      font-weight: 900;
+      color: rgba(14,17,22,.80);
+      user-select:none;
+    }
+    details.ats p{margin:10px 0 0; color: var(--muted); font-weight: 650; line-height:1.45}
+
+    /* Feature cards */
+    .featureGrid{
       display:grid;
       grid-template-columns: 1fr 1fr 1fr;
-      gap: 12px;
+      gap: 14px;
+      margin-top: 16px;
     }
     @media (max-width: 980px){
-      .grid{grid-template-columns:1fr}
+      .featureGrid{grid-template-columns:1fr}
     }
-    .tile{
-      border:1px solid rgba(15,23,42,.10);
-      background: rgba(255,255,255,.80);
-      border-radius: 16px;
-      padding: 14px;
+    .feature{
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.72);
+      border-radius: var(--radius);
       box-shadow: var(--shadow2);
-    }
-    .tileTitle{
-      font-weight:1000;
-      margin:0;
-      letter-spacing:-.2px;
-    }
-    .tileSub{
-      margin:6px 0 0;
-      color:var(--muted2);
-      font-weight:750;
-      font-size:13px;
-      line-height:1.45;
-    }
-    .tileFooter{
-      margin-top:10px;
+      padding: 16px;
       display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
+      flex-direction:column;
+      gap: 10px;
+      min-height: 120px;
     }
+    .featureTitle{font-weight: 950; letter-spacing:-.2px;}
+    .featureTop{display:flex; align-items:center; justify-content:space-between; gap:10px}
+    .featureActions{display:flex; gap:10px; flex-wrap:wrap; margin-top:auto}
 
-    .steps{
-      display:grid;
-      gap:10px;
-      margin-top:10px;
+    /* Steps */
+    .how{
+      margin-top: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.70);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow2);
+      padding: 16px;
     }
     .step{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.75);
+      border-radius: 14px;
+      padding: 12px;
       display:flex;
-      gap:12px;
-      padding:12px 14px;
-      border-radius:16px;
-      border:1px solid rgba(15,23,42,.10);
-      background: rgba(255,255,255,.85);
+      gap: 12px;
+      align-items:flex-start;
+      margin-top: 10px;
     }
     .num{
-      width:28px;height:28px;border-radius:10px;
-      display:grid;place-items:center;
-      font-weight:1000;
-      background:linear-gradient(135deg, rgba(34,197,94,.20), rgba(22,163,74,.16));
-      border:1px solid rgba(15,23,42,.06);
-      flex:0 0 auto;
+      width: 28px; height:28px; border-radius: 9px;
+      display:grid; place-items:center;
+      font-weight: 950;
+      background: rgba(22,163,74,.12);
+      border:1px solid rgba(22,163,74,.24);
+      color: rgba(8,88,33,.95);
+      flex: 0 0 auto;
     }
-    .stepTitle{font-weight:1000; margin:0}
-    .stepDesc{margin:3px 0 0; color:var(--muted2); font-size:12px; font-weight:750; line-height:1.45}
+    .stepTitle{font-weight: 950; letter-spacing:-.2px; margin-bottom:2px}
 
-    details{
-      margin-top: 12px;
-      border:1px solid rgba(15,23,42,.10);
-      border-radius:16px;
-      padding:10px 12px;
-      background: rgba(255,255,255,.85);
-    }
-    details summary{cursor:pointer; font-weight:1000; color:var(--muted)}
-
-    .small{color:var(--muted2); font-weight:750; font-size:12px; line-height:1.55}
-    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
-    .hr{height:1px;background:rgba(15,23,42,.10);margin:12px 0}
-
-    .errorTop{
+    .errorBox{
       display:none;
-      margin-top:12px;
-      padding:12px 12px;
-      border-radius:14px;
-      border:1px solid rgba(244,63,94,.30);
-      background: rgba(244,63,94,.08);
-      color:#7a1020;
-      font-weight:850;
-      font-size:13px;
-      white-space:pre-wrap;
+      margin-top: 12px;
+      border:1px solid rgba(239,68,68,.30);
+      background: rgba(239,68,68,.10);
+      border-radius: 14px;
+      padding: 10px 12px;
+      color: rgba(128,20,20,.92);
+      font-weight: 750;
+      line-height: 1.35;
+      word-break: break-word;
     }
+    .mutedLink{color: rgba(14,165,233,.95); font-weight: 850; text-decoration:none}
+    .mutedLink:hover{text-decoration:underline}
 
-    footer{
-      margin-top:16px;
-      color:var(--muted2);
-      font-weight:750;
-      font-size:12px;
+    .footer{
+      margin-top: 18px;
       text-align:center;
+      color: rgba(14,17,22,.55);
+      font-weight: 750;
+      font-size: 13px;
     }
+    .leaving{opacity:.7;transform:translateY(6px);transition:all .18s ease}
   </style>
 </head>
 
 <body>
   <header class="topbar">
     <nav class="nav">
-      <a class="brand" href="index.html" data-nav="1" aria-label="jobmejob Home">
+      <a class="brand" href="index.html" data-nav="1">
         <span class="logo" aria-hidden="true"></span>
         <span>jobmejob</span>
       </a>
 
-      <div class="navlinks" aria-label="App navigation">
+      <div class="navlinks">
         <a class="pill active" href="index.html" data-nav="1">Home</a>
-        <a class="pill" href="profile.html" data-nav="1" title="Requires sign-in">Profile</a>
-        <a class="pill" href="plan.html" data-nav="1" title="Requires sign-in">Plan</a>
-        <a class="pill" href="jobs.html" data-nav="1" title="Requires sign-in">Jobs</a>
-        <a class="pill" href="dashboard.html" data-nav="1" title="Requires sign-in">Dashboard</a>
+        <a class="pill" href="profile.html" data-nav="1">Profile</a>
+        <a class="pill" href="plan.html" data-nav="1">Plan</a>
+                <a class="pill" href="dashboard.html" data-nav="1">Dashboard</a>
 
-        <a class="pill" id="navSignIn" href="signup.html" data-nav="1">Sign in</a>
-        <button class="pill iconOnly" id="btnLogout" type="button" aria-label="Logout" style="display:none">Logout</button>
+        <a class="pill" id="navSignin" href="signup.html" data-nav="1">Sign in</a>
+        <button class="pill iconOnly" id="navLogout" type="button" aria-label="Logout" style="display:none">Logout</button>
       </div>
     </nav>
   </header>
 
-  <main class="main">
-    <section class="hero">
-      <div class="sectionTitle">
-        <h1>Job search + CV tailoring, simplified.</h1>
-        <span class="badge warn" id="topState">Checking…</span>
+  <main class="wrap">
+    <section class="heroCard">
+      <div class="heroTop">
+        <div>
+          <h1>Job search + CV tailoring, simplified.</h1>
+          <p class="sub">Free: search jobs and tailor your CV per role. Paid: auto-apply that runs applications for you based on your plan.</p>
+        </div>
+        <span class="badge" id="authBadge">Checking…</span>
       </div>
 
-      <p class="sub">
-        Free: search jobs and tailor your CV per role. Paid: auto-apply that runs applications for you based on your plan.
-      </p>
-
-      <div class="errorTop" id="errorTop"></div>
-
-      <div class="heroRow">
+      <div class="heroGrid">
         <div class="card">
-          <div class="sectionTitle">
-            <div class="h2">Next step</div>
-            <span class="badge" id="nextBadge">—</span>
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+            <div>
+              <h2>Next step</h2>
+              <div class="small" id="nextStepText" style="margin-top:6px">
+                If you are new: sign in → upload CV → pick a plan → start applying.
+              </div>
+            </div>
+            <span class="badge" id="nextStepBadge">—</span>
           </div>
 
-          <div class="small" id="nextHint">
-            If you are new: sign in → upload CV → pick a plan → start applying.
-          </div>
+          <div class="btnRow">
+            <button class="btn primary" id="btnPrimary" type="button" disabled>
+              <span id="btnPrimaryText">Loading…</span>
+            </button>
 
-          <div class="actions">
-            <button class="btn primary" id="btnPrimary" type="button">Loading…</button>
-            <a class="btn" id="btnSecondary" href="signup.html" data-nav="1">Go to sign in</a>
+            <button class="btn" id="btnSecondary" type="button" disabled>
+              <span id="btnSecondaryText">Loading…</span>
+            </button>
           </div>
 
           <div class="hr"></div>
-
           <div class="small">
             We stay truthful: we never invent experience or certifications. We only rephrase and reorder based on your CV + profile.
           </div>
 
-          <details>
+          <details class="ats">
             <summary>What does “ATS” mean?</summary>
-            <div class="small" style="margin-top:8px">
-              ATS = Applicant Tracking System. Many companies use software that scans CVs before a recruiter reads them.
-              “ATS-safe” CVs use simple headings and clean structure so the text is easy to parse.
-              <div style="height:8px"></div>
-              Our ATS match score is an estimate of keyword coverage (used vs missing). It is not a guarantee of passing any employer’s system.
-            </div>
+            <p>
+              ATS stands for <b>Applicant Tracking System</b>. It’s the software many employers use to parse resumes.
+              Our ATS score is a <b>keyword coverage estimate</b> against the job description (not a guarantee).
+              We keep formatting simple (no tables/columns) so the resume stays easy to parse.
+            </p>
           </details>
+
+          <div class="errorBox" id="errorBox"></div>
         </div>
 
-        <aside class="card">
-          <div class="sectionTitle">
-            <div class="h2">Account</div>
-            <span class="badge warn" id="acctBadge">—</span>
+        <div class="card">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+            <div>
+              <h2>Account</h2>
+              <div class="small" style="margin-top:6px">Signed in as</div>
+              <div class="mono" id="meEmail">—</div>
+            </div>
+            <span class="badge" id="acctBadge">—</span>
           </div>
 
-          <div class="small">Signed in as</div>
-          <div class="mono" id="acctEmail">—</div>
-
           <div class="hr"></div>
-
           <div class="small">Profile</div>
-          <div class="badge" id="profileBadge">—</div>
+          <div class="mono" id="acctProfile">—</div>
 
           <div class="hr"></div>
-
           <div class="small">Plan</div>
-          <div class="badge" id="planBadge">—</div>
+          <div class="mono" id="acctPlan">—</div>
 
           <div class="hr"></div>
-
           <div class="small">Queue (new jobs)</div>
-          <div class="badge" id="queueBadge">—</div>
+          <div class="mono" id="acctQueue">—</div>
 
-          <div class="hr"></div>
-
-          <div class="actions">
-            <a class="btn ghost" href="profile.html" data-nav="1">Edit profile</a>
-            <a class="btn ghost" href="plan.html" data-nav="1">Change plan</a>
+          <div class="btnRow" style="margin-top:14px">
+            <button class="btn" id="btnEditProfile" type="button">Edit profile</button>
+            <button class="btn" id="btnChangePlan" type="button">Change plan</button>
           </div>
-        </aside>
-      </div>
-    </section>
-
-    <section class="grid" aria-label="Workspace shortcuts">
-      <div class="tile">
-        <div class="tileTitle">Jobs</div>
-        <div class="tileSub">Fetch and review your queue. Prioritize or skip jobs quickly.</div>
-        <div class="tileFooter">
-          <span class="badge good">Free</span>
-          <a class="btn" href="jobs.html" data-nav="1">Open Jobs</a>
         </div>
       </div>
 
-      <div class="tile">
-        <div class="tileTitle">CV tailoring</div>
-        <div class="tileSub">Tailor your CV to a specific job and keep ATS-safe formatting.</div>
-        <div class="tileFooter">
-          <span class="badge good">Free</span>
-          <button class="btn" type="button" id="btnCvStudio" disabled title="Coming next">Coming next</button>
+      <div class="featureGrid">
+        <div class="feature">
+          <div class="featureTop">
+            <div class="featureTitle">Jobs</div>
+            <span class="badge free">Free</span>
+          </div>
+          <div class="small">Fetch and review your queue. Prioritize or skip jobs quickly.</div>
+          <div class="featureActions">
+            <button class="btn primary" id="btnOpenJobs" type="button">Open Jobs</button>
+          </div>
+        </div>
+
+        <div class="feature">
+          <div class="featureTop">
+            <div class="featureTitle">CV tailoring</div>
+            <span class="badge free">Free</span>
+          </div>
+          <div class="small">Tailor your CV to a specific job and keep ATS-safe formatting.</div>
+          <div class="featureActions">
+            <button class="btn" id="btnOpenTailor" type="button">Open Dashboard</button>
+          </div>
+        </div>
+
+        <div class="feature">
+          <div class="featureTop">
+            <div class="featureTitle">Auto-apply</div>
+            <span class="badge paid">Paid</span>
+          </div>
+          <div class="small">Start automated applications based on your plan and rules.</div>
+          <div class="featureActions">
+            <button class="btn" id="btnViewPlans" type="button">View plans</button>
+          </div>
         </div>
       </div>
 
-      <div class="tile">
-        <div class="tileTitle">Auto-apply</div>
-        <div class="tileSub">Start automated applications based on your plan and rules.</div>
-        <div class="tileFooter">
-          <span class="badge warn">Paid</span>
-          <a class="btn" href="plan.html" data-nav="1">View plans</a>
+      <section class="how">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <h2 style="margin:0">How it works</h2>
+          <span class="badge">Fast</span>
         </div>
-      </div>
-    </section>
 
-    <section class="card" style="margin-top:12px">
-      <div class="sectionTitle">
-        <div class="h2">How it works</div>
-        <span class="badge" id="howBadge">Fast</span>
-      </div>
-
-      <div class="steps">
         <div class="step">
           <div class="num">1</div>
           <div>
             <div class="stepTitle">Sign in and set your profile</div>
-            <div class="stepDesc">Upload your CV and define titles, location, and filters. We use this to focus the job search.</div>
+            <div class="small">Upload your CV and define titles, location, and filters. We use this to focus job search.</div>
           </div>
         </div>
+
         <div class="step">
           <div class="num">2</div>
           <div>
             <div class="stepTitle">Search jobs and tailor your CV</div>
-            <div class="stepDesc">We extract keywords from job descriptions and adjust your CV wording (truthfully) to match the role.</div>
+            <div class="small">We extract keywords from job descriptions and adjust your CV wording (truthfully) to match the role.</div>
           </div>
         </div>
+
         <div class="step">
           <div class="num">3</div>
           <div>
             <div class="stepTitle">Auto-apply (paid)</div>
-            <div class="stepDesc">When you start auto-apply, we run your daily quota based on your plan and keep a clear activity log.</div>
+            <div class="small">When you start auto-apply, we run your daily quota and keep a clear activity log.</div>
           </div>
         </div>
+      </section>
+
+      <div class="footer">
+        © jobmejob · Need help? <a class="mutedLink" href="mailto:team@jobmejob.com">team@jobmejob.com</a>
       </div>
     </section>
-
-    <footer>
-      <div>© <span id="year"></span> jobmejob</div>
-      <div class="small">Need help? team@jobmejob.com</div>
-    </footer>
   </main>
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="./auth.js"></script>
   <script>
   "use strict";
 
   /* ============================================================
-    Config (keep consistent with other multipage pages)
-  ============================================================ */
-
-  const SUPABASE_URL_DEFAULT = "https://awlzvhcnjegfhjedswko.supabase.co";
-  const SUPABASE_ANON_FALLBACK = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
-
-  function safeGet(k){ try{ return localStorage.getItem(k); }catch(_){ return null; } }
-  function safeSet(k,v){ try{ localStorage.setItem(k,v); }catch(_){ } }
-
-  if(!safeGet("sb_url")) safeSet("sb_url", SUPABASE_URL_DEFAULT);
-  if(!safeGet("sb_anon")) safeSet("sb_anon", SUPABASE_ANON_FALLBACK);
-
-  const SUPABASE_URL = (safeGet("sb_url") || SUPABASE_URL_DEFAULT).trim() || SUPABASE_URL_DEFAULT;
-  const SUPABASE_ANON_KEY = (safeGet("sb_anon") || SUPABASE_ANON_FALLBACK).trim() || SUPABASE_ANON_FALLBACK;
-
-  const DEFAULT_API_BASE =
-    (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE)
-      ? String(window.JobApplyAI.config.API_BASE).trim().replace(/\\/+$/, "")
-      : "https://jobmejob.schoene-viktor.workers.dev";
-
-  function readWorkplace(){
-    const raw = safeGet("jobmejob_workplace") || safeGet("jobapplyai_workplace") || "";
-    try{ return raw ? JSON.parse(raw) : {}; }catch(_){ return {}; }
-  }
-  const workplace = readWorkplace();
-  const API_BASE = (workplace && workplace.apiBase) ? String(workplace.apiBase) : DEFAULT_API_BASE;
-
-  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-  });
-
-  /* ============================================================
-    Small helpers
+     Home page boot logic (never hang)
+     - Works even if API is temporarily down (shows safe fallbacks)
+     - Uses multipage/auth.js helpers when available
   ============================================================ */
 
   function $(id){ return document.getElementById(id); }
+  function setText(id, text){ const el=$(id); if(el) el.textContent = text; }
+  function show(elId, yes){
+    const el=$(elId); if(!el) return;
+    el.style.display = yes ? "" : "none";
+  }
+  function setBadge(id, type, text){
+    const el=$(id); if(!el) return;
+    el.className = "badge" + (type ? (" " + type) : "");
+    el.textContent = text;
+  }
+  function showError(msg){
+    const el=$("errorBox");
+    if(!el) return;
+    el.style.display = "block";
+    el.textContent = msg;
+  }
+  function clearError(){
+    const el=$("errorBox");
+    if(!el) return;
+    el.style.display = "none";
+    el.textContent = "";
+  }
 
   function go(url){
     document.body.classList.add("leaving");
-    setTimeout(()=>{ window.location.href = url; }, 180);
+    setTimeout(()=>{ window.location.href = url; }, 160);
   }
+
+  // Smooth nav transitions
   document.addEventListener("click",(e)=>{
     const a = e.target.closest("a[data-nav='1']");
     if(!a) return;
@@ -551,196 +493,207 @@
     go(url);
   });
 
-  function showError(msg){
-    const el = $("errorTop");
-    if(!el) return;
-    if(!msg){
-      el.style.display="none";
-      el.textContent="";
-      return;
+  function apiBase(){
+    try{
+      const fromWindow = (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE) ? String(window.JobApplyAI.config.API_BASE) : "";
+      const override = (localStorage.getItem("ja_api_base") || "").trim();
+      return (override || fromWindow || "https://jobmejob.schoene-viktor.workers.dev").replace(/\/+$/,"");
+    }catch{
+      return "https://jobmejob.schoene-viktor.workers.dev";
     }
-    el.style.display="block";
-    el.textContent=String(msg);
-  }
-
-  function setBadge(id, text, kind){
-    const el = $(id);
-    if(!el) return;
-    el.textContent = text || "—";
-    el.className = "badge " + (kind || "");
-  }
-
-  async function getSession(){
-    const { data, error } = await supabaseClient.auth.getSession();
-    if(error) return null;
-    return data && data.session ? data.session : null;
   }
 
   async function apiGet(path, token){
-    const res = await fetch(API_BASE + path, { headers: { Authorization: "Bearer " + token }});
+    const base = apiBase();
+    const res = await fetch(base + path, { method:"GET", headers: { Authorization: "Bearer " + token } });
     const txt = await res.text().catch(()=> "");
-    if(!res.ok) throw new Error(path + " failed: " + res.status + " " + txt);
-    try{ return txt ? JSON.parse(txt) : null; }catch(_){ return { raw: txt }; }
-  }
-
-  async function logout(){
-    try{ await supabaseClient.auth.signOut(); }catch(_){}
-    // Clear app keys (keep sb_url/sb_anon)
-    try{
-      const keys=[];
-      for(let i=0;i<localStorage.length;i++){
-        const k = localStorage.key(i);
-        if(k) keys.push(k);
-      }
-      for(const k of keys){
-        if(
-          k.startsWith("jm_") || k.startsWith("ja_") ||
-          k.startsWith("jobmejob_") || k.startsWith("jobapplyai_") ||
-          k.startsWith("tailor_")
-        ){
-          try{ localStorage.removeItem(k); }catch(_){}
-        }
-      }
-    }catch(_){}
-    try{ sessionStorage.removeItem("sb_access_token"); }catch(_){}
-    go("./index.html");
-  }
-
-  function nextStepFromState(state){
-    if(!state) return "./dashboard.html";
-    const profileComplete = !!state.profile_complete;
-    const planId = state.plan_id ? String(state.plan_id) : "";
-    if(!profileComplete) return "./profile.html";
-    if(!planId) return "./plan.html";
-    return "./dashboard.html";
-  }
-
-  async function refreshUi(){
-    showError("");
-    const year = new Date().getFullYear();
-    const y = $("year"); if(y) y.textContent = String(year);
-
-    setBadge("topState", "Checking…", "warn");
-    setBadge("acctBadge", "—", "warn");
-    setBadge("profileBadge", "—", "");
-    setBadge("planBadge", "—", "");
-    setBadge("queueBadge", "—", "");
-
-    const btnPrimary = $("btnPrimary");
-    const btnSecondary = $("btnSecondary");
-    const navSignIn = $("navSignIn");
-    const btnLogout = $("btnLogout");
-
-    if(btnPrimary){
-      btnPrimary.disabled = true;
-      btnPrimary.textContent = "Loading…";
+    let json = null;
+    try{ json = JSON.parse(txt); }catch{ json = { raw: txt }; }
+    if(!res.ok){
+      const msg = (json && (json.error || json.details || json.message)) ? (json.error || json.details || json.message) : txt;
+      throw new Error(path + " failed: " + res.status + " " + String(msg || "").slice(0, 500));
     }
+    return json;
+  }
 
-    const session = await getSession();
-    if(!session || !session.access_token){
-      // Signed out
-      setBadge("topState", "Not signed in", "warn");
-      setBadge("acctBadge", "Signed out", "warn");
-      $("acctEmail").textContent = "—";
+  function computeNextUrl(state){
+    // Backend truth first
+    if(state && state.profile_complete === false) return "profile.html";
+    if(state && !state.plan_id) return "plan.html";
+    if(state && state.profile_complete && state.plan_id) return "dashboard.html";
 
-      if(btnLogout) btnLogout.style.display="none";
-      if(navSignIn) navSignIn.style.display="inline-flex";
+    // Fallback to local flags (best-effort)
+    const prof = (localStorage.getItem("ja_profile_complete") || localStorage.getItem("jm_profile_complete")) === "true";
+    const plan = (localStorage.getItem("ja_plan") || localStorage.getItem("jm_plan") || "").trim();
+    if(!prof) return "profile.html";
+    if(!plan) return "plan.html";
+    return "dashboard.html";
+  }
 
-      setBadge("nextBadge", "Start", "warn");
-      $("nextHint").textContent = "Sign in with Google to create your workspace.";
+  function labelForNext(nextUrl){
+    if(nextUrl === "profile.html") return "Continue to Profile";
+    if(nextUrl === "plan.html") return "Continue to Plan";
+    return "Open Dashboard";
+  }
 
-      if(btnPrimary){
-        btnPrimary.disabled = false;
-        btnPrimary.textContent = "Get started";
-        btnPrimary.onclick = ()=> go("./signup.html");
-      }
-      if(btnSecondary){
-        btnSecondary.textContent = "See plans";
-        btnSecondary.setAttribute("href","plan.html");
-      }
+  function setSignedOutUI(){
+    clearError();
+    setBadge("authBadge","warn","Not signed in");
+    setBadge("acctBadge","warn","—");
+    setBadge("nextStepBadge","warn","Start here");
+    setText("meEmail","—");
+    setText("acctProfile","Not set");
+    setText("acctPlan","Not selected");
+    setText("acctQueue","—");
+    setText("nextStepText","Sign in to create (or reuse) your customer record, then continue your setup.");
+    const p=$("btnPrimary");
+    const s=$("btnSecondary");
+    if(p){ p.disabled=false; setText("btnPrimaryText","Go to sign in"); p.onclick=()=>go("signup.html"); }
+    if(s){ s.disabled=false; setText("btnSecondaryText","Open Dashboard"); s.onclick=()=>go("dashboard.html"); }
+    show("navSignin", true);
+    show("navLogout", false);
+  }
+
+  function setSignedInShell(email){
+    clearError();
+    setBadge("authBadge","good","Signed in");
+    setBadge("acctBadge","good","OK");
+    setBadge("nextStepBadge","","Ready");
+    setText("meEmail", email || "—");
+    show("navSignin", false);
+    show("navLogout", true);
+  }
+
+  function setAccountFromState(state){
+    if(!state){
+      setText("acctProfile","—");
+      setText("acctPlan","—");
+      return;
+    }
+    const prof = state.profile_complete ? "Complete" : "Missing";
+    setText("acctProfile", prof);
+
+    let plan = "Not selected";
+    const pid = state.plan_id ? String(state.plan_id).toLowerCase() : "";
+    if(pid === "starter") plan = "Starter (1/day)";
+    else if(pid === "pro") plan = "Growth (5/day)";
+    else if(pid === "max") plan = "Max (10/day)";
+    else if(pid) plan = pid;
+
+    setText("acctPlan", plan);
+  }
+
+  async function boot(){
+    const auth = (window.JobApplyAI && window.JobApplyAI.auth) ? window.JobApplyAI.auth : null;
+    if(!auth){
+      setBadge("authBadge","bad","Error");
+      setBadge("nextStepBadge","bad","Error");
+      setBadge("acctBadge","bad","Error");
+      showError("auth.js did not load correctly. Make sure multipage/auth.js exists and loads after supabase-js v2.");
+      // Enable basic navigation at least
+      const p=$("btnPrimary"); if(p){ p.disabled=false; setText("btnPrimaryText","Reload"); p.onclick=()=>window.location.reload(); }
+      const s=$("btnSecondary"); if(s){ s.disabled=false; setText("btnSecondaryText","Go to sign in"); s.onclick=()=>go("signup.html"); }
       return;
     }
 
-    // Signed in
-    try{ sessionStorage.setItem("sb_access_token", session.access_token); }catch(_){}
-    const email = (session.user && session.user.email) ? String(session.user.email) : "—";
+    // Wire static buttons
+    const btnEdit=$("btnEditProfile"); if(btnEdit) btnEdit.onclick=()=>go("profile.html");
+    const btnPlan=$("btnChangePlan"); if(btnPlan) btnPlan.onclick=()=>go("plan.html");
+    const btnJobs=$("btnOpenJobs"); if(btnJobs) btnJobs.onclick=()=>go("dashboard.html");
+    const btnTailor=$("btnOpenTailor"); if(btnTailor) btnTailor.onclick=()=>go("dashboard.html");
+    const btnPlans=$("btnViewPlans"); if(btnPlans) btnPlans.onclick=()=>go("plan.html");
 
-    setBadge("topState", "Signed in", "good");
-    setBadge("acctBadge", "Signed in", "good");
-    $("acctEmail").textContent = email;
-
-    if(navSignIn) navSignIn.style.display="none";
-    if(btnLogout){
-      btnLogout.style.display="inline-flex";
-      btnLogout.onclick = logout;
+    const navLogout=$("navLogout");
+    if(navLogout){
+      navLogout.addEventListener("click", async ()=>{
+        try{
+          setBadge("authBadge","","Signing out…");
+          await auth.logout("index.html");
+        }catch(e){
+          setBadge("authBadge","bad","Error");
+          showError("Logout failed: " + (e && e.message ? e.message : String(e)));
+        }
+      });
     }
 
-    // Load state + queue count (best effort, non-blocking)
+    // Always end "loading" state quickly
+    let session = null;
+    try{ session = await auth.getSession(); }catch{ session = null; }
+
+    if(!session || !session.user || !session.user.email){
+      setSignedOutUI();
+      return;
+    }
+
+    const email = String(session.user.email || "").trim().toLowerCase();
+    setSignedInShell(email);
+
+    // Ensure customer exists (but do NOT redirect from Home)
+    try{ await auth.requireAuthAndCustomer({ redirectTo: null }); }catch(e){
+      // Non-fatal; still allow navigation
+      console.warn("requireAuthAndCustomer failed", e);
+    }
+
+    // Load state (fast) + update UI
     let state = null;
     try{
-      state = await apiGet("/me/state", session.access_token);
-    }catch(e){
-      // keep going; show minimal info
-      console.warn(e);
+      state = await auth.syncStateToLocalStorage(session);
+    }catch{ state = null; }
+
+    if(!state){
+      try{ state = await apiGet("/me/state", session.access_token); }catch(e){ state = null; }
     }
 
-    if(state){
-      if(state.profile_complete){
-        setBadge("profileBadge", "Complete", "good");
-      }else{
-        setBadge("profileBadge", "Needs setup", "warn");
-      }
+    setAccountFromState(state);
 
-      if(state.plan_id){
-        setBadge("planBadge", "Active (" + String(state.plan_id) + ")", "good");
-      }else{
-        setBadge("planBadge", "Select a plan", "warn");
-      }
-    }else{
-      setBadge("profileBadge", "Unknown", "warn");
-      setBadge("planBadge", "Unknown", "warn");
+    // Set next step CTA
+    const nextUrl = computeNextUrl(state);
+    const p=$("btnPrimary");
+    const s=$("btnSecondary");
+    if(p){
+      p.disabled=false;
+      setText("btnPrimaryText", labelForNext(nextUrl));
+      p.onclick = ()=>go(nextUrl);
+    }
+    if(s){
+      s.disabled=false;
+      setText("btnSecondaryText","Open Dashboard");
+      s.onclick = ()=>go("dashboard.html");
     }
 
+    // Queue count (non-blocking)
     try{
       const q = await apiGet("/me/jobs/queue", session.access_token);
-      const cnt = (q && typeof q.queue_new_count === "number") ? q.queue_new_count :
-                  (q && Array.isArray(q.jobs)) ? q.jobs.length : "—";
-      setBadge("queueBadge", String(cnt), "good");
-    }catch(_){
-      setBadge("queueBadge", "—", "");
-    }
-
-    const nextUrl = nextStepFromState(state);
-    setBadge("nextBadge", nextUrl.includes("profile") ? "Profile setup" :
-                          nextUrl.includes("plan") ? "Pick plan" :
-                          "Dashboard", "good");
-
-    $("nextHint").textContent = nextUrl.includes("profile")
-      ? "Your profile is not complete yet. Upload your CV and set preferences."
-      : nextUrl.includes("plan")
-        ? "Pick a plan to enable auto-apply. (Jobs + CV tailoring remain free.)"
-        : "You are set up. Open your dashboard to manage the pipeline.";
-
-    if(btnPrimary){
-      btnPrimary.disabled = false;
-      btnPrimary.textContent = "Continue";
-      btnPrimary.onclick = ()=> go(nextUrl);
-    }
-    if(btnSecondary){
-      btnSecondary.textContent = "Open Jobs";
-      btnSecondary.setAttribute("href","jobs.html");
+      const count = (q && typeof q.count === "number") ? q.count : (Array.isArray(q && q.data) ? q.data.length : null);
+      setText("acctQueue", (count === null) ? "—" : String(count));
+    }catch(e){
+      setText("acctQueue","—");
+      // Don't show as error; queue might not be ready yet
+      console.warn("queue load failed", e);
     }
   }
 
-  // Boot + keep in sync after OAuth redirect
-  supabaseClient.auth.onAuthStateChange(()=>{ refreshUi().catch(()=>{}); });
+  // Safety timeout: avoid endless "Loading…" in any case
+  const t = setTimeout(()=>{
+    const authBadge = $("authBadge");
+    if(authBadge && /Checking|Loading/i.test(authBadge.textContent || "")){
+      setBadge("authBadge","warn","Slow");
+      showError("This page is taking longer than expected to initialize. Try a hard refresh. If it keeps happening, open DevTools → Console and share the first error line.");
+      // enable actions
+      const p=$("btnPrimary"); if(p){ p.disabled=false; setText("btnPrimaryText","Go to sign in"); p.onclick=()=>go("signup.html"); }
+      const s=$("btnSecondary"); if(s){ s.disabled=false; setText("btnSecondaryText","Reload"); s.onclick=()=>window.location.reload(); }
+    }
+  }, 4500);
 
-  refreshUi().catch(e=>{
+  boot().catch((e)=>{
     console.error(e);
+    setBadge("authBadge","bad","Error");
+    setBadge("nextStepBadge","bad","Error");
+    setBadge("acctBadge","bad","Error");
     showError(e && e.message ? e.message : String(e));
-    setBadge("topState", "Error", "bad");
-  });
-
+    const p=$("btnPrimary"); if(p){ p.disabled=false; setText("btnPrimaryText","Reload"); p.onclick=()=>window.location.reload(); }
+    const s=$("btnSecondary"); if(s){ s.disabled=false; setText("btnSecondaryText","Go to sign in"); s.onclick=()=>go("signup.html"); }
+  }).finally(()=>clearTimeout(t));
   </script>
 </body>
 </html>
