@@ -1,19 +1,80 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Jobs · jobmejob</title>
-  <meta name="description" content="Review your job queue, prioritize roles, and fetch new jobs." />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>jobmejob • Jobs</title>
+  <meta name="description" content="Review your job queue, prioritize roles, and open CV Studio."/>
 
-  <!-- Shared styles -->
-  <link rel="stylesheet" href="./shared.css" />
+  <!-- Shared -->
+  <link rel="stylesheet" href="./shared.css"/>
 
   <style>
-    /* Page-specific (small) */
+    /* =========================================================
+       Jobs page layout (foldable list + detail like the screenshot)
+       ========================================================= */
+    .topSearch{
+      display:grid;
+      grid-template-columns: 1.3fr 1fr 220px;
+      gap:12px;
+      align-items:center;
+      margin: 10px 0 14px;
+    }
+    @media (max-width: 980px){
+      .topSearch{ grid-template-columns: 1fr; }
+    }
+    .searchInput{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid rgba(17,19,24,.12);
+      background:rgba(255,255,255,.75);
+      box-shadow: 0 10px 26px rgba(17,19,24,.06);
+    }
+    .searchInput input{
+      border:0;
+      outline:none;
+      background:transparent;
+      padding:0;
+      width:100%;
+      font-size:14px;
+    }
+    .icon{
+      width:18px;height:18px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      color:rgba(17,19,24,.55);
+      flex:0 0 auto;
+    }
+    .findBtn{
+      height:46px;
+      justify-content:center;
+      border-radius:12px;
+      font-weight:950;
+      box-shadow: 0 10px 26px rgba(17,19,24,.06);
+    }
+
+    .subRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      margin: 6px 0 12px;
+    }
+    .subRowLeft{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
     .layout{
       display:grid;
-      grid-template-columns: 1.2fr .8fr;
+      grid-template-columns: 420px 1fr;
       gap:14px;
       align-items:start;
     }
@@ -21,336 +82,531 @@
       .layout{ grid-template-columns: 1fr; }
     }
 
-    .toolbar{
+    /* Left list panel */
+    .panelHead{
       display:flex;
-      gap:10px;
-      flex-wrap:wrap;
       align-items:center;
       justify-content:space-between;
-    }
-
-    .rightCol{
-      position:sticky;
-      top:86px; /* sits under topbar */
-      align-self:start;
-    }
-    @media (max-width: 980px){
-      .rightCol{ position:static; top:auto; }
-    }
-
-    .fieldRow{
-      display:flex;
       gap:10px;
+      padding: 12px 12px 10px;
+      border-bottom:1px solid rgba(17,19,24,.10);
+      background: rgba(255,255,255,.55);
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      backdrop-filter: blur(10px);
+    }
+    .panelTitle{
+      font-weight:980;
+      letter-spacing:-.2px;
+      margin:0;
+      font-size:15px;
+    }
+    .panelBody{
+      padding: 10px 10px 12px;
+      max-height: calc(100dvh - 250px);
+      overflow:auto;
+      -webkit-overflow-scrolling:touch;
+    }
+    @media (max-width:980px){
+      .panelBody{ max-height: none; }
+    }
+
+    .filterRow{
+      display:flex;
+      gap:8px;
       flex-wrap:wrap;
       align-items:center;
+      margin: 10px 0 8px;
     }
-    .fieldRow input{
-      flex: 1 1 220px;
-      min-width: 180px;
+    .chipBtn{
+      appearance:none;
+      cursor:pointer;
+      border:1px solid rgba(17,19,24,.12);
+      background:rgba(17,19,24,.04);
+      padding:8px 10px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:12px;
+    }
+    .chipBtn.active{
+      border-color: rgba(34,197,94,.55);
+      background: rgba(34,197,94,.14);
+      color:#0a3d1f;
     }
 
     .jobList{
       display:flex;
       flex-direction:column;
       gap:10px;
+      margin-top:10px;
     }
-
     .jobCard{
       border:1px solid rgba(17,19,24,.12);
+      background: rgba(255,255,255,.78);
       border-radius:16px;
-      background: rgba(255,255,255,.86);
       padding:12px;
-      box-shadow: 0 10px 24px rgba(17,19,24,.08);
-    }
-    .jobTop{
+      cursor:pointer;
+      transition: .12s ease;
       display:flex;
-      gap:10px;
-      justify-content:space-between;
+      gap:12px;
       align-items:flex-start;
     }
+    .jobCard:hover{ transform: translateY(-1px); }
+    .jobCard.active{
+      border-color: rgba(34,197,94,.55);
+      box-shadow: 0 12px 26px rgba(34,197,94,.14);
+      background: rgba(34,197,94,.08);
+    }
+
+    .jobIcon{
+      width:42px;height:42px;
+      border-radius:12px;
+      background: rgba(17,19,24,.06);
+      border: 1px solid rgba(17,19,24,.10);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:950;
+      color: rgba(17,19,24,.55);
+      flex:0 0 auto;
+    }
+    .jobMain{ min-width:0; flex:1 1 auto; }
     .jobTitle{
       font-weight:950;
-      line-height:1.2;
       margin:0;
-      font-size:15px;
+      font-size:14px;
+      line-height:1.25;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient: vertical;
     }
     .jobMeta{
       margin-top:6px;
-      color: rgba(17,19,24,.64);
-      font-weight:650;
-      font-size:13px;
-      line-height:1.35;
-    }
-    .jobActions{
-      margin-top:10px;
+      color: rgba(17,19,24,.62);
+      font-weight:750;
+      font-size:12.5px;
       display:flex;
       gap:10px;
       flex-wrap:wrap;
       align-items:center;
     }
+    .metaDot{ opacity:.5; }
 
-    .mutedNote{
-      color: rgba(17,19,24,.58);
-      font-weight:650;
-      font-size:13px;
-      line-height:1.45;
+    .jobRight{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:8px;
+      flex:0 0 auto;
+    }
+    .heartBtn{
+      appearance:none;
+      border:1px solid rgba(17,19,24,.12);
+      background: rgba(255,255,255,.70);
+      border-radius:12px;
+      width:38px;
+      height:34px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+    }
+    .heartBtn:hover{ transform: translateY(-1px); }
+    .heart{
+      font-size:18px;
+      line-height:1;
+      color: rgba(17,19,24,.55);
+    }
+    .heart.on{ color: #16a34a; }
+    .tinyBadge{
+      padding:6px 9px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:11px;
+      border:1px solid rgba(17,19,24,.12);
+      background: rgba(17,19,24,.04);
+      color: rgba(17,19,24,.70);
+      white-space:nowrap;
+    }
+    .tinyBadge.prio{
+      border-color: rgba(34,197,94,.55);
+      background: rgba(34,197,94,.14);
+      color:#0a3d1f;
     }
 
-    .inlineStatus{
-      margin-top:10px;
-      color: rgba(17,19,24,.64);
-      font-weight:750;
-      font-size:13px;
-      white-space:pre-wrap;
+    /* Right details panel */
+    .detailHead{
+      padding: 12px 14px 10px;
+      border-bottom:1px solid rgba(17,19,24,.10);
+      background: rgba(255,255,255,.55);
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      backdrop-filter: blur(10px);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .backBtn{
+      display:none;
+    }
+    @media (max-width: 980px){
+      body.showDetail .leftCol{ display:none; }
+      body:not(.showDetail) .rightCol{ display:none; }
+      .backBtn{ display:inline-flex; }
     }
 
-    .empty{
-      padding:14px;
-      border-radius:16px;
-      border:1px dashed rgba(17,19,24,.18);
+    .detailTitle{
+      margin:0;
+      font-weight:990;
+      font-size:20px;
+      letter-spacing:-.4px;
+      line-height:1.15;
+    }
+    .detailCompany{
+      margin-top:8px;
+      font-weight:800;
+      color: rgba(17,19,24,.70);
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      font-size:13px;
+    }
+
+    .detailActions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    .detailActions .btn{ width:auto; }
+
+    .detailBody{
+      padding: 12px 14px 14px;
+    }
+
+    .descBox{
+      margin-top:12px;
+      border:1px solid rgba(17,19,24,.12);
       background: rgba(17,19,24,.03);
-      color: rgba(17,19,24,.68);
+      border-radius:16px;
+      padding:12px;
+      max-height: calc(100dvh - 340px);
+      overflow:auto;
+      -webkit-overflow-scrolling:touch;
+      white-space:pre-wrap;
+      font-size:13px;
+      line-height:1.5;
+      color: rgba(17,19,24,.86);
+    }
+    @media (max-width: 980px){
+      .descBox{ max-height: none; }
+    }
+
+    .emptyState{
+      padding: 12px 14px;
+      border:1px dashed rgba(17,19,24,.18);
+      border-radius:16px;
+      background: rgba(255,255,255,.55);
+      color: rgba(17,19,24,.70);
       font-weight:750;
       line-height:1.5;
     }
 
-    /* tiny skeleton */
-    .skeleton{
-      height: 12px;
-      border-radius: 999px;
-      background: linear-gradient(90deg, rgba(17,19,24,.06), rgba(17,19,24,.10), rgba(17,19,24,.06));
-      background-size: 200% 100%;
-      animation: shimmer 1.2s ease-in-out infinite;
+    .mutedSmall{
+      font-size:12px;
+      color: rgba(17,19,24,.58);
+      font-weight:700;
     }
-    @keyframes shimmer{
-      0%{ background-position: 200% 0; }
-      100%{ background-position: -200% 0; }
+
+    /* Small helper row inside panels */
+    .miniRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
     }
-    .sRow{ margin-top:10px; display:flex; flex-direction:column; gap:10px; }
+    .miniRow .btn{ width:auto; }
+    @media (max-width:620px){
+      .topSearch{ gap:10px; }
+      .detailActions{ width:100%; justify-content:stretch; }
+      .detailActions .btn{ width:100%; justify-content:center; }
+    }
+
+    /* Skip modal form */
+    .formRow{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      align-items:center;
+    }
+    @media (max-width:720px){
+      .formRow{ grid-template-columns: 1fr; }
+    }
+    .modalHint{
+      font-size:12px;
+      color: rgba(17,19,24,.62);
+      font-weight:700;
+      line-height:1.45;
+      margin-top:8px;
+    }
   </style>
 </head>
 
 <body>
   <header class="topbar">
-    <div class="nav">
+    <nav class="nav">
       <a class="brand" href="./index.html" data-nav="1" aria-label="Home">
         <span class="logo" aria-hidden="true"></span>
-        <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">jobmejob</span>
+        <span>jobmejob</span>
       </a>
 
-      <nav class="navlinks" aria-label="Primary navigation">
+      <div class="navlinks">
         <a class="pill" href="./index.html" data-nav="1">Home</a>
         <a class="pill" href="./profile.html" data-nav="1">Profile</a>
         <a class="pill" href="./plan.html" data-nav="1">Plan</a>
-        <a class="pill" href="./dashboard.html" data-nav="1">Dashboard</a>
         <a class="pill active" href="./jobs.html" data-nav="1">Jobs</a>
-        <button class="pill" id="btnLogout" type="button" title="Logout">Logout</button>
-      </nav>
-    </div>
+        <a class="pill" href="./dashboard.html" data-nav="1">Dashboard</a>
+        <a class="pill" href="./cv.html" data-nav="1">CV Studio</a>
+
+        <a class="pill" href="./signup.html" id="navSignIn" data-nav="1">Sign in</a>
+        <button class="pill" id="navLogout" type="button" style="display:none;">Logout</button>
+      </div>
+    </nav>
   </header>
 
   <main class="main">
-    <div class="h1">Jobs</div>
-    <p class="sub">
-      Review your queue, prioritize roles, and fetch new jobs.
-      <span class="badge" id="badgeQueue" style="margin-left:8px;">Queue: —</span>
-      <span class="badge" id="badgeUser" style="margin-left:8px;">User: —</span>
-    </p>
+    <h1 class="h1">Jobs</h1>
+    <p class="sub">Review your queue, prioritize roles, and tailor your CV per job.</p>
 
     <div class="errorTop" id="errorTop"></div>
 
-    <section class="layout">
-      <!-- LEFT: Job list -->
-      <div class="card">
-        <div class="toolbar">
-          <div class="actions">
-            <button class="btn primary" id="btnRefresh" type="button">Refresh list</button>
-            <button class="btn" id="btnFetch" type="button">Fetch new jobs</button>
-          </div>
+    <!-- Search / filter bar like the screenshot -->
+    <div class="topSearch">
+      <div class="searchInput">
+        <span class="icon" aria-hidden="true">🔎</span>
+        <input id="qInput" type="text" placeholder="Job title or company" autocomplete="off"/>
+      </div>
+      <div class="searchInput">
+        <span class="icon" aria-hidden="true">📍</span>
+        <input id="locInput" type="text" placeholder="Location" autocomplete="off"/>
+      </div>
+      <button class="btn primary findBtn" id="findBtn" type="button">Find in queue</button>
+    </div>
 
-          <div class="fieldRow" style="justify-content:flex-end;min-width:260px;">
-            <input id="searchInput" placeholder="Search title/company/location…" />
+    <div class="subRow">
+      <div class="subRowLeft">
+        <span class="badge" id="queueBadge">Queue: —</span>
+        <span class="badge" id="userBadge">User: —</span>
+        <span class="badge warn" id="statusBadge">Loading…</span>
+      </div>
+
+      <div class="actions">
+        <button class="btn" id="refreshBtn" type="button">Refresh list</button>
+        <button class="btn primary" id="fetchBtn" type="button">Fetch new jobs</button>
+        <a class="btn ghost" href="./profile.html" data-nav="1">Edit preferences</a>
+      </div>
+    </div>
+
+    <section class="layout">
+      <!-- Left column: list -->
+      <div class="card cardNoPad leftCol">
+        <div class="panelHead">
+          <div>
+            <div class="panelTitle">Search results</div>
+            <div class="mutedSmall" id="resultsMeta">—</div>
           </div>
+          <span class="badge" id="prioMeta">Priority first</span>
         </div>
 
-        <div class="inlineStatus" id="fetchStatus"></div>
+        <div class="panelBody">
+          <div class="filterRow">
+            <button class="chipBtn active" id="filterAll" type="button">All</button>
+            <button class="chipBtn" id="filterPrio" type="button">Priority</button>
+          </div>
 
-        <div class="hr"></div>
+          <div class="jobList" id="jobList">
+            <!-- filled by JS -->
+          </div>
 
-        <div id="jobList" class="jobList" aria-live="polite">
-          <div class="sRow">
-            <div class="skeleton" style="width:70%"></div>
-            <div class="skeleton" style="width:55%"></div>
-            <div class="skeleton" style="width:90%"></div>
+          <div class="emptyState" id="emptyLeft" style="display:none; margin-top:10px;">
+            <b>No jobs in your queue.</b><br/>
+            • Add at least 1 desired title + 1 location in <a href="./profile.html" data-nav="1" style="text-decoration:underline;">Profile</a><br/>
+            • Then click <b>Fetch new jobs</b>
           </div>
         </div>
       </div>
 
-      <!-- RIGHT: Guidance -->
-      <aside class="card rightCol">
-        <div style="font-weight:950;margin-bottom:8px;">What you can do here</div>
-
-        <div class="mutedNote">
-          <div style="margin-bottom:10px;">
-            <span class="badge prio">Priority</span>
-            means this job is marked as “focus first”.
+      <!-- Right column: details -->
+      <div class="card cardNoPad rightCol">
+        <div class="detailHead">
+          <div style="min-width:0">
+            <div class="miniRow">
+              <button class="btn small backBtn" id="backBtn" type="button">← Back</button>
+              <span class="badge" id="selBadge">No job selected</span>
+            </div>
+            <h2 class="detailTitle" id="detailTitle">Select a job</h2>
+            <div class="detailCompany" id="detailCompany">Pick a job from the list to see details.</div>
           </div>
 
-          <div style="margin-bottom:10px;">
-            <span class="badge">View</span>
-            opens the full description (cached by the backend so it’s fast next time).
+          <div class="detailActions">
+            <button class="btn primary" id="tailorBtn" type="button" disabled>Tailor my CV for this job</button>
+            <a class="btn" id="applyBtn" href="#" target="_blank" rel="noopener" aria-disabled="true" style="pointer-events:none; opacity:.6;">Apply</a>
           </div>
 
-          <div style="margin-bottom:10px;">
-            <span class="badge warn">Skip</span>
-            removes it from your “New” queue so you can focus.
+          <div class="detailActions" style="width:100%; justify-content:flex-start;">
+            <button class="btn ghost" id="prioBtn" type="button" disabled>Priority</button>
+            <button class="btn danger" id="skipBtn" type="button" disabled>Skip</button>
+            <button class="btn" id="copyDescBtn" type="button" disabled>Copy description</button>
+            <span class="badge" id="descBadge">Description: —</span>
           </div>
         </div>
 
-        <div class="hr"></div>
+        <div class="detailBody">
+          <div class="emptyState" id="emptyRight">
+            <b>Tip:</b> Use <span class="tinyBadge prio">Priority</span> to mark “liked” jobs.<br/>
+            Priority jobs appear first everywhere (Jobs, Dashboard, CV Studio).
+          </div>
 
-        <div class="actions">
-          <a class="btn ghost" href="./profile.html" data-nav="1">Edit job preferences</a>
-          <a class="btn ghost" href="./dashboard.html" data-nav="1">Go to Dashboard</a>
+          <div class="descBox" id="descBox" style="display:none;">—</div>
         </div>
-
-        <div class="hr"></div>
-
-        <div class="mutedNote">
-          If your list is empty:
-          <ul style="margin:8px 0 0 18px;">
-            <li>Set at least 1 desired title + 1 location in Profile.</li>
-            <li>Then click <b>Fetch new jobs</b>.</li>
-          </ul>
-        </div>
-      </aside>
+      </div>
     </section>
   </main>
 
-  <!-- DESCRIPTION MODAL -->
-  <div class="modalBackdrop" id="descModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="descTitle">
+  <!-- Skip modal -->
+  <div class="modalBackdrop" id="skipModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="skipTitle">
     <div class="modalCard">
       <div class="modalScroll">
         <div class="modalHeader">
           <div>
-            <h3 class="modalTitle" id="descTitle">Job description</h3>
-            <div class="mutedNote" id="descMeta" style="margin-top:6px;"></div>
+            <h3 class="modalTitle" id="skipTitle">Skip this job</h3>
+            <div class="modalHint">Skipping removes it from your “New” queue so you can focus.</div>
           </div>
-          <button class="btn small" type="button" id="btnCloseDesc">Close</button>
+          <button class="btn small" id="skipClose" type="button">Close</button>
         </div>
 
         <div class="hr"></div>
 
-        <div class="modalMonoBox" id="descText">Loading…</div>
+        <div class="formRow">
+          <div>
+            <div class="modalHint" style="margin:0 0 6px 0;">Reason (optional)</div>
+            <select id="skipReason">
+              <option value="">No reason</option>
+              <option value="not_relevant">Not relevant</option>
+              <option value="too_far">Too far</option>
+              <option value="wrong_industry">Wrong industry</option>
+              <option value="salary_too_low">Salary too low</option>
+              <option value="already_applied">Already applied</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <div class="modalHint" style="margin:0 0 6px 0;">Note (optional)</div>
+            <input id="skipNote" type="text" placeholder="Short note (optional)"/>
+          </div>
+        </div>
+
+        <div class="modalHint">
+          This action is reversible later (we can add an “Undo” view later).
+        </div>
       </div>
 
       <div class="modalActions">
-        <button class="btn" type="button" id="btnCopyDesc">Copy description</button>
-        <a class="btn primary" id="btnOpenApply" href="#" target="_blank" rel="noopener">Open apply link</a>
+        <button class="btn" id="skipCancel" type="button">Cancel</button>
+        <button class="btn danger" id="skipConfirm" type="button">Skip job</button>
       </div>
     </div>
   </div>
 
-  <!-- Scripts: order matters -->
+  <!-- Scripts -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="./auth.js"></script>
   <script src="./shared.js"></script>
 
   <script>
   (() => {
     "use strict";
 
-    const { escapeHtml, wireNavTransitions, showTopError, showModal, hideModal, resolveApiBase } = window.JobMeJobShared || {};
-    if (!escapeHtml || !wireNavTransitions) {
-      alert("shared.js is missing or not loaded. Make sure multipage/shared.js exists.");
+    const S = window.JobMeJobShared;
+    if (!S) {
+      alert("shared.js not loaded. Ensure multipage/shared.js exists and is referenced as ./shared.js");
       return;
     }
+    S.wireNavTransitions();
 
-    wireNavTransitions();
-
-    /* ---------------------------
-       Config (same as your other pages)
-    --------------------------- */
-    const API_BASE = resolveApiBase("https://jobmejob.schoene-viktor.workers.dev");
-    const SUPABASE_URL_DEFAULT = "https://awlzvhcnjegfhjedswko.supabase.co";
-    const SUPABASE_ANON_FALLBACK =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
-
-    function lsGet(k){ try { return localStorage.getItem(k); } catch { return null; } }
-    function lsSet(k,v){ try { localStorage.setItem(k,v); } catch {} }
-
-    if(!lsGet("sb_url")) lsSet("sb_url", SUPABASE_URL_DEFAULT);
-    if(!lsGet("sb_anon")) lsSet("sb_anon", SUPABASE_ANON_FALLBACK);
-
-    const SUPABASE_URL = (lsGet("sb_url") || SUPABASE_URL_DEFAULT).trim();
-    const SUPABASE_ANON_KEY = (lsGet("sb_anon") || SUPABASE_ANON_FALLBACK).trim();
-
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    /* ---------------------------
-       DOM helpers
-    --------------------------- */
     const $ = (id) => document.getElementById(id);
 
-    const elJobList = $("jobList");
-    const elSearch = $("searchInput");
-    const elQueueBadge = $("badgeQueue");
-    const elUserBadge = $("badgeUser");
-    const elFetchStatus = $("fetchStatus");
-
+    const API_BASE = S.resolveApiBase("https://jobmejob.schoene-viktor.workers.dev").replace(/\/+$/, "");
     let session = null;
-    let jobs = [];          // full list from API
-    let filteredJobs = [];  // filtered by search
 
-    let currentDescJob = null;
-    let currentDescText = "";
-    let currentApplyUrl = "";
+    let allJobs = [];
+    let filteredJobs = [];
+    let selectedJobId = "";
+    let descCache = new Map(); // job_id -> { text, meta }
 
-    /* ---------------------------
-       Auth / session
-    --------------------------- */
-    async function requireSession() {
-      const { data, error } = await supabaseClient.auth.getSession();
-      if (error) return null;
-      if (!data || !data.session || !data.session.access_token) return null;
-      return data.session;
+    let prioOnly = false;
+    let qText = "";
+    let qLoc = "";
+
+    function showError(msg){
+      S.showTopError("errorTop", msg || "");
+    }
+    function setBadge(id, cls, txt){
+      S.setBadge(id, cls, txt);
+    }
+    function escapeHtml(s){ return S.escapeHtml(String(s ?? "")); }
+
+    function looksLikeUrl(u){
+      return /^https?:\/\//i.test(String(u||"").trim());
+    }
+    function applyUrlSafe(u){
+      const s = String(u||"").trim();
+      if(!s) return "";
+      if(looksLikeUrl(s)) return s;
+      return "https://" + s.replace(/^\/+/, "");
     }
 
-    async function logout() {
-      try { await supabaseClient.auth.signOut(); } catch {}
-      window.location.replace("./index.html");
+    function locString(j){
+      const parts = [];
+      if(j.city) parts.push(j.city);
+      if(j.region && j.region !== j.city) parts.push(j.region);
+      if(j.country) parts.push(j.country);
+      return parts.filter(Boolean).join(", ");
     }
 
-    $("btnLogout").addEventListener("click", logout);
-
-    async function ensureCustomer(email){
-      const res = await fetch(API_BASE + "/customers/upsert", {
-        method:"POST",
-        headers: { "content-type":"application/json" },
-        body: JSON.stringify({ email })
-      });
-      const txt = await res.text().catch(()=> "");
-      if(!res.ok) throw new Error("customers/upsert failed: " + res.status + " " + txt);
-      let data = null;
-      try { data = JSON.parse(txt); } catch { data = null; }
-      if (data && data.customer_id) lsSet("ja_customer_id", String(data.customer_id));
-      lsSet("ja_user_email", String(email).trim().toLowerCase());
-      return data;
+    function timeAgo(iso){
+      if(!iso) return "";
+      const t = Date.parse(iso);
+      if(!Number.isFinite(t)) return "";
+      const diff = Date.now() - t;
+      const mins = Math.floor(diff/60000);
+      if(mins < 1) return "just now";
+      if(mins < 60) return mins + " min ago";
+      const hrs = Math.floor(mins/60);
+      if(hrs < 24) return hrs + " h ago";
+      const days = Math.floor(hrs/24);
+      return days + " d ago";
     }
 
-    /* ---------------------------
-       API helpers
-    --------------------------- */
     async function apiGet(path){
       const res = await fetch(API_BASE + path, {
-        method: "GET",
-        headers: { Authorization: "Bearer " + session.access_token }
+        method:"GET",
+        headers:{ Authorization: "Bearer " + session.access_token }
       });
       const txt = await res.text().catch(()=> "");
       let json = null;
-      try { json = JSON.parse(txt); } catch { json = { raw: txt }; }
-      if(!res.ok) {
-        const msg = (json && (json.error || json.message || json.details)) ? (json.error || json.message || json.details) : txt;
-        throw new Error(path + " failed: " + res.status + " " + msg);
+      try{ json = txt ? JSON.parse(txt) : null; }catch{ json = { raw: txt }; }
+      if(!res.ok){
+        throw new Error(path + " failed: " + res.status + " " + (json?.error || json?.message || json?.details || txt));
       }
       return json;
     }
@@ -358,7 +614,7 @@
     async function apiPostJson(path, body){
       const res = await fetch(API_BASE + path, {
         method:"POST",
-        headers: {
+        headers:{
           Authorization: "Bearer " + session.access_token,
           "content-type":"application/json"
         },
@@ -366,333 +622,497 @@
       });
       const txt = await res.text().catch(()=> "");
       let json = null;
-      try { json = JSON.parse(txt); } catch { json = { raw: txt }; }
-      if(!res.ok) {
-        const msg = (json && (json.error || json.message || json.details)) ? (json.error || json.message || json.details) : txt;
-        throw new Error(path + " failed: " + res.status + " " + msg);
+      try{ json = txt ? JSON.parse(txt) : null; }catch{ json = { raw: txt }; }
+      if(!res.ok){
+        // surface rate limit info nicely
+        const msg = (json?.message || json?.error || json?.details || txt || "").toString();
+        const err = new Error(path + " failed: " + res.status + " " + msg);
+        err.httpStatus = res.status;
+        err.payload = json;
+        throw err;
       }
       return json;
     }
 
-    /* ---------------------------
-       Rendering
-    --------------------------- */
-    function formatLocation(j){
-      const parts = [];
-      if (j.city) parts.push(j.city);
-      if (j.region && j.region !== j.city) parts.push(j.region);
-      if (j.country) parts.push(j.country);
-      return parts.filter(Boolean).join(", ");
+    function setFiltersFromInputs(){
+      qText = String($("qInput").value || "").trim().toLowerCase();
+      qLoc  = String($("locInput").value || "").trim().toLowerCase();
     }
 
-    function applyUrlSafe(url){
-      const u = String(url || "").trim();
-      if (!u) return "";
-      if (/^https?:\/\//i.test(u)) return u;
-      return "https://" + u.replace(/^\/+/, "");
+    function applyFilters(){
+      setFiltersFromInputs();
+
+      filteredJobs = allJobs.filter(j => {
+        const isPrio = !!(j._application && j._application.priority);
+        if(prioOnly && !isPrio) return false;
+
+        const t = (j.title || "").toLowerCase();
+        const c = (j.company_name || "").toLowerCase();
+        const l = locString(j).toLowerCase();
+
+        if(qText){
+          const ok = t.includes(qText) || c.includes(qText);
+          if(!ok) return false;
+        }
+        if(qLoc){
+          if(!l.includes(qLoc)) return false;
+        }
+        return true;
+      });
+
+      $("resultsMeta").textContent = filteredJobs.length + " job(s)";
+      renderList();
     }
 
-    function renderJobs(list){
-      if (!Array.isArray(list) || list.length === 0) {
-        elJobList.innerHTML = `
-          <div class="empty">
-            No jobs in your queue yet.<br/><br/>
-            1) Go to <b>Profile</b> and add at least 1 desired title + 1 location.<br/>
-            2) Then click <b>Fetch new jobs</b> here (or on Dashboard).
-          </div>
-        `;
+    function setFilterButtons(){
+      $("filterAll").classList.toggle("active", !prioOnly);
+      $("filterPrio").classList.toggle("active", prioOnly);
+    }
+
+    function renderList(){
+      const list = $("jobList");
+      list.innerHTML = "";
+
+      const empty = !filteredJobs.length;
+      $("emptyLeft").style.display = empty ? "block" : "none";
+
+      if(empty){
+        // Clear details if nothing visible
+        if(selectedJobId && !filteredJobs.some(j => String(j.id) === String(selectedJobId))){
+          clearDetails();
+        }
         return;
       }
 
-      const html = list.map(j => {
+      for(const j of filteredJobs){
+        const isActive = String(j.id) === String(selectedJobId);
+        const isPrio = !!(j._application && j._application.priority);
+
+        const iconText = (j.company_name ? String(j.company_name).trim()[0] : "J").toUpperCase();
+
+        const card = document.createElement("div");
+        card.className = "jobCard" + (isActive ? " active" : "");
+        card.setAttribute("role","button");
+        card.setAttribute("tabindex","0");
+
+        card.addEventListener("click", () => selectJob(j.id, true));
+        card.addEventListener("keydown", (e) => {
+          if(e.key === "Enter" || e.key === " "){
+            e.preventDefault();
+            selectJob(j.id, true);
+          }
+        });
+
         const title = escapeHtml(j.title || "Untitled role");
         const company = escapeHtml(j.company_name || "Company");
-        const loc = escapeHtml(formatLocation(j) || "Location");
-        const prio = !!(j._application && j._application.priority);
+        const loc = escapeHtml(locString(j) || "—");
+        const ago = timeAgo(j.posted_at || j.fetched_at || "");
+        const agoText = ago ? ("• " + ago) : "";
 
-        const applyUrl = applyUrlSafe(j.apply_url);
-
-        return `
-          <div class="jobCard" data-job-id="${escapeHtml(j.id)}">
-            <div class="jobTop">
-              <div style="min-width:0">
-                <div class="jobTitle">${title}</div>
-                <div class="jobMeta">${company} · ${loc}</div>
-              </div>
-              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
-                ${prio ? `<span class="badge prio">Priority</span>` : `<span class="badge">New</span>`}
-              </div>
+        card.innerHTML = `
+          <div class="jobIcon" aria-hidden="true">${escapeHtml(iconText)}</div>
+          <div class="jobMain">
+            <div class="jobTitle">${title}</div>
+            <div class="jobMeta">
+              <span>${company}</span>
+              <span class="metaDot">•</span>
+              <span>${loc}</span>
+              ${ago ? `<span class="metaDot">•</span><span>${escapeHtml(ago)}</span>` : ``}
             </div>
-
-            <div class="jobActions">
-              <button class="btn small" type="button" data-action="view">View</button>
-              <button class="btn small" type="button" data-action="open" ${applyUrl ? "" : "disabled"}>Open</button>
-
-              ${prio
-                ? `<button class="btn small" type="button" data-action="unprioritize">Unprioritize</button>`
-                : `<button class="btn small" type="button" data-action="prioritize">Prioritize</button>`
-              }
-
-              <button class="btn small danger" type="button" data-action="skip">Skip</button>
-            </div>
-
-            ${!applyUrl ? `<div class="mutedNote" style="margin-top:8px;">No apply link available for this job.</div>` : ``}
+          </div>
+          <div class="jobRight">
+            <button class="heartBtn" type="button" title="${isPrio ? "Unprioritize" : "Prioritize"}" aria-label="${isPrio ? "Unprioritize" : "Prioritize"}">
+              <span class="heart ${isPrio ? "on" : ""}">${isPrio ? "♥" : "♡"}</span>
+            </button>
+            <span class="tinyBadge ${isPrio ? "prio" : ""}">${isPrio ? "Priority" : "New"}</span>
           </div>
         `;
-      }).join("");
 
-      elJobList.innerHTML = html;
-    }
-
-    function updateBadges(){
-      const count = Array.isArray(jobs) ? jobs.length : 0;
-      elQueueBadge.textContent = "Queue: " + count;
-    }
-
-    function applySearch(){
-      const q = String(elSearch.value || "").trim().toLowerCase();
-      if (!q) {
-        filteredJobs = jobs.slice();
-      } else {
-        filteredJobs = jobs.filter(j => {
-          const hay = [
-            j.title, j.company_name, j.city, j.region, j.country
-          ].map(x => String(x || "").toLowerCase()).join(" ");
-          return hay.includes(q);
+        // Heart toggle
+        const heartBtn = card.querySelector(".heartBtn");
+        heartBtn.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          await togglePriority(j.id, !isPrio);
         });
+
+        list.appendChild(card);
       }
-      renderJobs(filteredJobs);
     }
 
-    /* ---------------------------
-       Data loading
-    --------------------------- */
-    async function loadQueue(){
-      showTopError("errorTop", "");
-      elFetchStatus.textContent = "";
+    function clearDetails(){
+      selectedJobId = "";
+      $("selBadge").textContent = "No job selected";
+      $("detailTitle").textContent = "Select a job";
+      $("detailCompany").textContent = "Pick a job from the list to see details.";
+      $("descBox").style.display = "none";
+      $("descBox").textContent = "—";
+      $("emptyRight").style.display = "block";
 
-      // tiny skeleton
-      elJobList.innerHTML = `
-        <div class="sRow">
-          <div class="skeleton" style="width:70%"></div>
-          <div class="skeleton" style="width:55%"></div>
-          <div class="skeleton" style="width:90%"></div>
-        </div>
-      `;
+      $("tailorBtn").disabled = true;
+      $("prioBtn").disabled = true;
+      $("skipBtn").disabled = true;
+      $("copyDescBtn").disabled = true;
+      setBadge("descBadge","", "Description: —");
+
+      const a = $("applyBtn");
+      a.href = "#";
+      a.style.pointerEvents = "none";
+      a.style.opacity = ".6";
+      a.setAttribute("aria-disabled","true");
+    }
+
+    function currentJob(){
+      return allJobs.find(j => String(j.id) === String(selectedJobId)) || null;
+    }
+
+    async function selectJob(jobId, maybeMobile){
+      const id = String(jobId || "");
+      if(!id) return;
+      selectedJobId = id;
+
+      // mobile: show detail view
+      if(maybeMobile) document.body.classList.add("showDetail");
+
+      renderList();
+
+      const j = currentJob();
+      if(!j){
+        clearDetails();
+        return;
+      }
+
+      $("selBadge").textContent = (j._application && j._application.priority) ? "Priority" : "New";
+      $("detailTitle").textContent = j.title || "Untitled role";
+
+      const company = j.company_name || "Company";
+      const loc = locString(j) || "—";
+      const ago = timeAgo(j.posted_at || j.fetched_at || "");
+      $("detailCompany").textContent = [company, loc, ago].filter(Boolean).join(" • ");
+
+      // Apply link
+      const apply = applyUrlSafe(j.apply_url || "");
+      const a = $("applyBtn");
+      if(apply){
+        a.href = apply;
+        a.style.pointerEvents = "";
+        a.style.opacity = "";
+        a.setAttribute("aria-disabled","false");
+      }else{
+        a.href = "#";
+        a.style.pointerEvents = "none";
+        a.style.opacity = ".6";
+        a.setAttribute("aria-disabled","true");
+      }
+
+      // Buttons
+      $("tailorBtn").disabled = false;
+      $("prioBtn").disabled = false;
+      $("skipBtn").disabled = false;
+      $("copyDescBtn").disabled = false;
+
+      // Prio button label
+      const isPrio = !!(j._application && j._application.priority);
+      $("prioBtn").textContent = isPrio ? "Unprioritize" : "Priority";
+
+      // Load description (cached)
+      await loadDescriptionForSelected();
+    }
+
+    async function loadQueue(){
+      showError("");
+      setBadge("statusBadge","warn","Loading…");
+      clearDetails();
 
       const resp = await apiGet("/me/jobs/queue");
-      const data = resp && Array.isArray(resp.data) ? resp.data : [];
-      jobs = data;
-      updateBadges();
-      applySearch();
-    }
+      const data = Array.isArray(resp?.data) ? resp.data : [];
+      allJobs = data;
 
-    /* ---------------------------
-       Manual fetch (POST /me/jobs/fetch)
-       - uses profile titles + profile locations
-    --------------------------- */
-    function getNextFetchAllowedAt(){
-      const ts = Number(lsGet("jm_last_manual_fetch_ts") || "0");
-      if (!ts || !isFinite(ts)) return 0;
-      // Frontend cooldown 60s (server is still the real gate: 10 minutes)
-      return ts + 60 * 1000;
+      $("queueBadge").textContent = "Queue: " + String(resp?.count ?? data.length ?? 0);
+      $("resultsMeta").textContent = (data.length || 0) + " job(s)";
+
+      // if empty: show empty
+      if(!allJobs.length){
+        filteredJobs = [];
+        renderList();
+        setBadge("statusBadge","warn","Empty");
+        return;
+      }
+
+      applyFilters();
+
+      // auto-select first visible job
+      const first = filteredJobs[0] || allJobs[0];
+      if(first) await selectJob(first.id, false);
+
+      setBadge("statusBadge","good","Ready");
     }
 
     async function fetchNewJobs(){
-      const btn = $("btnFetch");
-      btn.disabled = true;
+      showError("");
+      setBadge("statusBadge","warn","Fetching…");
+      $("fetchBtn").disabled = true;
 
       try{
-        const next = getNextFetchAllowedAt();
-        if (next && Date.now() < next) {
-          const sec = Math.ceil((next - Date.now()) / 1000);
-          elFetchStatus.textContent = "Please wait " + sec + "s before fetching again.";
-          btn.disabled = false;
-          return;
+        const res = await apiPostJson("/me/jobs/fetch", { include_ai_titles: false });
+
+        if(res && res.ok){
+          const added = Number(res.jobs_added || 0);
+          if(res.skipped && res.reason === "queue_full"){
+            setBadge("statusBadge","warn","Queue full");
+            showError(res.message || "Queue is full. Review jobs first.");
+          }else{
+            setBadge("statusBadge","good","Fetched +" + added);
+          }
+          await loadQueue();
+        }else{
+          setBadge("statusBadge","bad","Failed");
+          showError(res?.error || "Fetch failed");
         }
-
-        // start local cooldown immediately to prevent double click spam
-        lsSet("jm_last_manual_fetch_ts", String(Date.now()));
-
-        elFetchStatus.textContent = "Fetching…";
-
-        const resp = await apiPostJson("/me/jobs/fetch", {
-          include_ai_titles: false,
-          fetch_mode: "profile"
-        });
-
-        if (resp && resp.skipped) {
-          elFetchStatus.textContent = resp.message || ("Skipped: " + String(resp.reason || ""));
-          btn.disabled = false;
-          return;
-        }
-
-        const added = (typeof resp.jobs_added === "number") ? resp.jobs_added : 0;
-        const qNew = (typeof resp.queue_new_count === "number") ? resp.queue_new_count : "—";
-        elFetchStatus.textContent = "Added " + added + " · Queue new: " + qNew;
-
-        await loadQueue();
       }catch(e){
-        const msg = e && e.message ? e.message : "Fetch failed";
-        elFetchStatus.textContent = msg;
-        showTopError("errorTop", msg);
+        if(e && e.httpStatus === 429){
+          const retry = e.payload?.retry_after_seconds;
+          setBadge("statusBadge","warn","Rate limited");
+          showError((e.payload?.message || "Too many requests.") + (retry ? (" Retry in ~" + Math.ceil(retry/60) + " min.") : ""));
+        }else{
+          setBadge("statusBadge","bad","Failed");
+          showError(e?.message || String(e));
+        }
       }finally{
-        btn.disabled = false;
+        $("fetchBtn").disabled = false;
       }
     }
 
-    /* ---------------------------
-       Job actions
-    --------------------------- */
-    async function prioritize(jobId, on){
-      const path = on ? "/me/applications/prioritize" : "/me/applications/unprioritize";
-      await apiPostJson(path, { job_id: jobId });
+    async function togglePriority(jobId, makePrio){
+      showError("");
+      const j = allJobs.find(x => String(x.id) === String(jobId));
+      if(!j) return;
+
+      // Optimistic UI: update local immediately
+      j._application = j._application || {};
+      j._application.priority = !!makePrio;
+      renderList();
+
+      try{
+        if(makePrio){
+          await apiPostJson("/me/applications/prioritize", { job_id: String(jobId) });
+        }else{
+          await apiPostJson("/me/applications/unprioritize", { job_id: String(jobId) });
+        }
+
+        // Refresh queue to maintain correct ordering (priority first)
+        await loadQueue();
+      }catch(e){
+        // Rollback optimistic change
+        j._application.priority = !makePrio;
+        renderList();
+        showError(e?.message || String(e));
+      }
     }
 
-    async function skip(jobId){
-      await apiPostJson("/me/applications/skip", { job_id: jobId });
+    async function openSkipModal(){
+      const j = currentJob();
+      if(!j) return;
+      $("skipReason").value = "";
+      $("skipNote").value = "";
+      S.showModal("skipModal");
     }
 
-    async function openDescription(jobId){
-      currentDescJob = jobId;
-      currentDescText = "";
-      currentApplyUrl = "";
+    async function confirmSkip(){
+      const j = currentJob();
+      if(!j) return;
 
-      $("descTitle").textContent = "Job description";
-      $("descMeta").textContent = "";
-      $("descText").textContent = "Loading…";
-      $("btnOpenApply").setAttribute("href", "#");
-      $("btnOpenApply").classList.add("ghost");
+      $("skipConfirm").disabled = true;
+      showError("");
 
-      showModal("descModal");
+      try{
+        const reason = String($("skipReason").value || "").trim();
+        const note = String($("skipNote").value || "").trim();
 
-      const resp = await apiGet("/me/jobs/description?job_id=" + encodeURIComponent(jobId));
-      const job = resp && resp.job ? resp.job : null;
+        await apiPostJson("/me/applications/skip", {
+          job_id: String(j.id),
+          reason_code: reason || "",
+          reason_note: note || ""
+        });
 
-      const title = job && job.title ? String(job.title) : "Job description";
-      const company = job && job.company_name ? String(job.company_name) : "";
-      const loc = job ? formatLocation(job) : "";
-      const applyUrl = applyUrlSafe(job && job.apply_url ? job.apply_url : "");
+        S.hideModal("skipModal");
+        setBadge("statusBadge","good","Skipped");
 
-      currentApplyUrl = applyUrl;
-      $("descTitle").textContent = title;
-      $("descMeta").textContent = [company, loc].filter(Boolean).join(" · ");
+        // Remove from local arrays quickly, then refresh
+        allJobs = allJobs.filter(x => String(x.id) !== String(j.id));
+        applyFilters();
 
-      const desc = job && job.description_full ? String(job.description_full) : "";
-      currentDescText = desc || "(No description available.)";
+        // Select next job if possible
+        const next = filteredJobs[0] || allJobs[0];
+        if(next) await selectJob(next.id, true);
+        else clearDetails();
+      }catch(e){
+        showError(e?.message || String(e));
+      }finally{
+        $("skipConfirm").disabled = false;
+      }
+    }
 
-      // Show as plain text (safe) inside pre-wrap box
-      $("descText").textContent = currentDescText;
+    async function loadDescriptionForSelected(){
+      const j = currentJob();
+      if(!j) return;
 
-      if (applyUrl) {
-        $("btnOpenApply").setAttribute("href", applyUrl);
-        $("btnOpenApply").classList.remove("ghost");
-      } else {
-        $("btnOpenApply").setAttribute("href", "#");
-        $("btnOpenApply").classList.add("ghost");
+      const id = String(j.id);
+      setBadge("descBadge","warn","Description: loading…");
+      $("descBox").style.display = "block";
+      $("descBox").textContent = "Loading description…";
+      $("emptyRight").style.display = "none";
+
+      // Serve from cache if present
+      if(descCache.has(id)){
+        const c = descCache.get(id);
+        setBadge("descBadge","good", "Description: cached");
+        $("descBox").textContent = c.text || "(No description available.)";
+        return;
+      }
+
+      try{
+        const resp = await apiGet("/me/jobs/description?job_id=" + encodeURIComponent(id));
+        const job = resp?.job || {};
+        const text = String(job.description_full || job.description || "").trim() || "(No description available.)";
+
+        descCache.set(id, { text });
+
+        setBadge("descBadge", resp?.from_cache ? "good" : "good", resp?.from_cache ? "Description: cached" : "Description: loaded");
+        $("descBox").textContent = text;
+      }catch(e){
+        setBadge("descBadge","bad","Description: error");
+        $("descBox").textContent = "Failed to load description.\n\n" + (e?.message || String(e));
       }
     }
 
     async function copyDescription(){
-      const text = String(currentDescText || "").trim();
-      if (!text) return;
+      const j = currentJob();
+      if(!j) return;
+
+      let text = "";
+      const cached = descCache.get(String(j.id));
+      if(cached && cached.text) text = cached.text;
+
+      if(!text){
+        // Try fetching once
+        await loadDescriptionForSelected();
+        const cached2 = descCache.get(String(j.id));
+        text = cached2?.text || "";
+      }
+      if(!text) return;
+
       try{
         await navigator.clipboard.writeText(text);
-        $("btnCopyDesc").textContent = "Copied ✓";
-        setTimeout(()=>{ $("btnCopyDesc").textContent = "Copy description"; }, 900);
-      }catch{
-        // fallback
+        $("copyDescBtn").textContent = "Copied ✓";
+        setTimeout(()=> $("copyDescBtn").textContent = "Copy description", 900);
+      }catch(_){
         const ta = document.createElement("textarea");
         ta.value = text;
         document.body.appendChild(ta);
         ta.select();
-        try { document.execCommand("copy"); } catch {}
+        try{ document.execCommand("copy"); }catch{}
         document.body.removeChild(ta);
-        $("btnCopyDesc").textContent = "Copied ✓";
-        setTimeout(()=>{ $("btnCopyDesc").textContent = "Copy description"; }, 900);
+        $("copyDescBtn").textContent = "Copied ✓";
+        setTimeout(()=> $("copyDescBtn").textContent = "Copy description", 900);
       }
     }
 
-    /* ---------------------------
-       Wire events
-    --------------------------- */
-    $("btnRefresh").addEventListener("click", () => loadQueue().catch(e => showTopError("errorTop", e.message || String(e))));
-    $("btnFetch").addEventListener("click", () => fetchNewJobs());
+    function gotoCvStudio(){
+      const j = currentJob();
+      if(!j) return;
+      const url = "./cv.html?job_id=" + encodeURIComponent(String(j.id));
+      S.go(url);
+    }
 
-    elSearch.addEventListener("input", () => applySearch());
+    async function boot(){
+      showError("");
 
-    elJobList.addEventListener("click", async (e) => {
-      const btn = e.target.closest("button[data-action]");
-      if(!btn) return;
-
-      const card = btn.closest(".jobCard");
-      const jobId = card ? card.getAttribute("data-job-id") : "";
-      if(!jobId) return;
-
-      const action = btn.getAttribute("data-action");
-
-      btn.disabled = true;
-      showTopError("errorTop", "");
-
-      try{
-        if(action === "view"){
-          await openDescription(jobId);
-        } else if(action === "open"){
-          const j = jobs.find(x => String(x.id) === String(jobId)) || null;
-          const url = applyUrlSafe(j && j.apply_url ? j.apply_url : "");
-          if(url) window.open(url, "_blank", "noopener");
-        } else if(action === "prioritize"){
-          await prioritize(jobId, true);
-          await loadQueue();
-        } else if(action === "unprioritize"){
-          await prioritize(jobId, false);
-          await loadQueue();
-        } else if(action === "skip"){
-          await skip(jobId);
-          await loadQueue();
-        }
-      }catch(err){
-        showTopError("errorTop", err && err.message ? err.message : String(err));
-      }finally{
-        btn.disabled = false;
+      if(!window.JobApplyAI || !window.JobApplyAI.auth){
+        showError("auth.js did not load. Ensure multipage/auth.js exists and is referenced as ./auth.js.");
+        setBadge("statusBadge","bad","Config error");
+        return;
       }
-    });
 
-    // Modal controls
-    $("btnCloseDesc").addEventListener("click", () => hideModal("descModal"));
-    $("btnCopyDesc").addEventListener("click", copyDescription);
-    $("descModal").addEventListener("click", (e) => {
-      if (e.target && e.target.id === "descModal") hideModal("descModal");
-    });
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") hideModal("descModal");
-    });
-
-    /* ---------------------------
-       Boot
-    --------------------------- */
-    (async () => {
-      session = await requireSession();
+      // Session
+      session = await window.JobApplyAI.auth.getSession();
       if(!session || !session.user || !session.user.email){
         window.location.replace("./signup.html");
         return;
       }
 
-      const email = String(session.user.email).trim().toLowerCase();
-      elUserBadge.textContent = "User: " + email;
+      // Nav state
+      $("navLogout").style.display = "";
+      $("navSignIn").style.display = "none";
 
-      try{
-        await ensureCustomer(email);
-      }catch(e){
-        // Not fatal for UI, but endpoints like /me/* might fail if customer doesn't exist.
-        showTopError("errorTop", e && e.message ? e.message : String(e));
-      }
+      $("userBadge").textContent = "User: " + String(session.user.email);
 
+      // Ensure customer exists
+      try{ await window.JobApplyAI.auth.requireAuthAndCustomer({ redirectTo: "./signup.html" }); }catch(_){}
+      try{ await window.JobApplyAI.auth.syncStateToLocalStorage(session); }catch(_){}
+
+      // Load queue
       await loadQueue();
-    })().catch((e) => {
-      showTopError("errorTop", e && e.message ? e.message : String(e));
+    }
+
+    // Events
+    $("findBtn").addEventListener("click", applyFilters);
+    $("qInput").addEventListener("keydown",(e)=>{ if(e.key==="Enter"){ e.preventDefault(); applyFilters(); } });
+    $("locInput").addEventListener("keydown",(e)=>{ if(e.key==="Enter"){ e.preventDefault(); applyFilters(); } });
+
+    $("refreshBtn").addEventListener("click", loadQueue);
+    $("fetchBtn").addEventListener("click", fetchNewJobs);
+
+    $("filterAll").addEventListener("click", () => { prioOnly = false; setFilterButtons(); applyFilters(); });
+    $("filterPrio").addEventListener("click", () => { prioOnly = true; setFilterButtons(); applyFilters(); });
+
+    $("tailorBtn").addEventListener("click", gotoCvStudio);
+
+    $("prioBtn").addEventListener("click", async () => {
+      const j = currentJob();
+      if(!j) return;
+      const isPrio = !!(j._application && j._application.priority);
+      await togglePriority(j.id, !isPrio);
     });
 
+    $("skipBtn").addEventListener("click", openSkipModal);
+
+    $("copyDescBtn").addEventListener("click", copyDescription);
+
+    $("backBtn").addEventListener("click", () => {
+      document.body.classList.remove("showDetail");
+    });
+
+    // Skip modal
+    $("skipClose").addEventListener("click", () => S.hideModal("skipModal"));
+    $("skipCancel").addEventListener("click", () => S.hideModal("skipModal"));
+    $("skipModal").addEventListener("click", (e) => { if(e.target && e.target.id === "skipModal") S.hideModal("skipModal"); });
+    $("skipConfirm").addEventListener("click", confirmSkip);
+
+    document.addEventListener("keydown", (e) => {
+      if(e.key === "Escape"){
+        S.hideModal("skipModal");
+      }
+    });
+
+    // Logout
+    $("navLogout").addEventListener("click", async () => {
+      try{
+        await window.JobApplyAI.auth.logout("./index.html");
+      }catch(_){
+        window.location.href = "./index.html";
+      }
+    });
+
+    // Init
+    setFilterButtons();
+    clearDetails();
+
+    window.addEventListener("load", () => {
+      boot().catch((e) => {
+        showError(e?.message || String(e));
+        setBadge("statusBadge","bad","Error");
+      });
+    });
   })();
   </script>
 </body>
