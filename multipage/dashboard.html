@@ -3,235 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>jobmejob • dashboard</title>
+<title>jobmejob • Dashboard</title>
+
+
+<link rel="stylesheet" href="./shared.css" />
 <style>
-:root{
---bg:#f6f7fb;
---text:#111318;
---muted:rgba(17,19,24,.64);
---muted2:rgba(17,19,24,.48);
---line:rgba(17,19,24,.12);
-
-/* jobmejob green CI */
---accent:#22c55e;
---accent2:#16a34a;
-
---ok:#16a34a;
---warn:#b86b00;
---bad:#d81b60;
---shadow:0 12px 34px rgba(17,19,24,.12);
---radius:18px;
---max:1120px;
---safeTop: env(safe-area-inset-top, 0px);
---safeBottom: env(safe-area-inset-bottom, 0px);
-
---surface:#ffffff;
---surface2:#ffffff;
---surface3:#fbfcff;
-}
-
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-margin:0;
-font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-color:var(--text);
-background:
-radial-gradient(1200px 650px at 20% -10%, rgba(34,197,94,.18), transparent 55%),
-radial-gradient(900px 500px at 90% 10%, rgba(22,163,74,.14), transparent 55%),
-radial-gradient(800px 600px at 70% 110%, rgba(34,197,94,.08), transparent 55%),
-var(--bg);
-overflow-x:hidden;
-}
-a{color:inherit;text-decoration:none}
-small{color:var(--muted)}
-
-.topbar{
-position:sticky;
-top:0;
-z-index:30;
-background:rgba(246,247,251,.86);
-backdrop-filter:saturate(1.2) blur(12px);
-border-bottom:1px solid var(--line);
-padding-top:var(--safeTop);
-}
-.nav{
-max-width:var(--max);
-margin:0 auto;
-padding:12px 16px;
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:12px;
-}
-.brand{
-display:flex;
-align-items:center;
-gap:10px;
-font-weight:950;
-letter-spacing:.2px;
-min-width:0;
-}
-.logo{
-width:34px;height:34px;border-radius:11px;
-background: linear-gradient(135deg, var(--accent), var(--accent2));
-box-shadow: 0 10px 30px rgba(34,197,94,.22);
-flex:0 0 auto;
-position:relative;
-overflow:hidden;
-}
-.logo::after{
-content:"";
-position:absolute;
-inset:-45%;
-background:linear-gradient(90deg, transparent, rgba(255,255,255,.75), transparent);
-transform:rotate(20deg);
-animation:shine 2.8s ease-in-out infinite;
-}
-@keyframes shine{
-0%{transform:translateX(-55%) rotate(20deg);opacity:0}
-35%{opacity:1}
-70%{opacity:0}
-100%{transform:translateX(55%) rotate(20deg);opacity:0}
-}
-
-.navlinks{
-display:flex;
-align-items:center;
-gap:10px;
-flex-wrap:wrap;
-justify-content:flex-end;
-}
-.pill{
-padding:9px 12px;
-border:1px solid var(--line);
-border-radius:999px;
-background:rgba(17,19,24,.04);
-font-weight:850;
-font-size:13px;
-transition:.15s ease;
-cursor:pointer;
-white-space:nowrap;
-}
-.pill:hover{transform:translateY(-1px);background:rgba(17,19,24,.06)}
-.pill.active{border-color:rgba(34,197,94,.60); background:rgba(34,197,94,.16)}
-.pill.iconOnly{padding:9px 10px}
-
-.main{
-max-width:var(--max);
-margin:0 auto;
-padding:18px 16px calc(18px + var(--safeBottom));
-}
-.h1{
-font-size:36px;
-line-height:1.05;
-letter-spacing:-.8px;
-margin:10px 0 8px 0;
-}
-.sub{margin:0 0 14px 0;color:var(--muted);font-weight:650}
-
-.card{
-background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.82));
-border:1px solid var(--line);
-border-radius:var(--radius);
-box-shadow:var(--shadow);
-padding:14px;
-overflow:hidden;
-}
-.cardNoPad{padding:0}
-
-.card h2{
-margin:0 0 10px 0;
-font-size:16px;
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:10px;
-}
-.hr{height:1px;background:var(--line);margin:12px 0}
-
-.kpi{
-display:flex;
-align-items:flex-end;
-justify-content:space-between;
-gap:10px;
-flex-wrap:wrap;
-}
-.kpi > div{min-width:0;flex:1 1 auto}
-.kpi .value{
-font-size:34px;
-font-weight:950;
-letter-spacing:-.6px;
-line-height:1;
-word-break:break-word;
-}
-.kpi .label{
-color:var(--muted2);
-font-weight:750;
-font-size:12px;
-}
-
-.badge{
-display:inline-flex;
-align-items:center;
-gap:8px;
-padding:7px 10px;
-border-radius:999px;
-border:1px solid var(--line);
-background:rgba(17,19,24,.05);
-color:var(--muted);
-font-size:12px;
-font-weight:850;
-white-space:nowrap;
-max-width:100%;
-}
-.badge.good{border-color:rgba(34,197,94,.40); background:rgba(34,197,94,.12); color:#0a3d1f}
-.badge.warn{border-color:rgba(255,179,0,.5); background:rgba(255,179,0,.12); color:#5a3b00}
-.badge.bad{border-color:rgba(255,61,113,.55); background:rgba(255,61,113,.12); color:#5a1130}
-.badge.prio{border-color:rgba(34,197,94,.55); background:rgba(34,197,94,.16); color:#0a3d1f}
-
-.actions{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-align-items:center;
-}
-.btn{
-appearance:none;
-border:1px solid var(--line);
-background:rgba(17,19,24,.06);
-color:var(--text);
-padding:11px 14px;
-border-radius:999px;
-font-weight:900;
-font-size:13px;
-cursor:pointer;
-transition:.15s ease;
-display:inline-flex;
-align-items:center;
-gap:8px;
-text-decoration:none;
-}
-.btn:hover{transform:translateY(-1px); background:rgba(17,19,24,.08)}
-.btn:disabled{opacity:.6; cursor:not-allowed; transform:none}
-.btn.primary{
-border-color:rgba(34,197,94,.55);
-background:linear-gradient(135deg, rgba(34,197,94,.28), rgba(22,163,74,.16));
-}
-.btn.ghost{
-border-color:rgba(17,19,24,.14);
-background:rgba(17,19,24,.04);
-}
-.btn.danger{
-border-color:rgba(255,61,113,.45);
-background:rgba(255,61,113,.12);
-}
-.btn.small{
-padding:9px 12px;
-font-size:12px;
-font-weight:900;
-}
-
+/* Dashboard-specific UI (kept local; shared.css covers the base UI) */
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
 .chip{
 border:1px solid rgba(17,19,24,.14);
@@ -408,29 +185,6 @@ animation:shimmer 1.2s linear infinite;
 }
 
 /* Modal */
-.modalBackdrop{
-position:fixed;
-inset:0;
-z-index:999;
-background:rgba(17,19,24,.45);
-display:flex;
-align-items:center;
-justify-content:center;
-padding:16px;
-}
-.modalCard{
-width:min(520px, 100%);
-border:1px solid rgba(17,19,24,.14);
-background:var(--surface2);
-border-radius:18px;
-box-shadow:0 18px 50px rgba(0,0,0,.55);
-padding:14px;
-}
-.modalTitle{
-font-weight:950;
-font-size:16px;
-margin:0 0 10px 0;
-}
 .field{
 display:flex;
 flex-direction:column;
@@ -447,13 +201,6 @@ padding:10px 12px;
 outline:none;
 }
 textarea{min-height:80px;resize:vertical}
-.modalActions{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-justify-content:flex-end;
-margin-top:12px;
-}
 .modalActions .btn{flex:0 0 auto}
 
 /* Tailor controls + CV preview */
@@ -509,7 +256,6 @@ font-size:13px;
 .btn{justify-content:center;width:100%}
 .kpiBoard{grid-template-columns:1fr}
 .table{min-width:820px}
-.modalActions{flex-direction:column}
 .modalActions .btn{width:100%;justify-content:center}
 }
 @media (prefers-reduced-motion: reduce){
@@ -556,19 +302,18 @@ box-shadow: none;
 /* Quick actions (Dashboard) */
 .actionsStack{display:flex;flex-direction:column;gap:10px;align-items:stretch}
 .actionsStack .btn{width:100%;justify-content:center}
-
 </style>
 </head>
 <body>
 <header class="topbar" id="topbar">
 <nav class="nav">
-<a class="brand" href="index.html" data-nav="1"><span class="logo" aria-hidden="true"></span><span>jobmejob</span></a>
+<a class="brand" href="./index.html" data-nav="1"><span class="logo" aria-hidden="true"></span><span>jobmejob</span></a>
 <div class="navlinks">
-<a class="pill" href="index.html" data-nav="1">Home</a>
-<a class="pill" href="profile.html" data-nav="1">Profile</a>
-<a class="pill" href="plan.html" data-nav="1">Plan</a>
-<a class="pill" href="jobs.html" data-nav="1">Jobs</a>
-<a class="pill active" href="dashboard.html" data-nav="1">Dashboard</a>
+<a class="pill" href="./index.html" data-nav="1">Home</a>
+<a class="pill" href="./profile.html" data-nav="1">Profile</a>
+<a class="pill" href="./plan.html" data-nav="1">Plan</a>
+<a class="pill" href="./jobs.html" data-nav="1">Jobs</a>
+<a class="pill active" href="./dashboard.html" data-nav="1">Dashboard</a>
 <button class="pill iconOnly" id="btnLogout" type="button" aria-label="Logout">Logout</button>
 </div>
 </nav>
@@ -655,8 +400,8 @@ box-shadow: none;
     <button class="btn" id="qaViewQueue" type="button">View job queue</button>
     <button class="btn" id="qaTailorTop" type="button">Tailor CV (top job)</button>
 
-    <a class="btn ghost" id="qaSettings" href="profile.html">Settings</a>
-    <a class="btn" id="qaAutoApply" href="plan.html">Auto-apply (upgrade)</a>
+    <a class="btn ghost" id="qaSettings" href="./profile.html">Settings</a>
+    <a class="btn" id="qaAutoApply" href="./plan.html">Auto-apply (upgrade)</a>
   </div>
 
   <div class="small" style="margin-top:10px" id="qaStatus"></div>
@@ -679,7 +424,7 @@ box-shadow: none;
 </label>
 <div class="switchHint" id="aiSwitchHint" style="display:none">
 <span class="lock">🔒</span>
-<a href="profile.html">Generate AI suggestions to unlock</a>
+<a href="./profile.html">Generate AI suggestions to unlock</a>
 <span class="small" id="fetchMeta" style="margin-left:auto;opacity:.85"></span></div>
 </div>
 <button class="btn" id="btnCopyToken" type="button">Copy access token</button>
@@ -742,8 +487,8 @@ box-shadow: none;
 
 <div class="hr"></div>
 <div class="actions">
-<a class="btn ghost" href="profile.html" data-nav="1">Edit profile</a>
-<a class="btn ghost" href="plan.html" data-nav="1">Change plan</a>
+<a class="btn ghost" href="./profile.html" data-nav="1">Edit profile</a>
+<a class="btn ghost" href="./plan.html" data-nav="1">Change plan</a>
 </div>
 
 <div class="hr"></div>
@@ -754,6 +499,8 @@ box-shadow: none;
 
 <div class="modalBackdrop" id="skipModal" style="display:none">
 <div class="modalCard">
+
+  <div class="modalScroll">
 <div class="modalTitle">Skip this job</div>
 
 <div class="field">
@@ -772,8 +519,8 @@ box-shadow: none;
 <label for="skipNote">Note</label>
 <textarea id="skipNote" placeholder="Optional note…"></textarea>
 </div>
-
-<div class="modalActions">
+  </div>
+  <div class="modalActions">
 <button class="btn ghost" id="skipCancel" type="button">Cancel</button>
 <button class="btn danger" id="skipConfirm" type="button">Skip</button>
 </div>
@@ -782,21 +529,26 @@ box-shadow: none;
 
 <div class="modalBackdrop" id="descModal" style="display:none">
   <div class="modalCard" style="max-width:920px">
-    <div class="modalTitle" id="descTitle">Job description</div>
+    
+  <div class="modalScroll">
+<div class="modalTitle" id="descTitle">Job description</div>
     <div class="small" id="descMeta" style="margin-top:-6px"></div>
     <div class="hr" style="margin:14px 0"></div>
     <div id="descBody" class="mono" style="white-space:pre-wrap; font-size:13px; line-height:1.45; max-height:60vh; overflow:auto; background:rgba(17,19,24,.04); border:1px solid rgba(17,19,24,.14); padding:12px; border-radius:14px;">Loading…</div>
-    <div class="modalActions">
+  </div>
+  <div class="modalActions">
       <button class="btn ghost" id="descClose" type="button">Close</button>
       <button class="btn" id="descCopy" type="button">Copy</button>
     </div>
-  </div>
+</div>
 </div>
 
 
 <div class="modalBackdrop" id="tailorModal" style="display:none">
   <div class="modalCard" style="max-width:960px">
-    <div class="modalTitle" id="tailorTitle">Tailored CV</div>
+    
+  <div class="modalScroll">
+<div class="modalTitle" id="tailorTitle">Tailored CV</div>
     <div class="small" id="tailorMeta" style="margin-top:-6px"></div>
     <div class="hr" style="margin:14px 0"></div>
     <div class="tailorControls" id="tailorControls">
@@ -823,19 +575,22 @@ box-shadow: none;
     <div id="tailorKeywords" class="small" style="margin-bottom:10px; display:none"></div>
     <div id="tailorPreview" class="cvPreview">Generating…</div>
     <div id="tailorBody" class="mono" style="display:none; white-space:pre-wrap; font-size:13px; line-height:1.45; max-height:60vh; overflow:auto; background:rgba(17,19,24,.04); border:1px solid rgba(17,19,24,.14); padding:12px; border-radius:14px;">Generating…</div>
-    <div class="modalActions">
+  </div>
+  <div class="modalActions">
       <button class="btn ghost" id="tailorClose" type="button">Close</button>
       <button class="btn ghost" id="tailorRegenerate" type="button">Regenerate</button>
       <button class="btn" id="tailorCopy" type="button">Copy</button>
       <button class="btn" id="tailorPrint" type="button">Print / PDF</button>
       <button class="btn" id="tailorDownload" type="button">Download .txt</button>
     </div>
-  </div>
+</div>
 </div>
 
 <footer class="footer">Support: <a href="mailto:team@jobmejob.com">team@jobmejob.com</a></footer>
 
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="./auth.js"></script>
+<script src="./shared.js"></script>
 <script>
 
 // Safety: some builds load helper functions later; ensure they exist before any event handlers run.
@@ -917,17 +672,58 @@ let tailorViewMode="preview";
 
 function setText(id,text){const el=document.getElementById(id); if(el) el.textContent=text;}
 function setHtml(id,html){const el=document.getElementById(id); if(el) el.innerHTML=html;}
-function setBadge(id,type,text){const el=document.getElementById(id); if(!el) return; el.className="badge"+(type?(" "+type):""); el.textContent=text;}
-function showTopError(msg){const el=document.getElementById("errorTop"); if(!el) return; el.style.display="block"; el.textContent=msg;}
-function clearTopError(){const el=document.getElementById("errorTop"); if(!el) return; el.style.display="none"; el.textContent="";}
-function escapeHtml(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
+function setBadge(id,type,text){
+  if(window.JobMeJobShared && typeof window.JobMeJobShared.setBadge==="function"){
+    return window.JobMeJobShared.setBadge(id,type,text);
+  }
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.className="badge"+(type?(" "+type):"");
+  el.textContent=text;
+}
+function showTopError(msg){
+  if(window.JobMeJobShared && typeof window.JobMeJobShared.showTopError==="function"){
+    return window.JobMeJobShared.showTopError("errorTop", msg);
+  }
+  const el=document.getElementById("errorTop");
+  if(!el) return;
+  if(!msg){ el.style.display="none"; el.textContent=""; return; }
+  el.style.display="block";
+  el.textContent=msg;
+}
+function clearTopError(){
+  if(window.JobMeJobShared && typeof window.JobMeJobShared.showTopError==="function"){
+    return window.JobMeJobShared.showTopError("errorTop", "");
+  }
+  const el=document.getElementById("errorTop");
+  if(!el) return;
+  el.style.display="none";
+  el.textContent="";
+}
+function escapeHtml(s){
+  if(window.JobMeJobShared && typeof window.JobMeJobShared.escapeHtml==="function"){
+    return window.JobMeJobShared.escapeHtml(s);
+  }
+  return String(s??"")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
 
 function showModal(id){
+  if(window.JobMeJobShared && typeof window.JobMeJobShared.showModal==="function"){
+    return window.JobMeJobShared.showModal(id);
+  }
   const el=document.getElementById(id);
   if(!el) return;
   el.style.display="flex";
 }
 function hideModal(id){
+  if(window.JobMeJobShared && typeof window.JobMeJobShared.hideModal==="function"){
+    return window.JobMeJobShared.hideModal(id);
+  }
   const el=document.getElementById(id);
   if(!el) return;
   el.style.display="none";
@@ -2432,13 +2228,9 @@ if(qaFetch){
 const qaView=document.getElementById("qaViewQueue");
 if(qaView){
   qaView.addEventListener("click",()=>{
-    // The queue now lives primarily on Jobs page.
-    // Keep the dashboard lighter and send users directly there.
-    try{ window.location.href="jobs.html"; }catch(_e){
-      const anchor=document.getElementById("btnRefresh") || document.getElementById("queueWrap");
-      if(anchor && anchor.scrollIntoView){
-        anchor.scrollIntoView({behavior:"smooth", block:"start"});
-      }
+    const anchor=document.getElementById("btnRefresh") || document.getElementById("queueWrap");
+    if(anchor && anchor.scrollIntoView){
+      anchor.scrollIntoView({behavior:"smooth", block:"start"});
     }
   });
 }
