@@ -307,6 +307,62 @@
       font-size:13px;
       line-height:1.35;
     }
+  
+    /* Keyword booster (truthful keyword insertion) */
+    button.chipBtn{
+      appearance:none;
+      -webkit-appearance:none;
+      background:transparent;
+      font:inherit;
+      border:0;
+      padding:0;
+      cursor:pointer;
+      line-height:1;
+    }
+    button.chipBtn .plus{
+      margin-left:6px;
+      font-weight:950;
+      opacity:.85;
+    }
+    button.chipBtn:focus-visible{
+      outline:2px solid rgba(34,197,94,.55);
+      outline-offset:2px;
+      border-radius:999px;
+    }
+
+    .checkRow{
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      margin-top:10px;
+      font-weight:850;
+      color:rgba(17,19,24,.80);
+      line-height:1.35;
+    }
+    .checkRow input{ margin-top:2px; }
+
+    .field{
+      width:100%;
+      border:1px solid rgba(17,19,24,.14);
+      background:rgba(255,255,255,.86);
+      border-radius:14px;
+      padding:10px 12px;
+      font-weight:800;
+      font-size:13px;
+      color:rgba(17,19,24,.88);
+      outline:none;
+    }
+    .field:focus{
+      border-color: rgba(34,197,94,.55);
+      box-shadow: 0 0 0 3px rgba(34,197,94,.16);
+    }
+    textarea.field{
+      resize:vertical;
+      min-height: 96px;
+      font-family: inherit;
+      line-height: 1.45;
+    }
+
   </style>
 </head>
 
@@ -502,11 +558,13 @@
         <div class="sectionTitle" style="margin-bottom:6px">
           <h2>ATS keywords</h2>
           <div class="row" style="justify-content:flex-end; flex:0 0 auto">
+            <button class="btn small ghost" id="btnUndoEdit" type="button" disabled title="Undo last local edit">Undo</button>
+            <button class="btn small ghost" id="btnResetEdits" type="button" disabled title="Reset to the last generated CV">Reset</button>
             <button class="btn small" id="btnCopyMissing" type="button" disabled>Copy missing</button>
           </div>
         </div>
 
-        <div class="hint">These keywords are extracted from the job description. We show which are used vs missing.</div>
+        <div class="hint">These keywords are extracted from the job description. Click a <b>missing</b> keyword to add it to your CV (truthfully) and improve your ATS match.</div>
 
         <div class="label" style="margin-top:12px">Used</div>
         <div class="chips" id="chipsUsed"></div>
@@ -578,6 +636,99 @@
     </div>
   </div>
 
+
+  <!-- Keyword insert modal -->
+  <div class="modalBackdrop" id="kwModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="kwTitle">
+    <div class="modalCard">
+      <div class="modalScroll">
+        <div class="modalHeader">
+          <div style="min-width:0">
+            <h3 class="modalTitle" id="kwTitle">Add keyword to CV</h3>
+            <div class="hint" style="margin-top:6px" id="kwSub">
+              We only add keywords that are true for you. Choose where it belongs and we’ll insert it in an ATS-safe way.
+            </div>
+          </div>
+          <button class="btn small" id="kwClose" type="button">Close</button>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="label">Keyword</div>
+        <div class="row">
+          <span class="badge warn" id="kwBadge">—</span>
+          <span class="hint" style="margin:0; flex:1 1 260px" id="kwBadgeHint">We insert this exact phrase so ATS can find it.</span>
+        </div>
+
+        <label class="checkRow">
+          <input type="checkbox" id="kwTruth"/>
+          <span>I confirm this keyword is accurate for me and I want it on my CV.</span>
+        </label>
+
+        <div class="hint" style="margin-top:8px">
+          We never invent experience or certifications. If it’s not true, don’t add it.
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="label">Where should it appear?</div>
+        <select id="kwTarget" class="selectWide">
+          <option value="skills">Skills</option>
+          <option value="experience">Experience (a specific role)</option>
+        </select>
+
+        <div id="kwSkillsBox" style="margin-top:10px">
+          <div class="label">Skills group</div>
+          <select id="kwSkillGroup" class="selectWide"></select>
+          <div class="hint">Best for tools, technologies, methods, domains.</div>
+        </div>
+
+        <div id="kwExpBox" style="display:none; margin-top:10px">
+          <div class="label">Experience entry</div>
+          <select id="kwExpIndex" class="selectWide"></select>
+
+          <div class="label" style="margin-top:10px">How to add it</div>
+          <select id="kwExpMode" class="selectWide">
+            <option value="new">Add as a new bullet</option>
+            <option value="append">Append to an existing bullet</option>
+          </select>
+
+          <div id="kwExpNewBox" style="margin-top:10px">
+            <div class="label">New bullet text</div>
+            <textarea id="kwNewBullet" class="field" placeholder="Keep it short, specific, and truthful."></textarea>
+            <div class="hint">The keyword must appear. Tip: include outcome or context if possible.</div>
+          </div>
+
+          <div id="kwExpAppendBox" style="display:none; margin-top:10px">
+            <div class="label">Which bullet?</div>
+            <select id="kwExpBulletIndex" class="selectWide"></select>
+
+            <div class="label" style="margin-top:10px">Append phrase</div>
+            <input id="kwAppendPhrase" class="field" type="text" placeholder="e.g., including Kubernetes"/>
+            <div class="hint">We’ll append this phrase to the selected bullet. Keep it truthful and readable.</div>
+          </div>
+        </div>
+
+        <details class="info" id="kwAdvanced" style="margin-top:12px">
+          <summary>Advanced</summary>
+          <label class="checkRow">
+            <input type="checkbox" id="kwApplyTextOnly"/>
+            <span>Apply to text only (preserve manual text edits)</span>
+          </label>
+          <div class="hint" id="kwTextOnlyHint" style="margin-top:6px">
+            If you edited the CV text manually, applying to the structured CV can overwrite your edits.
+          </div>
+        </details>
+
+        <div class="monoSmall" id="kwValidation" style="margin-top:12px">—</div>
+      </div>
+
+      <div class="modalActions">
+        <button class="btn" id="kwCancel" type="button">Cancel</button>
+        <button class="btn primary" id="kwApply" type="button" disabled>Add keyword</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="./auth.js"></script>
@@ -610,6 +761,13 @@
     let lastUsed = [];
     let lastMissing = [];
     let lastDebug = {};
+
+    // Local editing (keyword insertion)
+    let baseSnapshot = null;         // last generated (server) snapshot
+    let editHistory = [];            // undo stack
+    let isEdited = false;            // any local edits applied
+    let textDirty = false;           // user manually typed in the Text tab
+    let activeKeyword = "";
 
     /* -------------------------
        Helpers
@@ -727,11 +885,23 @@
       if(state === "error"){ setBadge("stepsBadge", "bad", "Failed"); return; }
     }
 
+    function updateEditButtons(){
+      const hasOutput = !!(String($("cvText").value || "").trim());
+      const canUndo = Array.isArray(editHistory) && editHistory.length > 0;
+      const canReset = !!(baseSnapshot && isEdited);
+
+      const undoBtn = $("btnUndoEdit");
+      const resetBtn = $("btnResetEdits");
+      if(undoBtn) undoBtn.disabled = !hasOutput || !canUndo;
+      if(resetBtn) resetBtn.disabled = !hasOutput || !canReset;
+    }
+
     function setOutputEnabled(enabled){
       $("btnCopy").disabled = !enabled;
       $("btnDownload").disabled = !enabled;
       $("btnPrint").disabled = !enabled;
       $("btnCopyMissing").disabled = !enabled;
+      updateEditButtons();
     }
 
     /* -------------------------
@@ -753,7 +923,7 @@
         : `<span class="hint">—</span>`;
 
       $("chipsMissing").innerHTML = miss.length
-        ? miss.slice(0, 80).map(k => `<span class="chip warn" title="${S.escapeHtml(k)}">${S.escapeHtml(k)}</span>`).join("")
+        ? miss.slice(0, 80).map(k => `<button type="button" class="chip warn chipBtn" data-kw="${S.escapeHtml(k)}" title="Add this keyword to your CV">${S.escapeHtml(k)}<span class="plus" aria-hidden="true">＋</span></button>`).join("")
         : `<span class="hint">—</span>`;
 
       setText("kwUsedCount", used.length ? String(used.length) : "0");
@@ -1006,7 +1176,63 @@
   .cvPaper{ max-width:820px; margin:0 auto; padding:0; }
   h1{ font-size:18px; margin:0 0 10px 0; }
   pre{ white-space:pre-wrap; font-size:12.5px; line-height:1.45; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace; }
-</style>
+
+    /* Keyword booster (truthful keyword insertion) */
+    button.chipBtn{
+      appearance:none;
+      -webkit-appearance:none;
+      background:transparent;
+      font:inherit;
+      border:0;
+      padding:0;
+      cursor:pointer;
+      line-height:1;
+    }
+    button.chipBtn .plus{
+      margin-left:6px;
+      font-weight:950;
+      opacity:.85;
+    }
+    button.chipBtn:focus-visible{
+      outline:2px solid rgba(34,197,94,.55);
+      outline-offset:2px;
+      border-radius:999px;
+    }
+
+    .checkRow{
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      margin-top:10px;
+      font-weight:850;
+      color:rgba(17,19,24,.80);
+      line-height:1.35;
+    }
+    .checkRow input{ margin-top:2px; }
+
+    .field{
+      width:100%;
+      border:1px solid rgba(17,19,24,.14);
+      background:rgba(255,255,255,.86);
+      border-radius:14px;
+      padding:10px 12px;
+      font-weight:800;
+      font-size:13px;
+      color:rgba(17,19,24,.88);
+      outline:none;
+    }
+    .field:focus{
+      border-color: rgba(34,197,94,.55);
+      box-shadow: 0 0 0 3px rgba(34,197,94,.16);
+    }
+    textarea.field{
+      resize:vertical;
+      min-height: 96px;
+      font-family: inherit;
+      line-height: 1.45;
+    }
+
+  </style>
 </head>
 <body>
   <div class="cvPaper">
@@ -1046,7 +1272,63 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>${safeTitle}</title>
-<style>${css}</style>
+<style>${css}
+    /* Keyword booster (truthful keyword insertion) */
+    button.chipBtn{
+      appearance:none;
+      -webkit-appearance:none;
+      background:transparent;
+      font:inherit;
+      border:0;
+      padding:0;
+      cursor:pointer;
+      line-height:1;
+    }
+    button.chipBtn .plus{
+      margin-left:6px;
+      font-weight:950;
+      opacity:.85;
+    }
+    button.chipBtn:focus-visible{
+      outline:2px solid rgba(34,197,94,.55);
+      outline-offset:2px;
+      border-radius:999px;
+    }
+
+    .checkRow{
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      margin-top:10px;
+      font-weight:850;
+      color:rgba(17,19,24,.80);
+      line-height:1.35;
+    }
+    .checkRow input{ margin-top:2px; }
+
+    .field{
+      width:100%;
+      border:1px solid rgba(17,19,24,.14);
+      background:rgba(255,255,255,.86);
+      border-radius:14px;
+      padding:10px 12px;
+      font-weight:800;
+      font-size:13px;
+      color:rgba(17,19,24,.88);
+      outline:none;
+    }
+    .field:focus{
+      border-color: rgba(34,197,94,.55);
+      box-shadow: 0 0 0 3px rgba(34,197,94,.16);
+    }
+    textarea.field{
+      resize:vertical;
+      min-height: 96px;
+      font-family: inherit;
+      line-height: 1.45;
+    }
+
+  </style>
 </head>
 <body>
 ${bodyHtml}
@@ -1097,10 +1379,25 @@ ${bodyHtml}
       lastCvDoc = doc || null;
       lastLang = lang || "en";
 
+      // Text view (prefer doc -> plain text to keep consistent formatting)
+      const textOut = lastCvDoc ? cvDocToPlainText(lastCvDoc, lastLang) : lastCvText;
+      lastCvText = String(textOut || "").trim();
+
       // Preview
       if(lastCvDoc){
         $("cvPreview").innerHTML = cvDocToPreviewHtml(lastCvDoc, lastLang);
       }else{
+        const safe = S.escapeHtml(lastCvText || "");
+        $("cvPreview").innerHTML = safe
+          ? `<pre class="cvPre">${safe}</pre>`
+          : `<div class="hint">No CV generated yet.</div>`;
+      }
+
+      $("cvText").value = textOut || "";
+      textDirty = false;
+
+      setOutputEnabled(!!(textOut && String(textOut).trim()));
+    }else{
         $("cvPreview").innerHTML = `<div class="hint">No structured preview available. Showing text only.</div>`;
       }
 
@@ -1192,6 +1489,7 @@ ${bodyHtml}
             renderKeywords();
 
             setCvOutput({ text: obj.cv_text || "", doc: obj.cv_doc || null, lang: obj.lang || obj.language || "en" });
+            try{ setBaseSnapshotFromCurrent(); }catch(_){ }
             setBadge("outStatus","good","Ready (local)");
             setText("outModel","Model: —");
             setText("outHint","Loaded your last tailored CV from this device. Generate to refresh from server.");
@@ -1255,6 +1553,9 @@ ${bodyHtml}
 
         renderKeywords();
         setCvOutput({ text, doc, lang });
+
+        // Base snapshot for local edits (undo/reset)
+        try{ setBaseSnapshotFromCurrent(); }catch(_){ }
 
         setBadge("outStatus", "good", res.cached ? "Ready (cached)" : "Ready");
         setText("outModel", "Model: " + (r.model || "—"));
@@ -1411,6 +1712,593 @@ ${bodyHtml}
       setTimeout(()=>{ $("btnCopyMissing").textContent = "Copy missing"; }, 900);
     }
 
+
+    /* -------------------------
+       Keyword insertion (local edits)
+       ------------------------- */
+    function deepClone(obj){
+      try{ return (obj == null) ? obj : JSON.parse(JSON.stringify(obj)); }
+      catch(_){ return obj; }
+    }
+
+    function uniqCaseInsensitive(arr){
+      const out = [];
+      const seen = new Set();
+      for(const x of (Array.isArray(arr) ? arr : [])){
+        const s = String(x || "").trim();
+        if(!s) continue;
+        const key = s.toLowerCase();
+        if(seen.has(key)) continue;
+        seen.add(key);
+        out.push(s);
+      }
+      return out;
+    }
+
+    function norm(s){
+      return String(s || "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/gi, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function containsKeyword(text, kw){
+      const k = norm(kw);
+      if(!k) return false;
+      const t = " " + norm(text) + " ";
+      return t.includes(" " + k + " ");
+    }
+
+    function getAllJobKeywords(){
+      return uniqCaseInsensitive([
+        ...(Array.isArray(lastUsed) ? lastUsed : []),
+        ...(Array.isArray(lastMissing) ? lastMissing : [])
+      ]);
+    }
+
+    function recomputeCoverageFromText(){
+      const all = getAllJobKeywords();
+      const txt = String($("cvText").value || "").trim();
+      if(!all.length || !txt) return;
+
+      const used = [];
+      const miss = [];
+      for(const kw of all){
+        (containsKeyword(txt, kw) ? used : miss).push(kw);
+      }
+      lastUsed = used;
+      lastMissing = miss;
+      renderKeywords();
+    }
+
+    function captureSnapshot(){
+      return {
+        cv_doc: deepClone(lastCvDoc),
+        cv_text: String($("cvText").value || lastCvText || "").trim(),
+        lang: lastLang || "en",
+        used: deepClone(lastUsed),
+        missing: deepClone(lastMissing),
+        debug: deepClone(lastDebug),
+        isEdited: !!isEdited,
+        textDirty: !!textDirty
+      };
+    }
+
+    function renderFromCurrentState(){
+      const txtOut = lastCvDoc ? cvDocToPlainText(lastCvDoc, lastLang) : String(lastCvText || "").trim();
+      lastCvText = String(txtOut || "").trim();
+      $("cvText").value = txtOut || "";
+
+      if(lastCvDoc){
+        $("cvPreview").innerHTML = cvDocToPreviewHtml(lastCvDoc, lastLang);
+      }else{
+        const safe = S.escapeHtml(lastCvText || "");
+        $("cvPreview").innerHTML = safe
+          ? `<pre class="cvPre">${safe}</pre>`
+          : `<div class="hint">No CV generated yet.</div>`;
+      }
+
+      setOutputEnabled(!!(String($("cvText").value || "").trim()));
+      renderKeywords();
+      updateEditButtons();
+    }
+
+    function applySnapshot(snap){
+      if(!snap) return;
+      lastCvDoc = snap.cv_doc || null;
+      lastCvText = String(snap.cv_text || "").trim();
+      lastLang = snap.lang || lastLang || "en";
+      lastUsed = Array.isArray(snap.used) ? snap.used : [];
+      lastMissing = Array.isArray(snap.missing) ? snap.missing : [];
+      lastDebug = snap.debug || lastDebug || {};
+      isEdited = !!snap.isEdited;
+      textDirty = !!snap.textDirty;
+
+      renderFromCurrentState();
+
+      if(isEdited){
+        setBadge("outStatus","good","Ready (edited)");
+      }
+    }
+
+    function setBaseSnapshotFromCurrent(){
+      baseSnapshot = captureSnapshot();
+      editHistory = [];
+      isEdited = false;
+      textDirty = false;
+      updateEditButtons();
+    }
+
+    function pushHistory(){
+      editHistory = Array.isArray(editHistory) ? editHistory : [];
+      editHistory.push(captureSnapshot());
+      if(editHistory.length > 30) editHistory.shift();
+      updateEditButtons();
+    }
+
+    function persistLocalCv(){
+      // best-effort local persistence so customer can come back later
+      try{
+        if(!selectedJob?.id) return;
+        const key = "cvstudio_last_" + String(selectedJob.id);
+        let existing = {};
+        try{ existing = JSON.parse(localStorage.getItem(key) || "{}") || {}; }catch(_){}
+        const payload = existing.payload || buildTailorPayload();
+        localStorage.setItem(key, JSON.stringify({
+          ...existing,
+          at: Date.now(),
+          payload,
+          cv_text: String($("cvText").value || "").trim(),
+          cv_doc: lastCvDoc,
+          lang: lastLang,
+          used: lastUsed,
+          missing: lastMissing,
+          debug: { ...(existing.debug || {}), ...(lastDebug || {}), edited_local:true }
+        }));
+      }catch(_){}
+    }
+
+    function markEdited(){
+      isEdited = true;
+      setBadge("outStatus", "good", "Ready (edited)");
+      setText("outHint", "Edited locally. Export below when ready.");
+      updateEditButtons();
+      persistLocalCv();
+    }
+
+    function undoLastEdit(){
+      if(!Array.isArray(editHistory) || !editHistory.length) return;
+      const snap = editHistory.pop();
+      applySnapshot(snap);
+      isEdited = true;
+      setBadge("outStatus", "good", "Ready (edited)");
+      updateEditButtons();
+      persistLocalCv();
+    }
+
+    function resetEdits(){
+      if(!baseSnapshot) return;
+      applySnapshot(baseSnapshot);
+      editHistory = [];
+      isEdited = false;
+      textDirty = false;
+      setBadge("outStatus", "good", "Ready");
+      setText("outHint", "Reset to the last generated CV.");
+      updateEditButtons();
+      persistLocalCv();
+    }
+
+    function insertKeywordIntoDocSkills(doc, kw, groupIdx){
+      doc.skills = doc.skills || {};
+      doc.skills.groups = Array.isArray(doc.skills.groups) ? doc.skills.groups : [];
+      doc.skills.additional = Array.isArray(doc.skills.additional) ? doc.skills.additional : [];
+
+      const key = norm(kw);
+      if(!key) return { ok:false, msg:"Empty keyword." };
+
+      const existsInAdditional = doc.skills.additional.some(x => norm(x) === key);
+      const existsInGroups = doc.skills.groups.some(g => Array.isArray(g?.items) && g.items.some(x => norm(x) === key));
+
+      if(existsInAdditional || existsInGroups){
+        return { ok:true, msg:"Keyword already present in Skills." };
+      }
+
+      const gi = Number(groupIdx);
+      if(!Number.isFinite(gi) || gi < 0 || !doc.skills.groups[gi]){
+        doc.skills.additional.push(kw);
+        doc.skills.additional = uniqCaseInsensitive(doc.skills.additional).slice(0, 40);
+        return { ok:true, msg:"Added to Additional skills." };
+      }
+
+      const g = doc.skills.groups[gi];
+      g.items = Array.isArray(g.items) ? g.items : [];
+      g.items.push(kw);
+      g.items = uniqCaseInsensitive(g.items).slice(0, 40);
+      return { ok:true, msg:"Added to Skills → " + String(g.label || "Group") + "." };
+    }
+
+    function insertKeywordIntoDocExperience(doc, kw, expIdx, mode, bulletIdx, newBulletText, appendPhrase){
+      doc.experience = Array.isArray(doc.experience) ? doc.experience : [];
+      const ei = Number(expIdx);
+      if(!Number.isFinite(ei) || !doc.experience[ei]) return { ok:false, msg:"Experience entry not found." };
+
+      const e = doc.experience[ei];
+      e.bullets = Array.isArray(e.bullets) ? e.bullets : [];
+
+      if(mode === "append"){
+        const bi = Number(bulletIdx);
+        if(!Number.isFinite(bi) || !e.bullets[bi]) return { ok:false, msg:"Bullet not found." };
+
+        const base = String(e.bullets[bi] || "").trim();
+        if(containsKeyword(base, kw)) return { ok:true, msg:"Keyword already present in that bullet." };
+
+        let phrase = String(appendPhrase || "").trim();
+        if(!phrase) phrase = "including " + kw;
+        if(!containsKeyword(phrase, kw)) phrase = phrase + " (" + kw + ")";
+
+        const spacer = base.endsWith(".") ? " " : " ";
+        e.bullets[bi] = (base + spacer + phrase).trim();
+        return { ok:true, msg:"Appended to selected bullet." };
+      }
+
+      // new bullet
+      let bullet = String(newBulletText || "").trim();
+      if(!bullet) bullet = "Applied " + kw + " in day-to-day work.";
+      if(!containsKeyword(bullet, kw)) bullet = (bullet + " (" + kw + ")").trim();
+
+      if(e.bullets.length >= 12) e.bullets = e.bullets.slice(0, 11);
+      e.bullets.push(bullet);
+      return { ok:true, msg:"Added new bullet to experience." };
+    }
+
+    // Plain-text insertion (fallback / preserve manual edits)
+    function isHeadingLine(line){
+      const s = String(line || "").trim();
+      if(!s) return false;
+      if(s.length > 40) return false;
+      return s === s.toUpperCase() && /[A-Z]/.test(s) && !/[a-z]/.test(s);
+    }
+
+    function findSectionBounds(lines, heading){
+      const H = String(heading || "").trim().toUpperCase();
+      let start = -1;
+      for(let i=0;i<lines.length;i++){
+        if(String(lines[i] || "").trim().toUpperCase() === H){ start = i; break; }
+      }
+      if(start < 0) return null;
+
+      let end = lines.length;
+      for(let i=start+1;i<lines.length;i++){
+        if(isHeadingLine(lines[i])){ end = i; break; }
+      }
+      return { start, end };
+    }
+
+    function insertKeywordIntoPlainTextSkills(text, kw){
+      const lines = String(text || "").split(/\r?\n/);
+      const bounds = findSectionBounds(lines, "SKILLS");
+      if(!bounds){
+        if(lines.length && lines[lines.length-1].trim() !== "") lines.push("");
+        lines.push("SKILLS");
+        lines.push(kw);
+        lines.push("");
+        return lines.join("\n").trim() + "\n";
+      }
+
+      // place it near the end of Skills section
+      let lastNonEmpty = -1;
+      for(let i=bounds.end-1;i>bounds.start;i--){
+        if(String(lines[i] || "").trim() !== ""){ lastNonEmpty = i; break; }
+      }
+
+      if(lastNonEmpty > bounds.start){
+        const cur = String(lines[lastNonEmpty] || "");
+        if(!containsKeyword(cur, kw)){
+          if(cur.length < 160 && /[:,·]/.test(cur)){
+            lines[lastNonEmpty] = cur.replace(/\s*$/, "") + (cur.trim().endsWith("·") ? " " : " · ") + kw;
+          }else{
+            lines.splice(lastNonEmpty+1, 0, kw);
+          }
+        }
+      }else{
+        lines.splice(bounds.start+1, 0, kw);
+      }
+
+      return lines.join("\n").trim() + "\n";
+    }
+
+    function insertKeywordIntoPlainTextExperience(text, kw, mode, appendPhrase, newBulletText){
+      const lines = String(text || "").split(/\r?\n/);
+      const bounds = findSectionBounds(lines, "EXPERIENCE");
+      if(!bounds){
+        if(lines.length && lines[lines.length-1].trim() !== "") lines.push("");
+        lines.push("EXPERIENCE");
+        lines.push("(Add your experience here)");
+        const b = String(newBulletText || ("Applied " + kw + ".")).trim();
+        lines.push("- " + (containsKeyword(b, kw) ? b : (b + " (" + kw + ")")));
+        lines.push("");
+        return lines.join("\n").trim() + "\n";
+      }
+
+      // insert before end of experience section (simple + robust)
+      let insertAt = bounds.end;
+      for(let i=bounds.end-1;i>bounds.start;i--){
+        if(String(lines[i] || "").trim() === ""){
+          insertAt = i;
+          break;
+        }
+      }
+
+      if(mode === "append"){
+        // try append to last bullet in experience section, else add a new bullet
+        let lastBullet = -1;
+        for(let i=insertAt-1;i>bounds.start;i--){
+          const s = String(lines[i] || "").trim();
+          if(s.startsWith("- ")){ lastBullet = i; break; }
+          if(s === "") break;
+        }
+
+        let phrase = String(appendPhrase || "").trim();
+        if(!phrase) phrase = "including " + kw;
+        if(!containsKeyword(phrase, kw)) phrase = phrase + " (" + kw + ")";
+
+        if(lastBullet >= 0){
+          const base = String(lines[lastBullet] || "").trim();
+          if(!containsKeyword(base, kw)){
+            lines[lastBullet] = (base + " " + phrase).trim();
+          }
+        }else{
+          const b = String(newBulletText || ("Applied " + kw + ".")).trim();
+          lines.splice(insertAt, 0, "- " + (containsKeyword(b, kw) ? b : (b + " (" + kw + ")")));
+        }
+      }else{
+        const b = String(newBulletText || ("Applied " + kw + ".")).trim();
+        lines.splice(insertAt, 0, "- " + (containsKeyword(b, kw) ? b : (b + " (" + kw + ")")));
+      }
+
+      return lines.join("\n").trim() + "\n";
+    }
+
+    function setKwModalUi(){
+      const target = String($("kwTarget").value || "skills");
+      const mode = String($("kwExpMode").value || "new");
+
+      $("kwSkillsBox").style.display = (target === "skills") ? "" : "none";
+      $("kwExpBox").style.display = (target === "experience") ? "" : "none";
+      $("kwExpNewBox").style.display = (target === "experience" && mode === "new") ? "" : "none";
+      $("kwExpAppendBox").style.display = (target === "experience" && mode === "append") ? "" : "none";
+
+      // If user typed in Text tab, steer them to preserve edits
+      const hint = $("kwTextOnlyHint");
+      if(hint){
+        hint.textContent = textDirty
+          ? "You edited the CV text manually. Applying to the structured CV may overwrite those edits. Use “Apply to text only” to preserve them."
+          : "If you edited the CV text manually, applying to the structured CV can overwrite your edits.";
+      }
+
+      validateKwModal();
+    }
+
+    function populateKwSkillGroups(){
+      const sel = $("kwSkillGroup");
+      sel.innerHTML = "";
+
+      const o0 = document.createElement("option");
+      o0.value = "-1";
+      o0.textContent = "Additional skills (recommended)";
+      sel.appendChild(o0);
+
+      const groups = Array.isArray(lastCvDoc?.skills?.groups) ? lastCvDoc.skills.groups : [];
+      for(let i=0;i<groups.length;i++){
+        const g = groups[i] || {};
+        const label = String(g.label || ("Group " + (i+1))).trim();
+        const opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = label;
+        sel.appendChild(opt);
+      }
+
+      sel.value = "-1";
+    }
+
+    function expLabel(e, i){
+      const title = String(e?.title || "").trim() || ("Role " + (i+1));
+      const company = String(e?.company || "").trim();
+      const loc = String(e?.location || "").trim();
+      const meta = [company, loc].filter(Boolean).join(" · ");
+      return meta ? (title + " — " + meta) : title;
+    }
+
+    function populateKwExperiences(){
+      const sel = $("kwExpIndex");
+      sel.innerHTML = "";
+
+      const exp = Array.isArray(lastCvDoc?.experience) ? lastCvDoc.experience : [];
+      if(exp.length){
+        for(let i=0;i<exp.length;i++){
+          const opt = document.createElement("option");
+          opt.value = String(i);
+          opt.textContent = expLabel(exp[i], i);
+          sel.appendChild(opt);
+        }
+        sel.value = "0";
+      }else{
+        const opt = document.createElement("option");
+        opt.value = "0";
+        opt.textContent = "Experience section (text only)";
+        sel.appendChild(opt);
+        sel.value = "0";
+      }
+
+      populateKwBullets();
+    }
+
+    function populateKwBullets(){
+      const sel = $("kwExpBulletIndex");
+      sel.innerHTML = "";
+
+      const ei = Number($("kwExpIndex").value || 0);
+      const bullets = Array.isArray(lastCvDoc?.experience?.[ei]?.bullets) ? lastCvDoc.experience[ei].bullets : [];
+
+      if(!bullets.length){
+        const opt = document.createElement("option");
+        opt.value = "0";
+        opt.textContent = "(No bullets found)";
+        sel.appendChild(opt);
+        sel.value = "0";
+        return;
+      }
+
+      for(let i=0;i<bullets.length;i++){
+        const b = String(bullets[i] || "").trim();
+        const opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = (b.length > 90) ? (b.slice(0, 90) + "…") : b;
+        sel.appendChild(opt);
+      }
+      sel.value = "0";
+    }
+
+    function validateKwModal(){
+      const kw = String(activeKeyword || "").trim();
+      const truth = !!$("kwTruth").checked;
+      const target = String($("kwTarget").value || "skills");
+      const mode = String($("kwExpMode").value || "new");
+      const applyTextOnly = !!$("kwApplyTextOnly").checked;
+
+      const lines = [];
+      let ok = true;
+
+      if(!kw){ ok = false; lines.push("No keyword selected."); }
+      if(!truth){ ok = false; lines.push("Please confirm the keyword is true to enable insertion."); }
+
+      if(target === "skills"){
+        const groupSel = $("kwSkillGroup");
+        const groupLabel = groupSel ? groupSel.options[groupSel.selectedIndex]?.textContent : "Skills";
+        lines.push("Where: Skills → " + String(groupLabel || "Additional skills") + ".");
+        lines.push("Insert: " + kw);
+      }else{
+        const expSel = $("kwExpIndex");
+        const expLabelTxt = expSel ? expSel.options[expSel.selectedIndex]?.textContent : "Experience";
+        lines.push("Where: Experience → " + String(expLabelTxt || "Selected role") + ".");
+
+        if(mode === "new"){
+          const bullet = String($("kwNewBullet").value || "").trim();
+          if(!bullet){ ok = false; lines.push("New bullet text is empty."); }
+          else{
+            if(!containsKeyword(bullet, kw)){
+              ok = false;
+              lines.push("New bullet must contain the keyword.");
+            }
+            lines.push("New bullet: " + bullet);
+          }
+        }else{
+          const phraseRaw = String($("kwAppendPhrase").value || "").trim();
+          const phrase = phraseRaw || ("including " + kw);
+          if(!phrase){ ok = false; lines.push("Append phrase is empty."); }
+          lines.push("Append phrase: " + phrase + (containsKeyword(phrase, kw) ? "" : "  (keyword will be appended automatically)"));
+        }
+      }
+
+      if(textDirty && !applyTextOnly && lastCvDoc){
+        lines.push("");
+        lines.push("⚠ This will overwrite your manual text edits (structured CV becomes the source).");
+      }
+      if(applyTextOnly){
+        lines.push("");
+        lines.push("Applying to: Text only (preview becomes text-based).");
+      }else{
+        lines.push("");
+        lines.push("Applying to: Structured CV (recommended).");
+      }
+
+      $("kwValidation").textContent = lines.join("\n");
+      $("kwApply").disabled = !ok;
+    }
+
+    function openKwModal(keyword){
+      const kw = String(keyword || "").trim();
+      if(!kw) return;
+
+      activeKeyword = kw;
+
+      $("kwBadge").textContent = kw;
+      $("kwTruth").checked = false;
+      $("kwTarget").value = "skills";
+      $("kwExpMode").value = "new";
+      $("kwApplyTextOnly").checked = false;
+
+      populateKwSkillGroups();
+      populateKwExperiences();
+
+      // defaults
+      $("kwNewBullet").value = "Applied " + kw + " in day-to-day work to support key deliverables.";
+      $("kwAppendPhrase").value = "including " + kw;
+
+      setKwModalUi();
+      S.showModal("kwModal");
+    }
+
+    function applyKwModal(){
+      const kw = String(activeKeyword || "").trim();
+      if(!kw) return;
+      if(!$("kwTruth").checked) return;
+
+      const target = String($("kwTarget").value || "skills");
+      const mode = String($("kwExpMode").value || "new");
+      const groupIdx = $("kwSkillGroup") ? $("kwSkillGroup").value : "-1";
+      const expIdx = $("kwExpIndex") ? $("kwExpIndex").value : "0";
+      const bulletIdx = $("kwExpBulletIndex") ? $("kwExpBulletIndex").value : "0";
+      const newBullet = String($("kwNewBullet").value || "").trim();
+      const appendPhrase = String($("kwAppendPhrase").value || "").trim();
+      const applyTextOnly = !!$("kwApplyTextOnly").checked || !lastCvDoc;
+
+      pushHistory();
+
+      if(applyTextOnly){
+        // Apply to plain text output (preserve manual edits)
+        let txt = String($("cvText").value || lastCvText || "").trim();
+        if(target === "skills"){
+          txt = insertKeywordIntoPlainTextSkills(txt, kw);
+        }else{
+          txt = insertKeywordIntoPlainTextExperience(txt, kw, mode, appendPhrase, newBullet);
+        }
+
+        lastCvDoc = null; // avoid preview/text mismatch
+        lastCvText = String(txt || "").trim();
+        $("cvText").value = txt || "";
+        textDirty = false;
+
+        // Re-render as text preview
+        renderFromCurrentState();
+      }else{
+        // Apply to structured CV doc
+        const doc = deepClone(lastCvDoc) || {};
+        let result = { ok:false, msg:"Failed." };
+
+        if(target === "skills"){
+          result = insertKeywordIntoDocSkills(doc, kw, groupIdx);
+        }else{
+          result = insertKeywordIntoDocExperience(doc, kw, expIdx, mode, bulletIdx, newBullet, appendPhrase);
+        }
+
+        lastCvDoc = doc;
+        textDirty = false;
+        renderFromCurrentState();
+
+        // quick feedback in modal (will close shortly)
+        $("kwValidation").textContent = (result.ok ? "✓ " : "✕ ") + String(result.msg || "");
+      }
+
+      // update keyword coverage based on current text
+      recomputeCoverageFromText();
+      markEdited();
+
+      // close modal
+      S.hideModal("kwModal");
+    }
+
     /* -------------------------
        Auth + boot
        ------------------------- */
@@ -1513,6 +2401,7 @@ ${bodyHtml}
       if(e.key === "Escape"){
         S.hideModal("atsModal");
         S.hideModal("descModal");
+        S.hideModal("kwModal");
       }
     });
 
@@ -1526,6 +2415,60 @@ ${bodyHtml}
     $("btnDownload").addEventListener("click", downloadTxt);
     $("btnPrint").addEventListener("click", printPdf);
     $("btnCopyMissing").addEventListener("click", copyMissing);
+
+    // Missing keyword chips -> insert modal
+    $("chipsMissing").addEventListener("click", (e) => {
+      const btn = e.target.closest("button.chipBtn");
+      if(!btn) return;
+      const kw = btn.getAttribute("data-kw") || btn.textContent || "";
+      if(!String($("cvText").value || "").trim()){
+        showError("Generate a CV first, then add keywords.");
+        return;
+      }
+      openKwModal(kw);
+    });
+
+    // Undo / reset local edits
+    $("btnUndoEdit").addEventListener("click", undoLastEdit);
+    $("btnResetEdits").addEventListener("click", resetEdits);
+
+    // Keyword modal wiring
+    $("kwClose").addEventListener("click", () => S.hideModal("kwModal"));
+    $("kwCancel").addEventListener("click", () => S.hideModal("kwModal"));
+    $("kwModal").addEventListener("click", (e) => { if(e.target && e.target.id === "kwModal") S.hideModal("kwModal"); });
+
+    $("kwTarget").addEventListener("change", setKwModalUi);
+    $("kwExpMode").addEventListener("change", setKwModalUi);
+    $("kwSkillGroup").addEventListener("change", validateKwModal);
+    $("kwExpIndex").addEventListener("change", () => { populateKwBullets(); validateKwModal(); });
+    $("kwExpBulletIndex").addEventListener("change", validateKwModal);
+    $("kwTruth").addEventListener("change", validateKwModal);
+    $("kwApplyTextOnly").addEventListener("change", validateKwModal);
+    $("kwNewBullet").addEventListener("input", validateKwModal);
+    $("kwAppendPhrase").addEventListener("input", validateKwModal);
+
+    $("kwApply").addEventListener("click", applyKwModal);
+
+    // Track manual edits in Text tab (preview becomes text-based)
+    $("cvText").addEventListener("input", () => {
+      const v = String($("cvText").value || "");
+      lastCvText = v.trim();
+      if(lastCvDoc){
+        lastCvDoc = null; // avoid preview mismatch
+      }
+      textDirty = true;
+      isEdited = true;
+      setBadge("outStatus","good","Ready (edited)");
+
+      const safe = S.escapeHtml(lastCvText || "");
+      $("cvPreview").innerHTML = safe
+        ? `<pre class="cvPre">${safe}</pre>`
+        : `<div class="hint">—</div>`;
+
+      recomputeCoverageFromText();
+      updateEditButtons();
+      persistLocalCv();
+    });
 
     // Logout
     $("navLogout").addEventListener("click", async () => {
