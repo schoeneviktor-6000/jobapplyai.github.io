@@ -1,0 +1,1267 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>jobmejob • CV Studio</title>
+  <meta name="description" content="Tailor your CV per job with ATS-safe formatting."/>
+
+  <!-- Shared styles -->
+  <link rel="stylesheet" href="./shared.css"/>
+
+  <style>
+    /* Page-specific layout only */
+    .layout{
+      display:grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 980px){
+      .layout{ grid-template-columns: 1fr; }
+    }
+
+    .sectionTitle{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .sectionTitle h2{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.02em;
+      text-transform:uppercase;
+      color:rgba(17,19,24,.70);
+    }
+
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .row > *{ flex: 1 1 auto; }
+
+    .label{
+      font-weight:900;
+      font-size:13px;
+      color:rgba(17,19,24,.80);
+      margin:10px 0 6px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .hint{
+      font-size:12px;
+      color:rgba(17,19,24,.58);
+      font-weight:650;
+      line-height:1.45;
+      margin-top:6px;
+    }
+
+    .selectWide{ width:100%; }
+    .jobMeta{
+      font-size:13px;
+      color:rgba(17,19,24,.62);
+      font-weight:700;
+      line-height:1.4;
+      white-space:pre-wrap;
+    }
+
+    .strengthWrap{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-top:6px;
+    }
+    .strengthTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    input[type="range"]{ width:100%; }
+    .strengthPills{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .miniPill{
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(17,19,24,.12);
+      background:rgba(17,19,24,.04);
+      font-weight:900;
+      font-size:12px;
+      color:rgba(17,19,24,.78);
+      white-space:nowrap;
+    }
+    .miniPill.active{
+      border-color: rgba(34,197,94,.55);
+      background: rgba(34,197,94,.14);
+      color:#0a3d1f;
+    }
+
+    details.info{
+      margin-top:10px;
+      border:1px solid rgba(17,19,24,.10);
+      border-radius:16px;
+      background:rgba(255,255,255,.70);
+      padding:10px 12px;
+    }
+    details.info summary{
+      cursor:pointer;
+      font-weight:900;
+      color:rgba(17,19,24,.78);
+      list-style:none;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    details.info summary::-webkit-details-marker{display:none}
+
+    /* Output */
+    .outputTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .tabs{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .tabBtn{
+      padding:9px 12px;
+      border-radius:999px;
+      border:1px solid rgba(17,19,24,.12);
+      background:rgba(17,19,24,.04);
+      font-weight:900;
+      font-size:12px;
+      cursor:pointer;
+    }
+    .tabBtn.active{
+      border-color: rgba(34,197,94,.55);
+      background: rgba(34,197,94,.14);
+      color:#0a3d1f;
+    }
+
+    .cvBox{
+      margin-top:12px;
+      border:1px solid rgba(17,19,24,.12);
+      background:rgba(17,19,24,.03);
+      border-radius:16px;
+      padding:12px;
+      overflow:auto;
+      max-height: 56vh;
+      -webkit-overflow-scrolling:touch;
+    }
+    .cvPre{
+      margin:0;
+      white-space:pre-wrap;
+      font-size:13px;
+      line-height:1.45;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      color: rgba(17,19,24,.92);
+    }
+    textarea.cvText{
+      width:100%;
+      min-height: 56vh;
+      border:0;
+      outline:none;
+      resize:vertical;
+      background:transparent;
+      font-size:13px;
+      line-height:1.45;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      color: rgba(17,19,24,.92);
+    }
+
+    .stickyActions{
+      position:sticky;
+      bottom:0;
+      margin-top:12px;
+      padding-top:10px;
+      background:linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,.92) 30%, rgba(255,255,255,.96));
+      backdrop-filter: blur(10px);
+    }
+    .stickyRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    @media (max-width:620px){
+      .stickyRow{ flex-direction:column; }
+      .stickyRow .btn{ width:100%; justify-content:center; }
+      .cvBox{ max-height: 52vh; }
+      textarea.cvText{ min-height: 52vh; }
+    }
+
+    .kpiRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:10px;
+    }
+    .kpi{
+      flex: 1 1 170px;
+      min-width: 170px;
+      border:1px solid rgba(17,19,24,.10);
+      background:rgba(255,255,255,.78);
+      border-radius:16px;
+      padding:10px 12px;
+    }
+    .kpi .k{
+      font-size:12px;
+      color:rgba(17,19,24,.60);
+      font-weight:850;
+    }
+    .kpi .v{
+      margin-top:6px;
+      font-size:18px;
+      font-weight:980;
+      letter-spacing:-.4px;
+    }
+    .bar{
+      height:10px;
+      border-radius:999px;
+      background:rgba(17,19,24,.08);
+      overflow:hidden;
+      margin-top:10px;
+    }
+    .bar > div{
+      height:100%;
+      width:0%;
+      background:linear-gradient(90deg, rgba(34,197,94,.70), rgba(22,163,74,.70));
+      border-radius:999px;
+      transition:width .25s ease;
+    }
+
+    .chips{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:8px;
+    }
+    .chip{
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(17,19,24,.12);
+      background:rgba(17,19,24,.04);
+      font-weight:850;
+      font-size:12px;
+      color:rgba(17,19,24,.78);
+      white-space:nowrap;
+      max-width:100%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .chip.good{ border-color: rgba(34,197,94,.38); background: rgba(34,197,94,.12); color:#0a3d1f; }
+    .chip.warn{ border-color: rgba(255,179,0,.38); background: rgba(255,179,0,.12); color:#5a3b00; }
+
+    .monoSmall{
+      white-space:pre-wrap;
+      font-size:12px;
+      line-height:1.45;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      color: rgba(17,19,24,.72);
+      background:rgba(17,19,24,.04);
+      border:1px solid rgba(17,19,24,.12);
+      border-radius:14px;
+      padding:10px;
+      margin-top:10px;
+    }
+
+    /* Modal (description) uses shared modal styles */
+    .descTitle{
+      font-weight:950;
+      font-size:16px;
+      margin:0;
+    }
+    .descMeta{
+      margin-top:6px;
+      color:rgba(17,19,24,.62);
+      font-weight:700;
+      font-size:13px;
+      line-height:1.35;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="./index.html" data-nav="1" aria-label="Home">
+        <span class="logo" aria-hidden="true"></span>
+        <span>jobmejob</span>
+      </a>
+
+      <div class="navlinks">
+        <a class="pill" href="./index.html" data-nav="1">Home</a>
+        <a class="pill" href="./profile.html" data-nav="1">Profile</a>
+        <a class="pill" href="./plan.html" data-nav="1">Plan</a>
+        <a class="pill" href="./jobs.html" data-nav="1">Jobs</a>
+        <a class="pill" href="./dashboard.html" data-nav="1">Dashboard</a>
+        <a class="pill active" href="./cv.html" data-nav="1">CV Studio</a>
+        <a class="pill" href="./signup.html" id="navSignIn" data-nav="1">Sign in</a>
+        <button class="pill" id="navLogout" type="button" style="display:none;">Logout</button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="main">
+    <h1 class="h1">CV Studio</h1>
+    <p class="sub">Tailor your CV per role with ATS-safe formatting. Job search + CV tailoring stay free.</p>
+
+    <div class="errorTop" id="errorTop"></div>
+
+    <section class="layout">
+      <!-- LEFT: Controls -->
+      <div class="card">
+        <div class="sectionTitle">
+          <h2>Setup</h2>
+          <span class="badge warn" id="authBadge">Checking…</span>
+        </div>
+
+        <div class="label">Job to tailor</div>
+        <div class="row">
+          <select id="jobSelect" class="selectWide">
+            <option value="">Loading…</option>
+          </select>
+          <a class="btn" href="./jobs.html" data-nav="1" style="flex:0 0 auto">Open Jobs</a>
+        </div>
+        <div class="hint" id="jobHint">Pick a job from your queue.</div>
+        <div class="jobMeta" id="jobMeta"></div>
+
+        <div class="row" style="margin-top:10px">
+          <button class="btn ghost" id="btnViewDesc" type="button" disabled>View description</button>
+          <button class="btn ghost" id="btnCopyDesc" type="button" disabled>Copy description</button>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="label">
+          Template
+          <span class="badge" title="ATS-safe formatting">ATS-safe</span>
+        </div>
+        <div class="row">
+          <select id="tplSelect" class="selectWide">
+            <option value="professional">Professional (ATS-safe)</option>
+          </select>
+          <button class="btn ghost" id="btnAtsInfo" type="button" style="flex:0 0 auto">ATS?</button>
+        </div>
+        <div class="hint">ATS-safe formatting = simple headings, no tables/columns, easy-to-parse structure.</div>
+
+        <div class="label">Tailoring strength</div>
+        <div class="strengthWrap">
+          <div class="strengthTop">
+            <div class="strengthPills" id="strengthPills">
+              <span class="miniPill" data-s="0">Light</span>
+              <span class="miniPill active" data-s="1">Balanced</span>
+              <span class="miniPill" data-s="2">Aggressive</span>
+            </div>
+            <span class="badge" id="strengthBadge">Balanced</span>
+          </div>
+
+          <input id="strengthRange" type="range" min="0" max="2" step="1" value="1" />
+
+          <div class="hint" id="strengthHint">
+            Improves summary and bullets to match the job, without over-rewriting.
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row">
+          <button class="btn primary" id="btnGenerate" type="button" disabled>Generate tailored CV</button>
+          <button class="btn" id="btnGenerateAgain" type="button" disabled>Generate again</button>
+        </div>
+        <div class="hint" id="genHint">
+          Same settings reuse a cached result (fast). To create a different version, change the tailoring strength.
+        </div>
+
+        <details class="info" open>
+          <summary>
+            What we tailor (step-by-step)
+            <span class="badge" id="stepsBadge">Ready</span>
+          </summary>
+
+          <div class="hint" style="margin-top:8px">
+            This is what happens when you click “Generate”:
+          </div>
+
+          <ul style="margin:10px 0 0 18px; color:rgba(17,19,24,.70); font-weight:750; line-height:1.55" id="stepsList">
+            <li><span id="s1">Extract job keywords</span></li>
+            <li><span id="s2">Align summary & bullets</span></li>
+            <li><span id="s3">Keep ATS-safe structure</span></li>
+            <li><span id="s4">Compute ATS match</span></li>
+            <li><span id="s5">Prepare preview & export</span></li>
+          </ul>
+
+          <div class="hint" style="margin-top:10px">
+            We stay truthful: we never invent experience or certifications. We only rephrase / reorder based on your uploaded CV + profile.
+          </div>
+        </details>
+
+        <details class="info" id="pipelineDetails">
+          <summary>
+            Pipeline status
+            <span class="badge" id="pipeBadge">—</span>
+          </summary>
+          <div class="monoSmall" id="pipeBox">Generate a CV to see pipeline details.</div>
+        </details>
+      </div>
+
+      <!-- RIGHT: Output -->
+      <div class="card">
+        <div class="outputTop">
+          <div>
+            <div style="font-weight:980;font-size:18px;letter-spacing:-.2px">Tailored CV</div>
+            <div class="hint" id="outHint">Generate a CV to see preview and ATS match.</div>
+          </div>
+
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+            <span class="badge warn" id="outStatus">Not generated</span>
+            <span class="badge" id="outModel">Model: —</span>
+          </div>
+        </div>
+
+        <div class="kpiRow">
+          <div class="kpi">
+            <div class="k">ATS match</div>
+            <div class="v" id="atsScore">—</div>
+            <div class="bar" aria-hidden="true"><div id="atsBar"></div></div>
+            <div class="hint" id="atsHint">Calculated from keyword coverage (used vs missing).</div>
+          </div>
+
+          <div class="kpi">
+            <div class="k">Keywords used</div>
+            <div class="v" id="kwUsedCount">—</div>
+            <div class="hint">Found in your tailored CV.</div>
+          </div>
+
+          <div class="kpi">
+            <div class="k">Keywords missing</div>
+            <div class="v" id="kwMissCount">—</div>
+            <div class="hint">Consider adding (truthfully) if relevant.</div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="tabs" role="tablist" aria-label="Output view">
+          <button class="tabBtn active" id="tabPreview" type="button">Preview</button>
+          <button class="tabBtn" id="tabText" type="button">Text</button>
+        </div>
+
+        <div class="cvBox" id="cvBox">
+          <pre class="cvPre" id="cvPre">No CV generated yet.</pre>
+          <textarea class="cvText" id="cvText" style="display:none" spellcheck="false"></textarea>
+        </div>
+
+        <div class="stickyActions">
+          <div class="stickyRow">
+            <button class="btn" id="btnCopy" type="button" disabled>Copy</button>
+            <button class="btn" id="btnDownload" type="button" disabled>Download .txt</button>
+            <button class="btn primary" id="btnPrint" type="button" disabled>Print / PDF</button>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="sectionTitle" style="margin-bottom:6px">
+          <h2>ATS keywords</h2>
+          <div class="row" style="justify-content:flex-end; flex:0 0 auto">
+            <button class="btn small" id="btnCopyMissing" type="button" disabled>Copy missing</button>
+          </div>
+        </div>
+
+        <div class="hint">These keywords are extracted from the job description. We show which are used vs missing.</div>
+
+        <div class="label" style="margin-top:12px">Used</div>
+        <div class="chips" id="chipsUsed"></div>
+
+        <div class="label" style="margin-top:12px">Missing</div>
+        <div class="chips" id="chipsMissing"></div>
+
+        <details class="info" style="margin-top:12px">
+          <summary>Debug details</summary>
+          <div class="monoSmall" id="debugBox">—</div>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <!-- ATS info modal -->
+  <div class="modalBackdrop" id="atsModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="atsTitle">
+    <div class="modalCard">
+      <div class="modalScroll">
+        <div class="modalHeader">
+          <div>
+            <h3 class="modalTitle" id="atsTitle">What does ATS mean?</h3>
+            <div class="hint" style="margin-top:6px">
+              ATS = Applicant Tracking System. Companies use ATS to parse, search, and rank CVs.
+            </div>
+          </div>
+          <button class="btn small" id="atsClose" type="button">Close</button>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="hint">
+          <b>ATS-safe formatting</b> improves the chance your CV is parsed correctly:
+          <ul style="margin:10px 0 0 18px; line-height:1.6">
+            <li>Use simple headings (Experience, Education, Skills).</li>
+            <li>Avoid tables, columns, text boxes, and complex layouts.</li>
+            <li>Use consistent dates and bullet structure.</li>
+          </ul>
+          <div style="margin-top:10px">
+            Our CV Studio keeps formatting simple and focuses on keywords and relevance — without inventing facts.
+          </div>
+        </div>
+      </div>
+
+      <div class="modalActions">
+        <button class="btn primary" id="atsOk" type="button">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Job description modal -->
+  <div class="modalBackdrop" id="descModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="descH">
+    <div class="modalCard">
+      <div class="modalScroll">
+        <div class="modalHeader">
+          <div style="min-width:0">
+            <h3 class="modalTitle" id="descH">Job description</h3>
+            <div class="descMeta" id="descMeta"></div>
+          </div>
+          <button class="btn small" id="descClose" type="button">Close</button>
+        </div>
+        <div class="hr"></div>
+        <div class="modalMonoBox" id="descText">Loading…</div>
+      </div>
+      <div class="modalActions">
+        <button class="btn" id="descCopy" type="button">Copy</button>
+        <a class="btn primary" id="descOpen" href="#" target="_blank" rel="noopener">Open apply link</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="./auth.js"></script>
+  <script src="./shared.js"></script>
+
+  <script>
+  (() => {
+    "use strict";
+
+    const S = window.JobMeJobShared || null;
+    if (!S) {
+      alert("shared.js not loaded. Ensure multipage/shared.js exists and is referenced as ./shared.js");
+      return;
+    }
+    S.wireNavTransitions();
+
+    const $ = (id) => document.getElementById(id);
+
+    const API_BASE = S.resolveApiBase("https://jobmejob.schoene-viktor.workers.dev").replace(/\/+$/, "");
+
+    let session = null;
+    let jobs = [];
+    let selectedJob = null;
+    let selectedDesc = "";
+    let selectedApplyUrl = "";
+
+    let lastCvText = "";
+    let lastUsed = [];
+    let lastMissing = [];
+    let lastDebug = {};
+
+    function showError(msg){
+      S.showTopError("errorTop", msg || "");
+    }
+    function setBadge(id, cls, txt){
+      S.setBadge(id, cls, txt);
+    }
+    function setText(id, txt){
+      const el = $(id);
+      if (el) el.textContent = (txt == null) ? "" : String(txt);
+    }
+    function escapeHtml(s){
+      return S.escapeHtml ? S.escapeHtml(s) : String(s ?? "");
+    }
+
+    function qs(name){
+      try{
+        const u = new URL(window.location.href);
+        return u.searchParams.get(name);
+      }catch{
+        return null;
+      }
+    }
+
+    function formatLoc(j){
+      const parts = [];
+      if (j.city) parts.push(j.city);
+      if (j.region && j.region !== j.city) parts.push(j.region);
+      if (j.country) parts.push(j.country);
+      return parts.filter(Boolean).join(", ");
+    }
+
+    function applyUrlSafe(url){
+      const u = String(url || "").trim();
+      if (!u) return "";
+      if (/^https?:\/\//i.test(u)) return u;
+      return "https://" + u.replace(/^\/+/, "");
+    }
+
+    async function apiGet(path){
+      const res = await fetch(API_BASE + path, {
+        method:"GET",
+        headers:{ Authorization: "Bearer " + session.access_token }
+      });
+      const txt = await res.text().catch(()=> "");
+      let json = null;
+      try{ json = txt ? JSON.parse(txt) : null; }catch{ json = { raw: txt }; }
+      if(!res.ok){
+        throw new Error(path + " failed: " + res.status + " " + (json?.error || json?.details || txt));
+      }
+      return json;
+    }
+
+    async function apiPostJson(path, body){
+      const res = await fetch(API_BASE + path, {
+        method:"POST",
+        headers:{
+          Authorization: "Bearer " + session.access_token,
+          "content-type":"application/json"
+        },
+        body: JSON.stringify(body || {})
+      });
+      const txt = await res.text().catch(()=> "");
+      let json = null;
+      try{ json = txt ? JSON.parse(txt) : null; }catch{ json = { raw: txt }; }
+      if(!res.ok){
+        throw new Error(path + " failed: " + res.status + " " + (json?.error || json?.details || txt));
+      }
+      return json;
+    }
+
+    function strengthValue(){
+      const v = Number($("strengthRange").value);
+      if (v === 0) return { key:"light", label:"Light", help:"Small improvements, keeps wording close to your original." };
+      if (v === 2) return { key:"strong", label:"Aggressive", help:"Rewrites more strongly to highlight fit and align with job language (still truthful)." };
+      return { key:"balanced", label:"Balanced", help:"Improves summary and bullets to match the job, without over-rewriting." };
+    }
+
+    function setStrengthUi(){
+      const v = Number($("strengthRange").value);
+      const s = strengthValue();
+      setText("strengthBadge", s.label);
+      setText("strengthHint", s.help);
+
+      const pills = $("strengthPills")?.querySelectorAll(".miniPill") || [];
+      pills.forEach(p => {
+        p.classList.toggle("active", Number(p.getAttribute("data-s")) === v);
+      });
+
+      try{ localStorage.setItem("cv_strength", String(v)); }catch{}
+    }
+
+    function setTemplateUi(){
+      try{ localStorage.setItem("cv_template", String($("tplSelect").value || "professional")); }catch{}
+    }
+
+    function markSteps(state){
+      // state: "idle" | "running" | "done" | "error"
+      const ids = ["s1","s2","s3","s4","s5"];
+      ids.forEach(id => {
+        const el = $(id);
+        if(!el) return;
+        el.style.fontWeight = "750";
+        el.style.color = "rgba(17,19,24,.72)";
+      });
+
+      if(state === "idle"){
+        setBadge("stepsBadge", "", "Ready");
+        return;
+      }
+      if(state === "running"){
+        setBadge("stepsBadge", "warn", "Generating…");
+        ids.forEach(id => {
+          const el = $(id);
+          if(!el) return;
+          el.style.color = "rgba(17,19,24,.82)";
+        });
+        return;
+      }
+      if(state === "done"){
+        setBadge("stepsBadge", "good", "Done");
+        ids.forEach(id => {
+          const el = $(id);
+          if(!el) return;
+          el.style.color = "#0a3d1f";
+          el.style.fontWeight = "900";
+        });
+        return;
+      }
+      if(state === "error"){
+        setBadge("stepsBadge", "bad", "Failed");
+        ids.forEach(id => {
+          const el = $(id);
+          if(!el) return;
+          el.style.color = "#5a1130";
+          el.style.fontWeight = "900";
+        });
+        return;
+      }
+    }
+
+    function setOutputEnabled(enabled){
+      $("btnCopy").disabled = !enabled;
+      $("btnDownload").disabled = !enabled;
+      $("btnPrint").disabled = !enabled;
+      $("btnCopyMissing").disabled = !enabled;
+      if(!enabled){
+        $("chipsUsed").innerHTML = "";
+        $("chipsMissing").innerHTML = "";
+      }
+    }
+
+    function computeAtsScore(used, missing){
+      const u = Array.isArray(used) ? used.length : 0;
+      const m = Array.isArray(missing) ? missing.length : 0;
+      if(u + m <= 0) return null;
+      return Math.round((u / (u + m)) * 100);
+    }
+
+    function renderKeywords(){
+      const used = Array.isArray(lastUsed) ? lastUsed : [];
+      const miss = Array.isArray(lastMissing) ? lastMissing : [];
+
+      $("chipsUsed").innerHTML = used.length
+        ? used.slice(0, 80).map(k => `<span class="chip good" title="${escapeHtml(k)}">${escapeHtml(k)}</span>`).join("")
+        : `<span class="hint">—</span>`;
+
+      $("chipsMissing").innerHTML = miss.length
+        ? miss.slice(0, 80).map(k => `<span class="chip warn" title="${escapeHtml(k)}">${escapeHtml(k)}</span>`).join("")
+        : `<span class="hint">—</span>`;
+
+      setText("kwUsedCount", used.length ? String(used.length) : "0");
+      setText("kwMissCount", miss.length ? String(miss.length) : "0");
+
+      const score = computeAtsScore(used, miss);
+      if(score == null){
+        setText("atsScore", "—");
+        $("atsBar").style.width = "0%";
+      }else{
+        setText("atsScore", score + "%");
+        $("atsBar").style.width = score + "%";
+      }
+    }
+
+    function setCvText(text){
+      lastCvText = String(text || "").trim();
+      if(!lastCvText){
+        $("cvPre").textContent = "No CV generated yet.";
+        $("cvText").value = "";
+        setOutputEnabled(false);
+        return;
+      }
+      $("cvPre").textContent = lastCvText;
+      $("cvText").value = lastCvText;
+      setOutputEnabled(true);
+    }
+
+    function setTabs(which){
+      const isPreview = which === "preview";
+      $("tabPreview").classList.toggle("active", isPreview);
+      $("tabText").classList.toggle("active", !isPreview);
+      $("cvPre").style.display = isPreview ? "" : "none";
+      $("cvText").style.display = isPreview ? "none" : "";
+    }
+
+    async function loadQueue(){
+      const resp = await apiGet("/me/jobs/queue");
+      jobs = Array.isArray(resp?.data) ? resp.data : [];
+      const sel = $("jobSelect");
+      sel.innerHTML = "";
+
+      if(!jobs.length){
+        sel.innerHTML = `<option value="">No jobs in queue</option>`;
+        setText("jobHint", "No jobs found. Go to Jobs and fetch new jobs.");
+        setText("jobMeta", "");
+        $("btnGenerate").disabled = true;
+        $("btnGenerateAgain").disabled = true;
+        $("btnViewDesc").disabled = true;
+        $("btnCopyDesc").disabled = true;
+        return;
+      }
+
+      for(const j of jobs){
+        const label = [j.title || "Untitled", j.company_name || "Company"].filter(Boolean).join(" · ");
+        const opt = document.createElement("option");
+        opt.value = String(j.id);
+        opt.textContent = label;
+        sel.appendChild(opt);
+      }
+
+      const urlJobId = (qs("job_id") || "").trim();
+      if(urlJobId && jobs.some(j => String(j.id) === String(urlJobId))){
+        sel.value = urlJobId;
+      } else {
+        sel.value = String(jobs[0].id);
+      }
+
+      await onJobChange();
+    }
+
+    async function onJobChange(){
+      const jobId = $("jobSelect").value;
+      selectedJob = jobs.find(j => String(j.id) === String(jobId)) || null;
+
+      if(!selectedJob){
+        setText("jobMeta", "");
+        $("btnGenerate").disabled = true;
+        $("btnGenerateAgain").disabled = true;
+        $("btnViewDesc").disabled = true;
+        $("btnCopyDesc").disabled = true;
+        return;
+      }
+
+      const meta = [
+        selectedJob.company_name ? String(selectedJob.company_name) : null,
+        formatLoc(selectedJob) || null
+      ].filter(Boolean).join(" · ");
+
+      setText("jobHint", "Selected: " + (selectedJob.title || "Job"));
+      setText("jobMeta", meta ? meta : "");
+
+      // enable buttons
+      $("btnGenerate").disabled = false;
+      $("btnGenerateAgain").disabled = false;
+      $("btnViewDesc").disabled = false;
+      $("btnCopyDesc").disabled = false;
+
+      // clear previous output when job changes (but keep it in memory if the user returns)
+      // We'll keep the CV until they generate again; it avoids a blank feel.
+    }
+
+    function buildTailorPayload(){
+      const tpl = String($("tplSelect").value || "professional").trim().toLowerCase();
+      const s = strengthValue();
+
+      return {
+        job_id: String(selectedJob?.id || ""),
+        template: tpl,
+        strength: s.key
+      };
+    }
+
+    async function generate({ again=false } = {}){
+      showError("");
+      if(!selectedJob){
+        showError("Pick a job first.");
+        return;
+      }
+
+      markSteps("running");
+      setBadge("outStatus", "warn", "Generating…");
+      setText("outHint", "Generating your tailored CV…");
+      setText("debugBox", "—");
+      setBadge("pipeBadge", "warn", "Working…");
+
+      $("btnGenerate").disabled = true;
+      $("btnGenerateAgain").disabled = true;
+
+      // keep preview stable while generating
+      // but show a small hint that we're working
+      try{
+        const payload = buildTailorPayload();
+
+        // no force: avoids backend duplicate key problem
+        const res = await apiPostJson("/me/cv/tailor", payload);
+
+        if(!res || res.ok !== true){
+          throw new Error(res?.error || "CV tailoring failed");
+        }
+
+        const r = res.result || {};
+        const text = String(r.cv_text || "").trim();
+
+        lastUsed = Array.isArray(r.ats_keywords_used) ? r.ats_keywords_used : [];
+        lastMissing = Array.isArray(r.ats_keywords_missing) ? r.ats_keywords_missing : [];
+        lastDebug = {
+          cached: !!res.cached,
+          cache_age_seconds: res.cache_age_seconds ?? null,
+          model: r.model || null,
+          prompt_version: r.prompt_version || null,
+          language: r.language || null,
+          desc_cache_status: r.desc_cache_status || null,
+          cv_clean_status: r.cv_clean_status || null,
+          cv_clean_model: r.cv_clean_model || null,
+          cv_structured_status: r.cv_structured_status || null,
+          cv_structured_model: r.cv_structured_model || null
+        };
+
+        setCvText(text);
+
+        setBadge("outStatus", res.cached ? "good" : "good", res.cached ? "Ready (cached)" : "Ready");
+        setText("outModel", "Model: " + (r.model || "—"));
+
+        renderKeywords();
+        markSteps("done");
+
+        // Pipeline status box
+        const lines = [
+          "Job description: " + String(r.desc_cache_status || "—"),
+          "CV clean: " + String(r.cv_clean_status || "—") + (r.cv_clean_model ? (" (" + r.cv_clean_model + ")") : ""),
+          "CV structured: " + String(r.cv_structured_status || "—") + (r.cv_structured_model ? (" (" + r.cv_structured_model + ")") : ""),
+          res.cached ? ("Cache: used (" + String(res.cache_age_seconds || "0") + "s old)") : "Cache: generated"
+        ];
+        $("pipeBox").textContent = lines.join("\n");
+        setBadge("pipeBadge", "good", "OK");
+
+        // Debug
+        $("debugBox").textContent = JSON.stringify({ ok:true, ...lastDebug }, null, 2);
+
+        // Save last output to localStorage (best effort)
+        try{
+          const key = "cvstudio_last_" + String(payload.job_id);
+          localStorage.setItem(key, JSON.stringify({
+            at: Date.now(),
+            payload,
+            cv_text: text,
+            used: lastUsed,
+            missing: lastMissing,
+            debug: lastDebug
+          }));
+        }catch(_){}
+
+        setText("outHint", res.cached
+          ? "Loaded your last tailored CV for these settings (cached). Change strength to create a different version."
+          : "Generated a new tailored CV. Review and export below."
+        );
+      }catch(e){
+        markSteps("error");
+        setBadge("outStatus","bad","Failed");
+        setBadge("pipeBadge","bad","Failed");
+        showError(e?.message || String(e));
+        $("debugBox").textContent = JSON.stringify({ ok:false, error: e?.message || String(e) }, null, 2);
+        setText("outHint", "Failed to generate. Check your CV upload and job description availability.");
+      }finally{
+        $("btnGenerate").disabled = false;
+        $("btnGenerateAgain").disabled = false;
+      }
+    }
+
+    async function loadStateAndNav(){
+      setBadge("authBadge","warn","Checking…");
+
+      session = await window.JobApplyAI.auth.getSession();
+      if(!session || !session.user || !session.user.email){
+        setBadge("authBadge","warn","Signed out");
+        window.location.replace("./signup.html");
+        return;
+      }
+
+      // Toggle nav
+      $("navLogout").style.display = "";
+      $("navSignIn").style.display = "none";
+      setBadge("authBadge","good","Signed in");
+
+      // Ensure customer exists (best effort)
+      try{
+        await window.JobApplyAI.auth.requireAuthAndCustomer({ redirectTo: "./signup.html" });
+      }catch(_){}
+
+      // Attempt state sync (best effort)
+      try{
+        await window.JobApplyAI.auth.syncStateToLocalStorage(session);
+      }catch(_){}
+    }
+
+    async function openDescModal(){
+      showError("");
+      if(!selectedJob){
+        showError("Pick a job first.");
+        return;
+      }
+
+      S.showModal("descModal");
+      $("descH").textContent = selectedJob.title || "Job description";
+      $("descMeta").textContent = [selectedJob.company_name || "", formatLoc(selectedJob) || ""].filter(Boolean).join(" · ");
+      $("descText").textContent = "Loading…";
+      $("descOpen").setAttribute("href", "#");
+      $("descCopy").textContent = "Copy";
+      selectedDesc = "";
+      selectedApplyUrl = applyUrlSafe(selectedJob.apply_url);
+
+      // set apply link
+      if(selectedApplyUrl){
+        $("descOpen").setAttribute("href", selectedApplyUrl);
+        $("descOpen").classList.remove("ghost");
+      }else{
+        $("descOpen").setAttribute("href", "#");
+        $("descOpen").classList.add("ghost");
+      }
+
+      try{
+        const resp = await apiGet("/me/jobs/description?job_id=" + encodeURIComponent(String(selectedJob.id)));
+        const job = resp?.job || null;
+        const txt = String(job?.description_full || job?.description || "").trim();
+        selectedDesc = txt || "(No description available.)";
+        $("descText").textContent = selectedDesc;
+      }catch(e){
+        $("descText").textContent = "Failed to load description.\n\n" + (e?.message || String(e));
+      }
+    }
+
+    async function copyDesc(){
+      if(!selectedDesc){
+        // Try to open and load first
+        await openDescModal();
+        return;
+      }
+      try{
+        await navigator.clipboard.writeText(selectedDesc);
+      }catch(_){
+        // fallback
+        const ta = document.createElement("textarea");
+        ta.value = selectedDesc;
+        document.body.appendChild(ta);
+        ta.select();
+        try{ document.execCommand("copy"); }catch{}
+        document.body.removeChild(ta);
+      }
+    }
+
+    async function copyCv(){
+      const txt = String(lastCvText || "").trim();
+      if(!txt) return;
+      try{
+        await navigator.clipboard.writeText(txt);
+        $("btnCopy").textContent = "Copied ✓";
+        setTimeout(()=>{ $("btnCopy").textContent = "Copy"; }, 900);
+      }catch(_){
+        // fallback
+        const ta = document.createElement("textarea");
+        ta.value = txt;
+        document.body.appendChild(ta);
+        ta.select();
+        try{ document.execCommand("copy"); }catch{}
+        document.body.removeChild(ta);
+        $("btnCopy").textContent = "Copied ✓";
+        setTimeout(()=>{ $("btnCopy").textContent = "Copy"; }, 900);
+      }
+    }
+
+    function downloadTxt(){
+      const txt = String(lastCvText || "").trim();
+      if(!txt) return;
+
+      const title = selectedJob?.title ? String(selectedJob.title).slice(0, 60) : "tailored_cv";
+      const safe = title.replace(/[^a-z0-9\-\_ ]/gi, "").trim().replace(/\s+/g, "_") || "tailored_cv";
+      const filename = safe + ".txt";
+
+      const blob = new Blob([txt], { type:"text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function printPdf(){
+      const txt = String(lastCvText || "").trim();
+      if(!txt) return;
+
+      const title = selectedJob?.title ? String(selectedJob.title) : "Tailored CV";
+      const w = window.open("", "_blank", "noopener,noreferrer");
+      if(!w) return;
+
+      const html = `<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>${escapeHtml(title)}</title>
+<style>
+  body{ font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; margin: 24px; color:#111; }
+  h1{ font-size:18px; margin:0 0 12px 0; }
+  pre{ white-space:pre-wrap; font-size:12px; line-height:1.45; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace; }
+  @media print{
+    body{ margin: 14mm; }
+  }
+</style>
+</head>
+<body>
+<h1>${escapeHtml(title)}</h1>
+<pre>${escapeHtml(txt)}</pre>
+<script>
+  window.onload = () => { window.focus(); window.print(); };
+</script>
+</body>
+</html>`;
+      w.document.open();
+      w.document.write(html);
+      w.document.close();
+    }
+
+    async function copyMissing(){
+      const miss = Array.isArray(lastMissing) ? lastMissing : [];
+      if(!miss.length) return;
+      const text = miss.join(", ");
+      try{
+        await navigator.clipboard.writeText(text);
+        $("btnCopyMissing").textContent = "Copied ✓";
+        setTimeout(()=>{ $("btnCopyMissing").textContent = "Copy missing"; }, 900);
+      }catch(_){
+        // fallback
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try{ document.execCommand("copy"); }catch{}
+        document.body.removeChild(ta);
+        $("btnCopyMissing").textContent = "Copied ✓";
+        setTimeout(()=>{ $("btnCopyMissing").textContent = "Copy missing"; }, 900);
+      }
+    }
+
+    async function boot(){
+      showError("");
+
+      if(!window.JobApplyAI || !window.JobApplyAI.auth){
+        showError("auth.js did not load. Ensure multipage/auth.js exists and is referenced as ./auth.js.");
+        setBadge("authBadge","bad","Config error");
+        return;
+      }
+
+      await loadStateAndNav();
+
+      // restore saved template/strength
+      try{
+        const sv = localStorage.getItem("cv_strength");
+        if(sv !== null && sv !== undefined && sv !== "") $("strengthRange").value = String(sv);
+      }catch(_){}
+      setStrengthUi();
+
+      try{
+        const tv = localStorage.getItem("cv_template");
+        if(tv) $("tplSelect").value = tv;
+      }catch(_){}
+      setTemplateUi();
+
+      // load queue
+      await loadQueue();
+
+      // restore last generated CV for this job (best effort)
+      try{
+        const jobId = String($("jobSelect").value || "");
+        const key = "cvstudio_last_" + jobId;
+        const raw = localStorage.getItem(key);
+        if(raw){
+          const obj = JSON.parse(raw);
+          if(obj && obj.cv_text){
+            setCvText(obj.cv_text);
+            lastUsed = Array.isArray(obj.used) ? obj.used : [];
+            lastMissing = Array.isArray(obj.missing) ? obj.missing : [];
+            renderKeywords();
+            setBadge("outStatus","good","Ready (local)");
+            setText("outModel","Model: —");
+            setText("outHint","Loaded your last tailored CV from this device. Generate to refresh from server.");
+          }
+        }
+      }catch(_){}
+    }
+
+    // Wire UI events
+    $("jobSelect").addEventListener("change", onJobChange);
+
+    $("strengthRange").addEventListener("input", setStrengthUi);
+    $("strengthPills").addEventListener("click", (e) => {
+      const p = e.target.closest(".miniPill");
+      if(!p) return;
+      $("strengthRange").value = String(p.getAttribute("data-s"));
+      setStrengthUi();
+    });
+
+    $("tplSelect").addEventListener("change", setTemplateUi);
+
+    $("btnAtsInfo").addEventListener("click", () => S.showModal("atsModal"));
+    $("atsClose").addEventListener("click", () => S.hideModal("atsModal"));
+    $("atsOk").addEventListener("click", () => S.hideModal("atsModal"));
+    $("atsModal").addEventListener("click", (e) => { if(e.target && e.target.id === "atsModal") S.hideModal("atsModal"); });
+
+    $("btnViewDesc").addEventListener("click", openDescModal);
+    $("btnCopyDesc").addEventListener("click", async () => {
+      try{
+        if(!selectedDesc) await openDescModal();
+        await copyDesc();
+      }catch(_){}
+    });
+
+    $("descClose").addEventListener("click", () => S.hideModal("descModal"));
+    $("descModal").addEventListener("click", (e) => { if(e.target && e.target.id === "descModal") S.hideModal("descModal"); });
+    $("descCopy").addEventListener("click", async () => {
+      if(!selectedDesc) return;
+      await copyDesc();
+      $("descCopy").textContent = "Copied ✓";
+      setTimeout(()=>{ $("descCopy").textContent = "Copy"; }, 900);
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if(e.key === "Escape"){
+        S.hideModal("atsModal");
+        S.hideModal("descModal");
+      }
+    });
+
+    $("btnGenerate").addEventListener("click", () => generate({ again:false }));
+    $("btnGenerateAgain").addEventListener("click", () => generate({ again:true }));
+
+    $("tabPreview").addEventListener("click", () => setTabs("preview"));
+    $("tabText").addEventListener("click", () => setTabs("text"));
+
+    $("btnCopy").addEventListener("click", copyCv);
+    $("btnDownload").addEventListener("click", downloadTxt);
+    $("btnPrint").addEventListener("click", printPdf);
+    $("btnCopyMissing").addEventListener("click", copyMissing);
+
+    // Logout
+    $("navLogout").addEventListener("click", async () => {
+      try{
+        await window.JobApplyAI.auth.logout("./index.html");
+      }catch(_){
+        window.location.href = "./index.html";
+      }
+    });
+
+    window.addEventListener("load", () => {
+      boot().catch((e) => {
+        showError(e?.message || String(e));
+        setBadge("authBadge","bad","Error");
+      });
+    });
+
+    // Default tab
+    setTabs("preview");
+    markSteps("idle");
+    renderKeywords();
+    setOutputEnabled(false);
+
+  })();
+  </script>
+</body>
+</html>
