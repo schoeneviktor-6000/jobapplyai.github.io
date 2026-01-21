@@ -738,18 +738,70 @@
   (() => {
     "use strict";
 
-    const S = window.JobMeJobShared || null;
-    if (!S) {
-      alert("shared.js not loaded. Ensure multipage/shared.js exists and is referenced as ./shared.js");
-      return;
-    }
-    S.wireNavTransitions();
+    const S = window.JobMeJobShared || {};
 
-    const $ = (id) => document.getElementById(id);
+// ----------------------------------------------------------
+// Safe fallbacks:
+// This page should never "silently" break if shared.js changes.
+// ----------------------------------------------------------
+if (typeof S.escapeHtml !== "function") {
+  S.escapeHtml = (str) => String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
-    const API_BASE = S.resolveApiBase("https://jobmejob.schoene-viktor.workers.dev").replace(/\/+$/, "");
+if (typeof S.setBadge !== "function") {
+  S.setBadge = (id, cls, txt) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove("good", "warn", "bad");
+    if (cls) el.classList.add(cls);
+    el.textContent = (txt == null) ? "" : String(txt);
+  };
+}
 
-    let session = null;
+if (typeof S.showTopError !== "function") {
+  S.showTopError = (id, msg) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const m = String(msg || "").trim();
+    el.textContent = m;
+    el.style.display = m ? "" : "none";
+  };
+}
+
+if (typeof S.showModal !== "function") {
+  S.showModal = (id) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = "";
+  };
+}
+if (typeof S.hideModal !== "function") {
+  S.hideModal = (id) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = "none";
+  };
+}
+
+if (typeof S.resolveApiBase !== "function") {
+  S.resolveApiBase = (base) => base;
+}
+
+// optional: animated navigation transitions
+if (typeof S.wireNavTransitions === "function") {
+  try { S.wireNavTransitions(); } catch (_) {}
+}
+
+const $ = (id) => document.getElementById(id);
+
+const API_BASE = String(
+  (S.resolveApiBase && S.resolveApiBase("https://jobmejob.schoene-viktor.workers.dev")) || "https://jobmejob.schoene-viktor.workers.dev"
+).replace(/\/+$/, "");
+
+let session = null;
     let jobs = [];
     let selectedJob = null;
     let selectedDesc = "";
@@ -1367,89 +1419,131 @@ ${bodyHtml}
        Tabs + rendering
        ------------------------- */
     function setTabs(which){
-      const isPreview = which === "preview";
-      $("tabPreview").classList.toggle("active", isPreview);
-      $("tabText").classList.toggle("active", !isPreview);
-      $("cvPreviewWrap").style.display = isPreview ? "" : "none";
-      $("cvTextWrap").style.display = isPreview ? "none" : "";
-    }
+  const isPreview = which === "preview";
+  $("tabPreview").classList.toggle("active", isPreview);
+  $("tabText").classList.toggle("active", !isPreview);
+  $("cvPreviewWrap").style.display = isPreview ? "" : "none";
+  $("cvTextWrap").style.display = isPreview ? "none" : "";
+}
 
-    function setCvOutput({ text, doc, lang }){
-      lastCvText = String(text || "").trim();
-      lastCvDoc = doc || null;
-      lastLang = lang || "en";
+function setCvOutput({ text, doc, lang }){
+  lastCvDoc = doc || null;
+  lastLang = lang || "en";
 
-      // Text view (prefer doc -> plain text to keep consistent formatting)
-      const textOut = lastCvDoc ? cvDocToPlainText(lastCvDoc, lastLang) : lastCvText;
-      lastCvText = String(textOut || "").trim();
+  // If we have a structured doc, we always derive the text view from it
+  // (keeps ATS-safe formatting consistent).
+  // Otherwise we use the returned plain text.
+  lastCvText = lastCvDoc ? "" : String(text || "").trim();
 
-      // Preview
-      if(lastCvDoc){
-        $("cvPreview").innerHTML = cvDocToPreviewHtml(lastCvDoc, lastLang);
-      }else{
-        const safe = S.escapeHtml(lastCvText || "");
-        $("cvPreview").innerHTML = safe
-          ? `<pre class="cvPre">${safe}</pre>`
-          : `<div class="hint">No CV generated yet.</div>`;
-      }
+  textDirty = false;
 
-      $("cvText").value = textOut || "";
-      textDirty = false;
+  // One canonical renderer keeps preview/text/buttons in sync.
+  renderFromCurrentState();
+}
 
-      setOutputEnabled(!!(textOut && String(textOut).trim()));
-    }else{
-        $("cvPreview").innerHTML = `<div class="hint">No structured preview available. Showing text only.</div>`;
-      }
-
-      // Text view (prefer doc -> plain text to keep consistent formatting)
-      const textOut = lastCvDoc ? cvDocToPlainText(lastCvDoc, lastLang) : lastCvText;
-      $("cvText").value = textOut || "";
-
-      setOutputEnabled(!!(textOut && textOut.trim()));
-    }
-
-    /* -------------------------
+/* -------------------------
        Queue loading
        ------------------------- */
-    async function loadQueue(){
-      const resp = await apiGet("/me/jobs/queue");
-      jobs = Array.isArray(resp?.data) ? resp.data : [];
-      const sel = $("jobSelect");
-      sel.innerHTML = "";
+    function extractJobs(resp){
+  // Be flexible with response shapes across API versions.
+  const candidates = [
+    resp,
+    resp?.data,
+    resp?.jobs,
+    resp?.items,
+    resp?.result,
+    resp?.data?.jobs,
+    resp?.data?.items,
+    resp?.result?.jobs,
+    resp?.result?.items,
+    resp?.result?.data
+  ];
+  for(const c of candidates){
+    if(Array.isArray(c)) return c;
+  }
+  return [];
+}
 
-      if(!jobs.length){
-        sel.innerHTML = `<option value="">No jobs in queue</option>`;
-        setText("jobHint", "No jobs found. Go to Jobs and fetch new jobs.");
-        setText("jobMeta", "");
-        $("btnGenerate").disabled = true;
-        $("btnGenerateAgain").disabled = true;
-        $("btnViewDesc").disabled = true;
-        $("btnCopyDesc").disabled = true;
-        return;
+async function loadQueue(){
+  const sel = $("jobSelect");
+
+  // optimistic UI: show loading state (even if fetch fails)
+  sel.innerHTML = `<option value="">Loading…</option>`;
+  setText("jobHint", "Loading jobs…");
+  setText("jobMeta", "");
+
+  $("btnGenerate").disabled = true;
+  $("btnGenerateAgain").disabled = true;
+  $("btnViewDesc").disabled = true;
+  $("btnCopyDesc").disabled = true;
+
+  jobs = [];
+  let lastErr = null;
+
+  // Try a few common variants to avoid tight coupling to a single endpoint.
+  const endpoints = [
+    "/me/jobs/queue",
+    "/me/jobs/queue?limit=200",
+    "/me/jobs",
+    "/me/jobs/list",
+    "/me/jobs/queued"
+  ];
+
+  for(const p of endpoints){
+    try{
+      const resp = await apiGet(p);
+      const arr = extractJobs(resp);
+      if(arr.length){
+        jobs = arr;
+        lastErr = null;
+        break;
       }
+    }catch(e){
+      lastErr = e;
+    }
+  }
 
-      for(const j of jobs){
-        const label = [j.title || "Untitled", j.company_name || "Company"].filter(Boolean).join(" · ");
-        const opt = document.createElement("option");
-        opt.value = String(j.id);
-        opt.textContent = label;
-        sel.appendChild(opt);
-      }
+  sel.innerHTML = "";
 
-      const urlJobId = (qs("job_id") || "").trim();
-      const storedJobId = (localStorage.getItem("cvstudio_selected_job_id") || "").trim();
-      const preferred = urlJobId || storedJobId;
+  if(!jobs.length){
+    sel.innerHTML = `<option value="">No jobs in queue</option>`;
+    setText("jobHint", "No jobs found. Go to Jobs and fetch new jobs.");
+    setText("jobMeta", "");
 
-      if(preferred && jobs.some(j => String(j.id) === String(preferred))){
-        sel.value = preferred;
-      } else {
-        sel.value = String(jobs[0].id);
-      }
-
-      await onJobChange();
+    if(lastErr){
+      // Make failures visible to the user (and support debugging).
+      showError(lastErr?.message || String(lastErr));
     }
 
-    async function onJobChange(){
+    $("btnGenerate").disabled = true;
+    $("btnGenerateAgain").disabled = true;
+    $("btnViewDesc").disabled = true;
+    $("btnCopyDesc").disabled = true;
+    return;
+  }
+
+  for(const j of jobs){
+    const label = [j.title || "Untitled", j.company_name || "Company"].filter(Boolean).join(" · ");
+    const opt = document.createElement("option");
+    opt.value = String(j.id);
+    opt.textContent = label;
+    sel.appendChild(opt);
+  }
+
+  const urlJobId = (qs("job_id") || "").trim();
+  const storedJobId = (localStorage.getItem("cvstudio_selected_job_id") || "").trim();
+  const preferred = urlJobId || storedJobId;
+
+  if(preferred && jobs.some(j => String(j.id) === String(preferred))){
+    sel.value = preferred;
+  } else {
+    sel.value = String(jobs[0].id);
+  }
+
+  await onJobChange();
+}
+
+async function onJobChange(){
       const jobId = $("jobSelect").value;
       selectedJob = jobs.find(j => String(j.id) === String(jobId)) || null;
 
