@@ -167,7 +167,68 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       color: rgba(17,19,24,.92);
     }
-    textarea.cvText{
+    
+    /* Formatted CV preview (from cv_doc) */
+    .cvPreview{
+      white-space:normal;
+      font-size:13px;
+      line-height:1.45;
+      border:1px solid rgba(17,19,24,.14);
+      background:rgba(17,19,24,.03);
+      padding:14px;
+      border-radius:14px;
+      color: rgba(17,19,24,.92);
+    }
+    .cvPaper{
+      max-width:820px;
+      margin:0 auto;
+      font-family: Arial, Helvetica, sans-serif;
+      color:#111318;
+    }
+    .cvName{
+      font-size:34px;
+      font-weight:900;
+      letter-spacing:-.6px;
+      color:rgba(17,19,24,.72);
+    }
+    .cvRole{
+      margin-top:2px;
+      font-size:14px;
+      font-weight:800;
+      color:rgba(17,19,24,.55);
+    }
+    .cvContact{
+      margin-top:6px;
+      font-size:12.5px;
+      color:rgba(17,19,24,.62);
+    }
+    .cvSection{ margin-top:16px; }
+    .cvSectionTitle{
+      font-size:14px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      border-bottom:3px solid #111318;
+      padding-bottom:6px;
+      margin:0 0 8px 0;
+    }
+    .cvItem{ margin:0 0 12px 0; }
+    .cvItemTitle{ font-weight:900; }
+    .cvItemSub{
+      margin-top:2px;
+      font-weight:800;
+      color:rgba(17,19,24,.62);
+    }
+    .cvMetaLine{
+      margin-top:2px;
+      font-size:12.5px;
+      color:rgba(17,19,24,.62);
+    }
+    .cvUl{ margin:6px 0 0 18px; padding:0; }
+    .cvUl li{ margin:0 0 3px 0; }
+    .cvSkillLine{ margin:0 0 6px 0; }
+    .cvMuted{ color:rgba(17,19,24,.62); }
+textarea.cvText{
       width:100%;
       min-height: 56vh;
       border:0;
@@ -459,7 +520,7 @@
         </div>
 
         <div class="cvBox" id="cvBox">
-          <pre class="cvPre" id="cvPre">No CV generated yet.</pre>
+          <div class="cvPreview" id="cvPreview"><div class="small muted">No CV generated yet.</div></div>
           <textarea class="cvText" id="cvText" style="display:none" spellcheck="false"></textarea>
         </div>
 
@@ -579,6 +640,8 @@
     let selectedApplyUrl = "";
 
     let lastCvText = "";
+    let lastCvDoc = null;
+    let lastLang = "en";
     let lastUsed = [];
     let lastMissing = [];
     let lastDebug = {};
@@ -744,6 +807,298 @@
       return Math.round((u / (u + m)) * 100);
     }
 
+    // -------------------------------
+    // Formatted preview helpers (ported from the old Dashboard tailoring UI)
+    // -------------------------------
+    function joinNonEmpty(arr, sep){
+      const a = Array.isArray(arr) ? arr : [];
+      return a.map(x => String(x || "").trim()).filter(Boolean).join(sep || " · ");
+    }
+    function asStringArr(v, limit){
+      const a = Array.isArray(v) ? v : [];
+      return a.map(x => String(x || "").trim()).filter(Boolean).slice(0, limit || 50);
+    }
+    function fmtPeriod(start, end){
+      const s = String(start || "").trim();
+      const e = String(end || "").trim();
+      if(!s && !e) return "";
+      if(s && e) return s + " – " + e;
+      if(s && !e) return s + " – Present";
+      return e;
+    }
+    function ul(items){
+      const arr = asStringArr(items, 12);
+      if(!arr.length) return "";
+      return `<ul class="cvUl">` + arr.map(x => `<li>${escapeHtml(x)}</li>`).join("") + `</ul>`;
+    }
+    function sec(title, inner){
+      const content = String(inner || "").trim();
+      if(!content) return "";
+      return [
+        `<div class="cvSection">`,
+        `<h3 class="cvSectionTitle">${escapeHtml(title)}</h3>`,
+        content,
+        `</div>`,
+      ].join("");
+    }
+    function cvLabels(lang){
+      const de = {
+        summary:"PROFIL",
+        experience:"BERUFSERFAHRUNG",
+        education:"AUSBILDUNG",
+        achievements:"HIGHLIGHTS",
+        skills:"KERNKOMPETENZEN",
+        courses:"KURSE",
+        interests:"INTERESSEN",
+        languages:"SPRACHEN",
+      };
+      const en = {
+        summary:"SUMMARY",
+        experience:"EXPERIENCE",
+        education:"EDUCATION",
+        achievements:"KEY ACHIEVEMENTS",
+        skills:"SKILLS",
+        courses:"COURSES",
+        interests:"INTERESTS",
+        languages:"LANGUAGES",
+      };
+      return (String(lang||"").toLowerCase()==="de") ? de : en;
+    }
+
+    function cvDocToPreviewHtml(doc, lang){
+      const L=cvLabels(lang);
+      const name=String(doc?.name||"YOUR NAME");
+      const role=String(doc?.target_role||"");
+
+      const c = doc?.contact || {};
+      const contactLine = joinNonEmpty([
+        c.phone,
+        c.email,
+        c.linkedin,
+        c.portfolio,
+        c.location,
+      ], " · ");
+
+      const summary = asStringArr(doc?.summary, 10);
+      const exp = Array.isArray(doc?.experience) ? doc.experience : [];
+      const edu = Array.isArray(doc?.education) ? doc.education : [];
+      const ach = asStringArr(doc?.achievements, 10);
+
+      const skillGroups = Array.isArray(doc?.skills?.groups) ? doc.skills.groups : [];
+      const skillAdditional = asStringArr(doc?.skills?.additional, 40);
+
+      const courses = asStringArr(doc?.courses, 12);
+      const interests = asStringArr(doc?.interests, 12);
+      const langs = asStringArr(doc?.languages, 12);
+
+      const summaryHtml = summary.length ? ul(summary) : "";
+
+      const expHtml = exp.length ? exp.slice(0, 12).map(e=>{
+        const t=String(e?.title||"").trim();
+        const company=String(e?.company||"").trim();
+        const meta=joinNonEmpty([fmtPeriod(e?.start, e?.end), e?.location], " · ");
+        const bullets = asStringArr(e?.bullets, 8);
+        return [
+          `<div class="cvItem">`,
+          `<div class="cvItemTitle">${escapeHtml(joinNonEmpty([t, company], " — ") || (t||company||""))}</div>`,
+          meta ? `<div class="cvMetaLine">${escapeHtml(meta)}</div>` : "",
+          ul(bullets),
+          `</div>`,
+        ].join("");
+      }).join("") : "";
+
+      const eduHtml = edu.length ? edu.slice(0, 10).map(e=>{
+        const degree = joinNonEmpty([e?.degree, e?.field], " · ");
+        const school = joinNonEmpty([e?.school, e?.location], " · ");
+        const meta = fmtPeriod(e?.start, e?.end);
+        return [
+          `<div class="cvItem">`,
+          degree ? `<div class="cvItemTitle">${escapeHtml(degree)}</div>` : "",
+          school ? `<div class="cvItemSub">${escapeHtml(school)}</div>` : "",
+          meta ? `<div class="cvMetaLine">${escapeHtml(meta)}</div>` : "",
+          `</div>`,
+        ].join("");
+      }).join("") : "";
+
+      const skillsInner = (skillGroups.length || skillAdditional.length) ? [
+        skillGroups.slice(0,6).map(g=>{
+          const label = String(g?.label||"").trim();
+          const items = asStringArr(g?.items, 30);
+          if(!label && !items.length) return "";
+          const line = label ? `<b>${escapeHtml(label)}:</b> ${escapeHtml(items.join(", "))}` : escapeHtml(items.join(", "));
+          return `<div class="cvSkillLine">${line}</div>`;
+        }).join(""),
+        skillAdditional.length ? `<div class="cvSkillLine">${escapeHtml(skillAdditional.join(", "))}</div>` : "",
+      ].filter(Boolean).join("") : "";
+
+      const coursesInner = courses.length ? `<div class="cvMuted">${escapeHtml(courses.join(" · "))}</div>` : "";
+      const interestsInner = interests.length ? `<div class="cvMuted">${escapeHtml(interests.join(" · "))}</div>` : "";
+      const langsInner = langs.length ? `<div class="cvMuted">${escapeHtml(langs.join(" · "))}</div>` : "";
+
+      return [
+        `<div class="cvPaper">`,
+        `<div class="cvName">${escapeHtml(name)}</div>`,
+        role ? `<div class="cvRole">${escapeHtml(role)}</div>` : "",
+        contactLine ? `<div class="cvContact">${escapeHtml(contactLine)}</div>` : "",
+        sec(L.summary, summaryHtml),
+        sec(L.experience, expHtml),
+        sec(L.education, eduHtml),
+        sec(L.achievements, ul(ach)),
+        sec(L.skills, skillsInner),
+        sec(L.courses, coursesInner),
+        sec(L.interests, interestsInner),
+        sec(L.languages, langsInner),
+        `</div>`,
+      ].join("");
+    }
+
+    function cvDocToPlainText(doc, lang){
+      const L=cvLabels(lang);
+      const lines=[];
+      const name=String(doc?.name||"").trim();
+      const role=String(doc?.target_role||"").trim();
+
+      const c = doc?.contact || {};
+      const contactLine = joinNonEmpty([
+        c.phone,
+        c.email,
+        c.linkedin,
+        c.portfolio,
+        c.location,
+      ], " · ");
+
+      if(name) lines.push(name);
+      if(role) lines.push(role);
+      if(contactLine) lines.push(contactLine);
+      if(lines.length) lines.push("");
+
+      const summary = asStringArr(doc?.summary, 10);
+      if(summary.length){
+        lines.push(L.summary);
+        lines.push("—");
+        summary.forEach(x => lines.push("- " + x));
+        lines.push("");
+      }
+
+      const exp = Array.isArray(doc?.experience) ? doc.experience : [];
+      if(exp.length){
+        lines.push(L.experience);
+        lines.push("—");
+        exp.slice(0, 12).forEach(e=>{
+          const t=String(e?.title||"").trim();
+          const company=String(e?.company||"").trim();
+          const titleLine = joinNonEmpty([t, company], " — ");
+          if(titleLine) lines.push(titleLine);
+          const meta = joinNonEmpty([fmtPeriod(e?.start, e?.end), e?.location], " · ");
+          if(meta) lines.push(meta);
+          const bullets = asStringArr(e?.bullets, 8);
+          bullets.forEach(b => lines.push("- " + b));
+          lines.push("");
+        });
+      }
+
+      const edu = Array.isArray(doc?.education) ? doc.education : [];
+      if(edu.length){
+        lines.push(L.education);
+        lines.push("—");
+        edu.slice(0, 10).forEach(e=>{
+          const degree = joinNonEmpty([e?.degree, e?.field], " · ");
+          const school = joinNonEmpty([e?.school, e?.location], " · ");
+          const meta = fmtPeriod(e?.start, e?.end);
+          if(degree) lines.push(degree);
+          if(school) lines.push(school);
+          if(meta) lines.push(meta);
+          lines.push("");
+        });
+      }
+
+      const ach = asStringArr(doc?.achievements, 10);
+      if(ach.length){
+        lines.push(L.achievements);
+        lines.push("—");
+        ach.forEach(x => lines.push("- " + x));
+        lines.push("");
+      }
+
+      const skillGroups = Array.isArray(doc?.skills?.groups) ? doc.skills.groups : [];
+      const skillAdditional = asStringArr(doc?.skills?.additional, 40);
+      if(skillGroups.length || skillAdditional.length){
+        lines.push(L.skills);
+        lines.push("—");
+        skillGroups.slice(0,6).forEach(g=>{
+          const label = String(g?.label||"").trim();
+          const items = asStringArr(g?.items, 30);
+          if(!label && !items.length) return;
+          if(label) lines.push(label + ": " + items.join(", "));
+          else lines.push(items.join(", "));
+        });
+        if(skillAdditional.length) lines.push(skillAdditional.join(", "));
+        lines.push("");
+      }
+
+      const courses = asStringArr(doc?.courses, 12);
+      if(courses.length){
+        lines.push(L.courses);
+        lines.push("—");
+        lines.push(courses.join(" · "));
+        lines.push("");
+      }
+
+      const interests = asStringArr(doc?.interests, 12);
+      if(interests.length){
+        lines.push(L.interests);
+        lines.push("—");
+        lines.push(interests.join(" · "));
+        lines.push("");
+      }
+
+      const langs = asStringArr(doc?.languages, 12);
+      if(langs.length){
+        lines.push(L.languages);
+        lines.push("—");
+        lines.push(langs.join(" · "));
+        lines.push("");
+      }
+
+      return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim() + "\n";
+    }
+
+    function cvDocToPrintableHtml(cvDoc, lang, title){
+      const css = `
+        @page{ size:A4; margin:14mm 14mm 14mm 14mm; }
+        body{ margin:0; padding:0; font-family: Arial, Helvetica, sans-serif; color:#111318; }
+        .cvPaper{ font-family: Arial, Helvetica, sans-serif; color:#111318; }
+        .cvName{ font-size:28px; font-weight:900; letter-spacing:-.6px; color:#111318; }
+        .cvRole{ margin-top:2px; font-size:12.5px; font-weight:800; color:rgba(17,19,24,.70); }
+        .cvContact{ margin-top:6px; font-size:11.5px; color:rgba(17,19,24,.70); }
+        .cvSection{ margin-top:12px; }
+        .cvSectionTitle{ font-size:12px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; border-bottom:2px solid #111318; padding-bottom:5px; margin:0 0 6px 0; }
+        .cvItem{ margin:0 0 10px 0; }
+        .cvItemTitle{ font-weight:900; }
+        .cvItemSub{ margin-top:2px; font-weight:800; color:rgba(17,19,24,.70); }
+        .cvMetaLine{ margin-top:2px; font-size:11.5px; color:rgba(17,19,24,.70); }
+        .cvUl{ margin:6px 0 0 18px; padding:0; }
+        .cvUl li{ margin:0 0 3px 0; }
+        .cvSkillLine{ margin:0 0 6px 0; }
+        .cvMuted{ color:rgba(17,19,24,.70); }
+      `;
+
+      const body = cvDocToPreviewHtml(cvDoc, lang);
+
+      return `<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>${escapeHtml(title || "Tailored CV")}</title>
+<style>${css}</style>
+</head>
+<body>
+${body}
+</body>
+</html>`;
+    }
+
     function renderKeywords(){
       const used = Array.isArray(lastUsed) ? lastUsed : [];
       const miss = Array.isArray(lastMissing) ? lastMissing : [];
@@ -769,27 +1124,45 @@
       }
     }
 
-    function setCvText(text){
-      lastCvText = String(text || "").trim();
-      if(!lastCvText){
-        $("cvPre").textContent = "No CV generated yet.";
-        $("cvText").value = "";
-        setOutputEnabled(false);
-        return;
+    function setCvOutput(text, doc, lang){
+      lastCvDoc = (doc && typeof doc === "object") ? doc : null;
+      lastLang = String(lang || "en").toLowerCase() === "de" ? "de" : "en";
+
+      // Prefer returned cv_text, but fallback to doc-derived plain text if needed
+      let t = String(text || "").trim();
+      if(!t && lastCvDoc){
+        t = cvDocToPlainText(lastCvDoc, lastLang);
       }
-      $("cvPre").textContent = lastCvText;
-      $("cvText").value = lastCvText;
-      setOutputEnabled(true);
-    }
 
     function setTabs(which){
       const isPreview = which === "preview";
       $("tabPreview").classList.toggle("active", isPreview);
       $("tabText").classList.toggle("active", !isPreview);
-      $("cvPre").style.display = isPreview ? "" : "none";
+      $("cvPreview").style.display = isPreview ? "" : "none";
       $("cvText").style.display = isPreview ? "none" : "";
     }
 
+      lastCvText = t;
+
+      if(!lastCvText && !lastCvDoc){
+        $("cvPreview").innerHTML = '<div class="small muted">No CV generated yet.</div>';
+        $("cvText").value = "";
+        setOutputEnabled(false);
+        return;
+      }
+
+      // Preview: formatted HTML if cv_doc exists, otherwise plain text
+      if(lastCvDoc){
+        $("cvPreview").innerHTML = cvDocToPreviewHtml(lastCvDoc, lastLang);
+      }else{
+        $("cvPreview").innerHTML = '<pre class="cvPre">' + escapeHtml(lastCvText || "") + '</pre>';
+      }
+
+      $("cvText").value = lastCvText || "";
+      setOutputEnabled(Boolean(lastCvText || lastCvDoc));
+    }
+
+    
     async function loadQueue(){
       const resp = await apiGet("/me/jobs/queue");
       jobs = Array.isArray(resp?.data) ? resp.data : [];
@@ -904,6 +1277,8 @@
         }
 
         const r = res.result || {};
+        const doc = (r.cv_doc && typeof r.cv_doc === "object") ? r.cv_doc : null;
+        const lang = r.language || r.lang || (doc && doc.language) || "en";
         const text = String(r.cv_text || "").trim();
 
         lastUsed = Array.isArray(r.ats_keywords_used) ? r.ats_keywords_used : [];
@@ -921,7 +1296,7 @@
           cv_structured_model: r.cv_structured_model || null
         };
 
-        setCvText(text);
+        setCvOutput(text, doc, lang);
 
         setBadge("outStatus", res.cached ? "good" : "good", res.cached ? "Ready (cached)" : "Ready");
         setText("outModel", "Model: " + (r.model || "—"));
@@ -949,6 +1324,8 @@
             at: Date.now(),
             payload,
             cv_text: text,
+            cv_doc: doc,
+            language: lang,
             used: lastUsed,
             missing: lastMissing,
             debug: lastDebug
@@ -1054,27 +1431,33 @@
     }
 
     async function copyCv(){
-      const txt = String(lastCvText || "").trim();
-      if(!txt) return;
-      try{
-        await navigator.clipboard.writeText(txt);
+      let txt = String(lastCvText || "").trim();
+      if(!txt && lastCvDoc){
+        txt = cvDocToPlainText(lastCvDoc, lastLang);
+      }
+      if(!txt){ alert("Nothing to copy yet."); return; }
+
+      navigator.clipboard.writeText(txt).then(()=>{
         $("btnCopy").textContent = "Copied ✓";
         setTimeout(()=>{ $("btnCopy").textContent = "Copy"; }, 900);
-      }catch(_){
-        // fallback
+      }).catch(()=>{
+        // Fallback
         const ta = document.createElement("textarea");
         ta.value = txt;
         document.body.appendChild(ta);
         ta.select();
-        try{ document.execCommand("copy"); }catch{}
+        try{ document.execCommand("copy"); }catch(_){}
         document.body.removeChild(ta);
         $("btnCopy").textContent = "Copied ✓";
         setTimeout(()=>{ $("btnCopy").textContent = "Copy"; }, 900);
-      }
+      });
     }
 
     function downloadTxt(){
-      const txt = String(lastCvText || "").trim();
+      let txt = String(lastCvText || "").trim();
+      if(!txt && lastCvDoc){
+        txt = cvDocToPlainText(lastCvDoc, lastLang);
+      }
       if(!txt) return;
 
       const title = selectedJob?.title ? String(selectedJob.title).slice(0, 60) : "tailored_cv";
@@ -1089,21 +1472,60 @@
       a.download = filename;
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
     }
 
     function printPdf(){
-      const txt = String(lastCvText || "").trim();
-      if(!txt) return;
+      // Prefer a structured printable layout if we have cv_doc
+      const title = selectedJob?.title ? ("Tailored CV — " + String(selectedJob.title).slice(0, 80)) : "Tailored CV";
 
-      const title = selectedJob?.title ? String(selectedJob.title) : "Tailored CV";
+      try{
+        let htmlDoc = "";
+        if(lastCvDoc){
+          htmlDoc = cvDocToPrintableHtml(lastCvDoc, lastLang, title);
+        }else{
+          const txt = String(lastCvText || "").trim();
+          if(!txt) return;
 
-      const w = window.open("", "_blank", "noopener,noreferrer");
-      if(!w){
-        showError("Popup blocked. Please allow popups to export as PDF.");
-        return;
+          // Plain text printable fallback
+          htmlDoc = `<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>${escapeHtml(title)}</title>
+<style>
+  @page{ size:A4; margin:14mm 14mm 14mm 14mm; }
+  body{ margin:0; padding:0; font-family: Arial, Helvetica, sans-serif; color:#111318; }
+  pre{ white-space: pre-wrap; font-size:11.5px; line-height:1.4; }
+</style>
+</head>
+<body>
+<pre>${escapeHtml(txt)}</pre>
+</body>
+</html>`;
+        }
+
+        const w = window.open("", "_blank");
+        if(!w){ alert("Popup blocked. Please allow popups to print."); return; }
+
+        // Try printing once rendered
+        const tryPrint = () => {
+          try{ w.focus(); w.print(); }catch(_){}
+        };
+        w.onload = tryPrint;
+
+        w.document.open();
+        w.document.write(htmlDoc);
+        w.document.close();
+
+        // Backup print attempt
+        setTimeout(tryPrint, 350);
+      }catch(e){
+        showError("Failed to open print view: " + (e?.message || String(e)));
       }
+    }
 
       // IMPORTANT:
       // Avoid putting a closing script tag sequence inside this page's script content.
@@ -1198,8 +1620,8 @@
         const raw = localStorage.getItem(key);
         if(raw){
           const obj = JSON.parse(raw);
-          if(obj && obj.cv_text){
-            setCvText(obj.cv_text);
+          if(obj && (obj.cv_text || obj.cv_doc)){
+            setCvOutput(obj.cv_text, (obj.cv_doc && typeof obj.cv_doc === "object") ? obj.cv_doc : null, obj.language || "en");
             lastUsed = Array.isArray(obj.used) ? obj.used : [];
             lastMissing = Array.isArray(obj.missing) ? obj.missing : [];
             renderKeywords();
