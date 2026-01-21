@@ -589,6 +589,9 @@
     function setBadge(id, cls, txt){
       S.setBadge(id, cls, txt);
     }
+    function lsGet(k){ try{ return localStorage.getItem(k); }catch(_){ return null; } }
+    function lsSet(k,v){ try{ localStorage.setItem(k, v); }catch(_){ } }
+
     function setText(id, txt){
       const el = $(id);
       if (el) el.textContent = (txt == null) ? "" : String(txt);
@@ -813,10 +816,15 @@
       }
 
       const urlJobId = (qs("job_id") || "").trim();
-      if(urlJobId && jobs.some(j => String(j.id) === String(urlJobId))){
-        sel.value = urlJobId;
+      const lsJobId  = String(lsGet("cvstudio_selected_job_id") || "").trim();
+      const preferred = urlJobId || lsJobId;
+
+      if(preferred && jobs.some(j => String(j.id) === String(preferred))){
+        sel.value = preferred;
       } else {
-        sel.value = String(jobs[0].id);
+        // pick first priority job if available, else first
+        const prio = jobs.find(j => j && j._application && j._application.priority);
+        sel.value = String((prio || jobs[0]).id);
       }
 
       await onJobChange();
@@ -825,6 +833,9 @@
     async function onJobChange(){
       const jobId = $("jobSelect").value;
       selectedJob = jobs.find(j => String(j.id) === String(jobId)) || null;
+
+      // Remember last selected job (helps cross-page navigation from Jobs → CV Studio)
+      if(selectedJob && selectedJob.id) lsSet("cvstudio_selected_job_id", String(selectedJob.id));
 
       if(!selectedJob){
         setText("jobMeta", "");
