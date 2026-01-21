@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
@@ -687,8 +687,8 @@
       <div class="modalScroll">
         <div class="modalHeader">
           <div style="min-width:0">
-            <h3 class="modalTitle" id="kwH">Keyword hinzufügen</h3>
-            <div class="hint" style="margin-top:6px" id="kwSub">Füge fehlende Keywords ein – aber nur, wenn es wirklich zutrifft.</div>
+            <h3 class="modalTitle" id="kwH">Add keyword</h3>
+            <div class="hint" style="margin-top:6px" id="kwSub">Add missing keywords — only if it's truly accurate for you.</div>
           </div>
           <button class="btn small" id="kwClose" type="button">Close</button>
         </div>
@@ -704,96 +704,96 @@
           <div class="checkLine" style="margin-top:10px">
             <input type="checkbox" id="kwTruth"/>
             <div>
-              <div id="kwTruthLbl">Ich bestätige, dass dieses Keyword für mich zutrifft.</div>
-              <div class="tinyNote" id="kwTruthNote">Wir erfinden keine Erfahrung. Wenn es nicht stimmt, füge es nicht ein.</div>
+              <div id="kwTruthLbl">I confirm this keyword is true for me.</div>
+              <div class="tinyNote" id="kwTruthNote">We never invent experience. If it's not true, don’t add it.</div>
             </div>
           </div>
         </div>
 
         <div class="formRow" style="margin-top:12px">
           <div class="field">
-            <div class="fieldLabel" id="kwWhereLbl">Wo soll es erscheinen?</div>
+            <div class="fieldLabel" id="kwWhereLbl">Where should it appear?</div>
             <select id="kwTarget">
-              <option value="skills">Skills (empfohlen)</option>
-              <option value="experience">Berufserfahrung</option>
+              <option value="skills">Skills (recommended)</option>
+              <option value="experience">Experience</option>
             </select>
-            <div class="tinyNote" id="kwWhereNote">Skills ist meistens die sicherste Option für ATS, ohne neue Aussagen zu machen.</div>
+            <div class="tinyNote" id="kwWhereNote">Skills is usually the safest option for ATS without adding new claims.</div>
           </div>
 
           <div class="field">
-            <div class="fieldLabel" id="kwLangLbl">Sprache</div>
+            <div class="fieldLabel" id="kwLangLbl">Language</div>
             <select id="kwLang">
-              <option value="auto">Auto (wie dein CV)</option>
-              <option value="de">Deutsch</option>
+              <option value="auto">Auto (match CV)</option>
+              <option value="de">German</option>
               <option value="en">English</option>
             </select>
-            <div class="tinyNote" id="kwLangNote">Für den deutschen Markt empfehlen wir Deutsch.</div>
+            <div class="tinyNote" id="kwLangNote">Auto matches your CV language. Choose German if your CV is in German.</div>
           </div>
         </div>
 
         <div class="field" style="margin-top:12px">
-          <div class="fieldLabel" id="kwModeLbl">Einfüge-Modus</div>
+          <div class="fieldLabel" id="kwModeLbl">Insertion mode</div>
           <div class="pillToggle" id="kwModeToggle">
-            <button type="button" data-mode="ai" class="active" id="kwModeAi">KI-Formulierung</button>
-            <button type="button" data-mode="quick" id="kwModeQuick">Schnell (ohne KI)</button>
+            <button type="button" data-mode="ai" class="active" id="kwModeAi">AI rewrite</button>
+            <button type="button" data-mode="quick" id="kwModeQuick">Quick (no AI)</button>
           </div>
-          <div class="tinyNote" id="kwModeNote">KI versucht, das Keyword natürlich in einen bestehenden Satz zu integrieren. Falls dein Backend keinen KI-Endpunkt hat, nutzen wir automatisch Smart-Templates.</div>
+          <div class="tinyNote" id="kwModeNote">AI tries to integrate the keyword naturally into an existing bullet. If your backend has no AI endpoint, we automatically fall back to smart templates.</div>
         </div>
 
         <!-- Skills target -->
         <div id="kwSkillsBox" style="margin-top:12px">
           <div class="field">
-            <div class="fieldLabel" id="kwSkillsGroupLbl">In welchen Skill-Bereich?</div>
+            <div class="fieldLabel" id="kwSkillsGroupLbl">Which skill area?</div>
             <select id="kwSkillGroup"></select>
-            <div class="tinyNote" id="kwSkillsGroupNote">Wir fügen das Keyword im selben Schreibstil hinzu (inkl. besserer Groß-/Kleinschreibung).</div>
+            <div class="tinyNote" id="kwSkillsGroupNote">We add the keyword with clean casing and consistent style.</div>
           </div>
         </div>
 
         <!-- Experience target -->
         <div id="kwExpBox" style="margin-top:12px; display:none">
           <div class="field">
-            <div class="fieldLabel" id="kwExpRoleLbl">Welche Station?</div>
+            <div class="fieldLabel" id="kwExpRoleLbl">Which role?</div>
             <select id="kwExpRole"></select>
           </div>
 
           <div class="field" style="margin-top:12px">
-            <div class="fieldLabel" id="kwExpHowLbl">Wie einfügen?</div>
+            <div class="fieldLabel" id="kwExpHowLbl">How to insert?</div>
             <select id="kwExpHow">
-              <option value="rewrite">Bestehenden Bullet umformulieren (empfohlen)</option>
-              <option value="append">An bestehenden Bullet anhängen</option>
-              <option value="new">Neuen Bullet hinzufügen</option>
+              <option value="rewrite">Rewrite an existing bullet (recommended)</option>
+              <option value="append">Append to an existing bullet</option>
+              <option value="new">Add a new bullet</option>
             </select>
-            <div class="tinyNote" id="kwExpHowNote">Umformulieren ist am natürlichsten und bleibt nah an deinen echten Aussagen.</div>
+            <div class="tinyNote" id="kwExpHowNote">Rewriting is most natural and stays close to your real statements.</div>
           </div>
 
           <div class="field" style="margin-top:12px" id="kwBulletPickBox">
-            <div class="fieldLabel" id="kwExpBulletLbl">Welcher Bullet?</div>
+            <div class="fieldLabel" id="kwExpBulletLbl">Which bullet?</div>
             <select id="kwExpBullet"></select>
             <div class="kwPreview" id="kwBulletPreview">—</div>
           </div>
 
           <div class="field" style="margin-top:12px; display:none" id="kwNoteBox">
-            <div class="fieldLabel" id="kwNoteLbl">Kurzer Hinweis (wichtig bei neuem Bullet)</div>
+            <div class="fieldLabel" id="kwNoteLbl">Short note (important for new bullet)</div>
             <textarea id="kwNote" rows="3" style="width:100%;border:0;outline:none;background:transparent;resize:vertical;font-weight:750"></textarea>
-            <div class="tinyNote" id="kwNoteHelp">Beispiel: “Kundenworkshops moderiert”, “OKRs eingeführt”, “SQL-Reports gebaut”. Damit bleibt es 100% wahrheitsgemäß.</div>
+            <div class="tinyNote" id="kwNoteHelp">Example: “Facilitated client workshops”, “Implemented OKRs”, “Built SQL reports”. Keeps it 100% truthful.</div>
           </div>
 
           <div class="warnBox" id="kwNewWarn" style="display:none">
-            Tipp: Ein neuer Bullet ohne Kontext wirkt schnell “ausgedacht”. Wenn du keinen Hinweis gibst, füge das Keyword lieber bei Skills hinzu.
+            Tip: A new bullet without context can look “made up”. If you don’t add a note, it’s safer to add the keyword under Skills.
           </div>
         </div>
 
         <div class="field" style="margin-top:12px">
-          <div class="fieldLabel" id="kwPreviewLbl">Vorschau</div>
+          <div class="fieldLabel" id="kwPreviewLbl">Preview</div>
           <div class="kwPreview" id="kwResultPreview">—</div>
-          <div class="tinyNote" id="kwPreviewNote">Du kannst jederzeit Undo/Reset nutzen.</div>
+          <div class="tinyNote" id="kwPreviewNote">You can always use Undo/Reset.</div>
         </div>
 
       </div>
 
       <div class="modalActions">
-        <button class="btn" id="kwCancel" type="button">Abbrechen</button>
-        <button class="btn primary" id="kwApply" type="button">Einfügen</button>
+        <button class="btn" id="kwCancel" type="button">Cancel</button>
+        <button class="btn primary" id="kwApply" type="button">Apply</button>
       </div>
     </div>
   </div>
@@ -864,8 +864,8 @@
     let activeKeywordDisplay = "";
     let kwMode = "ai"; // ai | quick
 
-    // UI language (interface). Default to German for DACH/browser de.
-    let uiLang = "de";
+    // UI language (interface). Keep English UI; keyword insertion language follows your CV language (auto).
+    let uiLang = "en";
 
     /* -------------------------
        i18n (interface)
@@ -920,31 +920,31 @@
         debugTitle: "Debug Details",
 
         // Keyword modal
-        kwH: "Keyword hinzufügen",
-        kwSub: "Füge fehlende Keywords ein – aber nur, wenn es wirklich zutrifft.",
+        kwH: "Add keyword",
+        kwSub: "Add missing keywords — only if it's truly accurate for you.",
         close: "Schließen",
-        kwTruthLbl: "Ich bestätige, dass dieses Keyword für mich zutrifft.",
-        kwTruthNote: "Wir erfinden keine Erfahrung. Wenn es nicht stimmt, füge es nicht ein.",
-        kwWhereLbl: "Wo soll es erscheinen?",
-        kwWhereNote: "Skills ist meistens die sicherste Option für ATS, ohne neue Aussagen zu machen.",
-        kwLangLbl: "Sprache",
-        kwLangNote: "Für den deutschen Markt empfehlen wir Deutsch.",
-        kwModeLbl: "Einfüge-Modus",
-        kwModeAi: "KI-Formulierung",
-        kwModeQuick: "Schnell (ohne KI)",
+        kwTruthLbl: "I confirm this keyword is true for me.",
+        kwTruthNote: "We never invent experience. If it's not true, don’t add it.",
+        kwWhereLbl: "Where should it appear?",
+        kwWhereNote: "Skills is usually the safest option for ATS without adding new claims.",
+        kwLangLbl: "Language",
+        kwLangNote: "Auto passt zur Sprache deines CV. Wähle Deutsch, wenn dein CV auf Deutsch ist.",
+        kwModeLbl: "Insertion mode",
+        kwModeAi: "AI rewrite",
+        kwModeQuick: "Quick (no AI)",
         kwModeNote: "KI integriert das Keyword natürlich. Falls dein Backend keinen KI-Endpunkt hat, nutzen wir automatisch Smart-Templates.",
-        kwSkillsGroupLbl: "In welchen Skill-Bereich?",
-        kwSkillsGroupNote: "Wir fügen das Keyword im selben Schreibstil hinzu (inkl. besserer Groß-/Kleinschreibung).",
-        kwExpRoleLbl: "Welche Station?",
-        kwExpHowLbl: "Wie einfügen?",
-        kwExpHowNote: "Umformulieren ist am natürlichsten und bleibt nah an deinen echten Aussagen.",
-        kwExpBulletLbl: "Welcher Bullet?",
-        kwNoteLbl: "Kurzer Hinweis (wichtig bei neuem Bullet)",
+        kwSkillsGroupLbl: "Which skill area?",
+        kwSkillsGroupNote: "We add the keyword with clean casing and consistent style.",
+        kwExpRoleLbl: "Which role?",
+        kwExpHowLbl: "How to insert?",
+        kwExpHowNote: "Rewriting is most natural and stays close to your real statements.",
+        kwExpBulletLbl: "Which bullet?",
+        kwNoteLbl: "Short note (important for new bullet)",
         kwNoteHelp: "Beispiel: „Kundenworkshops moderiert“, „OKRs eingeführt“, „SQL-Reports gebaut“. Damit bleibt es 100% wahrheitsgemäß.",
-        kwPreviewLbl: "Vorschau",
-        kwPreviewNote: "Du kannst jederzeit Undo/Reset nutzen.",
-        kwCancel: "Abbrechen",
-        kwApply: "Einfügen",
+        kwPreviewLbl: "Preview",
+        kwPreviewNote: "You can always use Undo/Reset.",
+        kwCancel: "Cancel",
+        kwApply: "Apply",
 
         // errors
         pickJob: "Bitte wähle zuerst einen Job.",
@@ -1012,7 +1012,7 @@
         kwWhereLbl: "Where should it appear?",
         kwWhereNote: "Skills is usually the safest ATS option without creating new claims.",
         kwLangLbl: "Language",
-        kwLangNote: "For German market, we recommend German.",
+        kwLangNote: "Auto matches your CV language. Choose German if your CV is in German.",
         kwModeLbl: "Insert mode",
         kwModeAi: "AI wording",
         kwModeQuick: "Quick (no AI)",
@@ -1042,14 +1042,7 @@
     };
 
     function guessUiLang(){
-      try{
-        const stored = (localStorage.getItem("cvstudio_ui_lang") || "").trim().toLowerCase();
-        if(stored === "de" || stored === "en") return stored;
-      }catch(_){}
-      const nav = (navigator.language || "").toLowerCase();
-      if(nav.startsWith("de")) return "de";
-      // If we later have job.country/region we can switch, but keep simple.
-      return "de"; // German-first as requested
+      return "en"; // Keep the interface in English
     }
 
     function t(key){
@@ -1573,13 +1566,13 @@
       const de = isLikelyGerman(lang);
       return de ? {
         summary: "Profil",
-        experience: "Berufserfahrung",
+        experience: "Experience",
         education: "Ausbildung",
         achievements: "Erfolge",
         skills: "Skills",
         courses: "Kurse",
         interests: "Interessen",
-        languages: "Sprachen"
+        languages: "Languagen"
       } : {
         summary: "Profile",
         experience: "Experience",
@@ -1897,7 +1890,7 @@ ${bodyHtml}
       if(lastCvDoc){
         $("cvPreview").innerHTML = cvDocToPreviewHtml(lastCvDoc, lastLang);
       }else{
-        $("cvPreview").innerHTML = `<div class="hint">${uiLang==="de" ? "Keine strukturierte Vorschau verfügbar. Zeige Text." : "No structured preview available. Showing text only."}</div>`;
+        $("cvPreview").innerHTML = `<div class="hint">${uiLang==="de" ? "Keine strukturierte Preview verfügbar. Zeige Text." : "No structured preview available. Showing text only."}</div>`;
       }
 
       // Text view
@@ -2426,7 +2419,7 @@ ${bodyHtml}
       // experience
       const expIdx = Number($("kwExpRole").value || "0");
       const exp = (Array.isArray(lastCvDoc?.experience) ? lastCvDoc.experience : [])[expIdx] || {};
-      const roleName = joinNonEmpty([exp?.title, exp?.company], " · ") || (lang==="de" ? "Berufserfahrung" : "Experience");
+      const roleName = joinNonEmpty([exp?.title, exp?.company], " · ") || (lang==="de" ? "Experience" : "Experience");
       const how = String($("kwExpHow").value || "rewrite");
       const bullets = asStringArr(exp?.bullets, 50);
 
