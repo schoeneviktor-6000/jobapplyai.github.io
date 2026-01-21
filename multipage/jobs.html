@@ -256,9 +256,45 @@
       display:none;
     }
     @media (max-width: 980px){
-      body.showDetail .leftCol{ display:none; }
-      body:not(.showDetail) .rightCol{ display:none; }
       .backBtn{ display:inline-flex; }
+
+      /* Mobile UX:
+         - Keep the list visible behind
+         - Open job details as a full-screen sheet (overlay)
+      */
+      .mobileBackdrop{ display:none; }
+      body.showDetail .mobileBackdrop{
+        display:block;
+        position: fixed;
+        inset: 0;
+        background: rgba(17,19,24,.35);
+        z-index: 50;
+      }
+
+      .rightCol{
+        display:none;
+        position: fixed;
+        inset: 0;
+        margin: 0;
+        border-radius: 0;
+        z-index: 51;
+        height: 100dvh;
+        max-height: 100dvh;
+        overflow: hidden;
+      }
+      body.showDetail .rightCol{
+        display:flex;
+        flex-direction:column;
+      }
+
+      .detailHead{
+        position: sticky;
+        top: 0;
+      }
+      .detailBody{
+        flex: 1;
+        overflow: auto;
+      }
     }
 
     .detailTitle{
@@ -527,6 +563,8 @@
     </div>
   </div>
 
+  <div id="mobileBackdrop" class="mobileBackdrop" aria-hidden="true"></div>
+
   <!-- Scripts -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="./auth.js"></script>
@@ -556,6 +594,14 @@
     let prioOnly = false;
     let qText = "";
     let qLoc = "";
+
+    const isMobile = () => {
+      try{ return window.matchMedia && window.matchMedia("(max-width: 980px)").matches; }catch(_){ return false; }
+    };
+
+    function closeMobileDetail(){
+      document.body.classList.remove("showDetail");
+    }
 
     function showError(msg){
       S.showTopError("errorTop", msg || "");
@@ -770,8 +816,8 @@
       if(!id) return;
       selectedJobId = id;
 
-      // mobile: show detail view
-      if(maybeMobile) document.body.classList.add("showDetail");
+      // Mobile: open details as an overlay sheet
+      if(maybeMobile && isMobile()) document.body.classList.add("showDetail");
 
       renderList();
 
@@ -1020,7 +1066,8 @@
     function gotoCvStudio(){
       const j = currentJob();
       if(!j) return;
-      const url = "./cv.html?job_id=" + encodeURIComponent(String(j.id));
+      try{ localStorage.setItem("cvstudio_selected_job_id", String(j.id)); }catch(_){ }
+      const url = "./cv.html?job_id=" + encodeURIComponent(String(j.id)) + "&from=jobs";
       S.go(url);
     }
 
@@ -1078,8 +1125,23 @@
 
     $("copyDescBtn").addEventListener("click", copyDescription);
 
-    $("backBtn").addEventListener("click", () => {
-      document.body.classList.remove("showDetail");
+    $("backBtn").addEventListener("click", closeMobileDetail);
+
+    const bd = $("mobileBackdrop");
+    if(bd){
+      bd.addEventListener("click", closeMobileDetail);
+    }
+
+    // Close overlay on Escape (mobile)
+    document.addEventListener("keydown", (e) => {
+      if(e.key === "Escape" && document.body.classList.contains("showDetail") && !document.body.classList.contains("modalOpen")){
+        closeMobileDetail();
+      }
+    });
+
+    // If user rotates / resizes to desktop, ensure overlay is closed
+    window.addEventListener("resize", () => {
+      if(!isMobile()) closeMobileDetail();
     });
 
     // Skip modal
