@@ -525,6 +525,58 @@
       line-height:1.45;
     }
 
+
+
+    /* Paste job description inputs */
+    .textInput{
+      width:100%;
+      border:1px solid rgba(17,19,24,.12);
+      background:rgba(255,255,255,.78);
+      border-radius:14px;
+      padding:10px 12px;
+      font-weight:800;
+      font-size:13px;
+      color:rgba(17,19,24,.90);
+      outline:none;
+    }
+    .textInput:focus{
+      border-color: rgba(34,197,94,.45);
+      box-shadow: 0 0 0 4px rgba(34,197,94,.12);
+    }
+    textarea.jobDesc{
+      width:100%;
+      border:1px solid rgba(17,19,24,.12);
+      background:rgba(255,255,255,.78);
+      border-radius:14px;
+      padding:10px 12px;
+      font-weight:750;
+      font-size:13px;
+      line-height:1.45;
+      color:rgba(17,19,24,.92);
+      outline:none;
+      resize:vertical;
+      min-height: 180px;
+    }
+    textarea.jobDesc:focus{
+      border-color: rgba(34,197,94,.45);
+      box-shadow: 0 0 0 4px rgba(34,197,94,.12);
+    }
+    .qualityPill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(17,19,24,.12);
+      background:rgba(17,19,24,.04);
+      font-weight:900;
+      font-size:12px;
+      color:rgba(17,19,24,.78);
+      white-space:nowrap;
+    }
+    .qualityPill.good{ border-color: rgba(34,197,94,.38); background: rgba(34,197,94,.12); color:#0a3d1f; }
+    .qualityPill.warn{ border-color: rgba(255,179,0,.38); background: rgba(255,179,0,.12); color:#5a3b00; }
+
   </style>
 </head>
 
@@ -564,15 +616,51 @@
           <span class="badge warn" id="authBadge">Checking…</span>
         </div>
 
-        <div class="label" id="jobToTailorLbl">Job to tailor</div>
-        <div class="row">
-          <select id="jobSelect" class="selectWide">
-            <option value="">Loading…</option>
-          </select>
-          <a class="btn" href="./jobs.html" data-nav="1" style="flex:0 0 auto" id="openJobsBtn">Open Jobs</a>
+        <div class="label" id="jobSourceLbl">Job source</div>
+        <div class="strengthPills" id="sourcePills">
+          <span class="miniPill active" data-src="queue" id="srcQueue">From my Jobs</span>
+          <span class="miniPill" data-src="paste" id="srcPaste">Paste description</span>
         </div>
-        <div class="hint" id="jobHint">Pick a job from your queue.</div>
-        <div class="jobMeta" id="jobMeta"></div>
+        <div class="hint" id="jobSourceHint">Use a saved job from your queue, or paste any job description.</div>
+
+        <div id="queueBox">
+          <div class="label" id="jobToTailorLbl">Job to tailor</div>
+          <div class="row">
+            <select id="jobSelect" class="selectWide">
+              <option value="">Loading…</option>
+            </select>
+            <a class="btn" href="./jobs.html" data-nav="1" style="flex:0 0 auto" id="openJobsBtn">Open Jobs</a>
+          </div>
+          <div class="hint" id="jobHint">Pick a job from your queue.</div>
+          <div class="jobMeta" id="jobMeta"></div>
+        </div>
+
+        <div id="pasteBox" style="display:none">
+          <div class="label" id="pasteJobLbl">Pasted job (not saved)</div>
+
+          <div class="row">
+            <input id="pasteTitle" class="textInput" type="text" placeholder="Job title (optional)" />
+            <input id="pasteCompany" class="textInput" type="text" placeholder="Company (optional)" />
+          </div>
+
+          <div class="row" style="margin-top:10px">
+            <input id="pasteApply" class="textInput" type="url" placeholder="Apply link (optional)" />
+            <select id="pasteLangHint" class="selectWide" title="Language hint for tailoring">
+              <option value="auto">Language: Auto</option>
+              <option value="en">Language: English</option>
+              <option value="de">Language: German</option>
+            </select>
+          </div>
+
+          <div class="label" style="margin-top:12px" id="pasteDescLbl">Job description</div>
+          <textarea id="pasteDesc" class="jobDesc" rows="10" placeholder="Paste the job description here…"></textarea>
+
+          <div class="miniNote" style="margin-top:8px">
+            <span class="qualityPill warn" id="pasteQualityPill">Needs text</span>
+            <span id="pasteQuality">Paste the full job posting for best results.</span>
+          </div>
+          <div class="hint" id="pasteHint">Tip: include Responsibilities + Requirements + Tech stack. Don’t paste confidential info.</div>
+        </div>
 
         <div class="row" style="margin-top:10px">
           <button class="btn ghost" id="btnViewDesc" type="button" disabled>View description</button>
@@ -997,6 +1085,11 @@
     let selectedDesc = "";
     let selectedApplyUrl = "";
 
+    // Job source: queue (your saved jobs) vs paste (manual job description)
+    let jobSource = "queue"; // "queue" | "paste"
+    let pasteDraft = { title:"", company:"", apply:"", lang_hint:"auto", desc:"" };
+    let pasteCacheKey = "";
+
     let lastCvText = "";
     let lastCvDoc = null;
     let lastLang = "en";
@@ -1111,6 +1204,22 @@
       en: {
         subTitle: "Tailor your CV per role with ATS-safe formatting. Job search + CV tailoring stay free.",
         setupTitle: "Setup",
+        jobSourceLbl: "Job source",
+        sourceJobs: "From my Jobs",
+        sourcePaste: "Paste description",
+        jobSourceHint: "Use a saved job from your queue, or paste any job description.",
+        pasteJobLbl: "Pasted job (not saved)",
+        pasteDescLbl: "Job description",
+        pasteHint: "Tip: include Responsibilities + Requirements + Tech stack. Don’t paste confidential info.",
+        pasteTitlePh: "Job title (optional)",
+        pasteCompanyPh: "Company (optional)",
+        pasteApplyPh: "Apply link (optional)",
+        pasteLangAuto: "Language: Auto",
+        pasteLangEn: "Language: English",
+        pasteLangDe: "Language: German",
+        pasteTooShort: "Please paste a longer job description (at least 200 characters recommended).",
+        pasteTooLong: "Job description is too long. Please shorten it (max 20,000 characters).",
+        pasteNotSupported: "Your backend does not support tailoring from pasted job descriptions yet. Implement /me/cv/tailor_from_text in your Worker.",
         jobToTailorLbl: "Job to tailor",
         openJobsBtn: "Open Jobs",
         btnViewDesc: "View description",
@@ -1206,6 +1315,27 @@
       // top
       $("subTitle").textContent = t("subTitle");
       $("setupTitle").textContent = t("setupTitle");
+
+      // Job source (queue vs paste)
+      $("jobSourceLbl").textContent = t("jobSourceLbl");
+      $("srcQueue").textContent = t("sourceJobs");
+      $("srcPaste").textContent = t("sourcePaste");
+      $("jobSourceHint").textContent = t("jobSourceHint");
+
+      $("pasteJobLbl").textContent = t("pasteJobLbl");
+      $("pasteDescLbl").textContent = t("pasteDescLbl");
+      $("pasteHint").textContent = t("pasteHint");
+      $("pasteTitle").setAttribute("placeholder", t("pasteTitlePh"));
+      $("pasteCompany").setAttribute("placeholder", t("pasteCompanyPh"));
+      $("pasteApply").setAttribute("placeholder", t("pasteApplyPh"));
+
+      const langSel = $("pasteLangHint");
+      if(langSel && langSel.options && langSel.options.length >= 3){
+        langSel.options[0].textContent = t("pasteLangAuto");
+        langSel.options[1].textContent = t("pasteLangEn");
+        langSel.options[2].textContent = t("pasteLangDe");
+      }
+
       $("jobToTailorLbl").textContent = t("jobToTailorLbl");
       $("openJobsBtn").textContent = t("openJobsBtn");
       $("btnViewDesc").textContent = t("btnViewDesc");
@@ -1299,6 +1429,174 @@
     function asStringArr(arr, max=999){
       if(!Array.isArray(arr)) return [];
       return arr.map(x => String(x || "").trim()).filter(Boolean).slice(0, max);
+    }
+
+    // Small, stable hash for caching pasted descriptions in localStorage
+    function fnv1a(str){
+      let h = 0x811c9dc5;
+      const s = String(str || "");
+      for(let i=0;i<s.length;i++){
+        h ^= s.charCodeAt(i);
+        h = (h + ((h<<1) + (h<<4) + (h<<7) + (h<<8) + (h<<24))) >>> 0;
+      }
+      return ("00000000" + h.toString(16)).slice(-8);
+    }
+
+    function getPasteDesc(){
+      return String($("pasteDesc")?.value || "").trim();
+    }
+
+    function getActiveJobMeta(){
+      if(jobSource === "paste"){
+        const title = String($("pasteTitle")?.value || "").trim();
+        const company_name = String($("pasteCompany")?.value || "").trim();
+        const apply_url = applyUrlSafe(String($("pasteApply")?.value || "").trim());
+        return {
+          title: title || (uiLang==="de" ? "Eingefügter Job" : "Pasted job"),
+          company_name,
+          apply_url
+        };
+      }
+      return {
+        title: String(selectedJob?.title || "").trim(),
+        company_name: String(selectedJob?.company_name || "").trim(),
+        apply_url: applyUrlSafe(selectedJob?.apply_url || "")
+      };
+    }
+
+    function loadJobSource(){
+      try{
+        const v = String(localStorage.getItem("cvstudio_job_source") || "").trim();
+        jobSource = (v === "paste") ? "paste" : "queue";
+      }catch(_){
+        jobSource = "queue";
+      }
+    }
+
+    function loadPasteDraft(){
+      try{
+        const raw = localStorage.getItem("cvstudio_paste_draft");
+        if(!raw) return;
+        const obj = JSON.parse(raw);
+        if(!obj) return;
+        pasteDraft = {
+          title: String(obj.title||""),
+          company: String(obj.company||""),
+          apply: String(obj.apply||""),
+          lang_hint: String(obj.lang_hint||"auto"),
+          desc: String(obj.desc||"")
+        };
+      }catch(_){}
+    }
+
+    function savePasteDraft(){
+      try{
+        pasteDraft = {
+          title: String($("pasteTitle")?.value || ""),
+          company: String($("pasteCompany")?.value || ""),
+          apply: String($("pasteApply")?.value || ""),
+          lang_hint: String($("pasteLangHint")?.value || "auto"),
+          desc: String($("pasteDesc")?.value || "")
+        };
+        localStorage.setItem("cvstudio_paste_draft", JSON.stringify({ ...pasteDraft, at: Date.now() }));
+      }catch(_){}
+    }
+
+    function applyPasteDraftToInputs(){
+      try{
+        $("pasteTitle").value = pasteDraft.title || "";
+        $("pasteCompany").value = pasteDraft.company || "";
+        $("pasteApply").value = pasteDraft.apply || "";
+        $("pasteLangHint").value = pasteDraft.lang_hint || "auto";
+        $("pasteDesc").value = pasteDraft.desc || "";
+      }catch(_){}
+    }
+
+    function setJobSource(mode){
+      jobSource = (mode === "paste") ? "paste" : "queue";
+      try{ localStorage.setItem("cvstudio_job_source", jobSource); }catch(_){}
+
+      $("srcQueue")?.classList.toggle("active", jobSource === "queue");
+      $("srcPaste")?.classList.toggle("active", jobSource === "paste");
+
+      $("queueBox").style.display = jobSource === "queue" ? "" : "none";
+      $("pasteBox").style.display = jobSource === "paste" ? "" : "none";
+
+      refreshModeUi();
+
+      if(jobSource === "queue"){
+        // refresh selection UI
+        try{ onJobChange(); }catch(_){}
+      }else{
+        // update quality and enablement
+        try{ updatePasteQuality(); }catch(_){}
+      }
+    }
+
+    function refreshModeUi(){
+      if(jobSource === "queue"){
+        const ok = !!selectedJob;
+        $("btnGenerate").disabled = !ok;
+        $("btnGenerateAgain").disabled = !ok;
+        $("btnViewDesc").disabled = !ok;
+        $("btnCopyDesc").disabled = !ok;
+        return;
+      }
+
+      // paste mode
+      const desc = getPasteDesc();
+      const len = desc.length;
+
+      // allow generation at >=120 chars, recommend >=200
+      const ok = len >= 120;
+
+      $("btnGenerate").disabled = !ok;
+      $("btnGenerateAgain").disabled = !ok;
+
+      const hasAny = len > 0;
+      $("btnViewDesc").disabled = !hasAny;
+      $("btnCopyDesc").disabled = !hasAny;
+    }
+
+    function updatePasteQuality(){
+      const desc = getPasteDesc();
+      const pill = $("pasteQualityPill");
+      const label = $("pasteQuality");
+
+      const len = desc.length;
+      const words = desc ? desc.split(/\s+/).filter(Boolean).length : 0;
+      const lines = desc ? desc.split(/\n/).length : 0;
+
+      // heuristics (English + German)
+      const hasReq = /(requirements|qualifications|what you.*bring|we (are )?looking for|must have|you should|anforderungen|qualifikation|du bringst|wir suchen|solltest)/i.test(desc);
+      const hasResp = /(responsibilities|what you.*do|your role|tasks|aufgaben|deine aufgaben|verantwortlichkeiten)/i.test(desc);
+
+      let status = "warn";
+      let msg = "";
+
+      if(len < 50){
+        msg = "Paste the full job posting for best results.";
+      }else if(len < 200){
+        msg = `Looks short (${len} chars). Include Responsibilities + Requirements for best tailoring.`;
+      }else{
+        status = "good";
+        msg = `Looks good: ${len} chars · ${words} words · ${lines} lines` + ((hasReq || hasResp) ? "" : " (Tip: include requirements/tasks)");
+      }
+
+      if(pill){
+        pill.classList.toggle("good", status === "good");
+        pill.classList.toggle("warn", status !== "good");
+        pill.textContent = status === "good" ? "Good" : "Needs more";
+      }
+      if(label) label.textContent = msg;
+
+      // cache key for local storage outputs (not a security hash, just a stable key)
+      const tpl = String($("tplSelect")?.value || "professional").trim().toLowerCase();
+      const s = (strengthValue()?.key) || "balanced";
+      const langHint = String($("pasteLangHint")?.value || "auto");
+      pasteCacheKey = "cvstudio_last_" + "paste_" + fnv1a(desc + "|" + tpl + "|" + s + "|" + langHint);
+
+      refreshModeUi();
     }
 
     function deepCopy(obj){
@@ -1609,10 +1907,18 @@
       pills.forEach(p => p.classList.toggle("active", Number(p.getAttribute("data-s")) === v));
 
       try{ localStorage.setItem("cv_strength", String(v)); }catch{}
+      if(jobSource === "paste"){
+        try{ updatePasteQuality(); }catch(_){ }
+      }else{
+        try{ refreshModeUi(); }catch(_){ }
+      }
     }
 
     function setTemplateUi(){
       try{ localStorage.setItem("cv_template", String($("tplSelect").value || "professional")); }catch{}
+      if(jobSource === "paste"){
+        try{ updatePasteQuality(); }catch(_){ }
+      }
     }
 
     function markSteps(state){
@@ -2590,7 +2896,8 @@ ${bodyHtml}
       const risk = assessReviewRisk(diff);
 
       const lines = [];
-      if(selectedJob?.title) lines.push(`Job: ${selectedJob.title}`);
+      const jm = getActiveJobMeta();
+      if(jm?.title) lines.push(`Job: ${jm.title}` + (jm.company_name ? ` · ${jm.company_name}` : ""));
       if(baseAts != null && curAts != null) lines.push(`ATS match: ${baseAts}% → ${curAts}%`);
       else if(curAts != null) lines.push(`ATS match: ${curAts}%`);
 
@@ -2692,10 +2999,17 @@ ${bodyHtml}
         sel.innerHTML = `<option value="">${uiLang==="de" ? "Keine Jobs in der Queue" : "No jobs in queue"}</option>`;
         setText("jobHint", uiLang==="de" ? "Keine Jobs gefunden. Öffne Jobs und lade neue Jobs." : "No jobs found. Go to Jobs and fetch new jobs.");
         setText("jobMeta", "");
-        $("btnGenerate").disabled = true;
-        $("btnGenerateAgain").disabled = true;
-        $("btnViewDesc").disabled = true;
-        $("btnCopyDesc").disabled = true;
+        selectedJob = null;
+
+        if(jobSource === "queue"){
+          $("btnGenerate").disabled = true;
+          $("btnGenerateAgain").disabled = true;
+          $("btnViewDesc").disabled = true;
+          $("btnCopyDesc").disabled = true;
+        }else{
+          // Paste mode can still be used even with an empty queue
+          refreshModeUi();
+        }
         return;
       }
 
@@ -2723,6 +3037,11 @@ ${bodyHtml}
     async function onJobChange(){
       const jobId = $("jobSelect").value;
       selectedJob = jobs.find(j => String(j.id) === String(jobId)) || null;
+
+      // If user is in paste mode, keep the queue selection in memory but don't change UI state.
+      if(jobSource !== "queue"){
+        return;
+      }
 
       if(!selectedJob){
         setText("jobMeta", "");
@@ -2789,6 +3108,12 @@ ${bodyHtml}
        ------------------------- */
     async function generate(){
       showError("");
+
+      if(jobSource === "paste"){
+        await generateFromPaste();
+        return;
+      }
+
       if(!selectedJob){
         showError(t("pickJob"));
         return;
@@ -2892,24 +3217,233 @@ ${bodyHtml}
       }
     }
 
+    
+    function isMissingEndpointError(e){
+      const msg = String(e?.message || e || "");
+      return /failed:\s*404\b/.test(msg) || /failed:\s*405\b/.test(msg);
+    }
+
+    function buildTailorFromTextPayload(){
+      // keep payload minimal + explicit; backend should treat job_description as untrusted text
+      const tpl = String($("tplSelect").value || "professional").trim().toLowerCase();
+      const s = strengthValue();
+
+      const job_title = String($("pasteTitle")?.value || "").trim();
+      const company_name = String($("pasteCompany")?.value || "").trim();
+      const apply_url = applyUrlSafe(String($("pasteApply")?.value || "").trim());
+      const language_hint = String($("pasteLangHint")?.value || "auto").trim().toLowerCase();
+      const job_description = getPasteDesc();
+
+      return {
+        template: tpl,
+        strength: s.key,
+        job_title,
+        company_name,
+        apply_url,
+        language_hint,
+        job_description
+      };
+    }
+
+    async function generateFromPaste(){
+      showError("");
+
+      const desc = getPasteDesc();
+
+      if(desc.length > 20000){
+        showError(t("pasteTooLong"));
+        return;
+      }
+      if(desc.length < 120){
+        // We allow small texts in UI, but tailoring quality drops sharply below this.
+        showError(t("pasteTooShort"));
+        return;
+      }
+
+      markSteps("running");
+      setBadge("outStatus", "warn", uiLang==="de" ? "Generiere…" : "Generating…");
+      setText("outHint", uiLang==="de" ? "Dein CV wird erstellt…" : "Generating your tailored CV…");
+      setText("debugBox", "—");
+      setBadge("pipeBadge", "warn", uiLang==="de" ? "Arbeite…" : "Working…");
+
+      $("btnGenerate").disabled = true;
+      $("btnGenerateAgain").disabled = true;
+
+      try{
+        const payload = buildTailorFromTextPayload();
+
+        // Try common endpoint names (so you can roll this out without changing the frontend again)
+        const endpoints = [
+          "/me/cv/tailor_from_text",
+          "/me/cv/tailor-from-text",
+          "/me/cv/tailor_text"
+        ];
+
+        let res = null;
+        let usedEndpoint = null;
+
+        for(const ep of endpoints){
+          try{
+            res = await apiPostJson(ep, payload);
+            usedEndpoint = ep;
+            break;
+          }catch(e){
+            if(isMissingEndpointError(e)) continue;
+            throw e;
+          }
+        }
+
+        // Optional fallback: create a temporary job on the backend, then call the existing tailor endpoint.
+        // Implement one of these endpoints if you prefer that architecture.
+        if(!res){
+          const createEndpoints = [
+            "/me/jobs/create_from_text",
+            "/me/jobs/import_text",
+            "/me/jobs/create_from_desc",
+            "/me/jobs/create_from_description"
+          ];
+
+          const createPayload = {
+            title: payload.job_title || "Pasted job",
+            company_name: payload.company_name || "",
+            apply_url: payload.apply_url || "",
+            description: payload.job_description,
+            language_hint: payload.language_hint || "auto",
+            source: "pasted"
+          };
+
+          for(const ep of createEndpoints){
+            try{
+              const r0 = await apiPostJson(ep, createPayload);
+              const tmpJobId = r0?.job_id || r0?.id || r0?.data?.id || r0?.job?.id || r0?.result?.job_id || null;
+              if(tmpJobId){
+                usedEndpoint = ep + " + /me/cv/tailor";
+                res = await apiPostJson("/me/cv/tailor", { job_id: String(tmpJobId), template: payload.template, strength: payload.strength });
+                break;
+              }
+            }catch(e){
+              if(isMissingEndpointError(e)) continue;
+              throw e;
+            }
+          }
+        }
+
+        if(!res){
+          throw new Error(t("pasteNotSupported"));
+        }
+
+        if(!res || res.ok !== true){
+          throw new Error(res?.error || "CV tailoring failed");
+        }
+
+        const r = res.result || {};
+        const text = String(r.cv_text || "").trim();
+        const doc = r.cv_doc || null;
+        const lang = r.language || payload.language_hint || "en";
+
+        lastUsed = Array.isArray(r.ats_keywords_used) ? r.ats_keywords_used : [];
+        lastMissing = Array.isArray(r.ats_keywords_missing) ? r.ats_keywords_missing : [];
+        atsKeywordsAll = Array.from(new Set([...(lastUsed||[]), ...(lastMissing||[])].map(x=>String(x||"").trim()).filter(Boolean)));
+
+        lastDebug = {
+          cached: !!res.cached,
+          cache_age_seconds: res.cache_age_seconds ?? null,
+          model: r.model || null,
+          prompt_version: r.prompt_version || null,
+          language: lang || null,
+          job_source: "paste",
+          tailor_endpoint: usedEndpoint || "unknown",
+          desc_cache_status: r.desc_cache_status || "pasted",
+          cv_clean_status: r.cv_clean_status || null,
+          cv_clean_model: r.cv_clean_model || null,
+          cv_structured_status: r.cv_structured_status || null,
+          cv_structured_model: r.cv_structured_model || null
+        };
+
+        renderKeywords();
+        setCvOutput({ text, doc, lang });
+
+        // Reset edit history on each new generation
+        baseSnapshot = snapshotCurrent();
+        historyStack = [];
+        updateUndoResetButtons();
+
+        setBadge("outStatus", "good", res.cached ? (uiLang==="de" ? "Bereit (cached)" : "Ready (cached)") : (uiLang==="de" ? "Bereit" : "Ready"));
+        setText("outModel", "Model: " + (r.model || "—"));
+        setText("outHint", res.cached
+          ? (uiLang==="de"
+            ? "Cached Ergebnis geladen. Ändere die Stärke, um eine neue Version zu erstellen."
+            : "Loaded cached result. Change strength to create a different version.")
+          : (uiLang==="de"
+            ? "Neuer Tailored CV erstellt. Bitte prüfen und exportieren."
+            : "Generated a new tailored CV. Review and export below.")
+        );
+        markSteps("done");
+
+        const lines = [
+          "Job description: pasted",
+          "Tailor endpoint: " + String(usedEndpoint || "—"),
+          "CV clean: " + String(r.cv_clean_status || "—") + (r.cv_clean_model ? (" (" + r.cv_clean_model + ")") : ""),
+          "CV structured: " + String(r.cv_structured_status || "—") + (r.cv_structured_model ? (" (" + r.cv_structured_model + ")") : ""),
+          res.cached ? ("Cache: used (" + String(res.cache_age_seconds || "0") + "s old)") : "Cache: generated"
+        ];
+        $("pipeBox").textContent = lines.join("\n");
+        setBadge("pipeBadge", "good", "OK");
+
+        $("debugBox").textContent = JSON.stringify({ ok:true, ...lastDebug }, null, 2);
+
+        // Save last output locally (best effort)
+        try{
+          const key = pasteCacheKey || ("cvstudio_last_paste_" + fnv1a(desc));
+          localStorage.setItem(key, JSON.stringify({
+            at: Date.now(),
+            payload,
+            cv_text: $("cvText").value || "",
+            cv_doc: lastCvDoc,
+            lang: lastLang,
+            used: lastUsed,
+            missing: lastMissing,
+            all: atsKeywordsAll,
+            debug: lastDebug
+          }));
+        }catch(_){}
+      }catch(e){
+        markSteps("error");
+        setBadge("outStatus","bad", uiLang==="de" ? "Fehler" : "Failed");
+        setBadge("pipeBadge","bad", uiLang==="de" ? "Fehler" : "Failed");
+        showError(e?.message || String(e));
+        $("debugBox").textContent = JSON.stringify({ ok:false, error: e?.message || String(e) }, null, 2);
+        setText("outHint", uiLang==="de" ? "Generierung fehlgeschlagen. Prüfe Jobbeschreibung." : "Failed to generate. Check your pasted job description.");
+      }finally{
+        refreshModeUi();
+      }
+    }
+
+
     /* -------------------------
        Description modal
        ------------------------- */
     async function openDescModal(){
       showError("");
-      if(!selectedJob){
+
+      const jm = getActiveJobMeta();
+
+      if(jobSource === "queue" && !selectedJob){
         showError(t("pickJob"));
         return;
       }
 
       H.showModal("descModal");
-      $("descH").textContent = selectedJob.title || (uiLang==="de" ? "Jobbeschreibung" : "Job description");
-      $("descMeta").textContent = [selectedJob.company_name || "", formatLoc(selectedJob) || ""].filter(Boolean).join(" · ");
+      $("descH").textContent = jm.title || (uiLang==="de" ? "Jobbeschreibung" : "Job description");
+
+      const loc = (jobSource === "queue" && selectedJob) ? formatLoc(selectedJob) : "";
+      $("descMeta").textContent = [jm.company_name || "", loc].filter(Boolean).join(" · ");
+
       $("descText").textContent = uiLang==="de" ? "Lade…" : "Loading…";
       $("descOpen").setAttribute("href", "#");
       $("descCopy").textContent = t("copy");
       selectedDesc = "";
-      selectedApplyUrl = applyUrlSafe(selectedJob.apply_url);
+      selectedApplyUrl = applyUrlSafe(jm.apply_url);
 
       if(selectedApplyUrl){
         $("descOpen").setAttribute("href", selectedApplyUrl);
@@ -2917,6 +3451,14 @@ ${bodyHtml}
       }else{
         $("descOpen").setAttribute("href", "#");
         $("descOpen").classList.add("ghost");
+      }
+
+      // Paste mode: show pasted text immediately (no API call)
+      if(jobSource === "paste"){
+        const txt = getPasteDesc();
+        selectedDesc = txt || (uiLang==="de" ? "(Keine Beschreibung eingefügt.)" : "(No description pasted.)");
+        $("descText").textContent = selectedDesc;
+        return;
       }
 
       try{
@@ -2929,6 +3471,7 @@ ${bodyHtml}
         $("descText").textContent = (uiLang==="de" ? "Beschreibung konnte nicht geladen werden." : "Failed to load description.") + "\n\n" + (e?.message || String(e));
       }
     }
+
 
     async function copyTextToClipboard(txt){
       const text = String(txt || "");
@@ -2946,6 +3489,13 @@ ${bodyHtml}
     }
 
     async function copyDesc(){
+      if(jobSource === "paste"){
+        const d = getPasteDesc();
+        if(!d) return;
+        await copyTextToClipboard(d);
+        return;
+      }
+
       if(!selectedDesc){
         await openDescModal();
         return;
@@ -2968,7 +3518,8 @@ ${bodyHtml}
       const txt = $("cvText").value || "";
       if(!txt.trim()) return;
 
-      const title = selectedJob?.title ? String(selectedJob.title).slice(0, 60) : "tailored_cv";
+      const jm = getActiveJobMeta();
+      const title = (jm?.title ? String(jm.title).slice(0, 60) : "tailored_cv");
       const safe = title.replace(/[^a-z0-9\-\_ ]/gi, "").trim().replace(/\s+/g, "_") || "tailored_cv";
       const filename = safe + ".txt";
 
@@ -2985,7 +3536,8 @@ ${bodyHtml}
     }
 
     function printPdf(){
-      const jobTitle = selectedJob?.title ? String(selectedJob.title) : "Curriculum Vitae";
+      const jm = getActiveJobMeta();
+      const jobTitle = jm?.title ? String(jm.title) : "Curriculum Vitae";
       const html = (lastCvDoc)
         ? cvDocToPrintableHtml(lastCvDoc, lastLang, jobTitle)
         : cvTextToPrintableHtml(jobTitle, $("cvText").value || "");
@@ -3470,6 +4022,15 @@ ${bodyHtml}
       }catch(_){}
       setTemplateUi();
 
+      // restore paste draft + job source (queue vs paste)
+      loadJobSource();
+      loadPasteDraft();
+      applyPasteDraftToInputs();
+
+      // apply initial mode UI
+      setJobSource(jobSource);
+      try{ updatePasteQuality(); }catch(_){}
+
       // load queue
       await loadQueue();
 
@@ -3485,6 +4046,34 @@ ${bodyHtml}
        Wire UI
        ------------------------- */
     $("jobSelect").addEventListener("change", onJobChange);
+
+    // Job source (queue vs paste)
+    $("sourcePills").addEventListener("click", (e) => {
+      const p = e.target.closest(".miniPill");
+      if(!p) return;
+      const src = String(p.getAttribute("data-src") || "queue");
+      setJobSource(src);
+    });
+
+    // Pasted job description inputs
+    ["pasteTitle","pasteCompany","pasteApply"].forEach((id) => {
+      const el = $(id);
+      if(!el) return;
+      el.addEventListener("input", () => {
+        savePasteDraft();
+        refreshModeUi();
+      });
+    });
+
+    $("pasteLangHint").addEventListener("change", () => {
+      savePasteDraft();
+      updatePasteQuality();
+    });
+
+    $("pasteDesc").addEventListener("input", () => {
+      savePasteDraft();
+      updatePasteQuality();
+    });
 
     $("strengthRange").addEventListener("input", setStrengthUi);
     $("strengthPills").addEventListener("click", (e) => {
@@ -3504,8 +4093,9 @@ ${bodyHtml}
     $("btnViewDesc").addEventListener("click", openDescModal);
     $("btnCopyDesc").addEventListener("click", async () => {
       try{
-        if(!selectedDesc) await openDescModal();
         await copyDesc();
+        $("btnCopyDesc").textContent = t("copied");
+        setTimeout(()=>{ $("btnCopyDesc").textContent = t("btnCopyDesc"); }, 900);
       }catch(_){}
     });
 
