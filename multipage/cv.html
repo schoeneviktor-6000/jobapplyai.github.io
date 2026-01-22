@@ -408,6 +408,123 @@
       font-size:12.5px;
       line-height:1.45;
     }
+  
+    /* =========================================================
+       Changes / Diff tab
+       ========================================================= */
+    .changeHeader{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:2px;
+    }
+    .changeKpis{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    .changePill{
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(17,19,24,.12);
+      background:rgba(17,19,24,.04);
+      font-weight:900;
+      font-size:12px;
+      color:rgba(17,19,24,.78);
+      white-space:nowrap;
+    }
+    .changePill.good{ border-color: rgba(34,197,94,.38); background: rgba(34,197,94,.12); color:#0a3d1f; }
+    .changePill.warn{ border-color: rgba(255,179,0,.38); background: rgba(255,179,0,.12); color:#5a3b00; }
+    .changePill.bad{ border-color: rgba(239,68,68,.35); background: rgba(239,68,68,.10); color:#5b1111; }
+
+    .changeCard{
+      border:1px solid rgba(17,19,24,.10);
+      background:rgba(255,255,255,.78);
+      border-radius:16px;
+      padding:12px;
+      margin-top:10px;
+    }
+    .changeCardTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .changeTitle{
+      font-weight:980;
+      font-size:13px;
+      letter-spacing:-.1px;
+      color:rgba(17,19,24,.86);
+    }
+    .changeMeta{
+      margin-top:2px;
+      font-weight:750;
+      font-size:12px;
+      color:rgba(17,19,24,.60);
+      line-height:1.35;
+    }
+    .changeBody{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+    .changeBlock{
+      border:1px solid rgba(17,19,24,.10);
+      background:rgba(17,19,24,.03);
+      border-radius:14px;
+      padding:10px;
+    }
+    .changeLabel{
+      font-size:11px;
+      font-weight:950;
+      letter-spacing:.05em;
+      text-transform:uppercase;
+      color:rgba(17,19,24,.62);
+      margin-bottom:6px;
+    }
+    .changeText{
+      font-size:13px;
+      line-height:1.45;
+      color:rgba(17,19,24,.90);
+      white-space:pre-wrap;
+    }
+    .changeTags{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:8px;
+    }
+    .tag{
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(17,19,24,.10);
+      background:rgba(17,19,24,.04);
+      font-weight:900;
+      font-size:12px;
+      color:rgba(17,19,24,.74);
+    }
+    .tag.good{ border-color: rgba(34,197,94,.30); background: rgba(34,197,94,.10); color:#0a3d1f; }
+    .tag.warn{ border-color: rgba(255,179,0,.30); background: rgba(255,179,0,.10); color:#5a3b00; }
+
+    .diffLines{
+      white-space:pre;
+      font-size:12px;
+      line-height:1.45;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    .diffLine{ padding:2px 4px; border-radius:8px; display:block; }
+    .diffLine.add{ background: rgba(34,197,94,.10); color: rgba(17,19,24,.90); }
+    .diffLine.del{ background: rgba(239,68,68,.08); color: rgba(17,19,24,.90); }
+    .diffLine.same{ color: rgba(17,19,24,.62); }
+
+    .miniNote{
+      margin-top:8px;
+      font-size:12px;
+      font-weight:750;
+      color:rgba(17,19,24,.60);
+      line-height:1.45;
+    }
+
   </style>
 </head>
 
@@ -576,6 +693,7 @@
         <div class="tabs" role="tablist" aria-label="Output view">
           <button class="tabBtn active" id="tabPreview" type="button">Preview</button>
           <button class="tabBtn" id="tabText" type="button">Text</button>
+          <button class="tabBtn" id="tabChanges" type="button">Changes</button>
         </div>
 
         <div class="cvBox" id="cvBox">
@@ -588,6 +706,40 @@
           <div id="cvTextWrap" style="display:none;">
             <textarea class="cvText" id="cvText" spellcheck="false"></textarea>
           </div>
+          <div id="cvChangesWrap" style="display:none;">
+            <div class="changeHeader">
+              <div>
+                <div style="font-weight:980;font-size:14px;letter-spacing:-.1px">Changes</div>
+                <div class="hint" id="changesHint">Review what changed since the last generation.</div>
+              </div>
+
+              <div class="row" style="flex:0 0 auto; justify-content:flex-end;">
+                <button class="btn small" id="btnUndoFromChanges" type="button" disabled>Undo</button>
+                <button class="btn small" id="btnResetFromChanges" type="button" disabled>Reset</button>
+                <button class="btn small" id="btnCopyChangeSummary" type="button" disabled>Copy summary</button>
+                <button class="btn small" id="btnSyncTextToDoc" type="button" style="display:none;">Sync text to preview</button>
+              </div>
+            </div>
+
+            <div class="changeKpis" id="changeKpis"></div>
+
+            <div class="bar" aria-hidden="true" style="margin-top:10px"><div id="trustBar"></div></div>
+            <div class="hint" id="trustHint" style="margin-top:6px"></div>
+
+            <div class="hr" style="margin-top:12px"></div>
+
+            <div id="changeCards"></div>
+
+            <details class="info" id="diffDetails" style="margin-top:12px">
+              <summary>Text diff (advanced)</summary>
+              <div class="monoSmall" id="diffBox">—</div>
+              <div class="row" style="margin-top:10px">
+                <button class="btn small" id="btnCopyDiff" type="button">Copy diff</button>
+              </div>
+              <div class="miniNote">Tip: If you manually edited the Text tab, changes may appear here even if Preview did not change.</div>
+            </details>
+          </div>
+
         </div>
 
         <div class="stickyActions">
@@ -1875,11 +2027,609 @@ ${bodyHtml}
        ------------------------- */
     function setTabs(which){
       const isPreview = which === "preview";
+      const isText = which === "text";
+      const isChanges = which === "changes";
+
       $("tabPreview").classList.toggle("active", isPreview);
-      $("tabText").classList.toggle("active", !isPreview);
+      $("tabText").classList.toggle("active", isText);
+      $("tabChanges").classList.toggle("active", isChanges);
+
       $("cvPreviewWrap").style.display = isPreview ? "" : "none";
-      $("cvTextWrap").style.display = isPreview ? "none" : "";
+      $("cvTextWrap").style.display = isText ? "" : "none";
+      $("cvChangesWrap").style.display = isChanges ? "" : "none";
+
+      if(isChanges){
+        renderChangesView();
+      }
     }
+
+    /* -------------------------
+       Changes / Diff view
+       ------------------------- */
+    function normText(t){
+      return String(t || "")
+        .replace(/\r\n/g, "\n")
+        .replace(/[ \t]+/g, " ")
+        .trim();
+    }
+
+    function splitLines(t){
+      const s = String(t || "").replace(/\r\n/g,"\n");
+      // Keep empty lines (important for CV structure)
+      return s.split("\n");
+    }
+
+    // Simple LCS-based line diff: returns [{type:"same"|"add"|"del", line:string}]
+    function diffLinesLcs(aText, bText){
+      const A = splitLines(aText);
+      const B = splitLines(bText);
+
+      const n = A.length;
+      const m = B.length;
+
+      // Fast paths
+      if(n === 0 && m === 0) return [];
+      if(n === 0) return B.map(line => ({ type:"add", line }));
+      if(m === 0) return A.map(line => ({ type:"del", line }));
+
+      // DP table (n+1) x (m+1)
+      // Keep it as Uint16Array per row for memory (CVs are small enough)
+      const dp = Array.from({length: n+1}, () => new Uint16Array(m+1));
+
+      for(let i=n-1; i>=0; i--){
+        const row = dp[i];
+        const rowNext = dp[i+1];
+        for(let j=m-1; j>=0; j--){
+          if(A[i] === B[j]) row[j] = rowNext[j+1] + 1;
+          else row[j] = Math.max(rowNext[j], row[j+1]);
+        }
+      }
+
+      const out = [];
+      let i = 0, j = 0;
+      while(i < n && j < m){
+        if(A[i] === B[j]){
+          out.push({ type:"same", line: A[i] });
+          i++; j++;
+        }else{
+          const down = dp[i+1][j];
+          const right = dp[i][j+1];
+          if(down >= right){
+            out.push({ type:"del", line: A[i] });
+            i++;
+          }else{
+            out.push({ type:"add", line: B[j] });
+            j++;
+          }
+        }
+      }
+      while(i < n){ out.push({ type:"del", line: A[i++] }); }
+      while(j < m){ out.push({ type:"add", line: B[j++] }); }
+      return out;
+    }
+
+    function countAddedSignals(diff){
+      const added = diff.filter(d => d.type === "add").map(d => d.line).join("\n");
+      const del = diff.filter(d => d.type === "del").map(d => d.line).join("\n");
+
+      // Numbers/metrics (often risky if introduced without proof)
+      const numRe = /\b\d{1,3}(?:[.,]\d{1,2})?(?:%|k|K|m|M)?\b/g;
+      const addedNums = (added.match(numRe) || []).length;
+
+      // Certification / qualification-like tokens (heuristic)
+      const certTokens = [
+        "PMP","PRINCE2","ITIL","AWS","AZ-","GCP","Google Cloud","Scrum Master","CSM","PSM",
+        "CFA","CPA","CIPP","CISSP","OSCP","ISTQB","TOGAF","SAP Certified","MBA"
+      ];
+      let certHits = 0;
+      for(const tok of certTokens){
+        const re = new RegExp(String(tok).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+        if(re.test(added)) certHits += 1;
+      }
+
+      // Seniority inflation (heuristic)
+      const seniorityHits = (added.match(/\b(Senior|Lead|Head of|Principal)\b/gi) || []).length;
+
+      // Language claims (heuristic)
+      const langClaimHits = (added.match(/\b(native|fluent|C2|C1|B2)\b/gi) || []).length;
+
+      // How many lines changed
+      const addLines = diff.filter(d => d.type === "add" && String(d.line||"").trim()).length;
+      const delLines = diff.filter(d => d.type === "del" && String(d.line||"").trim()).length;
+
+      return { addedNums, certHits, seniorityHits, langClaimHits, addLines, delLines, addedText: added, deletedText: del };
+    }
+
+    function assessReviewRisk(diff){
+      const s = countAddedSignals(diff);
+      let score = 0;
+
+      if(s.addedNums > 0) score += 2;
+      if(s.certHits > 0) score += 2;
+      if(s.seniorityHits > 0) score += 1;
+      if(s.langClaimHits > 0) score += 1;
+      if(s.addLines + s.delLines > 18) score += 1;
+
+      let level = "Low";
+      let cls = "good";
+      if(score >= 4){ level = "High"; cls = "bad"; }
+      else if(score >= 2){ level = "Medium"; cls = "warn"; }
+
+      // Confidence is inverse of risk score (simple)
+      const confidence = Math.max(10, Math.min(100, 100 - score * 18));
+
+      const notes = [];
+      if(s.addedNums > 0) notes.push("New numbers/metrics detected");
+      if(s.certHits > 0) notes.push("New certifications/qualifications detected");
+      if(s.seniorityHits > 0) notes.push("Seniority wording changes detected");
+      if(s.langClaimHits > 0) notes.push("Language proficiency claims detected");
+      if(!notes.length) notes.push("Mostly wording/keyword changes");
+
+      return { level, cls, confidence, notes, signals: s };
+    }
+
+    function fmtDelta(delta){
+      if(delta == null || isNaN(delta)) return "";
+      if(delta > 0) return `(+${delta})`;
+      if(delta < 0) return `(${delta})`;
+      return "(±0)";
+    }
+
+    function buildDocChanges(baseDoc, curDoc){
+      const changes = [];
+      if(!baseDoc || !curDoc) return changes;
+
+      // Summary (array -> string compare)
+      const baseSummary = Array.isArray(baseDoc.summary) ? baseDoc.summary.join(" ").trim() : String(baseDoc.summary||"").trim();
+      const curSummary = Array.isArray(curDoc.summary) ? curDoc.summary.join(" ").trim() : String(curDoc.summary||"").trim();
+      if(normText(baseSummary) !== normText(curSummary)){
+        changes.push({
+          id: "summary",
+          kind: "summary",
+          title: "Profile",
+          meta: "Summary paragraph",
+          before: baseSummary,
+          after: curSummary
+        });
+      }
+
+      // Experience bullets
+      const baseExp = Array.isArray(baseDoc.experience) ? baseDoc.experience : [];
+      const curExp = Array.isArray(curDoc.experience) ? curDoc.experience : [];
+      const expN = Math.max(baseExp.length, curExp.length);
+
+      for(let i=0; i<expN; i++){
+        const be = baseExp[i] || null;
+        const ce = curExp[i] || null;
+        if(!be && !ce) continue;
+
+        const label = [ce?.title || be?.title || "Role", ce?.company || be?.company || ""].filter(Boolean).join(" @ ").trim();
+        const bBullets = Array.isArray(be?.bullets) ? be.bullets : [];
+        const cBullets = Array.isArray(ce?.bullets) ? ce.bullets : [];
+        const bn = bBullets.length;
+        const cn = cBullets.length;
+        const n = Math.max(bn, cn);
+
+        for(let j=0; j<n; j++){
+          const bb = (bBullets[j] == null) ? null : String(bBullets[j]);
+          const cb = (cBullets[j] == null) ? null : String(cBullets[j]);
+          if(bb === cb) continue;
+
+          // Ignore trailing empty differences
+          if(normText(bb) === "" && normText(cb) === "") continue;
+
+          changes.push({
+            id: `exp:${i}:${j}`,
+            kind: "exp_bullet",
+            expIndex: i,
+            bulletIndex: j,
+            title: "Experience",
+            meta: `${label} • Bullet ${j+1}`,
+            before: bb,
+            after: cb
+          });
+        }
+      }
+
+      // Skills (groups + additional)
+      const bSkills = baseDoc.skills || {};
+      const cSkills = curDoc.skills || {};
+
+      const bGroups = Array.isArray(bSkills.groups) ? bSkills.groups : [];
+      const cGroups = Array.isArray(cSkills.groups) ? cSkills.groups : [];
+
+      // map by label (case-insensitive), fallback to index
+      const mapByLabel = (arr) => {
+        const map = new Map();
+        arr.forEach((g, idx) => {
+          const key = String(g?.label || ("#"+idx)).trim().toLowerCase();
+          map.set(key, { g, idx });
+        });
+        return map;
+      };
+      const bMap = mapByLabel(bGroups);
+      const cMap = mapByLabel(cGroups);
+      const allKeys = new Set([...bMap.keys(), ...cMap.keys()]);
+
+      for(const key of allKeys){
+        const bg = bMap.get(key)?.g || null;
+        const cg = cMap.get(key)?.g || null;
+        const label = String(cg?.label || bg?.label || "Skills").trim();
+        const bItems = Array.isArray(bg?.items) ? bg.items.map(x=>String(x||"").trim()).filter(Boolean) : [];
+        const cItems = Array.isArray(cg?.items) ? cg.items.map(x=>String(x||"").trim()).filter(Boolean) : [];
+
+        // Compare as sets (order doesn't matter)
+        const bSet = new Set(bItems.map(x=>x.toLowerCase()));
+        const cSet = new Set(cItems.map(x=>x.toLowerCase()));
+        const added = cItems.filter(x => !bSet.has(x.toLowerCase()));
+        const removed = bItems.filter(x => !cSet.has(x.toLowerCase()));
+        if(added.length || removed.length){
+          changes.push({
+            id: `skillsGroup:${key}`,
+            kind: "skills_group",
+            groupKey: key,
+            groupLabel: label,
+            title: "Skills",
+            meta: label ? `Group: ${label}` : "Skill group",
+            before: bItems.join(", "),
+            after: cItems.join(", "),
+            tags: [
+              ...(added.length ? [`Added: ${added.slice(0,6).join(", ")}${added.length>6?"…":""}`] : []),
+              ...(removed.length ? [`Removed: ${removed.slice(0,6).join(", ")}${removed.length>6?"…":""}`] : [])
+            ]
+          });
+        }
+      }
+
+      const bAdd = Array.isArray(bSkills.additional) ? bSkills.additional.map(x=>String(x||"").trim()).filter(Boolean) : [];
+      const cAdd = Array.isArray(cSkills.additional) ? cSkills.additional.map(x=>String(x||"").trim()).filter(Boolean) : [];
+      const bAddSet = new Set(bAdd.map(x=>x.toLowerCase()));
+      const cAddSet = new Set(cAdd.map(x=>x.toLowerCase()));
+      const addAdded = cAdd.filter(x => !bAddSet.has(x.toLowerCase()));
+      const addRemoved = bAdd.filter(x => !cAddSet.has(x.toLowerCase()));
+      if(addAdded.length || addRemoved.length){
+        changes.push({
+          id: "skillsAdditional",
+          kind: "skills_additional",
+          title: "Skills",
+          meta: "Additional skills line",
+          before: bAdd.join(", "),
+          after: cAdd.join(", "),
+          tags: [
+            ...(addAdded.length ? [`Added: ${addAdded.slice(0,6).join(", ")}${addAdded.length>6?"…":""}`] : []),
+            ...(addRemoved.length ? [`Removed: ${addRemoved.slice(0,6).join(", ")}${addRemoved.length>6?"…":""}`] : [])
+          ]
+        });
+      }
+
+      return changes;
+    }
+
+    function detectManualTextEdits(){
+      if(!lastCvDoc) return false;
+      const docText = cvDocToPlainText(lastCvDoc, lastLang);
+      const curText = $("cvText").value || "";
+      return normText(docText) !== normText(curText);
+    }
+
+    function renderChangesView(){
+      // If no baseline, show empty
+      if(!baseSnapshot){
+        $("changeKpis").innerHTML = `<span class="hint">Generate a CV to review changes.</span>`;
+        $("changeCards").innerHTML = "";
+        $("diffBox").textContent = "—";
+        $("trustBar").style.width = "0%";
+        $("trustHint").textContent = "—";
+        $("btnCopyChangeSummary").disabled = true;
+        $("btnUndoFromChanges").disabled = true;
+        $("btnResetFromChanges").disabled = true;
+        $("btnSyncTextToDoc").style.display = "none";
+        return;
+      }
+
+      // Enable buttons
+      $("btnCopyChangeSummary").disabled = false;
+      $("btnUndoFromChanges").disabled = $("btnUndoEdit")?.disabled ?? false;
+      $("btnResetFromChanges").disabled = $("btnResetEdits")?.disabled ?? false;
+
+      const baseAts = computeAtsScore(baseSnapshot.used, baseSnapshot.missing);
+      const curAts = computeAtsScore(lastUsed, lastMissing);
+
+      const baseMiss = Array.isArray(baseSnapshot.missing) ? baseSnapshot.missing.length : 0;
+      const curMiss = Array.isArray(lastMissing) ? lastMissing.length : 0;
+      const missDelta = baseMiss - curMiss;
+
+      const baseUsed = Array.isArray(baseSnapshot.used) ? baseSnapshot.used.length : 0;
+      const curUsed = Array.isArray(lastUsed) ? lastUsed.length : 0;
+      const usedDelta = curUsed - baseUsed;
+
+      // Build diffs
+      const baseText = String(baseSnapshot.cv_text || "");
+      const curText = String($("cvText").value || "");
+      const diff = diffLinesLcs(baseText, curText);
+
+      // Risk
+      const risk = assessReviewRisk(diff);
+      $("trustBar").style.width = String(risk.confidence) + "%";
+      $("trustHint").textContent = `Review risk: ${risk.level}. ${risk.notes.join(" · ")}.`;
+
+      // Manual edits detection
+      const manual = detectManualTextEdits();
+      if(manual){
+        $("btnSyncTextToDoc").style.display = "";
+      }else{
+        $("btnSyncTextToDoc").style.display = "none";
+      }
+
+      // KPIs
+      const kpis = [];
+      if(baseAts != null && curAts != null){
+        const delta = curAts - baseAts;
+        kpis.push(`<span class="changePill ${delta>=0 ? "good":"warn"}">ATS: ${baseAts}% → ${curAts}% ${fmtDelta(delta)}</span>`);
+      }else if(curAts != null){
+        kpis.push(`<span class="changePill">ATS: ${curAts}%</span>`);
+      }else{
+        kpis.push(`<span class="changePill">ATS: —</span>`);
+      }
+
+      kpis.push(`<span class="changePill ${missDelta>0 ? "good" : ""}">Missing keywords: ${baseMiss} → ${curMiss} ${fmtDelta(missDelta)}</span>`);
+      kpis.push(`<span class="changePill ${usedDelta>0 ? "good" : ""}">Used keywords: ${baseUsed} → ${curUsed} ${fmtDelta(usedDelta)}</span>`);
+      kpis.push(`<span class="changePill ${manual ? "warn" : ""}">${manual ? "Text edited manually" : "Text in sync"}</span>`);
+      kpis.push(`<span class="changePill ${risk.cls}">Truth check: ${risk.level}</span>`);
+
+      $("changeKpis").innerHTML = kpis.join("");
+
+      // Structured doc changes (for per-bullet review)
+      const docChanges = buildDocChanges(baseSnapshot.cv_doc, lastCvDoc);
+      const showDocReview = !manual;
+
+      if(!docChanges.length){
+        $("changeCards").innerHTML = `<div class="hint">No structured changes detected.</div>`;
+      }else{
+        const baseMissingSet = new Set((baseSnapshot.missing || []).map(x => String(x||"").trim()).filter(Boolean));
+        const cards = docChanges.slice(0, 120).map(ch => {
+          const before = (ch.before == null) ? "" : String(ch.before);
+          const after = (ch.after == null) ? "" : String(ch.after);
+
+          // Tag any keywords newly introduced in this snippet
+          const addedKws = [];
+          const allKws = Array.isArray(atsKeywordsAll) ? atsKeywordsAll : [];
+          for(const kw of allKws){
+            if(!kw) continue;
+            if(keywordInText(kw, after) && !keywordInText(kw, before)){
+              const baseMissing = baseMissingSet.has(String(kw).trim());
+              // prefer highlighting keywords that were missing at generation time
+              if(baseMissing) addedKws.push(prettyKeyword(kw, lastLang));
+              if(addedKws.length >= 6) break;
+            }
+          }
+
+          const tags = [];
+          if(addedKws.length) tags.push(`<span class="tag good">Added keywords: ${H.escapeHtml(addedKws.join(", "))}</span>`);
+          if(Array.isArray(ch.tags)){
+            for(const t of ch.tags.slice(0,3)){
+              tags.push(`<span class="tag warn">${H.escapeHtml(String(t))}</span>`);
+            }
+          }
+
+          const btn = showDocReview
+            ? `<button class="btn small" type="button" data-revert-id="${H.escapeHtml(ch.id)}">Revert</button>`
+            : `<button class="btn small" type="button" disabled title="Sync text to preview to enable per-change revert.">Revert</button>`;
+
+          return `
+            <div class="changeCard">
+              <div class="changeCardTop">
+                <div style="min-width:0">
+                  <div class="changeTitle">${H.escapeHtml(ch.title)}</div>
+                  <div class="changeMeta">${H.escapeHtml(ch.meta || "")}</div>
+                </div>
+                <div style="flex:0 0 auto; display:flex; gap:8px; align-items:center;">
+                  ${btn}
+                </div>
+              </div>
+
+              <div class="changeBody">
+                <div class="changeBlock">
+                  <div class="changeLabel">Before</div>
+                  <div class="changeText">${H.escapeHtml(before || "—")}</div>
+                </div>
+                <div class="changeBlock">
+                  <div class="changeLabel">After</div>
+                  <div class="changeText">${H.escapeHtml(after || "—")}</div>
+                  ${tags.length ? `<div class="changeTags">${tags.join("")}</div>` : ``}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("");
+
+        $("changeCards").innerHTML = cards;
+
+        if(manual){
+          $("changeCards").insertAdjacentHTML("afterbegin", `
+            <div class="changeCard" style="border-color: rgba(255,179,0,.28); background: rgba(255,179,0,.06);">
+              <div class="changeTitle">Heads up: Text tab edits are active</div>
+              <div class="changeMeta">
+                You edited the CV text manually. Preview is still based on the structured CV.
+                If you want to revert changes per bullet safely, click “Sync text to preview”.
+              </div>
+            </div>
+          `);
+        }
+      }
+
+      // Render advanced diff
+      const diffHtml = diff.slice(0, 1500).map(d => {
+        const prefix = d.type === "add" ? "+ " : (d.type === "del" ? "- " : "  ");
+        const cls = d.type === "add" ? "add" : (d.type === "del" ? "del" : "same");
+        return `<span class="diffLine ${cls}">${H.escapeHtml(prefix + (d.line ?? ""))}</span>`;
+      }).join("");
+
+      $("diffBox").innerHTML = diffHtml ? `<div class="diffLines">${diffHtml}</div>` : "—";
+
+      // Set hint
+      const changedLines = diff.filter(d => d.type !== "same" && String(d.line||"").trim()).length;
+      $("changesHint").textContent = changedLines
+        ? `Review what changed since the last generation. (${changedLines} changed lines)`
+        : "No textual changes since the last generation.";
+
+      // Keep buttons state in sync with main Undo/Reset
+      $("btnUndoFromChanges").disabled = $("btnUndoEdit")?.disabled ?? true;
+      $("btnResetFromChanges").disabled = $("btnResetEdits")?.disabled ?? true;
+    }
+
+    function revertStructuredChange(changeId){
+      if(!baseSnapshot || !baseSnapshot.cv_doc || !lastCvDoc) return;
+      const manual = detectManualTextEdits();
+      if(manual){
+        showError("You edited the Text tab manually. Click “Sync text to preview” first to enable per-change revert safely.");
+        return;
+      }
+
+      const baseDoc = baseSnapshot.cv_doc;
+      const curDoc = lastCvDoc;
+
+      // Find the matching change item (recompute)
+      const changes = buildDocChanges(baseDoc, curDoc);
+      const ch = changes.find(x => String(x.id) === String(changeId));
+      if(!ch) return;
+
+      // Save history
+      historyStack.push(snapshotCurrent());
+      updateUndoResetButtons();
+
+      try{
+        if(ch.kind === "summary"){
+          curDoc.summary = deepCopy(baseDoc.summary);
+        }else if(ch.kind === "exp_bullet"){
+          const i = ch.expIndex;
+          const j = ch.bulletIndex;
+          const bExp = Array.isArray(baseDoc.experience) ? baseDoc.experience : [];
+          const cExp = Array.isArray(curDoc.experience) ? curDoc.experience : [];
+          if(!cExp[i]) return;
+
+          const bBullets = Array.isArray(bExp[i]?.bullets) ? bExp[i].bullets : [];
+          const cBullets = Array.isArray(cExp[i]?.bullets) ? cExp[i].bullets : [];
+
+          const bb = (bBullets[j] == null) ? null : String(bBullets[j]);
+          const cb = (cBullets[j] == null) ? null : String(cBullets[j]);
+
+          if(bb == null && cb != null){
+            // Added bullet -> remove
+            cBullets.splice(j, 1);
+          }else if(bb != null && cb == null){
+            // Removed bullet -> insert back
+            cBullets.splice(j, 0, bb);
+          }else{
+            // Edited -> restore
+            cBullets[j] = bb;
+          }
+
+          cExp[i].bullets = cBullets;
+          curDoc.experience = cExp;
+        }else if(ch.kind === "skills_group"){
+          const bSkills = baseDoc.skills || {};
+          const cSkills = curDoc.skills || {};
+          const bGroups = Array.isArray(bSkills.groups) ? bSkills.groups : [];
+          const cGroups = Array.isArray(cSkills.groups) ? cSkills.groups : [];
+
+          // locate group in current by key
+          const key = String(ch.groupKey || "").trim().toLowerCase();
+          const keyOf = (g, idx) => String(g?.label || ("#"+idx)).trim().toLowerCase();
+
+          const bIdx = bGroups.findIndex((g, idx) => keyOf(g, idx) === key);
+          const cIdx = cGroups.findIndex((g, idx) => keyOf(g, idx) === key);
+
+          if(cIdx === -1){
+            // nothing to revert
+          }else if(bIdx === -1){
+            // group did not exist in base -> remove group
+            cGroups.splice(cIdx, 1);
+          }else{
+            // restore items to base
+            cGroups[cIdx].items = deepCopy(bGroups[bIdx].items || []);
+          }
+
+          curDoc.skills = { ...(cSkills||{}), groups: cGroups };
+        }else if(ch.kind === "skills_additional"){
+          const bSkills = baseDoc.skills || {};
+          const cSkills = curDoc.skills || {};
+          curDoc.skills = { ...(cSkills||{}), additional: deepCopy(bSkills.additional || []) };
+        }
+
+        // Re-render + sync text to doc
+        $("cvPreview").innerHTML = cvDocToPreviewHtml(curDoc, lastLang);
+        $("cvText").value = cvDocToPlainText(curDoc, lastLang);
+
+        // Keep keyword coverage in sync
+        recomputeCoverageFromCurrentText();
+
+        // Re-render changes view if active
+        if($("tabChanges").classList.contains("active")){
+          renderChangesView();
+        }
+      }catch(e){
+        showError(e?.message || String(e));
+      }
+    }
+
+    async function copyChangeSummary(){
+      if(!baseSnapshot) return;
+      const baseAts = computeAtsScore(baseSnapshot.used, baseSnapshot.missing);
+      const curAts = computeAtsScore(lastUsed, lastMissing);
+
+      const baseMiss = Array.isArray(baseSnapshot.missing) ? baseSnapshot.missing.length : 0;
+      const curMiss = Array.isArray(lastMissing) ? lastMissing.length : 0;
+
+      const baseUsed = Array.isArray(baseSnapshot.used) ? baseSnapshot.used.length : 0;
+      const curUsed = Array.isArray(lastUsed) ? lastUsed.length : 0;
+
+      const baseText = String(baseSnapshot.cv_text || "");
+      const curText = String($("cvText").value || "");
+      const diff = diffLinesLcs(baseText, curText);
+      const risk = assessReviewRisk(diff);
+
+      const lines = [];
+      if(selectedJob?.title) lines.push(`Job: ${selectedJob.title}`);
+      if(baseAts != null && curAts != null) lines.push(`ATS match: ${baseAts}% → ${curAts}%`);
+      else if(curAts != null) lines.push(`ATS match: ${curAts}%`);
+
+      lines.push(`Keywords used: ${baseUsed} → ${curUsed}`);
+      lines.push(`Keywords missing: ${baseMiss} → ${curMiss}`);
+      lines.push(`Truth check: ${risk.level}`);
+
+      const topMissing = Array.isArray(lastMissing) ? lastMissing.slice(0, 10) : [];
+      if(topMissing.length) lines.push(`Top missing keywords: ${topMissing.map(k => prettyKeyword(k,lastLang)).join(", ")}`);
+
+      await copyTextToClipboard(lines.join("\n"));
+      $("btnCopyChangeSummary").textContent = "Copied ✓";
+      setTimeout(()=>{ $("btnCopyChangeSummary").textContent = "Copy summary"; }, 900);
+    }
+
+    async function copyDiffToClipboard(){
+      if(!baseSnapshot) return;
+      const baseText = String(baseSnapshot.cv_text || "");
+      const curText = String($("cvText").value || "");
+      const diff = diffLinesLcs(baseText, curText);
+
+      const out = diff.map(d => {
+        const prefix = d.type === "add" ? "+ " : (d.type === "del" ? "- " : "  ");
+        return prefix + String(d.line ?? "");
+      }).join("\n");
+
+      await copyTextToClipboard(out);
+      $("btnCopyDiff").textContent = "Copied ✓";
+      setTimeout(()=>{ $("btnCopyDiff").textContent = "Copy diff"; }, 900);
+    }
+
+    function syncTextToPreview(){
+      if(!lastCvDoc) return;
+      $("cvText").value = cvDocToPlainText(lastCvDoc, lastLang);
+      recomputeCoverageFromCurrentText();
+      showError("");
+      renderChangesView();
+    }
+
 
     function setCvOutput({ text, doc, lang }){
       lastCvText = String(text || "").trim();
@@ -1899,6 +2649,7 @@ ${bodyHtml}
 
       setOutputEnabled(!!(textOut && textOut.trim()));
       updateUndoResetButtons();
+      if($("tabChanges")?.classList?.contains("active")){ try{ renderChangesView(); }catch(_){ } }
     }
 
     function snapshotCurrent(){
@@ -2630,6 +3381,7 @@ ${bodyHtml}
         showError(e?.message || String(e));
       }finally{
         updateUndoResetButtons();
+        if($('tabChanges')?.classList?.contains('active')){ try{ renderChangesView(); }catch(_){ } }
         // Save edited output locally
         try{
           const key = "cvstudio_last_" + String(selectedJob?.id || "");
@@ -2653,6 +3405,7 @@ ${bodyHtml}
       const snap = historyStack.pop();
       restoreSnapshot(snap);
       updateUndoResetButtons();
+      if($("tabChanges")?.classList?.contains("active")){ try{ renderChangesView(); }catch(_){ } }
     }
 
     function resetEdits(){
@@ -2660,6 +3413,7 @@ ${bodyHtml}
       historyStack = [];
       restoreSnapshot(baseSnapshot);
       updateUndoResetButtons();
+      if($("tabChanges")?.classList?.contains("active")){ try{ renderChangesView(); }catch(_){ } }
     }
 
     /* -------------------------
@@ -2777,6 +3531,7 @@ ${bodyHtml}
 
     $("tabPreview").addEventListener("click", () => setTabs("preview"));
     $("tabText").addEventListener("click", () => setTabs("text"));
+    $("tabChanges").addEventListener("click", () => setTabs("changes"));
 
     $("btnCopy").addEventListener("click", () => copyCv());
     $("btnDownload").addEventListener("click", downloadTxt);
@@ -2788,6 +3543,7 @@ ${bodyHtml}
       // If user edits text manually, keep keywords in sync
       recomputeCoverageFromCurrentText();
       // We do not mutate doc here to avoid confusion; Preview stays as last doc.
+      if($("tabChanges")?.classList?.contains("active")){ try{ renderChangesView(); }catch(_){ } }
     });
 
     // Keyword chips click
@@ -2805,6 +3561,21 @@ ${bodyHtml}
 
     // Undo / Reset
     $("btnUndoEdit").addEventListener("click", undoEdit);
+    $("btnUndoFromChanges").addEventListener("click", () => { undoEdit(); renderChangesView(); });
+    $("btnResetFromChanges").addEventListener("click", () => { resetEdits(); renderChangesView(); });
+    $("btnCopyChangeSummary").addEventListener("click", copyChangeSummary);
+    $("btnCopyDiff").addEventListener("click", copyDiffToClipboard);
+    $("btnSyncTextToDoc").addEventListener("click", syncTextToPreview);
+
+    // Change cards revert clicks (event delegation)
+    $("changeCards").addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-revert-id]");
+      if(!btn) return;
+      const id = btn.getAttribute("data-revert-id") || "";
+      if(!id) return;
+      revertStructuredChange(id);
+    });
+
     $("btnResetEdits").addEventListener("click", resetEdits);
 
     // Keyword modal wiring
