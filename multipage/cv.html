@@ -1128,6 +1128,7 @@
     let kwAiReco = null; // { target, exp_index, bullet_index, rewritten_bullet, skill_group, skill_item, reason, confidence }
     let kwAiRecoKey = "";
     const kwAiRecoCache = new Map();
+    let kwAiKeywordPretty = "";
     let kwAiRecoToken = 0;
 
     // UI language (interface). Keep English UI; keyword insertion language follows your CV language (auto).
@@ -3726,6 +3727,7 @@ ${bodyHtml}
     function clearKwAiReco(){
       kwAiReco = null;
       kwAiRecoKey = "";
+      kwAiKeywordPretty = "";
       try{ setBadge("kwAiRecoBadge","", "—"); }catch(_){}
       try{ setText("kwAiRecoText", "—"); }catch(_){}
     }
@@ -3889,19 +3891,36 @@ ${bodyHtml}
       for(const ep of endpoints){
         try{
           const res = await apiPostJson(ep, payload);
-          // expected: { ok:true, recommendation:{...} }
+          // expected: { ok:true, recommendation:{...}, keyword_pretty?:string }
+          const keywordPretty = String(
+            res?.keyword_pretty
+              || res?.keywordPretty
+              || res?.result?.keyword_pretty
+              || res?.result?.keywordPretty
+              || ""
+          ).trim();
+
           const reco = res?.recommendation || res?.result?.recommendation || res?.result || res;
           if(reco && typeof reco === "object"){
             // Sometimes backend returns { recommendation:{...} } or a flat object
             const r = reco.recommendation || reco;
-            if(r && (r.target || r.skill_group || r.exp_index != null)) return { ok:true, reco: r, endpoint: ep };
+            if(r && (r.target || r.skill_group || r.exp_index != null)){
+              return {
+                ok: true,
+                reco: r,
+                endpoint: ep,
+                keyword_pretty: keywordPretty,
+                model: String(res?.model || res?.result?.model || ""),
+                prompt_version: String(res?.prompt_version || res?.promptVersion || res?.result?.prompt_version || "")
+              };
+            }
           }
         }catch(e){
           if(isEndpointMissing(e)) continue;
           throw e;
         }
       }
-      return { ok:false, reco:null, endpoint:"" };
+      return { ok:false, reco:null, endpoint:"", keyword_pretty:"", model:"", prompt_version:"" };
     }
 
     async function aiRecommendPlacement({ force=false, source="auto" } = {}){
@@ -3916,6 +3935,14 @@ ${bodyHtml}
       if(!force && kwAiRecoCache.has(cacheKey)){
         const cached = kwAiRecoCache.get(cacheKey);
         kwAiReco = cached;
+        kwAiKeywordPretty = String(cached?.keyword_pretty || "").trim();
+
+        // If backend provided a nicer display, use it in the chip (does not change the raw keyword)
+        if(kwAiKeywordPretty){
+          activeKeywordDisplay = kwAiKeywordPretty;
+          if($("kwChip")) $("kwChip").textContent = kwAiKeywordPretty;
+        }
+
         applyAiRecoToModalUi(cached);
         renderAiRecoBox(cached, lang);
         return;
@@ -3938,10 +3965,21 @@ ${bodyHtml}
         if(token !== kwAiRecoToken) return; // stale
 
         if(out.ok && out.reco){
-          kwAiReco = out.reco;
-          kwAiRecoCache.set(cacheKey, out.reco);
-          applyAiRecoToModalUi(out.reco);
-          renderAiRecoBox(out.reco, lang);
+          const packed = Object.assign({}, out.reco);
+          if(out.keyword_pretty) packed.keyword_pretty = out.keyword_pretty;
+
+          kwAiReco = packed;
+          kwAiKeywordPretty = String(out.keyword_pretty || packed.keyword_pretty || "").trim();
+          kwAiRecoCache.set(cacheKey, packed);
+
+          // If backend provided a nicer display, use it in the chip (does not change the raw keyword)
+          if(kwAiKeywordPretty){
+            activeKeywordDisplay = kwAiKeywordPretty;
+            if($("kwChip")) $("kwChip").textContent = kwAiKeywordPretty;
+          }
+
+          applyAiRecoToModalUi(packed);
+          renderAiRecoBox(packed, lang);
           updateKwPreview();
         }else{
           clearKwAiReco();
@@ -4071,9 +4109,28 @@ function openKwModal(keywordRaw){
 
       if(target === "skills"){
         const group = String($("kwSkillGroup").value || "additional");
-        const dest = group === "additional" ? (uiLang==="de" ? "Weitere Skills" : "Additional skills") : $("kwSkillGroup").selectedOptions?.[0]?.textContent;
+        const dest = group === "additional"
+          ? (uiLang==="de" ? "Weitere Skills" : "Additional skills")
+          : ($("kwSkillGroup").selectedOptions?.[0]?.textContent || (uiLang==="de" ? "Skills" : "Skills"));
+
+        // Prefer AI-prettified casing (e.g., "Power BI") when available for the same keyword+language
+        let kwShow = prettyKeyword(kw, lang);
+        try{
+          const key = getAiRecoCacheKey(kw, lang);
+          if(kwMode === "ai" && kwAiReco && kwAiRecoKey === key){
+            const rTarget = String(kwAiReco.target || "").toLowerCase();
+            if(rTarget === "skills"){
+              const item = String(kwAiReco.skill_item || kwAiReco.skillItem || kwAiReco.keyword_pretty || kwAiKeywordPretty || "").trim();
+              if(item) kwShow = item;
+            }else{
+              const pp = String(kwAiReco.keyword_pretty || kwAiKeywordPretty || "").trim();
+              if(pp) kwShow = pp;
+            }
+          }
+        }catch(_){}
+
         const verb = (lang==="de") ? "Füge hinzu:" : "Add:";
-        return `${verb} ${prettyKeyword(kw, lang)} → ${dest}`;
+        return `${verb} ${kwShow} → ${dest}`;
       }
 
       // experience
@@ -4100,14 +4157,18 @@ function openKwModal(keywordRaw){
         : localRewriteBullet(current, kw, lang);
 
       // If we already have an AI recommendation for this exact bullet, show that draft (more accurate than templates)
-      if(kwMode === "ai" && kwAiReco && String(kwAiReco.target || "").toLowerCase() === "experience"){
-        const reExp = Number(kwAiReco.exp_index ?? kwAiReco.expIdx ?? -1);
-        const reBul = Number(kwAiReco.bullet_index ?? kwAiReco.bulletIdx ?? -1);
-        const rb = String(kwAiReco.rewritten_bullet || kwAiReco.rewrite || "").trim();
-        if(rb && reExp === expIdx && reBul === bulletIdx){
-          rewritten = rb;
+      try{
+        const key = getAiRecoCacheKey(kw, lang);
+        if(kwMode === "ai" && kwAiReco && kwAiRecoKey === key && String(kwAiReco.target || "").toLowerCase() === "experience"){
+          const reExp = Number(kwAiReco.exp_index ?? kwAiReco.expIdx ?? -1);
+          const reBul = Number(kwAiReco.bullet_index ?? kwAiReco.bulletIdx ?? -1);
+          const rb = String(kwAiReco.rewritten_bullet || kwAiReco.rewrite || "").trim();
+          if(rb && reExp === expIdx && reBul === bulletIdx){
+            rewritten = rb;
+          }
         }
-      }
+      }catch(_){}
+
 
       const label = (how === "append")
         ? (lang==="de" ? "Anhängen:" : "Append:")
@@ -4141,10 +4202,26 @@ function openKwModal(keywordRaw){
 
       try{
         if(target === "skills"){
+          // Prefer AI-prettified casing for skills when available (saves a second AI call on Apply)
+          let kwSkillAdd = kwDisp;
+          try{
+            const key = getAiRecoCacheKey(kwRaw, lang);
+            if(kwMode === "ai" && kwAiReco && kwAiRecoKey === key){
+              const rTarget = String(kwAiReco.target || "").toLowerCase();
+              if(rTarget === "skills"){
+                const item = String(kwAiReco.skill_item || kwAiReco.skillItem || kwAiReco.keyword_pretty || kwAiKeywordPretty || "").trim();
+                if(item) kwSkillAdd = item;
+              }else{
+                const pp = String(kwAiReco.keyword_pretty || kwAiKeywordPretty || "").trim();
+                if(pp) kwSkillAdd = pp;
+              }
+            }
+          }catch(_){}
+
           if(!lastCvDoc){
             // text-only: just append to end as "Skills: ..."
             const txt = $("cvText").value || "";
-            const addLine = (lang==="de") ? ("\nSKILLS\n" + kwDisp + "\n") : ("\nSKILLS\n" + kwDisp + "\n");
+            const addLine = (lang==="de") ? ("\nSKILLS\n" + kwSkillAdd + "\n") : ("\nSKILLS\n" + kwSkillAdd + "\n");
             $("cvText").value = (txt.trim() + "\n" + addLine).trim() + "\n";
           }else{
             const skillGroup = String($("kwSkillGroup").value || "additional");
@@ -4162,12 +4239,12 @@ function openKwModal(keywordRaw){
               const g = lastCvDoc.skills.groups[idx];
               if(g){
                 g.items = Array.isArray(g.items) ? g.items : [];
-                ensureUniquePush(g.items, kwDisp);
+                ensureUniquePush(g.items, kwSkillAdd);
               }else{
-                ensureUniquePush(lastCvDoc.skills.additional, kwDisp);
+                ensureUniquePush(lastCvDoc.skills.additional, kwSkillAdd);
               }
             }else{
-              ensureUniquePush(lastCvDoc.skills.additional, kwDisp);
+              ensureUniquePush(lastCvDoc.skills.additional, kwSkillAdd);
             }
 
             // Update text and preview
@@ -4249,6 +4326,7 @@ function openKwModal(keywordRaw){
             if(kwMode === "ai" && (how === "rewrite" || how === "append")){
               // If AI already suggested a rewrite for this exact bullet, use it (saves an extra AI call)
               const recoText = (kwAiReco
+                && kwAiRecoKey === getAiRecoCacheKey(kwRaw, lang)
                 && String(kwAiReco.target || "").toLowerCase() === "experience"
                 && Number(kwAiReco.exp_index ?? kwAiReco.expIdx ?? -1) === expIdx
                 && Number(kwAiReco.bullet_index ?? kwAiReco.bulletIdx ?? -1) === bulletIdx)
