@@ -577,7 +577,91 @@
     .qualityPill.good{ border-color: rgba(34,197,94,.38); background: rgba(34,197,94,.12); color:#0a3d1f; }
     .qualityPill.warn{ border-color: rgba(255,179,0,.38); background: rgba(255,179,0,.12); color:#5a3b00; }
 
-  </style>
+  
+    /* =========================================================
+       Keyword "Rewrite again" + Final QA UI
+       ========================================================= */
+    .altOptions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .altOption {
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 14px;
+      padding: 10px 12px;
+      cursor: pointer;
+      background: rgba(255,255,255,0.03);
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+    .altOption:hover { transform: translateY(-1px); }
+    .altOption.active {
+      border-color: rgba(255,255,255,0.28);
+      background: rgba(255,255,255,0.06);
+    }
+    .altMeta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+    .altLabel { font-weight: 850; }
+    .altPill {
+      font-size: 12px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      opacity: 0.95;
+    }
+    .altText {
+      white-space: pre-wrap;
+      line-height: 1.35;
+    }
+    .qaList {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .qaItem {
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.02);
+    }
+    .qaHead {
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .qaTitle { font-weight: 850; }
+    .qaTag {
+      font-size: 12px;
+      font-weight: 850;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      opacity: 0.95;
+    }
+    .qaDesc { margin-top: 6px; white-space: pre-wrap; opacity: 0.92; }
+    .qaActionsRow { display:flex; gap:8px; margin-top: 8px; flex-wrap: wrap; }
+    .miniBadgeDot {
+      display:inline-block;
+      width:8px;height:8px;border-radius:99px;
+      background: rgba(255,255,255,0.35);
+      margin-left:8px;
+      vertical-align:middle;
+    }
+    .miniBadgeDot.good { background: rgba(120,255,180,0.85); }
+    .miniBadgeDot.warn { background: rgba(255,220,120,0.85); }
+    .miniBadgeDot.bad  { background: rgba(255,120,120,0.85); }
+
+</style>
 </head>
 
 <body>
@@ -834,6 +918,7 @@
           <div class="stickyRow">
             <button class="btn" id="btnCopy" type="button" disabled>Copy</button>
             <button class="btn" id="btnDownload" type="button" disabled>Download .txt</button>
+            <button class="btn" id="btnQa" type="button" disabled>Final QA<span class="miniBadgeDot" id="qaDot"></span></button>
             <button class="btn primary" id="btnPrint" type="button" disabled>Print / PDF</button>
           </div>
         </div>
@@ -1027,7 +1112,18 @@
             <div class="kwPreview" id="kwBulletPreview">—</div>
           </div>
 
-          <div class="field" style="margin-top:12px; display:none" id="kwNoteBox">
+          
+          <div class="field" style="margin-top:12px; display:none" id="kwRewriteBox">
+            <div class="fieldLabel">Rewrite options</div>
+            <div class="row" style="margin-top:8px;gap:8px;align-items:center">
+              <button class="btn small" id="kwRewriteAgain" type="button" style="flex:0 0 auto">Rewrite again</button>
+              <span class="badge" id="kwRewriteBadge">—</span>
+            </div>
+            <div class="tinyNote" id="kwRewriteHelp" style="margin-top:6px">Generates alternative rewrites for the selected bullet. Pick the best one, then click Apply.</div>
+            <div class="altOptions" id="kwRewriteOptions" style="margin-top:10px"></div>
+          </div>
+
+<div class="field" style="margin-top:12px; display:none" id="kwNoteBox">
             <div class="fieldLabel" id="kwNoteLbl">Short note (important for new bullet)</div>
             <textarea id="kwNote" rows="3" style="width:100%;border:0;outline:none;background:transparent;resize:vertical;font-weight:750"></textarea>
             <div class="tinyNote" id="kwNoteHelp">Example: “Facilitated client workshops”, “Implemented OKRs”, “Built SQL reports”. Keeps it 100% truthful.</div>
@@ -1053,7 +1149,48 @@
     </div>
   </div>
 
-  <!-- Scripts -->
+  
+  <!-- Final QA modal -->
+  <div class="modalBackdrop" id="qaModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="qaH">
+    <div class="modalCard">
+      <div class="modalScroll">
+        <div class="modalHeader">
+          <div style="min-width:0">
+            <h3 class="modalTitle" id="qaH">Final QA check</h3>
+            <div class="hint" style="margin-top:6px" id="qaSub">Last quick review before you export. This runs local checks (fast) and highlights common issues.</div>
+          </div>
+          <button class="btn small" id="qaCloseX" type="button">Close</button>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="field">
+          <div class="fieldLabel">Overall</div>
+          <div class="kwPreview" id="qaSummary">—</div>
+          <div class="tinyNote" id="qaMeta">—</div>
+        </div>
+
+        <div class="field" style="margin-top:12px">
+          <div class="fieldLabel">Checks</div>
+          <div class="qaList" id="qaChecks"></div>
+        </div>
+
+        <div class="field" style="margin-top:12px">
+          <div class="fieldLabel">Quick fixes</div>
+          <div class="qaList" id="qaFixes"></div>
+          <div class="tinyNote" style="margin-top:8px">Tip: Quick fixes only change your CV text. You can Undo/Reset anytime.</div>
+        </div>
+      </div>
+
+      <div class="modalActions">
+        <button class="btn" id="qaRunAgain" type="button">Run again</button>
+        <button class="btn" id="qaClose" type="button">Close</button>
+        <button class="btn primary" id="qaContinue" type="button" style="display:none">Continue</button>
+      </div>
+    </div>
+  </div>
+
+<!-- Scripts -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="./auth.js"></script>
   <script src="./shared.js"></script>
@@ -1130,6 +1267,18 @@
     const kwAiRecoCache = new Map();
     let kwAiKeywordPretty = "";
     let kwAiRecoToken = 0;
+
+    // "Rewrite again" variants (per keyword + language + selected bullet)
+    let kwRewriteVariants = [];   // [{ text, at }]
+    let kwRewriteSelected = "reco"; // "reco" or "v:<index>"
+    let kwRewriteKey = "";
+    let kwRewriteToken = 0;
+
+    // Final QA state (local checks)
+    let qaLastRunAt = 0;
+    let qaLastHash = "";
+    let qaLastReport = null;
+    let qaPendingAction = ""; // "", "print", "download"
 
     // UI language (interface). Keep English UI; keyword insertion language follows your CV language (auto).
     let uiLang = "en";
@@ -2023,10 +2172,12 @@
     function setOutputEnabled(enabled){
       $("btnCopy").disabled = !enabled;
       $("btnDownload").disabled = !enabled;
+      $("btnQa").disabled = !enabled;
       $("btnPrint").disabled = !enabled;
       $("btnCopyMissing").disabled = !enabled;
       $("btnUndoEdit").disabled = !enabled;
       $("btnResetEdits").disabled = !enabled;
+      try{ updateQaDot(); }catch(_){}
     }
 
     function updateUndoResetButtons(){
@@ -3019,6 +3170,12 @@ ${bodyHtml}
       lastCvDoc = doc || null;
       lastLang = lang || "en";
 
+      // New CV output => QA should run again
+      qaLastRunAt = 0;
+      qaLastHash = "";
+      qaLastReport = null;
+      qaPendingAction = "";
+
       // Preview
       if(lastCvDoc){
         $("cvPreview").innerHTML = cvDocToPreviewHtml(lastCvDoc, lastLang);
@@ -3620,6 +3777,395 @@ ${bodyHtml}
       printHtml(html);
     }
 
+
+    /* -------------------------
+       Final QA (local checks)
+       ------------------------- */
+    function currentCvHash(){
+      return String(hashString($("cvText").value || ""));
+    }
+
+    function qaIsUpToDate(){
+      if(!qaLastHash) return false;
+      return qaLastHash === currentCvHash();
+    }
+
+    function updateQaDot(){
+      const dot = $("qaDot");
+      const btn = $("btnQa");
+      if(!dot || !btn) return;
+
+      if(btn.disabled){
+        dot.style.display = "none";
+        return;
+      }
+      dot.style.display = "";
+
+      const up = qaIsUpToDate();
+      const hasRun = !!qaLastRunAt;
+
+      dot.className = "miniBadgeDot " + (up ? "good" : (hasRun ? "warn" : "bad"));
+      dot.title = up
+        ? (uiLang==="de" ? "QA aktuell" : "QA up to date")
+        : (hasRun ? (uiLang==="de" ? "QA veraltet" : "QA out of date") : (uiLang==="de" ? "QA noch nicht ausgeführt" : "QA not run yet"));
+    }
+
+    function openQaModal(action){
+      qaPendingAction = action || "";
+      $("qaSummary").textContent = uiLang==="de" ? "Prüfe…" : "Checking…";
+      $("qaMeta").textContent = "—";
+      $("qaChecks").innerHTML = "";
+      $("qaFixes").innerHTML = "";
+
+      const cont = $("qaContinue");
+      if(cont){
+        if(qaPendingAction === "print"){
+          cont.style.display = "";
+          cont.textContent = uiLang==="de" ? "Weiter zu Print / PDF" : "Continue to Print / PDF";
+        }else if(qaPendingAction === "download"){
+          cont.style.display = "";
+          cont.textContent = uiLang==="de" ? "Weiter zu Download" : "Continue to Download";
+        }else{
+          cont.style.display = "none";
+        }
+      }
+
+      H.showModal("qaModal");
+      runQaCheck();
+    }
+
+    function closeQaModal(){
+      H.hideModal("qaModal");
+      qaPendingAction = "";
+      const cont = $("qaContinue");
+      if(cont) cont.style.display = "none";
+    }
+
+    function guessLangFromText(text){
+      const t = String(text || "").toLowerCase();
+      // very small, robust stopword heuristic
+      const de = [" und "," der "," die "," das "," mit "," für "," von "," als "," auf "," im "," in "," bei "," nicht "," wird "," wurden "," durch "," sowie "," ich "];
+      const en = [" and "," the "," with "," for "," from "," as "," on "," in "," at "," not "," through "," including "," led "," built "," managed "];
+      let deScore = 0, enScore = 0;
+      de.forEach(w => { deScore += (t.split(w).length - 1); });
+      en.forEach(w => { enScore += (t.split(w).length - 1); });
+      if(deScore === 0 && enScore === 0) return "";
+      if(deScore > enScore * 1.25) return "de";
+      if(enScore > deScore * 1.25) return "en";
+      return ""; // mixed/unclear
+    }
+
+    function qaComputeReport(){
+      const text = String($("cvText").value || "");
+      const doc = lastCvDoc || null;
+      const targetLang = (lastLang || "").trim() || guessLangFromText(text) || "en";
+
+      const checks = [];
+      const fixes = [];
+
+      function add(level, title, desc, fixId, fixLabel){
+        checks.push({ level, title, desc: desc || "" });
+        if(fixId){
+          fixes.push({ fixId, title: fixLabel || title, desc: desc || "" });
+        }
+      }
+
+      // 1) Basic presence
+      const hasEmail = !!(doc?.contact?.email) || /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(text);
+      if(!hasEmail){
+        add("fix",
+          uiLang==="de" ? "E-Mail fehlt" : "Email missing",
+          uiLang==="de" ? "Füge eine E-Mail-Adresse hinzu. Ohne E-Mail ist die Bewerbung oft unvollständig." : "Add an email address. Without it, applications are often considered incomplete."
+        );
+      }else{
+        add("pass",
+          uiLang==="de" ? "Kontakt: E-Mail vorhanden" : "Contact: email present",
+          uiLang==="de" ? "OK" : "OK"
+        );
+      }
+
+      const hasExp = Array.isArray(doc?.experience) ? doc.experience.length > 0 : (text.toLowerCase().includes("experience") || text.toLowerCase().includes("erfahrung"));
+      if(!hasExp){
+        add("fix",
+          uiLang==="de" ? "Erfahrung fehlt" : "Experience section missing",
+          uiLang==="de" ? "Mindestens eine Station in EXPERIENCE/ERFAHRUNG ist nötig." : "You need at least one role in the EXPERIENCE section."
+        );
+      }else{
+        add("pass",
+          uiLang==="de" ? "Erfahrung vorhanden" : "Experience present",
+          uiLang==="de" ? "OK" : "OK"
+        );
+      }
+
+      // 2) Location sanity + common typo
+      const loc = String(doc?.contact?.location || "");
+      if(!loc && !/\b(Berlin|Germany|Deutschland|München|Hamburg|Köln|Frankfurt|Düsseldorf)\b/i.test(text)){
+        add("warn",
+          uiLang==="de" ? "Standort fehlt" : "Location missing",
+          uiLang==="de" ? "Ein Standort erhöht Vertrauen und hilft beim Matching." : "A location improves trust and helps matching."
+        );
+      }
+      if(/\bBelin\b/i.test(loc) || /\bBelin\b/i.test(text)){
+        add("fix",
+          uiLang==="de" ? "Tippfehler im Standort" : "Location typo detected",
+          uiLang==="de" ? "„Belin“ sieht wie ein Tippfehler aus (meist „Berlin“)." : "“Belin” looks like a typo (usually “Berlin”).",
+          "fix_location_berlin",
+          uiLang==="de" ? "Belin → Berlin korrigieren" : "Fix Belin → Berlin"
+        );
+      }
+
+      // 3) Language consistency
+      const guess = guessLangFromText(text);
+      if(guess && targetLang && guess !== targetLang){
+        add("warn",
+          uiLang==="de" ? "Sprache wirkt gemischt" : "Language may be mixed",
+          uiLang==="de"
+            ? ("Der Text wirkt eher " + (guess==="de" ? "Deutsch" : "Englisch") + ", aber das CV ist als " + (targetLang==="de" ? "Deutsch" : "Englisch") + " markiert.")
+            : ("The text looks more " + (guess==="de" ? "German" : "English") + ", but the CV is marked as " + (targetLang==="de" ? "German" : "English") + ".")
+        );
+      }
+
+      // 4) Bullet quality checks (if doc exists)
+      if(doc && Array.isArray(doc.experience)){
+        const longBullets = [];
+        const allBullets = [];
+        doc.experience.forEach((e, ei) => {
+          const bullets = asStringArr(e?.bullets, 80);
+          bullets.forEach((b, bi) => {
+            const bb = String(b||"").trim();
+            if(!bb) return;
+            allBullets.push({ bb, ei, bi, title: e?.title || "" });
+            const wc = bb.split(/\s+/).filter(Boolean).length;
+            if(wc > 28 || bb.length > 220){
+              longBullets.push({ bb, wc, ei, bi, title: e?.title || "" });
+            }
+          });
+        });
+
+        if(longBullets.length){
+          const ex = longBullets.slice(0,2).map(x => `- ${x.title}: ${x.bb}`).join("\n");
+          add("warn",
+            uiLang==="de" ? "Zu lange Bullets" : "Bullets may be too long",
+            uiLang==="de"
+              ? ("Einige Bullets sind sehr lang. Kürzer = besser für ATS und Leser. Beispiele:\n" + ex)
+              : ("Some bullets are very long. Shorter is better for ATS and readability. Examples:\n" + ex)
+          );
+        }else{
+          add("pass",
+            uiLang==="de" ? "Bullet-Länge ok" : "Bullet length OK",
+            uiLang==="de" ? "OK" : "OK"
+          );
+        }
+
+        // duplicates
+        const seen = new Map();
+        const dups = [];
+        allBullets.forEach(x => {
+          const key = normForMatch(x.bb).replace(/\d+/g,"#");
+          if(!key) return;
+          if(seen.has(key)){
+            dups.push([seen.get(key), x]);
+          }else{
+            seen.set(key, x);
+          }
+        });
+        if(dups.length){
+          add("warn",
+            uiLang==="de" ? "Doppelte Bullets" : "Duplicate bullets",
+            uiLang==="de"
+              ? ("Einige Bullets sind doppelt/nahezu gleich. Das wirkt repetitiv (ATS + Recruiter).")
+              : ("Some bullets are duplicated or very similar. This looks repetitive (ATS + recruiter).")
+          );
+        }else{
+          add("pass",
+            uiLang==="de" ? "Keine Duplikate gefunden" : "No duplicates found",
+            uiLang==="de" ? "OK" : "OK"
+          );
+        }
+
+        // metrics
+        const metricCount = allBullets.filter(x => /\d/.test(x.bb)).length;
+        if(metricCount === 0){
+          add("warn",
+            uiLang==="de" ? "Wenig messbare Ergebnisse" : "Few measurable outcomes",
+            uiLang==="de"
+              ? "Keine Zahlen/Prozente gefunden. 1–3 messbare Ergebnisse erhöhen Glaubwürdigkeit."
+              : "No numbers/percentages found. 1–3 measurable outcomes improve credibility."
+          );
+        }else{
+          add("pass",
+            uiLang==="de" ? "Ergebnisse mit Zahlen vorhanden" : "Metrics found",
+            uiLang==="de" ? "OK" : "OK"
+          );
+        }
+
+        // punctuation consistency (simple)
+        const endPeriod = allBullets.filter(x => /[\.!?]$/.test(x.bb)).length;
+        const ratio = allBullets.length ? (endPeriod / allBullets.length) : 0;
+        if(allBullets.length >= 6 && ratio > 0.15 && ratio < 0.85){
+          add("warn",
+            uiLang==="de" ? "Punktuation inkonsistent" : "Punctuation inconsistent",
+            uiLang==="de"
+              ? "Einige Bullets enden mit Punkt, andere nicht. Einheitlich wirkt professioneller."
+              : "Some bullets end with a period, others don’t. Consistency looks more professional.",
+            "fix_bullet_punct",
+            uiLang==="de" ? "Bullets ohne Punkt am Ende" : "Remove trailing periods"
+          );
+        }
+      }
+
+      // 5) Keyword coverage (from latest tailor call, if available)
+      const miss = Array.isArray(lastMissing) ? lastMissing : [];
+      if(miss.length){
+        add("warn",
+          uiLang==="de" ? "Fehlende Keywords" : "Missing keywords",
+          uiLang==="de"
+            ? ("Noch " + miss.length + " Keywords fehlen. Nutze den Keyword Booster, wenn sie wirklich zutreffen.")
+            : (miss.length + " keywords are still missing. Use the Keyword Booster if they are true.")
+        );
+      }else if(lastUsed && Array.isArray(lastUsed)){
+        add("pass",
+          uiLang==="de" ? "Keywords abgedeckt" : "Keywords covered",
+          uiLang==="de" ? "OK" : "OK"
+        );
+      }
+
+      // Determine status
+      const fixCount = checks.filter(c => c.level === "fix").length;
+      const warnCount = checks.filter(c => c.level === "warn").length;
+      const passCount = checks.filter(c => c.level === "pass").length;
+
+      const status = fixCount ? "needs_fixes" : (warnCount ? "good_with_warnings" : "ready");
+      return { status, targetLang, fixCount, warnCount, passCount, checks, fixes };
+    }
+
+    function renderQaReport(rep){
+      if(!rep){ return; }
+
+      const statusLine = (rep.status === "ready")
+        ? (uiLang==="de" ? "Sieht gut aus – bereit zum Versand." : "Looks good — ready to send.")
+        : (rep.status === "good_with_warnings")
+          ? (uiLang==="de" ? "Gut – mit ein paar Verbesserungen." : "Good — with a few improvements.")
+          : (uiLang==="de" ? "Bitte zuerst die wichtigsten Punkte fixen." : "Please fix the most important issues first.");
+
+      $("qaSummary").textContent = statusLine;
+      $("qaMeta").textContent = (uiLang==="de"
+        ? (`Checks: ${rep.passCount} ok · ${rep.warnCount} Hinweise · ${rep.fixCount} Fixes · Sprache: ${rep.targetLang}`)
+        : (`Checks: ${rep.passCount} ok · ${rep.warnCount} warnings · ${rep.fixCount} fixes · Language: ${rep.targetLang}`)
+      );
+
+      const checksEl = $("qaChecks");
+      checksEl.innerHTML = rep.checks.map(c => {
+        const tag = (c.level === "pass") ? (uiLang==="de" ? "OK" : "OK") : (c.level === "warn" ? (uiLang==="de" ? "Hinweis" : "Warning") : (uiLang==="de" ? "Fix" : "Fix"));
+        const tagCls = (c.level === "pass") ? "good" : (c.level === "warn" ? "warn" : "bad");
+        return `
+          <div class="qaItem">
+            <div class="qaHead">
+              <div class="qaTitle">${H.escapeHtml(String(c.title||""))}</div>
+              <span class="qaTag ${tagCls}">${H.escapeHtml(tag)}</span>
+            </div>
+            <div class="qaDesc">${H.escapeHtml(String(c.desc||""))}</div>
+          </div>
+        `;
+      }).join("");
+
+      const fixesEl = $("qaFixes");
+      if(!rep.fixes.length){
+        fixesEl.innerHTML = `<div class="qaItem"><div class="qaDesc">${uiLang==="de" ? "Keine Quick Fixes verfügbar." : "No quick fixes available."}</div></div>`;
+      }else{
+        fixesEl.innerHTML = rep.fixes.map(f => {
+          return `
+            <div class="qaItem">
+              <div class="qaHead">
+                <div class="qaTitle">${H.escapeHtml(String(f.title||""))}</div>
+                <span class="qaTag warn">${uiLang==="de" ? "Quick Fix" : "Quick fix"}</span>
+              </div>
+              <div class="qaDesc">${H.escapeHtml(String(f.desc||""))}</div>
+              <div class="qaActionsRow">
+                <button class="btn small" type="button" data-fix="${H.escapeHtml(String(f.fixId||""))}">${uiLang==="de" ? "Anwenden" : "Apply"}</button>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+    function runQaCheck(){
+      try{
+        const rep = qaComputeReport();
+        qaLastReport = rep;
+        qaLastRunAt = Date.now();
+        qaLastHash = currentCvHash();
+        renderQaReport(rep);
+        updateQaDot();
+      }catch(e){
+        $("qaSummary").textContent = (uiLang==="de" ? "QA fehlgeschlagen: " : "QA failed: ") + (e?.message || String(e));
+        $("qaMeta").textContent = "—";
+      }
+    }
+
+    function applyQaFix(fixId){
+      if(!fixId) return;
+
+      // Make sure Undo can bring us back
+      try{ snapshotCurrent("QA fix: " + fixId); }catch(_){ }
+
+      const txt0 = String($("cvText").value || "");
+      let txt = txt0;
+
+      if(fixId === "fix_location_berlin"){
+        // Fix "Belin" typo in both structured doc (if any) and raw text
+        try{
+          if(lastCvDoc?.contact?.location){
+            lastCvDoc.contact.location = String(lastCvDoc.contact.location).replace(/\bBelin\b/gi, "Berlin");
+          }
+        }catch(_){}
+        txt = txt.replace(/\bBelin\b/gi, "Berlin");
+      }
+
+      if(fixId === "fix_bullet_punct"){
+        // Remove trailing periods from bullets (simple heuristic)
+        try{
+          if(lastCvDoc && Array.isArray(lastCvDoc.experience)){
+            lastCvDoc.experience = lastCvDoc.experience.map(e => {
+              const bullets = asStringArr(e?.bullets, 80).map(b => String(b||"").replace(/[\s]*\.[\s]*$/,"").trim());
+              return Object.assign({}, e, { bullets });
+            });
+          }
+        }catch(_){}
+        txt = txt.split("\n").map(line => {
+          if(!/^\s*[-•]\s+/.test(line)) return line;
+          return line.replace(/[\s]*\.[\s]*$/,"");
+        }).join("\n");
+      }
+
+      if(txt !== txt0){
+        $("cvText").value = txt;
+        // If we have a structured doc, regenerate text from it for consistency
+        try{
+          if(lastCvDoc){
+            $("cvText").value = cvDocToText(lastCvDoc, lastLang);
+          }
+        }catch(_){}
+        recomputeCoverageFromCurrentText();
+        if($("tabChanges")?.classList?.contains("active")){ try{ renderChangesView(); }catch(_){ } }
+      }
+
+      // QA needs rerun after changes
+      try{ qaLastHash = ""; updateQaDot(); }catch(_){ }
+      runQaCheck();
+    }
+
+    function onExportClick(kind){
+      // If QA is not up to date, run it first and show results
+      if(!qaIsUpToDate()){
+        openQaModal(kind);
+        return;
+      }
+      if(kind === "print") return printPdf();
+      if(kind === "download") return downloadTxt();
+    }
+
     async function copyMissing(){
       const miss = Array.isArray(lastMissing) ? lastMissing : [];
       if(!miss.length) return;
@@ -3649,6 +4195,7 @@ ${bodyHtml}
         }
       }
 
+      try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ }
       updateKwPreview();
     }
 
@@ -3945,6 +4492,7 @@ ${bodyHtml}
 
         applyAiRecoToModalUi(cached);
         renderAiRecoBox(cached, lang);
+        try{ updateKwRewriteUi(); renderKwRewriteOptions(); }catch(_){ }
         return;
       }
 
@@ -3980,6 +4528,7 @@ ${bodyHtml}
 
           applyAiRecoToModalUi(packed);
           renderAiRecoBox(packed, lang);
+          try{ updateKwRewriteUi(); renderKwRewriteOptions(); }catch(_){ }
           updateKwPreview();
         }else{
           clearKwAiReco();
@@ -4049,6 +4598,7 @@ function openKwModal(keywordRaw){
 
       // Show/hide boxes
       updateKwTargetUi();
+      try{ updateKwRewriteUi(); resetKwRewriteVariants(); }catch(_){ }
       updateKwPreview();
 
       H.showModal("kwModal");
@@ -4069,6 +4619,13 @@ function openKwModal(keywordRaw){
       // Cancel any in-flight AI recommendation and reset UI
       try{ kwAiRecoToken += 1; }catch(_){ }
       try{ clearKwAiReco(); }catch(_){ }
+
+      // Cancel/clear "Rewrite again" variants
+      try{ kwRewriteToken += 1; }catch(_){ }
+      kwRewriteVariants = [];
+      kwRewriteSelected = "reco";
+      kwRewriteKey = "";
+      try{ updateKwRewriteUi(); }catch(_){ }
     }
 
     function updateKwTargetUi(){
@@ -4097,7 +4654,280 @@ function openKwModal(keywordRaw){
       $("kwNoteBox").style.display = showNote ? "" : "none";
       $("kwNewWarn").style.display = showNote ? "" : "none";
 
+      // "Rewrite again" only makes sense when rewriting/appending an existing bullet in AI mode
+      try{ updateKwRewriteUi(); }catch(_){ }
+
       updateKwPreview();
+    }
+
+
+    /* -------------------------
+       Keyword modal: "Rewrite again" (variants)
+       ------------------------- */
+    function computeKwRewriteKey(){
+      try{
+        if(!activeKeywordRaw) return "";
+        if(!lastCvDoc) return "";
+        if(kwMode !== "ai") return "";
+        const target = String($("kwTarget").value || "skills");
+        if(target !== "experience") return "";
+        const how = String($("kwExpHow").value || "rewrite");
+        if(!(how === "rewrite" || how === "append")) return "";
+        const expIdx = Number($("kwExpRole").value || "0");
+        const bulletIdx = Number($("kwExpBullet").value || "0");
+        const lang = chosenKwLang();
+        return [String(activeKeywordRaw||""), String(lang||""), String(expIdx), String(bulletIdx), String(how)].join("||");
+      }catch(_){
+        return "";
+      }
+    }
+
+    function getRecoRewriteForCurrentBullet(){
+      try{
+        const kw = activeKeywordRaw;
+        const lang = chosenKwLang();
+        const expIdx = Number($("kwExpRole").value || "0");
+        const bulletIdx = Number($("kwExpBullet").value || "0");
+        const key = getAiRecoCacheKey(kw, lang);
+
+        if(kwMode === "ai" && kwAiReco && kwAiRecoKey === key && String(kwAiReco.target || "").toLowerCase() === "experience"){
+          const reExp = Number(kwAiReco.exp_index ?? kwAiReco.expIdx ?? -1);
+          const reBul = Number(kwAiReco.bullet_index ?? kwAiReco.bulletIdx ?? -1);
+          const rb = String(kwAiReco.rewritten_bullet || kwAiReco.rewrite || "").trim();
+          if(rb && reExp === expIdx && reBul === bulletIdx) return rb;
+        }
+      }catch(_){}
+      return "";
+    }
+
+    function getCurrentSelectedBulletText(){
+      try{
+        const expIdx = Number($("kwExpRole").value || "0");
+        const bulletIdx = Number($("kwExpBullet").value || "0");
+        const exp = (Array.isArray(lastCvDoc?.experience) ? lastCvDoc.experience : [])[expIdx] || {};
+        const bullets = asStringArr(exp?.bullets, 50);
+        return String(bullets[bulletIdx] || "").trim();
+      }catch(_){
+        return "";
+      }
+    }
+
+    function getDefaultRewriteDraftForCurrentBullet(){
+      const lang = chosenKwLang();
+      const kw = activeKeywordRaw;
+      const how = String($("kwExpHow").value || "rewrite");
+      const current = getCurrentSelectedBulletText();
+      if(!current) return "";
+      return (how === "append")
+        ? localAppendKeyword(current, kw, lang)
+        : localRewriteBullet(current, kw, lang);
+    }
+
+    function resetKwRewriteVariants(){
+      kwRewriteVariants = [];
+      kwRewriteSelected = "reco";
+      kwRewriteKey = computeKwRewriteKey();
+      renderKwRewriteOptions();
+    }
+
+    function setKwRewriteLoading(isLoading, msg){
+      const badge = $("kwRewriteBadge");
+      if(!badge) return;
+      if(isLoading){
+        badge.textContent = msg || (uiLang==="de" ? "Generiere…" : "Generating…");
+        badge.className = "badge warn";
+      }else{
+        // badge updated in render
+      }
+    }
+
+    function updateKwRewriteUi(){
+      const box = $("kwRewriteBox");
+      if(!box) return;
+
+      const key = computeKwRewriteKey();
+      const canShow = !!key;
+
+      box.style.display = canShow ? "" : "none";
+
+      if(!canShow){
+        kwRewriteVariants = [];
+        kwRewriteSelected = "reco";
+        kwRewriteKey = "";
+        const opt = $("kwRewriteOptions"); if(opt) opt.innerHTML = "";
+        const badge = $("kwRewriteBadge"); if(badge){ badge.textContent = "—"; badge.className="badge"; }
+        return;
+      }
+
+      if(key !== kwRewriteKey){
+        kwRewriteKey = key;
+        kwRewriteVariants = [];
+        kwRewriteSelected = "reco";
+      }
+
+      renderKwRewriteOptions();
+    }
+
+    function renderKwRewriteOptions(){
+      const box = $("kwRewriteBox");
+      const list = $("kwRewriteOptions");
+      const badge = $("kwRewriteBadge");
+      if(!box || !list) return;
+
+      const key = computeKwRewriteKey();
+      if(!key || key !== kwRewriteKey){
+        // keep it simple: reset when out-of-sync
+        kwRewriteKey = key;
+        kwRewriteVariants = [];
+        kwRewriteSelected = "reco";
+      }
+
+      const reco = getRecoRewriteForCurrentBullet();
+      const def = getDefaultRewriteDraftForCurrentBullet();
+      const baseText = reco || def || "";
+
+      // Badge
+      if(badge){
+        const n = kwRewriteVariants.length;
+        badge.textContent = (n === 0) ? (uiLang==="de" ? "0 Varianten" : "0 variants") : (uiLang==="de" ? (n + " Varianten") : (n + " variants"));
+        badge.className = "badge " + (n ? "good" : "warn");
+      }
+
+      // Build options
+      const opts = [];
+      opts.push({
+        id: "reco",
+        label: reco ? (uiLang==="de" ? "Empfohlen" : "Recommended") : (uiLang==="de" ? "Standard" : "Default"),
+        pill: reco ? (uiLang==="de" ? "AI" : "AI") : (uiLang==="de" ? "Template" : "Template"),
+        text: baseText || "—"
+      });
+
+      kwRewriteVariants.forEach((v, i) => {
+        opts.push({
+          id: "v:" + i,
+          label: (uiLang==="de" ? "Variante " : "Variant ") + (i+1),
+          pill: "AI",
+          text: String(v?.text || "").trim() || "—"
+        });
+      });
+
+      list.innerHTML = opts.map(o => {
+        const active = (kwRewriteSelected === o.id) ? " active" : "";
+        const safeText = H.escapeHtml(String(o.text||""));
+        const safeLabel = H.escapeHtml(String(o.label||""));
+        const safePill = H.escapeHtml(String(o.pill||""));
+        return `
+          <div class="altOption${active}" role="button" tabindex="0" data-alt="${safeLabel}" data-id="${H.escapeHtml(o.id)}">
+            <div class="altMeta">
+              <span class="altLabel">${safeLabel}</span>
+              <span class="altPill">${safePill}</span>
+            </div>
+            <div class="altText">${safeText}</div>
+          </div>
+        `;
+      }).join("");
+
+      // If user selected a variant that no longer exists, fall back
+      if(kwRewriteSelected !== "reco" && !opts.some(o => o.id === kwRewriteSelected)){
+        kwRewriteSelected = "reco";
+      }
+    }
+
+    function getPickedKwRewriteForCurrentBullet(){
+      try{
+        const key = computeKwRewriteKey();
+        if(!key || key !== kwRewriteKey) return "";
+        if(!kwRewriteSelected || kwRewriteSelected === "reco") return "";
+        if(!String(kwRewriteSelected).startsWith("v:")) return "";
+        const idx = Number(String(kwRewriteSelected).split(":")[1] || "-1");
+        const v = kwRewriteVariants[idx];
+        const text = String(v?.text || "").trim();
+        return text || "";
+      }catch(_){
+        return "";
+      }
+    }
+
+    async function onKwRewriteAgain(){
+      showError("");
+      if(!activeKeywordRaw){ return; }
+      if(!lastCvDoc){ return; }
+      if(kwMode !== "ai"){ return; }
+
+      const key = computeKwRewriteKey();
+      if(!key){
+        showError(uiLang==="de" ? "Wähle zuerst eine Bullet aus." : "Please select a bullet first.");
+        return;
+      }
+      if(key !== kwRewriteKey){
+        resetKwRewriteVariants();
+      }
+
+      const lang = chosenKwLang();
+      const kw = activeKeywordRaw;
+      const how = String($("kwExpHow").value || "rewrite");
+      const current = getCurrentSelectedBulletText();
+      if(!current){
+        showError(uiLang==="de" ? "Keine Bullet zum Umformulieren." : "No bullet to rewrite.");
+        return;
+      }
+
+      const avoid = [];
+      const reco = getRecoRewriteForCurrentBullet();
+      if(reco) avoid.push(reco);
+      kwRewriteVariants.forEach(v => { if(v?.text) avoid.push(String(v.text)); });
+
+      const token = ++kwRewriteToken;
+      setKwRewriteLoading(true);
+
+      try{
+        const expIdx = Number($("kwExpRole").value || "0");
+        const exp = (Array.isArray(lastCvDoc?.experience) ? lastCvDoc.experience : [])[expIdx] || {};
+
+        const ctx = {
+          cv_language: lastLang,
+          target_language: lang,
+          role_title: exp?.title || "",
+          company: exp?.company || "",
+          job_title: selectedJob?.title || "",
+          job_company: selectedJob?.company_name || "",
+          intent: how,
+          variation: kwRewriteVariants.length + 1,
+          avoid_rewrites: avoid.slice(0, 6)
+        };
+
+        const ai = await tryAiRewriteOrCraft({
+          mode: "rewrite",
+          keyword: kw,
+          lang,
+          current_bullet: current,
+          note: "",
+          context: ctx
+        });
+
+        if(token !== kwRewriteToken) return;
+
+        if(ai.ok && ai.text){
+          const txt = String(ai.text || "").trim();
+          const normTxt = normForMatch(txt);
+          const exists = (
+            normForMatch(getRecoRewriteForCurrentBullet()) === normTxt
+            || kwRewriteVariants.some(v => normForMatch(v?.text||"") === normTxt)
+          );
+          if(!exists){
+            kwRewriteVariants.push({ text: txt, at: Date.now() });
+          }
+          kwRewriteSelected = "v:" + Math.max(0, kwRewriteVariants.length - 1);
+          renderKwRewriteOptions();
+          updateKwPreview();
+        }else{
+          showError(t("aiFallback"));
+        }
+      }catch(e){
+        showError((uiLang==="de" ? "Rewrite fehlgeschlagen: " : "Rewrite failed: ") + (e?.message || String(e)));
+      }finally{
+        setKwRewriteLoading(false);
+      }
     }
 
     function buildKwPreviewText(){
@@ -4169,6 +4999,11 @@ function openKwModal(keywordRaw){
         }
       }catch(_){}
 
+      // If you generated alternative rewrites (Rewrite again), prefer the one you picked
+      try{
+        const picked = getPickedKwRewriteForCurrentBullet();
+        if(picked) rewritten = picked;
+      }catch(_){ }
 
       const label = (how === "append")
         ? (lang==="de" ? "Anhängen:" : "Append:")
@@ -4253,6 +5088,7 @@ function openKwModal(keywordRaw){
           }
 
           recomputeCoverageFromCurrentText();
+          try{ updateQaDot(); }catch(_){ }
           updateKwPreview();
           closeKwModal();
           return;
@@ -4333,7 +5169,13 @@ function openKwModal(keywordRaw){
                   ? String(kwAiReco.rewritten_bullet || kwAiReco.rewrite || "").trim()
                   : "";
 
-              if(recoText){
+              // If you picked a specific rewrite variant (Rewrite again), use it first
+              const picked = getPickedKwRewriteForCurrentBullet();
+              if(picked){
+                exp.bullets[bulletIdx] = picked;
+                usedAi = true;
+                changed = true;
+              } else if(recoText){
                 exp.bullets[bulletIdx] = recoText;
                 usedAi = true;
                 changed = true;
@@ -4586,8 +5428,25 @@ function openKwModal(keywordRaw){
     $("tabChanges").addEventListener("click", () => setTabs("changes"));
 
     $("btnCopy").addEventListener("click", () => copyCv());
-    $("btnDownload").addEventListener("click", downloadTxt);
-    $("btnPrint").addEventListener("click", printPdf);
+    $("btnDownload").addEventListener("click", () => onExportClick("download"));
+    $("btnPrint").addEventListener("click", () => onExportClick("print"));
+    $("btnQa").addEventListener("click", () => openQaModal(""));
+    $("qaCloseX").addEventListener("click", closeQaModal);
+    $("qaClose").addEventListener("click", closeQaModal);
+    $("qaRunAgain").addEventListener("click", runQaCheck);
+    $("qaContinue").addEventListener("click", () => {
+      const kind = qaPendingAction;
+      closeQaModal();
+      if(kind === "print") return printPdf();
+      if(kind === "download") return downloadTxt();
+    });
+    $("qaFixes").addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-fix]");
+      if(!btn) return;
+      const fixId = btn.getAttribute("data-fix") || "";
+      applyQaFix(fixId);
+    });
+
     $("btnCopyMissing").addEventListener("click", copyMissing);
 
     // Track manual text edits -> recompute keyword coverage
@@ -4596,6 +5455,7 @@ function openKwModal(keywordRaw){
       recomputeCoverageFromCurrentText();
       // We do not mutate doc here to avoid confusion; Preview stays as last doc.
       if($("tabChanges")?.classList?.contains("active")){ try{ renderChangesView(); }catch(_){ } }
+      try{ updateQaDot(); }catch(_){ }
     });
 
     // Keyword chips click
@@ -4635,8 +5495,9 @@ function openKwModal(keywordRaw){
     $("kwCancel").addEventListener("click", closeKwModal);
     $("kwModal").addEventListener("click", (e) => { if(e.target && e.target.id === "kwModal") closeKwModal(); });
 
-    $("kwTarget").addEventListener("change", () => { updateKwTargetUi(); updateKwPreview(); });
+    $("kwTarget").addEventListener("change", () => { updateKwTargetUi(); try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ } updateKwPreview(); });
     $("kwLang").addEventListener("change", () => {
+      try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ }
       updateKwPreview();
       if(kwMode === "ai" && activeKeywordRaw && lastCvDoc){
         try{ aiRecommendPlacement({ force:true, source:"lang" }); }catch(_){ }
@@ -4656,7 +5517,7 @@ function openKwModal(keywordRaw){
     });
 
     $("kwSkillGroup").addEventListener("change", updateKwPreview);
-    $("kwExpRole").addEventListener("change", () => { fillBulletsForSelectedRole(); updateKwPreview(); });
+    $("kwExpRole").addEventListener("change", () => { fillBulletsForSelectedRole(); try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ } updateKwPreview(); });
     $("kwExpHow").addEventListener("change", updateKwExpHowUi);
     $("kwExpBullet").addEventListener("change", () => {
       const expIdx = Number($("kwExpRole").value || "0");
@@ -4664,6 +5525,9 @@ function openKwModal(keywordRaw){
       const bullets = asStringArr(exp?.bullets, 50);
       const i = Number($("kwExpBullet").value || "0");
       $("kwBulletPreview").textContent = bullets[i] || "—";
+      try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ }
+      try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ }
+      try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ }
       updateKwPreview();
     });
     
@@ -4681,10 +5545,21 @@ function openKwModal(keywordRaw){
         badge.textContent = (best.score != null && best.score >= 0) ? ("Score " + best.score) : "—";
         badge.className = "badge " + ((best.score || 0) >= 4 ? "good" : "warn");
       }
+      try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ }
       updateKwPreview();
     });
 $("kwNote").addEventListener("input", updateKwPreview);
-    $("kwApply").addEventListener("click", applyKeyword);
+    
+    $("kwRewriteAgain").addEventListener("click", onKwRewriteAgain);
+    $("kwRewriteOptions").addEventListener("click", (e) => {
+      const opt = e.target.closest(".altOption");
+      if(!opt) return;
+      const id = opt.getAttribute("data-id") || "reco";
+      kwRewriteSelected = id;
+      renderKwRewriteOptions();
+      updateKwPreview();
+    });
+$("kwApply").addEventListener("click", applyKeyword);
 
     // Logout
     $("navLogout").addEventListener("click", async () => {
