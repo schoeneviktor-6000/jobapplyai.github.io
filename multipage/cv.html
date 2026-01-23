@@ -980,6 +980,17 @@
           <div class="tinyNote" id="kwModeNote">AI tries to integrate the keyword naturally into an existing bullet. If your backend has no AI endpoint, we automatically fall back to smart templates.</div>
         </div>
 
+        <div class="field" style="margin-top:12px" id="kwAiRecoBox">
+          <div class="fieldLabel">AI recommendation</div>
+          <div class="row" style="margin-top:8px;gap:8px;align-items:center">
+            <button class="btn small" id="kwAiRecoRefresh" type="button" style="flex:0 0 auto">Refresh</button>
+            <span class="badge" id="kwAiRecoBadge">—</span>
+          </div>
+          <div class="kwPreview" id="kwAiRecoText">—</div>
+          <div class="tinyNote" id="kwAiRecoNote">Recommendation is based on your existing CV text. It never invents experience.</div>
+        </div>
+
+
         <!-- Skills target -->
         <div id="kwSkillsBox" style="margin-top:12px">
           <div class="field">
@@ -1009,6 +1020,10 @@
           <div class="field" style="margin-top:12px" id="kwBulletPickBox">
             <div class="fieldLabel" id="kwExpBulletLbl">Which bullet?</div>
             <select id="kwExpBullet"></select>
+            <div class="row" style="margin-top:8px;gap:8px">
+              <button class="btn small" id="kwAutoPick" type="button" style="flex:0 0 auto">Auto-pick best bullet</button>
+              <span class="badge" id="kwAutoPickBadge">—</span>
+            </div>
             <div class="kwPreview" id="kwBulletPreview">—</div>
           </div>
 
@@ -1108,6 +1123,12 @@
     let activeKeywordRaw = "";
     let activeKeywordDisplay = "";
     let kwMode = "ai"; // ai | quick
+
+    // AI placement recommendation (cached per CV+keyword)
+    let kwAiReco = null; // { target, exp_index, bullet_index, rewritten_bullet, skill_group, skill_item, reason, confidence }
+    let kwAiRecoKey = "";
+    const kwAiRecoCache = new Map();
+    let kwAiRecoToken = 0;
 
     // UI language (interface). Keep English UI; keyword insertion language follows your CV language (auto).
     let uiLang = "en";
@@ -1671,6 +1692,60 @@
       }
     }
 
+
+    function tokenizeForScore(s){
+      const n = normForMatch(s);
+      return n ? n.split(" ").filter(Boolean) : [];
+    }
+
+    function scoreBulletForKeyword(bullet, keyword){
+      const b = tokenizeForScore(bullet);
+      const k = tokenizeForScore(keyword);
+      if(!b.length || !k.length) return 0;
+      const bSet = new Set(b);
+      let hit = 0;
+      for(const t of k){
+        if(bSet.has(t)) hit += 2;
+      }
+      const kwNorm = normForMatch(keyword);
+      const bNorm = normForMatch(bullet);
+      if(kwNorm && bNorm.includes(kwNorm)) hit += 6;
+      // Prefer medium-length bullets (not too short, not too long)
+      const len = String(bullet||"").length;
+      if(len >= 40 && len <= 140) hit += 1;
+      return hit;
+    }
+
+    function pickBestBulletIndex(keyword, bullets){
+      let best = 0;
+      let bestScore = -1;
+      bullets.forEach((b, i) => {
+        const s = scoreBulletForKeyword(b, keyword);
+        if(s > bestScore){
+          bestScore = s;
+          best = i;
+        }
+      });
+      return { index: best, score: bestScore };
+    }
+
+    function isToolLikeKeyword(keyword){
+      const k = normForMatch(keyword);
+      return ["sql","excel","power bi","tableau","jira","confluence","sap","aws","gcp","azure","python","r","looker","snowflake","dbt","airflow","kpi","okr","crm"].some(x => k === x);
+    }
+
+    function pickBestRoleAndBullet(keyword){
+      const exp = Array.isArray(lastCvDoc?.experience) ? lastCvDoc.experience : [];
+      let best = { expIdx: 0, bulletIdx: 0, score: -1 };
+      exp.forEach((e, expIdx) => {
+        const bullets = asStringArr(e?.bullets, 50);
+        const r = pickBestBulletIndex(keyword, bullets);
+        if(r.score > best.score){
+          best = { expIdx, bulletIdx: r.index, score: r.score };
+        }
+      });
+      return best;
+    }
     function keywordInText(keyword, text){
       const k = normForMatch(keyword);
       const ttxt = normForMatch(text);
@@ -3560,6 +3635,19 @@ ${bodyHtml}
       kwMode = mode === "quick" ? "quick" : "ai";
       const btns = $("kwModeToggle").querySelectorAll("button");
       btns.forEach(b => b.classList.toggle("active", b.getAttribute("data-mode") === kwMode));
+
+      // Show/hide AI recommendation box
+      const recoBox = $("kwAiRecoBox");
+      if(recoBox) recoBox.style.display = (kwMode === "ai") ? "" : "none";
+
+      // If user switches to AI while modal is open, refresh recommendation (non-blocking)
+      if(kwMode === "ai" && activeKeywordRaw && lastCvDoc){
+        const ready = (($("kwSkillGroup")?.options?.length || 0) > 0) || (($("kwExpRole")?.options?.length || 0) > 0);
+        if(ready){
+          try{ aiRecommendPlacement({ force:false, source:"mode" }); }catch(_){}
+        }
+      }
+
       updateKwPreview();
     }
 
@@ -3631,7 +3719,242 @@ ${bodyHtml}
       }
     }
 
-    function openKwModal(keywordRaw){
+    
+    // -------------------------
+    // AI recommendation (best placement)
+    // -------------------------
+    function clearKwAiReco(){
+      kwAiReco = null;
+      kwAiRecoKey = "";
+      try{ setBadge("kwAiRecoBadge","", "—"); }catch(_){}
+      try{ setText("kwAiRecoText", "—"); }catch(_){}
+    }
+
+    function setKwAiRecoLoading(){
+      setBadge("kwAiRecoBadge","warn", uiLang==="de" ? "Denke…" : "Thinking…");
+      setText("kwAiRecoText", uiLang==="de"
+        ? "Finde das beste Placement und erstelle einen Vorschlag…"
+        : "Finding the best placement and drafting a suggestion…"
+      );
+    }
+
+    function setKwAiRecoError(msg){
+      setBadge("kwAiRecoBadge","warn", uiLang==="de" ? "Nicht verfügbar" : "Unavailable");
+      setText("kwAiRecoText", msg || (uiLang==="de"
+        ? "Du kannst weiterhin Auto-pick oder Skills nutzen."
+        : "You can still use Auto-pick or add it under Skills."
+      ));
+    }
+
+    function slimCvDocForSuggest(doc){
+      if(!doc || typeof doc !== "object") return null;
+
+      const exp = Array.isArray(doc.experience) ? doc.experience : [];
+      const expOut = exp.slice(0, 10).map((e) => ({
+        title: String(e?.title || "").trim(),
+        company: String(e?.company || "").trim(),
+        bullets: asStringArr(e?.bullets, 10).map(b => String(b).trim().slice(0, 260))
+      }));
+
+      const skills = (doc.skills && typeof doc.skills === "object") ? doc.skills : {};
+      const groups = Array.isArray(skills.groups) ? skills.groups : [];
+      const groupsOut = groups.slice(0, 10).map((g) => ({
+        label: String(g?.label || "").trim(),
+        items: asStringArr(g?.items, 25).map(x => String(x).trim().slice(0, 80))
+      }));
+
+      const additionalOut = asStringArr(skills.additional, 60).map(x => String(x).trim().slice(0, 80));
+
+      return { experience: expOut, skills: { groups: groupsOut, additional: additionalOut } };
+    }
+
+    function getAiRecoCacheKey(keyword, lang){
+      const base = String(lastDebug?.input_hash || lastDebug?.hash || "");
+      const src = String(jobSource || "queue");
+      return [normForMatch(keyword), base, String(lang||""), src].join("|");
+    }
+
+    function roleLabelByIndex(expIdx){
+      const e = (Array.isArray(lastCvDoc?.experience) ? lastCvDoc.experience : [])[Number(expIdx)||0] || null;
+      return e ? (joinNonEmpty([e?.title, e?.company], " · ") || "") : "";
+    }
+
+    function skillGroupLabelByKey(groupKey){
+      if(groupKey === "additional") return uiLang==="de" ? "Weitere Skills" : "Additional skills";
+      const s = String(groupKey || "");
+      if(s.startsWith("group:")){
+        const idx = Number(s.split(":")[1] || "0");
+        const g = (Array.isArray(lastCvDoc?.skills?.groups) ? lastCvDoc.skills.groups : [])[idx] || null;
+        return String(g?.label || "").trim() || (uiLang==="de" ? ("Gruppe " + (idx+1)) : ("Group " + (idx+1)));
+      }
+      return uiLang==="de" ? "Skills" : "Skills";
+    }
+
+    function applyAiRecoToModalUi(reco){
+      if(!reco) return;
+
+      const target = String(reco.target || "").toLowerCase() === "experience" ? "experience" : "skills";
+      $("kwTarget").value = target;
+      updateKwTargetUi();
+
+      if(target === "skills"){
+        const sg = String(reco.skill_group || reco.skillGroup || "additional");
+        if($("kwSkillGroup") && [...$("kwSkillGroup").options].some(o => o.value === sg)){
+          $("kwSkillGroup").value = sg;
+        }else{
+          $("kwSkillGroup").value = "additional";
+        }
+      }else{
+        const expIdx = Number(reco.exp_index ?? reco.expIdx ?? 0);
+        const bulletIdx = Number(reco.bullet_index ?? reco.bulletIdx ?? 0);
+
+        $("kwExpRole").value = String(Math.max(0, expIdx));
+        fillBulletsForSelectedRole();
+
+        if($("kwExpBullet") && [...$("kwExpBullet").options].some(o => o.value === String(bulletIdx))){
+          $("kwExpBullet").value = String(bulletIdx);
+        }else{
+          $("kwExpBullet").value = "0";
+        }
+
+        $("kwExpHow").value = "rewrite";
+        updateKwExpHowUi();
+
+        const e = (Array.isArray(lastCvDoc?.experience) ? lastCvDoc.experience : [])[Number($("kwExpRole").value||0)] || null;
+        const bullets = asStringArr(e?.bullets, 50);
+        const i = Number($("kwExpBullet").value || "0");
+        $("kwBulletPreview").textContent = bullets[i] || "—";
+      }
+
+      updateKwPreview();
+    }
+
+    function renderAiRecoBox(reco, lang){
+      if(!reco){ clearKwAiReco(); return; }
+
+      const conf = (typeof reco.confidence === "number") ? reco.confidence
+        : (typeof reco.confidence_score === "number") ? reco.confidence_score
+        : null;
+
+      const confTxt = (conf != null && conf >= 0 && conf <= 1) ? (" • " + Math.round(conf*100) + "%") : "";
+      setBadge("kwAiRecoBadge","good", (uiLang==="de" ? "Empfohlen" : "Recommended") + confTxt);
+
+      const reason = String(reco.reason || "").trim();
+      const target = String(reco.target || "").toLowerCase() === "experience" ? "experience" : "skills";
+
+      if(target === "experience"){
+        const expIdx = Number(reco.exp_index ?? reco.expIdx ?? 0);
+        const bulletIdx = Number(reco.bullet_index ?? reco.bulletIdx ?? 0);
+        const role = roleLabelByIndex(expIdx) || (uiLang==="de" ? "Experience" : "Experience");
+        const rb = String(reco.rewritten_bullet || reco.rewrite || "").trim();
+
+        const header = `Experience → ${role} (Bullet ${bulletIdx+1})`;
+        const lines = [
+          header,
+          reason ? ("Reason: " + reason) : "",
+          rb ? ("Suggested rewrite: " + rb) : ""
+        ].filter(Boolean);
+
+        setText("kwAiRecoText", lines.join("\n"));
+      }else{
+        const sg = String(reco.skill_group || reco.skillGroup || "additional");
+        const groupLbl = skillGroupLabelByKey(sg);
+        const item = String(reco.skill_item || reco.skillItem || prettyKeyword(activeKeywordRaw, lang)).trim();
+
+        const header = `Skills → ${groupLbl}`;
+        const lines = [
+          header,
+          reason ? ("Reason: " + reason) : "",
+          item ? ("Suggested skill: " + item) : ""
+        ].filter(Boolean);
+
+        setText("kwAiRecoText", lines.join("\n"));
+      }
+    }
+
+    async function tryAiSuggestPlacement({ keyword, lang, cv_doc, context }){
+      const endpoints = [
+        "/me/cv/keyword_suggest",
+        "/me/cv/keyword_recommend"
+      ];
+
+      const payload = {
+        keyword: String(keyword || ""),
+        language: String(lang || ""),
+        lang: String(lang || ""),
+        cv_doc: cv_doc || null,
+        context: context || {}
+      };
+
+      for(const ep of endpoints){
+        try{
+          const res = await apiPostJson(ep, payload);
+          // expected: { ok:true, recommendation:{...} }
+          const reco = res?.recommendation || res?.result?.recommendation || res?.result || res;
+          if(reco && typeof reco === "object"){
+            // Sometimes backend returns { recommendation:{...} } or a flat object
+            const r = reco.recommendation || reco;
+            if(r && (r.target || r.skill_group || r.exp_index != null)) return { ok:true, reco: r, endpoint: ep };
+          }
+        }catch(e){
+          if(isEndpointMissing(e)) continue;
+          throw e;
+        }
+      }
+      return { ok:false, reco:null, endpoint:"" };
+    }
+
+    async function aiRecommendPlacement({ force=false, source="auto" } = {}){
+      if(!lastCvDoc || !activeKeywordRaw) return;
+      if(kwMode !== "ai") return;
+
+      const lang = chosenKwLang();
+      const cacheKey = getAiRecoCacheKey(activeKeywordRaw, lang);
+      kwAiRecoKey = cacheKey;
+
+      // Cache hit
+      if(!force && kwAiRecoCache.has(cacheKey)){
+        const cached = kwAiRecoCache.get(cacheKey);
+        kwAiReco = cached;
+        applyAiRecoToModalUi(cached);
+        renderAiRecoBox(cached, lang);
+        return;
+      }
+
+      const token = ++kwAiRecoToken;
+      setKwAiRecoLoading();
+
+      try{
+        const ctx = {
+          target_language: lang,
+          cv_language: lastLang,
+          job: getActiveJobMeta(),
+          source: source
+        };
+
+        const slim = slimCvDocForSuggest(lastCvDoc);
+        const out = await tryAiSuggestPlacement({ keyword: activeKeywordRaw, lang, cv_doc: slim, context: ctx });
+
+        if(token !== kwAiRecoToken) return; // stale
+
+        if(out.ok && out.reco){
+          kwAiReco = out.reco;
+          kwAiRecoCache.set(cacheKey, out.reco);
+          applyAiRecoToModalUi(out.reco);
+          renderAiRecoBox(out.reco, lang);
+          updateKwPreview();
+        }else{
+          clearKwAiReco();
+          setKwAiRecoError(uiLang==="de" ? "Keine Empfehlung verfügbar." : "No recommendation available.");
+        }
+      }catch(e){
+        if(token !== kwAiRecoToken) return;
+        clearKwAiReco();
+        setKwAiRecoError((uiLang==="de" ? "AI Empfehlung fehlgeschlagen." : "AI recommendation failed.") + " " + (e?.message || String(e)));
+      }
+    }
+
+function openKwModal(keywordRaw){
       showError("");
       if(!lastCvDoc && !($("cvText").value || "").trim()){
         showError(t("needCv"));
@@ -3643,19 +3966,44 @@ ${bodyHtml}
       $("kwChip").textContent = activeKeywordDisplay || "—";
       $("kwTruth").checked = false;
 
-      // Default target: skills (safe)
-      $("kwTarget").value = "skills";
+      // Reset AI recommendation for this keyword
+      try{ clearKwAiReco(); }catch(_){ }
 
-      // Default language: auto
+      // Default language: auto (match CV language unless user overrides)
       $("kwLang").value = "auto";
 
-      // Default mode: AI
+      // Default mode: AI (best quality)
       setKwMode("ai");
+
+      // Smart default target:
+      // - Tool-like keywords (SQL/Excel/etc.) → Skills
+      // - Otherwise → Experience (rewrite a bullet) if possible
+      let recommendedTarget = "skills";
+      if(lastCvDoc){
+        recommendedTarget = isToolLikeKeyword(activeKeywordRaw) ? "skills" : "experience";
+      }
+      $("kwTarget").value = recommendedTarget;
 
       // Populate role/groups if doc available
       if(lastCvDoc){
         fillSkillGroups();
         fillExperienceRoles();
+
+        // If we recommend Experience: auto-pick the best matching role + bullet
+        if(recommendedTarget === "experience"){
+          try{
+            const best = pickBestRoleAndBullet(activeKeywordRaw);
+            $("kwExpRole").value = String(best.expIdx || 0);
+            fillBulletsForSelectedRole();
+            $("kwExpBullet").value = String(best.bulletIdx || 0);
+            // Update bullet preview text
+            const e = (Array.isArray(lastCvDoc?.experience) ? lastCvDoc.experience : [])[Number(best.expIdx||0)] || null;
+            const bullets = asStringArr(e?.bullets, 50);
+            $("kwBulletPreview").textContent = bullets[Number(best.bulletIdx||0)] || "—";
+            // Default experience action = rewrite (best)
+            $("kwExpHow").value = "rewrite";
+          }catch(_){}
+        }
       }else{
         // if no doc, force skills box only (text-only)
         $("kwTarget").value = "skills";
@@ -3666,6 +4014,11 @@ ${bodyHtml}
       updateKwPreview();
 
       H.showModal("kwModal");
+
+      // AI recommends best placement + draft rewrite (non-blocking)
+      if(kwMode === "ai" && lastCvDoc){
+        try{ aiRecommendPlacement({ force:false, source:"open" }); }catch(_){ }
+      }
     }
 
     function closeKwModal(){
@@ -3674,6 +4027,10 @@ ${bodyHtml}
       activeKeywordDisplay = "";
       $("kwResultPreview").textContent = "—";
       $("kwNote").value = "";
+
+      // Cancel any in-flight AI recommendation and reset UI
+      try{ kwAiRecoToken += 1; }catch(_){ }
+      try{ clearKwAiReco(); }catch(_){ }
     }
 
     function updateKwTargetUi(){
@@ -3738,9 +4095,19 @@ ${bodyHtml}
 
       const bulletIdx = Number($("kwExpBullet").value || "0");
       const current = bullets[bulletIdx] || "";
-      const rewritten = (how === "append")
+      let rewritten = (how === "append")
         ? localAppendKeyword(current, kw, lang)
         : localRewriteBullet(current, kw, lang);
+
+      // If we already have an AI recommendation for this exact bullet, show that draft (more accurate than templates)
+      if(kwMode === "ai" && kwAiReco && String(kwAiReco.target || "").toLowerCase() === "experience"){
+        const reExp = Number(kwAiReco.exp_index ?? kwAiReco.expIdx ?? -1);
+        const reBul = Number(kwAiReco.bullet_index ?? kwAiReco.bulletIdx ?? -1);
+        const rb = String(kwAiReco.rewritten_bullet || kwAiReco.rewrite || "").trim();
+        if(rb && reExp === expIdx && reBul === bulletIdx){
+          rewritten = rb;
+        }
+      }
 
       const label = (how === "append")
         ? (lang==="de" ? "Anhängen:" : "Append:")
@@ -3879,14 +4246,28 @@ ${bodyHtml}
             exp.bullets.unshift(localNewBullet(kwRaw, note, lang));
             changed = true;
           }else{
-            if(kwMode === "ai" && how === "rewrite"){
+            if(kwMode === "ai" && (how === "rewrite" || how === "append")){
+              // If AI already suggested a rewrite for this exact bullet, use it (saves an extra AI call)
+              const recoText = (kwAiReco
+                && String(kwAiReco.target || "").toLowerCase() === "experience"
+                && Number(kwAiReco.exp_index ?? kwAiReco.expIdx ?? -1) === expIdx
+                && Number(kwAiReco.bullet_index ?? kwAiReco.bulletIdx ?? -1) === bulletIdx)
+                  ? String(kwAiReco.rewritten_bullet || kwAiReco.rewrite || "").trim()
+                  : "";
+
+              if(recoText){
+                exp.bullets[bulletIdx] = recoText;
+                usedAi = true;
+                changed = true;
+              }else{
               const ctx = {
                 cv_language: lastLang,
                 target_language: lang,
                 role_title: exp?.title || "",
                 company: exp?.company || "",
                 job_title: selectedJob?.title || "",
-                job_company: selectedJob?.company_name || ""
+                job_company: selectedJob?.company_name || "",
+                intent: how
               };
               const ai = await tryAiRewriteOrCraft({
                 mode: "rewrite",
@@ -3902,8 +4283,11 @@ ${bodyHtml}
                 changed = true;
               }else{
                 aiNote = t("aiFallback");
-                exp.bullets[bulletIdx] = localRewriteBullet(current, kwRaw, lang);
+                exp.bullets[bulletIdx] = (how === "append")
+                  ? localAppendKeyword(current, kwRaw, lang)
+                  : localRewriteBullet(current, kwRaw, lang);
                 changed = true;
+              }
               }
             } else if(how === "append"){
               exp.bullets[bulletIdx] = localAppendKeyword(current, kwRaw, lang);
@@ -4174,7 +4558,18 @@ ${bodyHtml}
     $("kwModal").addEventListener("click", (e) => { if(e.target && e.target.id === "kwModal") closeKwModal(); });
 
     $("kwTarget").addEventListener("change", () => { updateKwTargetUi(); updateKwPreview(); });
-    $("kwLang").addEventListener("change", updateKwPreview);
+    $("kwLang").addEventListener("change", () => {
+      updateKwPreview();
+      if(kwMode === "ai" && activeKeywordRaw && lastCvDoc){
+        try{ aiRecommendPlacement({ force:true, source:"lang" }); }catch(_){ }
+      }
+    });
+
+    $("kwAiRecoRefresh").addEventListener("click", () => {
+      if(kwMode === "ai" && activeKeywordRaw && lastCvDoc){
+        try{ aiRecommendPlacement({ force:true, source:"refresh" }); }catch(_){ }
+      }
+    });
 
     $("kwModeToggle").addEventListener("click", (e) => {
       const b = e.target.closest("button[data-mode]");
@@ -4193,7 +4588,24 @@ ${bodyHtml}
       $("kwBulletPreview").textContent = bullets[i] || "—";
       updateKwPreview();
     });
-    $("kwNote").addEventListener("input", updateKwPreview);
+    
+    $("kwAutoPick").addEventListener("click", () => {
+      if(!lastCvDoc || !activeKeywordRaw) return;
+      const best = pickBestRoleAndBullet(activeKeywordRaw);
+      $("kwExpRole").value = String(best.expIdx || 0);
+      fillBulletsForSelectedRole();
+      $("kwExpBullet").value = String(best.bulletIdx || 0);
+      const e = (Array.isArray(lastCvDoc?.experience) ? lastCvDoc.experience : [])[Number(best.expIdx||0)] || null;
+      const bullets = asStringArr(e?.bullets, 50);
+      $("kwBulletPreview").textContent = bullets[Number(best.bulletIdx||0)] || "—";
+      const badge = $("kwAutoPickBadge");
+      if(badge){
+        badge.textContent = (best.score != null && best.score >= 0) ? ("Score " + best.score) : "—";
+        badge.className = "badge " + ((best.score || 0) >= 4 ? "good" : "warn");
+      }
+      updateKwPreview();
+    });
+$("kwNote").addEventListener("input", updateKwPreview);
     $("kwApply").addEventListener("click", applyKeyword);
 
     // Logout
