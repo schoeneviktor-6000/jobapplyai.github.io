@@ -505,18 +505,36 @@ lsSetAll(LS.userEmail, now);
 
 const FETCH_TIMEOUT_MS = 35000;
 
+// Longer timeouts for mobile uploads / OCR finalize.
+// (35s is often too short on mobile data; aborting a fetch usually shows as "Failed to fetch".)
+const UPLOAD_TIMEOUT_MS = 5 * 60 * 1000;        // 5 minutes for POST /me/cv (multipart upload)
+const OCR_START_TIMEOUT_MS = 90 * 1000;         // 90s for POST /me/cv/ocr
+const OCR_STATUS_TIMEOUT_MS = 90 * 1000;        // 90s for GET /me/cv/ocr/status (can read many JSON parts)
+
 function toNetworkError(path, e){
   const msg = (e && e.message) ? String(e.message) : String(e||"");
+  const lower = msg.toLowerCase();
+
+  // AbortController timeout (common on slow mobile uploads) often surfaces as "Failed to fetch" or AbortError.
+  if(lower.includes("abort") || lower.includes("aborted") || lower.includes("timeout")){
+    return new Error(
+      path + " failed: request timed out. " +
+      "On mobile data, uploading a PDF can take longer. Try Wi‑Fi, or upload a smaller PDF."
+    );
+  }
+
   // Browsers often throw a TypeError with message "Failed to fetch" for CORS / blocked / offline.
-  if(String(msg).toLowerCase().includes("failed to fetch") || String(msg).toLowerCase().includes("network")){
+  if(lower.includes("failed to fetch") || lower.includes("network")){
     return new Error(
       path + " failed: network error (Failed to fetch). " +
       "This is usually caused by CORS (API must handle OPTIONS + Access-Control-Allow-Origin), " +
       "a blocker/Private DNS blocking workers.dev, or a flaky connection."
     );
   }
+
   return new Error(path + " failed: " + msg);
 }
+
 
 async function fetchWithTimeout(url, options, timeoutMs){
   const ms = Number(timeoutMs) || FETCH_TIMEOUT_MS;
@@ -544,14 +562,14 @@ function toErrorMessage(path, res, json, text){
   return path + " failed: " + res.status + (clipped ? (" — " + clipped) : "");
 }
 
-async function apiGet(path){
+async async function apiGet(path, opts){
   let res;
   try{
     res=await fetchWithTimeout(API_BASE+path,{
       method:"GET",
       headers:{Authorization:"Bearer "+session.access_token},
       cache:"no-store"
-    });
+    }, opts && opts.timeoutMs ? opts.timeoutMs : undefined);
   }catch(e){
     throw toNetworkError(path, e);
   }
@@ -562,14 +580,15 @@ async function apiGet(path){
   return json;
 }
 
-async function apiPostJson(path,body){
+
+async async function apiPostJson(path, body, opts){
   let res;
   try{
     res=await fetchWithTimeout(API_BASE+path,{
       method:"POST",
       headers:{Authorization:"Bearer "+session.access_token,"content-type":"application/json"},
       body:JSON.stringify(body||{})
-    });
+    }, opts && opts.timeoutMs ? opts.timeoutMs : undefined);
   }catch(e){
     throw toNetworkError(path, e);
   }
@@ -579,6 +598,7 @@ async function apiPostJson(path,body){
   if(!res.ok) throw new Error(toErrorMessage(path, res, json, text));
   return json;
 }
+
 
 async function saveAiTitlesToBackend(titles){
   try{
@@ -597,14 +617,14 @@ async function saveAiTitlesToBackend(titles){
 }
 
 
-async function apiPostForm(path,formData){
+async async function apiPostForm(path, formData, opts){
   let res;
   try{
     res=await fetchWithTimeout(API_BASE+path,{
       method:"POST",
       headers:{Authorization:"Bearer "+session.access_token},
       body:formData
-    });
+    }, opts && opts.timeoutMs ? opts.timeoutMs : undefined);
   }catch(e){
     throw toNetworkError(path, e);
   }
@@ -614,6 +634,7 @@ async function apiPostForm(path,formData){
   if(!res.ok) throw new Error(toErrorMessage(path, res, json, text));
   return json;
 }
+
 
 async function ensureCustomer(email){
 const res=await fetch(API_BASE+"/customers/upsert",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({email})});
@@ -702,6 +723,21 @@ function startOcrPolling(opts){
       // Refresh onboarding status occasionally (avoid spamming)
       if(ocrPollTicks % 4 === 1){
         try{ await refreshState(); }catch(_){}
+      }
+
+      // IMPORTANT:
+      // Our backend finalizes OCR inside GET /me/cv/ocr/status (it checks the Vision operation,
+      // downloads the JSON result(s) from GCS, and stores cv_ocr_text in the DB).
+      // If we never call it, cv_ocr_status can stay "processing" forever.
+      if(ocrPollTicks === 1 || (ocrPollTicks % 2 === 0)){
+        try{
+          await apiGet("/me/cv/ocr/status", { timeoutMs: OCR_STATUS_TIMEOUT_MS });
+        }catch(e){
+          // Keep the UI running; just surface occasionally for debugging.
+          if(ocrPollTicks === 1 || (ocrPollTicks % 6 === 0)){
+            showTopError(e.message||String(e));
+          }
+        }
       }
 
       const res = await apiGet("/me/cv");
@@ -1092,7 +1128,7 @@ async function uploadCvThenAutoOcr(file){
   clearAiCache();
 
   // Basic size guard (many edge runtimes reject large uploads)
-  const maxSizeMb = 9;
+  const maxSizeMb = 15;
   if(file && Number(file.size) > maxSizeMb*1024*1024){
     throw new Error("File too large ("+Math.round(file.size/1024/1024)+"MB). Please upload a PDF under "+maxSizeMb+"MB.");
   }
@@ -1102,7 +1138,7 @@ async function uploadCvThenAutoOcr(file){
 
   const fd=new FormData();
   fd.append("cv",file);
-  await apiPostForm("/me/cv",fd);
+  await apiPostForm("/me/cv",fd,{ timeoutMs: UPLOAD_TIMEOUT_MS });
 
   await refreshState();
   await loadCvStatusAndUpdateUx();
@@ -1119,7 +1155,7 @@ async function uploadCvThenAutoOcr(file){
   setProgress(true, 40, "Starting OCR…", "We are extracting text from your PDF.");
 
   try{
-    await apiPostJson("/me/cv/ocr",{});
+    await apiPostJson("/me/cv/ocr",{}, { timeoutMs: OCR_START_TIMEOUT_MS });
   }catch(e){
     // Non-fatal: user can retry OCR manually
     showTopError(e.message||String(e));
@@ -1134,18 +1170,25 @@ async function uploadCvThenAutoOcr(file){
 }
 
 async function handleCvFileSelected(){
-try{
-const file=$("cvFile").files && $("cvFile").files[0] ? $("cvFile").files[0] : null;
-if(!file) return;
-jobTitlesTouched=false;
-aiAppliedTitles=[];
-renderAiAppliedChips(aiAppliedTitles);
-await uploadCvThenAutoOcr(file);
-}catch(e){
-setBadge("cvStatusBadge","bad","Upload failed");
-setProgress(false, 0, "", "");
-showTopError(e.message||String(e));
-}
+  const input = $("cvFile");
+  try{
+    const file = input && input.files && input.files[0] ? input.files[0] : null;
+    if(!file) return;
+
+    jobTitlesTouched=false;
+    aiAppliedTitles=[];
+    renderAiAppliedChips(aiAppliedTitles);
+
+    await uploadCvThenAutoOcr(file);
+  }catch(e){
+    setBadge("cvStatusBadge","bad","Upload failed");
+    setProgress(false, 0, "", "");
+    showTopError(e.message||String(e));
+  }finally{
+    // Mobile browsers often don't fire "change" if the same file is picked again.
+    // Clearing the input fixes "I can't upload again" reports.
+    try{ if(input) input.value = ""; }catch(_){}
+  }
 }
 
 async function handleRetryOcr(){
@@ -1168,7 +1211,7 @@ async function handleRetryOcr(){
     setText("ocrHint","Starting OCR…");
     showRetryOcr(false);
 
-    await apiPostJson("/me/cv/ocr",{});
+    await apiPostJson("/me/cv/ocr",{}, { timeoutMs: OCR_START_TIMEOUT_MS });
 
     setBadge("cvStatusBadge","warn","OCR running…");
     setProgress(true, 55, "OCR in progress…", "We will update automatically.");
@@ -1217,7 +1260,7 @@ try{
   const isPdf = String(fileLabel||"").toLowerCase().endsWith(".pdf");
   const sOcr = String(cv?.cv_ocr_status||"").toLowerCase();
   if(isPdf && sOcr !== "done"){
-    try{ await apiPostJson("/me/cv/ocr",{}); }catch(_){}
+    try{ await apiPostJson("/me/cv/ocr",{}, { timeoutMs: OCR_START_TIMEOUT_MS }); }catch(_){}
   }
 }catch(_){}
 
