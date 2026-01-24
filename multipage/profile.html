@@ -267,6 +267,9 @@
 <div class="helpBox" style="margin-top:12px">
 <div class="small" id="cvHint">No CV uploaded yet.</div>
 <div class="small" id="ocrHint" style="margin-top:6px"></div>
+<div class="actions" style="margin-top:10px">
+  <button class="btn" id="retryOcrBtn" type="button" style="display:none">Retry OCR</button>
+</div>
 </div>
 <div class="hr"></div>
 <div class="helpBox aiCard aiGlow" id="aiBox">
@@ -500,26 +503,81 @@ try{sessionStorage.removeItem("sb_access_token");}catch{}
 lsSetAll(LS.userEmail, now);
 }
 
+const FETCH_TIMEOUT_MS = 35000;
+
+function toNetworkError(path, e){
+  const msg = (e && e.message) ? String(e.message) : String(e||"");
+  // Browsers often throw a TypeError with message "Failed to fetch" for CORS / blocked / offline.
+  if(String(msg).toLowerCase().includes("failed to fetch") || String(msg).toLowerCase().includes("network")){
+    return new Error(
+      path + " failed: network error (Failed to fetch). " +
+      "This is usually caused by CORS (API must handle OPTIONS + Access-Control-Allow-Origin), " +
+      "a blocker/Private DNS blocking workers.dev, or a flaky connection."
+    );
+  }
+  return new Error(path + " failed: " + msg);
+}
+
+async function fetchWithTimeout(url, options, timeoutMs){
+  const ms = Number(timeoutMs) || FETCH_TIMEOUT_MS;
+
+  // Older browsers: no AbortController support
+  if(typeof AbortController === "undefined"){
+    return await fetch(url, options||{});
+  }
+
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>{ try{ ctrl.abort("timeout"); }catch{} }, ms);
+  try{
+    return await fetch(url, { ...(options||{}), signal: ctrl.signal });
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+function toErrorMessage(path, res, json, text){
+  const detail = (json && (json.error || json.details || json.message))
+    ? (json.error || json.details || json.message)
+    : "";
+  const body = String(detail || text || "").trim();
+  const clipped = body ? body.slice(0, 300) : "";
+  return path + " failed: " + res.status + (clipped ? (" — " + clipped) : "");
+}
+
 async function apiGet(path){
-const res=await fetch(API_BASE+path,{method:"GET",headers:{Authorization:"Bearer "+session.access_token}});
-const text=await res.text().catch(()=> "");
-let json=null;
-try{json=JSON.parse(text);}catch{json={raw:text};}
-if(!res.ok) throw new Error(path+" failed: "+res.status+" "+(json.error||json.details||text));
-return json;
+  let res;
+  try{
+    res=await fetchWithTimeout(API_BASE+path,{
+      method:"GET",
+      headers:{Authorization:"Bearer "+session.access_token},
+      cache:"no-store"
+    });
+  }catch(e){
+    throw toNetworkError(path, e);
+  }
+  const text=await res.text().catch(()=> "");
+  let json=null;
+  try{json=JSON.parse(text);}catch{json={raw:text};}
+  if(!res.ok) throw new Error(toErrorMessage(path, res, json, text));
+  return json;
 }
 
 async function apiPostJson(path,body){
-const res=await fetch(API_BASE+path,{
-method:"POST",
-headers:{Authorization:"Bearer "+session.access_token,"content-type":"application/json"},
-body:JSON.stringify(body||{})
-});
-const text=await res.text().catch(()=> "");
-let json=null;
-try{json=JSON.parse(text);}catch{json={raw:text};}
-if(!res.ok) throw new Error(path+" failed: "+res.status+" "+(json.error||json.details||text));
-return json;
+  let res;
+  try{
+    res=await fetchWithTimeout(API_BASE+path,{
+      method:"POST",
+      headers:{Authorization:"Bearer "+session.access_token,"content-type":"application/json"},
+      body:JSON.stringify(body||{})
+    });
+  }catch(e){
+    throw toNetworkError(path, e);
+  }
+  const text=await res.text().catch(()=> "");
+  let json=null;
+  try{json=JSON.parse(text);}catch{json={raw:text};}
+  if(!res.ok) throw new Error(toErrorMessage(path, res, json, text));
+  return json;
 }
 
 async function saveAiTitlesToBackend(titles){
@@ -540,16 +598,21 @@ async function saveAiTitlesToBackend(titles){
 
 
 async function apiPostForm(path,formData){
-const res=await fetch(API_BASE+path,{
-method:"POST",
-headers:{Authorization:"Bearer "+session.access_token},
-body:formData
-});
-const text=await res.text().catch(()=> "");
-let json=null;
-try{json=JSON.parse(text);}catch{json={raw:text};}
-if(!res.ok) throw new Error(path+" failed: "+res.status+" "+(json.error||json.details||text));
-return json;
+  let res;
+  try{
+    res=await fetchWithTimeout(API_BASE+path,{
+      method:"POST",
+      headers:{Authorization:"Bearer "+session.access_token},
+      body:formData
+    });
+  }catch(e){
+    throw toNetworkError(path, e);
+  }
+  const text=await res.text().catch(()=> "");
+  let json=null;
+  try{json=JSON.parse(text);}catch{json={raw:text};}
+  if(!res.ok) throw new Error(toErrorMessage(path, res, json, text));
+  return json;
 }
 
 async function ensureCustomer(email){
@@ -581,94 +644,140 @@ setText("cvProgressHint", hint || "");
 function stopOcrPolling(){
 if(ocrPollTimer){clearInterval(ocrPollTimer);ocrPollTimer=null;}
 }
+
+// OCR polling configuration
+const OCR_FAST_POLL_MS = 3500;
+const OCR_SLOW_POLL_MS = 15000;
+const OCR_SOFT_WAIT_MS = 3 * 60 * 1000;   // after this: show retry + slow polling
+const OCR_HARD_WAIT_MS = 15 * 60 * 1000;  // after this: stop auto polling (user can retry manually)
+
+let ocrPollInFlight=false;
+let ocrPollTicks=0;
+
+function showRetryOcr(show){
+  const b=$("retryOcrBtn");
+  if(!b) return;
+  b.style.display = show ? "inline-flex" : "none";
+}
+
+function unlockAiWhileOcrRunning(){
+  setBadge("aiStatusBadge","warn","OCR running…");
+  $("aiGenerateBtn").disabled=false;
+  $("aiApplyBtn").disabled=true;
+  $("aiRegenerateLink").style.display="none";
+  setText("aiHint","OCR is still running. You can try generating suggestions now; if it fails, wait a bit and retry.");
+}
+
+function unlockAiFallback(msg){
+  setBadge("aiStatusBadge","warn","Try anyway");
+  $("aiGenerateBtn").disabled=false;
+  $("aiApplyBtn").disabled=true;
+  $("aiRegenerateLink").style.display="none";
+  setText("aiHint", msg || "You can try generating suggestions now. If it fails, upload a PDF or retry OCR.");
+}
+
+function stopOcrPollingAndCleanup(){
+  stopOcrPolling();
+  ocrPollInFlight=false;
+  ocrPollTicks=0;
+}
+
 function startOcrPolling(opts){
-opts = opts || {};
-const startedAt =
-  (typeof opts.startedAt === "number" && Number.isFinite(opts.startedAt))
-    ? opts.startedAt
-    : null;
+  opts = opts || {};
+  const startedAt = (typeof opts.startedAt === "number" && Number.isFinite(opts.startedAt)) ? opts.startedAt : Date.now();
+  let pollMs = OCR_FAST_POLL_MS;
+  let slowMode = false;
 
-stopOcrPolling();
+  stopOcrPollingAndCleanup();
 
-const start = startedAt || Date.now();
-const maxMs = 3 * 60 * 1000;
-let tick = 0;
-let shownErr = false;
+  async function tick(){
+    if(ocrPollInFlight) return;
+    ocrPollInFlight=true;
+    ocrPollTicks++;
 
-// Note: We intentionally do NOT call /me/cv/ocr/status here.
-// That endpoint currently returns 500 and spams the console.
-// We rely on /me/cv (and occasionally /me/state) instead.
+    const elapsed = Date.now() - startedAt;
+    const pct = Math.min(95, 55 + Math.floor((elapsed / OCR_HARD_WAIT_MS) * 40));
 
-ocrPollTimer=setInterval(async ()=>{
-const elapsed = Date.now() - start;
+    try{
+      // Refresh onboarding status occasionally (avoid spamming)
+      if(ocrPollTicks % 4 === 1){
+        try{ await refreshState(); }catch(_){}
+      }
 
-try{
-// Update right sidebar occasionally (avoid extra traffic)
-if(tick % 3 === 0){
-  try{ await refreshState(); }catch(_){}
-}
+      const res = await apiGet("/me/cv");
+      const cv = res && res.cv ? res.cv : null;
+      const s = String(cv?.cv_ocr_status||"").toLowerCase();
 
-const res=await apiGet("/me/cv");
-const cv=res && res.cv ? res.cv : null;
-const s=String(cv?.cv_ocr_status||"").toLowerCase();
+      if(s==="done"){
+        stopOcrPollingAndCleanup();
+        showRetryOcr(false);
+        setProgress(false, 100, "", "");
+        setBadge("cvStatusBadge","good","OCR done");
+        setText("ocrHint","OCR done. You can generate AI suggestions now.");
+        lastCvMeta=cvMetaFromCv(cv);
+        unlockAiReady();
+        tryLoadCachedAiSuggestions();
+        return;
+      }
 
-if(s==="done"){
-stopOcrPolling();
-setProgress(false, 100, "", "");
-setBadge("cvStatusBadge","good","CV ready");
-setText("ocrHint","OCR done. You can generate AI suggestions now.");
-lastCvMeta=cvMetaFromCv(cv);
-unlockAiReady();
-tryLoadCachedAiSuggestions();
-return;
-}
+      if(s==="failed"){
+        stopOcrPollingAndCleanup();
+        showRetryOcr(true);
+        setProgress(false, 0, "", "");
+        setBadge("cvStatusBadge","bad","OCR failed");
+        setText("ocrHint","OCR failed: "+(cv?.cv_ocr_error||""));
+        unlockAiFallback("OCR failed. You can retry OCR or try generating suggestions anyway.");
+        return;
+      }
 
-if(s==="failed"){
-stopOcrPolling();
-setProgress(false, 0, "", "");
-setBadge("cvStatusBadge","bad","OCR failed");
-setText("ocrHint","OCR failed: "+(cv?.cv_ocr_error||""));
-lockAi("OCR failed. Try a different PDF.");
-return;
-}
+      // processing / idle / unknown
+      if(elapsed > OCR_SOFT_WAIT_MS){
+        showRetryOcr(true);
+        setText("ocrHint","OCR is taking longer than usual… You can keep this page open or tap Retry OCR.");
+      }else{
+        showRetryOcr(false);
+        setText("ocrHint","OCR is running…");
+      }
 
-// Still processing (or unknown) → keep waiting
-const pct = Math.min(90, 55 + Math.floor(elapsed / maxMs * 35));
-setBadge("cvStatusBadge","warn","OCR running…");
-setProgress(true, pct, "OCR in progress…", "We will update automatically.");
-setText("ocrHint","OCR is running…");
-shownErr=false;
+      setBadge("cvStatusBadge","warn","OCR running…");
+      setProgress(true, pct, "OCR in progress…", "We will update automatically.");
 
-if(elapsed > maxMs){
-stopOcrPolling();
-setProgress(false, 0, "", "");
-setBadge("cvStatusBadge","warn","OCR timeout");
-setText("ocrHint","OCR is taking longer than expected. You can refresh the page later.");
-lockAi("OCR still processing. Please check again in a bit.");
-}
-}catch(e){
-// Transient backend errors: keep polling until timeout.
-// Avoid spamming the top error box every tick.
-if(!shownErr){
-  showTopError(e.message||String(e));
-  shownErr=true;
-}
-const pct = Math.min(90, 55 + Math.floor(elapsed / maxMs * 35));
-setBadge("cvStatusBadge","warn","OCR running…");
-setProgress(true, pct, "OCR in progress…", "We will update automatically.");
-setText("ocrHint","OCR is running…");
+      // Allow trying AI even while OCR runs
+      unlockAiWhileOcrRunning();
 
-if(elapsed > maxMs){
-stopOcrPolling();
-setProgress(false, 0, "", "");
-setBadge("cvStatusBadge","warn","OCR timeout");
-setText("ocrHint","OCR is taking longer than expected. You can refresh the page later.");
-lockAi("OCR still processing. Please check again in a bit.");
-}
-}finally{
-tick++;
-}
-}, 3500);
+      if(!slowMode && elapsed > OCR_SOFT_WAIT_MS){
+        slowMode = true;
+        // switch to slower polling
+        if(ocrPollTimer){ clearInterval(ocrPollTimer); }
+        ocrPollTimer = setInterval(tick, OCR_SLOW_POLL_MS);
+      }
+
+      if(elapsed > OCR_HARD_WAIT_MS){
+        stopOcrPollingAndCleanup();
+        showRetryOcr(true);
+        setBadge("cvStatusBadge","warn","OCR delayed");
+        setProgress(false, 0, "", "");
+        setText("ocrHint","OCR is still processing. Tap Retry OCR or refresh later.");
+        unlockAiFallback("OCR is delayed. You can try generating suggestions anyway, or tap Retry OCR.");
+      }
+
+    }catch(e){
+      // Network/CORS flakiness: keep trying; do not hard-fail the UI.
+      setBadge("cvStatusBadge","warn","Checking…");
+      setProgress(true, pct, "Checking OCR status…", "If you are on mobile, this can fail due to network/CORS. We'll keep trying.");
+      // Avoid spamming the top error box every tick.
+      if(ocrPollTicks === 1 || (ocrPollTicks % 8 === 0)){
+        showTopError(e.message||String(e));
+      }
+      if(elapsed > OCR_SOFT_WAIT_MS) showRetryOcr(true);
+      unlockAiWhileOcrRunning();
+    }finally{
+      ocrPollInFlight=false;
+    }
+  }
+
+  tick();
+  ocrPollTimer = setInterval(tick, pollMs);
 }
 
 
@@ -880,92 +989,148 @@ return applyAiUiFromTitles(cache.titles);
 }
 
 async function loadCvStatusAndUpdateUx(){
-try{
-const res=await apiGet("/me/cv");
-const cv=res && res.cv ? res.cv : null;
+  try{
+    const res=await apiGet("/me/cv");
+    const cv=res && res.cv ? res.cv : null;
 
-if(cv && cv.cv_path){
-lastCvMeta=cvMetaFromCv(cv);
+    if(cv && cv.cv_path){
+      lastCvMeta=cvMetaFromCv(cv);
 
-setBadge("cvStatusBadge","good","CV ready");
-setText("cvHint","Uploaded: "+(cv.cv_filename || cv.cv_path));
-const s=String(cv.cv_ocr_status||"").toLowerCase();
+      const fileLabel = cv.cv_filename || cv.cv_path;
+      const fileLower = String(fileLabel||"").toLowerCase();
+      const isPdf = fileLower.endsWith(".pdf");
 
-if(s==="processing"){
-setText("ocrHint","OCR is running…");
-setProgress(true, 65, "Extracting text from your CV…", "This can take a moment. Keep this page open.");
-lockAi("OCR is still running. We will unlock suggestions automatically when it is done.");
-startOcrPolling();
-markStep1DoneVisual(false);
-}else if(s==="done"){
-setText("ocrHint","OCR done. You can generate AI suggestions now.");
-setProgress(false, 100, "", "");
-unlockAiReady();
-tryLoadCachedAiSuggestions();
-}else if(s==="failed"){
-setText("ocrHint","OCR failed: "+(cv.cv_ocr_error||""));
-setProgress(false, 0, "", "");
-lockAi("OCR failed. You can still try with a different PDF.");
-markStep1DoneVisual(false);
-}else{
-setText("ocrHint","OCR status: idle");
-setProgress(false, 0, "", "");
-lockAi("Upload a PDF to enable OCR and AI suggestions.");
-markStep1DoneVisual(false);
-}
-}else{
-lastCvMeta=null;
-setBadge("cvStatusBadge","warn","No CV");
-setText("cvHint","No CV uploaded yet.");
-setText("ocrHint","");
-setProgress(false, 0, "", "");
-lockAi("Upload your CV first. Then you can generate suggestions.");
-markStep1DoneVisual(false);
-}
-}catch{
-lastCvMeta=null;
-setBadge("cvStatusBadge","warn","Unknown");
-setText("cvHint","Could not load CV status.");
-setText("ocrHint","");
-setProgress(false, 0, "", "");
-lockAi("Upload your CV first. Then you can generate suggestions.");
-markStep1DoneVisual(false);
-}
+      setText("cvHint","Uploaded: "+fileLabel);
+      showRetryOcr(false);
+
+      const s=String(cv.cv_ocr_status||"").toLowerCase();
+
+      if(s==="done"){
+        stopOcrPollingAndCleanup();
+        setBadge("cvStatusBadge","good","OCR done");
+        setText("ocrHint","OCR done. You can generate AI suggestions now.");
+        setProgress(false, 100, "", "");
+        unlockAiReady();
+        tryLoadCachedAiSuggestions();
+        return;
+      }
+
+      if(s==="processing"){
+        setBadge("cvStatusBadge","warn","OCR running…");
+        setProgress(true, 65, "OCR in progress…", "We will update automatically.");
+        setText("ocrHint","OCR is running…");
+        if(isPdf){
+          unlockAiWhileOcrRunning();
+          startOcrPolling({ startedAt: Date.now() });
+        }else{
+          lockAi("For OCR and AI suggestions, please upload a PDF version.");
+        }
+        markStep1DoneVisual(false);
+        return;
+      }
+
+      if(s==="failed"){
+        stopOcrPollingAndCleanup();
+        setBadge("cvStatusBadge","bad","OCR failed");
+        setProgress(false, 0, "", "");
+        setText("ocrHint","OCR failed: "+(cv.cv_ocr_error||""));
+        if(isPdf){
+          showRetryOcr(true);
+          unlockAiFallback("OCR failed. Tap Retry OCR or try generating suggestions anyway.");
+        }else{
+          lockAi("OCR failed. Please upload a PDF.");
+        }
+        markStep1DoneVisual(false);
+        return;
+      }
+
+      // idle / unknown
+      stopOcrPollingAndCleanup();
+      setBadge("cvStatusBadge","good","Uploaded");
+      setProgress(false, 0, "", "");
+      if(isPdf){
+        setText("ocrHint","OCR not started yet. Tap Retry OCR to start.");
+        showRetryOcr(true);
+        unlockAiFallback("CV uploaded. Tap Retry OCR to extract text, or try generating suggestions anyway.");
+      }else{
+        setText("ocrHint","Upload a PDF to enable OCR.");
+        lockAi("Upload a PDF to enable OCR and AI suggestions.");
+      }
+      markStep1DoneVisual(false);
+      return;
+    }
+
+    // No CV on backend
+    lastCvMeta=null;
+    stopOcrPollingAndCleanup();
+    showRetryOcr(false);
+    setBadge("cvStatusBadge","warn","No CV");
+    setText("cvHint","No CV uploaded yet.");
+    setText("ocrHint","");
+    setProgress(false, 0, "", "");
+    lockAi("Upload your CV first. Then you can generate suggestions.");
+    markStep1DoneVisual(false);
+  }catch(e){
+    lastCvMeta=null;
+    stopOcrPollingAndCleanup();
+    showRetryOcr(false);
+    setBadge("cvStatusBadge","warn","Unknown");
+    setText("cvHint","Could not load CV status.");
+    setText("ocrHint","");
+    setProgress(false, 0, "", "");
+    lockAi("Upload your CV first. Then you can generate suggestions.");
+    showTopError(e.message||String(e));
+    markStep1DoneVisual(false);
+  }
 }
 
 async function uploadCvThenAutoOcr(file){
-stopOcrPolling();
-clearTopError();
-lockAi("Working on your CV…");
-clearAiCache();
+  stopOcrPollingAndCleanup();
+  clearTopError();
+  showRetryOcr(false);
+  lockAi("Working on your CV…");
+  clearAiCache();
 
-setBadge("cvStatusBadge","warn","Uploading…");
-setProgress(true, 18, "Uploading your CV…", "Do not close this tab.");
+  // Basic size guard (many edge runtimes reject large uploads)
+  const maxSizeMb = 9;
+  if(file && Number(file.size) > maxSizeMb*1024*1024){
+    throw new Error("File too large ("+Math.round(file.size/1024/1024)+"MB). Please upload a PDF under "+maxSizeMb+"MB.");
+  }
 
-const fd=new FormData();
-fd.append("cv",file);
-await apiPostForm("/me/cv",fd);
+  setBadge("cvStatusBadge","warn","Uploading…");
+  setProgress(true, 18, "Uploading your CV…", "Do not close this tab.");
 
-await refreshState();
-await loadCvStatusAndUpdateUx();
+  const fd=new FormData();
+  fd.append("cv",file);
+  await apiPostForm("/me/cv",fd);
 
-if(!isPdfFile(file)){
-setProgress(false, 0, "", "");
-setText("ocrHint","For OCR and AI suggestions, please upload a PDF version.");
-lockAi("Upload a PDF to enable OCR and AI suggestions.");
-return;
-}
+  await refreshState();
+  await loadCvStatusAndUpdateUx();
 
-setBadge("cvStatusBadge","warn","Starting OCR…");
-setProgress(true, 40, "Starting OCR…", "We are extracting text from your PDF.");
-await apiPostJson("/me/cv/ocr",{});
+  if(!isPdfFile(file)){
+    setProgress(false, 0, "", "");
+    setText("ocrHint","For OCR and AI suggestions, please upload a PDF version.");
+    lockAi("Upload a PDF to enable OCR and AI suggestions.");
+    showRetryOcr(false);
+    return;
+  }
 
-lockAi("OCR is still running. We will unlock suggestions automatically when it is done.");
+  setBadge("cvStatusBadge","warn","Starting OCR…");
+  setProgress(true, 40, "Starting OCR…", "We are extracting text from your PDF.");
 
-setProgress(true, 55, "OCR in progress…", "We will update automatically.");
-setText("ocrHint","OCR is running…");
+  try{
+    await apiPostJson("/me/cv/ocr",{});
+  }catch(e){
+    // Non-fatal: user can retry OCR manually
+    showTopError(e.message||String(e));
+    showRetryOcr(true);
+  }
 
-startOcrPolling({ startedAt: Date.now() });
+  setBadge("cvStatusBadge","warn","OCR running…");
+  setProgress(true, 55, "OCR in progress…", "We will update automatically.");
+  setText("ocrHint","OCR is running…");
+  unlockAiWhileOcrRunning();
+  startOcrPolling({ startedAt: Date.now() });
 }
 
 async function handleCvFileSelected(){
@@ -982,6 +1147,46 @@ setProgress(false, 0, "", "");
 showTopError(e.message||String(e));
 }
 }
+
+async function handleRetryOcr(){
+  clearTopError();
+  const btn=$("retryOcrBtn");
+  if(btn) btn.disabled=true;
+
+  try{
+    // Ensure a PDF CV exists on backend
+    const res=await apiGet("/me/cv");
+    const cv=res && res.cv ? res.cv : null;
+    const fileLabel = cv && (cv.cv_filename || cv.cv_path) ? (cv.cv_filename || cv.cv_path) : "";
+    if(!fileLabel) throw new Error("No CV found. Please upload a PDF first.");
+    if(!String(fileLabel).toLowerCase().endsWith(".pdf")){
+      throw new Error("Please upload a PDF version of your CV to run OCR.");
+    }
+
+    setBadge("cvStatusBadge","warn","Starting OCR…");
+    setProgress(true, 40, "Starting OCR…", "We are extracting text from your PDF.");
+    setText("ocrHint","Starting OCR…");
+    showRetryOcr(false);
+
+    await apiPostJson("/me/cv/ocr",{});
+
+    setBadge("cvStatusBadge","warn","OCR running…");
+    setProgress(true, 55, "OCR in progress…", "We will update automatically.");
+    setText("ocrHint","OCR is running…");
+    unlockAiWhileOcrRunning();
+
+    startOcrPolling({ startedAt: Date.now() });
+  }catch(e){
+    showRetryOcr(true);
+    setBadge("cvStatusBadge","bad","OCR error");
+    setProgress(false, 0, "", "");
+    showTopError(e.message||String(e));
+    unlockAiFallback("Could not start OCR. You can try generating suggestions anyway, or retry later.");
+  }finally{
+    if(btn) btn.disabled=false;
+  }
+}
+
 
 async function handleAiGenerate({ force=false } = {}){
 clearTopError();
@@ -1004,6 +1209,18 @@ setBadge("aiStatusBadge","warn","Generating…");
 setText("aiHint","Reading your CV and generating job title suggestions…");
 
 try{
+// Best-effort: if OCR has not finished yet, trigger it once before the AI call
+try{
+  const cvRes = await apiGet("/me/cv");
+  const cv = cvRes && cvRes.cv ? cvRes.cv : null;
+  const fileLabel = cv && (cv.cv_filename || cv.cv_path) ? (cv.cv_filename || cv.cv_path) : "";
+  const isPdf = String(fileLabel||"").toLowerCase().endsWith(".pdf");
+  const sOcr = String(cv?.cv_ocr_status||"").toLowerCase();
+  if(isPdf && sOcr !== "done"){
+    try{ await apiPostJson("/me/cv/ocr",{}); }catch(_){}
+  }
+}catch(_){}
+
 const res=await apiPostJson("/me/ai/profile-from-cv",{});
 const r=res && res.result ? res.result : null;
 if(!r) throw new Error("AI returned no result");
@@ -1216,6 +1433,8 @@ try{
 
 
 $("cvFile").addEventListener("change",handleCvFileSelected);
+$("retryOcrBtn").addEventListener("click",handleRetryOcr);
+
 $("aiGenerateBtn").addEventListener("click",()=>handleAiGenerate({ force:false }));
 $("aiRegenerateLink").addEventListener("click",handleAiRegenerate);
 $("aiApplyBtn").addEventListener("click",handleAiApplyTitles);
@@ -1245,15 +1464,12 @@ window.location.replace("./index.html");
 showTopError(e.message||String(e));
 }
 });
-
-// Safety: ensure we don’t keep polling if the user navigates away
-window.addEventListener("pagehide", stopOcrPolling);
-window.addEventListener("beforeunload", stopOcrPolling);
 }catch(e){
 showTopError(e.message||String(e));
 }
 }
 
+window.addEventListener("beforeunload",()=>{try{stopOcrPollingAndCleanup();}catch{}});
 window.addEventListener("load",boot);
   </script>
 </body>
