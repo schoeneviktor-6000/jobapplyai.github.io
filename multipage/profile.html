@@ -581,26 +581,33 @@ setText("cvProgressHint", hint || "");
 function stopOcrPolling(){
 if(ocrPollTimer){clearInterval(ocrPollTimer);ocrPollTimer=null;}
 }
-
-
 function startOcrPolling(opts){
 opts = opts || {};
-const startedAt = (typeof opts.startedAt === "number" && Number.isFinite(opts.startedAt)) ? opts.startedAt : null;
+const startedAt =
+  (typeof opts.startedAt === "number" && Number.isFinite(opts.startedAt))
+    ? opts.startedAt
+    : null;
 
 stopOcrPolling();
 
 const start = startedAt || Date.now();
 const maxMs = 3 * 60 * 1000;
+let tick = 0;
+let shownErr = false;
+
+// Note: We intentionally do NOT call /me/cv/ocr/status here.
+// That endpoint currently returns 500 and spams the console.
+// We rely on /me/cv (and occasionally /me/state) instead.
 
 ocrPollTimer=setInterval(async ()=>{
 const elapsed = Date.now() - start;
 
-// Best-effort: some backends use this endpoint as a "poke".
-// If it errors, ignore and keep polling /me/cv.
-try{ await apiGet("/me/cv/ocr/status"); }catch(_){}
-
 try{
-await refreshState();
+// Update right sidebar occasionally (avoid extra traffic)
+if(tick % 3 === 0){
+  try{ await refreshState(); }catch(_){}
+}
+
 const res=await apiGet("/me/cv");
 const cv=res && res.cv ? res.cv : null;
 const s=String(cv?.cv_ocr_status||"").toLowerCase();
@@ -625,7 +632,27 @@ lockAi("OCR failed. Try a different PDF.");
 return;
 }
 
-// processing / unknown
+// Still processing (or unknown) → keep waiting
+const pct = Math.min(90, 55 + Math.floor(elapsed / maxMs * 35));
+setBadge("cvStatusBadge","warn","OCR running…");
+setProgress(true, pct, "OCR in progress…", "We will update automatically.");
+setText("ocrHint","OCR is running…");
+shownErr=false;
+
+if(elapsed > maxMs){
+stopOcrPolling();
+setProgress(false, 0, "", "");
+setBadge("cvStatusBadge","warn","OCR timeout");
+setText("ocrHint","OCR is taking longer than expected. You can refresh the page later.");
+lockAi("OCR still processing. Please check again in a bit.");
+}
+}catch(e){
+// Transient backend errors: keep polling until timeout.
+// Avoid spamming the top error box every tick.
+if(!shownErr){
+  showTopError(e.message||String(e));
+  shownErr=true;
+}
 const pct = Math.min(90, 55 + Math.floor(elapsed / maxMs * 35));
 setBadge("cvStatusBadge","warn","OCR running…");
 setProgress(true, pct, "OCR in progress…", "We will update automatically.");
@@ -638,26 +665,12 @@ setBadge("cvStatusBadge","warn","OCR timeout");
 setText("ocrHint","OCR is taking longer than expected. You can refresh the page later.");
 lockAi("OCR still processing. Please check again in a bit.");
 }
-}catch(e){
-// transient backend error: do NOT stop polling; keep trying
-const pct = Math.min(90, 55 + Math.floor(elapsed / maxMs * 35));
-setProgress(true, pct, "OCR in progress…", "Still checking status…");
-setBadge("cvStatusBadge","warn","Checking…");
-setText("ocrHint","Still checking OCR status…");
-
-// Surface the error (but don't lock the UI)
-showTopError(e.message||String(e));
-
-if(elapsed > maxMs){
-stopOcrPolling();
-setProgress(false, 0, "", "");
-setBadge("cvStatusBadge","warn","OCR timeout");
-setText("ocrHint","OCR is taking longer than expected. You can refresh the page later.");
-lockAi("OCR still processing. Please check again in a bit.");
-}
+}finally{
+tick++;
 }
 }, 3500);
 }
+
 
 function markStep1DoneVisual(isDone){
 const card=$("step1Card");
@@ -881,8 +894,8 @@ const s=String(cv.cv_ocr_status||"").toLowerCase();
 if(s==="processing"){
 setText("ocrHint","OCR is running…");
 setProgress(true, 65, "Extracting text from your CV…", "This can take a moment. Keep this page open.");
-startOcrPolling();
 lockAi("OCR is still running. We will unlock suggestions automatically when it is done.");
+startOcrPolling();
 markStep1DoneVisual(false);
 }else if(s==="done"){
 setText("ocrHint","OCR done. You can generate AI suggestions now.");
@@ -946,6 +959,8 @@ return;
 setBadge("cvStatusBadge","warn","Starting OCR…");
 setProgress(true, 40, "Starting OCR…", "We are extracting text from your PDF.");
 await apiPostJson("/me/cv/ocr",{});
+
+lockAi("OCR is still running. We will unlock suggestions automatically when it is done.");
 
 setProgress(true, 55, "OCR in progress…", "We will update automatically.");
 setText("ocrHint","OCR is running…");
@@ -1230,6 +1245,10 @@ window.location.replace("./index.html");
 showTopError(e.message||String(e));
 }
 });
+
+// Safety: ensure we don’t keep polling if the user navigates away
+window.addEventListener("pagehide", stopOcrPolling);
+window.addEventListener("beforeunload", stopOcrPolling);
 }catch(e){
 showTopError(e.message||String(e));
 }
