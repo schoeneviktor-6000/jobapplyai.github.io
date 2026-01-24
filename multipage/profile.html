@@ -582,6 +582,83 @@ function stopOcrPolling(){
 if(ocrPollTimer){clearInterval(ocrPollTimer);ocrPollTimer=null;}
 }
 
+
+function startOcrPolling(opts){
+opts = opts || {};
+const startedAt = (typeof opts.startedAt === "number" && Number.isFinite(opts.startedAt)) ? opts.startedAt : null;
+
+stopOcrPolling();
+
+const start = startedAt || Date.now();
+const maxMs = 3 * 60 * 1000;
+
+ocrPollTimer=setInterval(async ()=>{
+const elapsed = Date.now() - start;
+
+// Best-effort: some backends use this endpoint as a "poke".
+// If it errors, ignore and keep polling /me/cv.
+try{ await apiGet("/me/cv/ocr/status"); }catch(_){}
+
+try{
+await refreshState();
+const res=await apiGet("/me/cv");
+const cv=res && res.cv ? res.cv : null;
+const s=String(cv?.cv_ocr_status||"").toLowerCase();
+
+if(s==="done"){
+stopOcrPolling();
+setProgress(false, 100, "", "");
+setBadge("cvStatusBadge","good","CV ready");
+setText("ocrHint","OCR done. You can generate AI suggestions now.");
+lastCvMeta=cvMetaFromCv(cv);
+unlockAiReady();
+tryLoadCachedAiSuggestions();
+return;
+}
+
+if(s==="failed"){
+stopOcrPolling();
+setProgress(false, 0, "", "");
+setBadge("cvStatusBadge","bad","OCR failed");
+setText("ocrHint","OCR failed: "+(cv?.cv_ocr_error||""));
+lockAi("OCR failed. Try a different PDF.");
+return;
+}
+
+// processing / unknown
+const pct = Math.min(90, 55 + Math.floor(elapsed / maxMs * 35));
+setBadge("cvStatusBadge","warn","OCR running…");
+setProgress(true, pct, "OCR in progress…", "We will update automatically.");
+setText("ocrHint","OCR is running…");
+
+if(elapsed > maxMs){
+stopOcrPolling();
+setProgress(false, 0, "", "");
+setBadge("cvStatusBadge","warn","OCR timeout");
+setText("ocrHint","OCR is taking longer than expected. You can refresh the page later.");
+lockAi("OCR still processing. Please check again in a bit.");
+}
+}catch(e){
+// transient backend error: do NOT stop polling; keep trying
+const pct = Math.min(90, 55 + Math.floor(elapsed / maxMs * 35));
+setProgress(true, pct, "OCR in progress…", "Still checking status…");
+setBadge("cvStatusBadge","warn","Checking…");
+setText("ocrHint","Still checking OCR status…");
+
+// Surface the error (but don't lock the UI)
+showTopError(e.message||String(e));
+
+if(elapsed > maxMs){
+stopOcrPolling();
+setProgress(false, 0, "", "");
+setBadge("cvStatusBadge","warn","OCR timeout");
+setText("ocrHint","OCR is taking longer than expected. You can refresh the page later.");
+lockAi("OCR still processing. Please check again in a bit.");
+}
+}
+}, 3500);
+}
+
 function markStep1DoneVisual(isDone){
 const card=$("step1Card");
 if(!card) return;
@@ -804,6 +881,7 @@ const s=String(cv.cv_ocr_status||"").toLowerCase();
 if(s==="processing"){
 setText("ocrHint","OCR is running…");
 setProgress(true, 65, "Extracting text from your CV…", "This can take a moment. Keep this page open.");
+startOcrPolling();
 lockAi("OCR is still running. We will unlock suggestions automatically when it is done.");
 markStep1DoneVisual(false);
 }else if(s==="done"){
@@ -872,55 +950,7 @@ await apiPostJson("/me/cv/ocr",{});
 setProgress(true, 55, "OCR in progress…", "We will update automatically.");
 setText("ocrHint","OCR is running…");
 
-const start = Date.now();
-const maxMs = 3 * 60 * 1000;
-
-ocrPollTimer=setInterval(async ()=>{
-try{
-await apiGet("/me/cv/ocr/status");
-await refreshState();
-const res=await apiGet("/me/cv");
-const cv=res && res.cv ? res.cv : null;
-const s=String(cv?.cv_ocr_status||"").toLowerCase();
-
-if(s==="done"){
-stopOcrPolling();
-setProgress(false, 100, "", "");
-setBadge("cvStatusBadge","good","CV ready");
-setText("ocrHint","OCR done. You can generate AI suggestions now.");
-lastCvMeta=cvMetaFromCv(cv);
-unlockAiReady();
-tryLoadCachedAiSuggestions();
-return;
-}
-if(s==="failed"){
-stopOcrPolling();
-setProgress(false, 0, "", "");
-setBadge("cvStatusBadge","bad","OCR failed");
-setText("ocrHint","OCR failed: "+(cv?.cv_ocr_error||""));
-lockAi("OCR failed. Try a different PDF.");
-return;
-}
-
-const elapsed = Date.now() - start;
-const pct = Math.min(90, 55 + Math.floor(elapsed / maxMs * 35));
-setProgress(true, pct, "OCR in progress…", "We will update automatically.");
-
-if(elapsed > maxMs){
-stopOcrPolling();
-setProgress(false, 0, "", "");
-setBadge("cvStatusBadge","warn","OCR timeout");
-setText("ocrHint","OCR is taking longer than expected. You can refresh the page later.");
-lockAi("OCR still processing. Please check again in a bit.");
-}
-}catch(e){
-stopOcrPolling();
-setProgress(false, 0, "", "");
-setBadge("cvStatusBadge","bad","OCR error");
-showTopError(e.message||String(e));
-lockAi("OCR error. Try again later.");
-}
-}, 3500);
+startOcrPolling({ startedAt: Date.now() });
 }
 
 async function handleCvFileSelected(){
