@@ -421,17 +421,74 @@ function toErrorMessage(path, res, json, text){
   return path + " failed: " + res.status + (clipped ? (" — " + clipped) : "");
 }
 
-async function apiGet(path){
+const TOKEN_REFRESH_SKEW_SEC = 90;
+
+async function getSessionFresh(forceRefresh){
+  if(!supabaseClient) throw new Error("Supabase not initialized");
+  let s = null;
+
+  try{
+    const r = await supabaseClient.auth.getSession();
+    s = r && r.data ? r.data.session : null;
+  }catch{}
+
+  if(!s) s = session;
+
+  if(!s || !s.access_token) return null;
+
+  // Refresh if token is close to expiry (or if forced)
+  const now = Math.floor(Date.now()/1000);
+  const exp = Number(s.expires_at || 0);
+  const ttl = exp ? (exp - now) : 999999;
+
+  if(forceRefresh || (exp && ttl < TOKEN_REFRESH_SKEW_SEC)){
+    try{
+      const rr = await supabaseClient.auth.refreshSession();
+      if(rr && rr.data && rr.data.session) s = rr.data.session;
+    }catch{}
+  }
+
+  session = s;
+  try{ sessionStorage.setItem("sb_access_token", s.access_token); }catch{}
+  return s;
+}
+
+async function authFetch(path, options){
+  const url = API_BASE + path;
+  const opt = options || {};
+  const headers = new Headers(opt.headers || {});
+
+  // Always fetch the latest token (and refresh if near expiry)
+  let s = await getSessionFresh(false);
+  if(!s || !s.access_token) throw new Error("Unauthorized: missing session. Please sign in again.");
+
+  headers.set("Authorization", "Bearer " + s.access_token);
+
   let res;
   try{
-    res = await fetchWithTimeout(API_BASE + path, {
-      method: "GET",
-      headers: { Authorization: "Bearer " + session.access_token },
-      cache: "no-store"
-    });
+    res = await fetchWithTimeout(url, { ...opt, headers }, FETCH_TIMEOUT_MS);
   }catch(e){
     throw toNetworkError(path, e);
   }
+
+  if(res.status === 401){
+    // Token might be expired/rotated. Refresh once and retry.
+    const s2 = await getSessionFresh(true);
+    if(s2 && s2.access_token){
+      headers.set("Authorization", "Bearer " + s2.access_token);
+      try{
+        res = await fetchWithTimeout(url, { ...opt, headers }, FETCH_TIMEOUT_MS);
+      }catch(e){
+        throw toNetworkError(path, e);
+      }
+    }
+  }
+
+  return res;
+}
+
+async function apiGet(path){
+  const res = await authFetch(path, { method: "GET", cache: "no-store" });
   const text = await res.text().catch(()=> "");
   let json = null;
   try{ json = JSON.parse(text); }catch{ json = { raw:text }; }
@@ -440,16 +497,11 @@ async function apiGet(path){
 }
 
 async function apiPostJson(path, body){
-  let res;
-  try{
-    res = await fetchWithTimeout(API_BASE + path, {
-      method: "POST",
-      headers: { Authorization: "Bearer " + session.access_token, "content-type": "application/json" },
-      body: JSON.stringify(body || {})
-    });
-  }catch(e){
-    throw toNetworkError(path, e);
-  }
+  const res = await authFetch(path, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body || {})
+  });
   const text = await res.text().catch(()=> "");
   let json = null;
   try{ json = JSON.parse(text); }catch{ json = { raw:text }; }
@@ -755,6 +807,20 @@ async function boot(){
       ? window.JobApplyAI.auth.supabaseClient
       : window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+
+    // Keep "session" up to date when Supabase refreshes the token in the background
+    try{
+      supabaseClient.auth.onAuthStateChange((_event, newSession)=>{
+        if(newSession && newSession.access_token){
+          session = newSession;
+          try{ sessionStorage.setItem("sb_access_token", newSession.access_token); }catch{}
+        } else {
+          session = null;
+          try{ sessionStorage.removeItem("sb_access_token"); }catch{}
+        }
+      });
+    }catch{}
+
     session = (window.JobApplyAI && window.JobApplyAI.auth && typeof window.JobApplyAI.auth.getSession === "function")
       ? await window.JobApplyAI.auth.getSession()
       : null;
@@ -763,7 +829,10 @@ async function boot(){
       const s = await supabaseClient.auth.getSession();
       session = s && s.data ? s.data.session : null;
     }
-    if(!session || !session.user || !session.user.email){
+        // Ensure we have a fresh access token (prevents "invalid or expired token" without requiring a page refresh)
+    try{ session = (await getSessionFresh(false)) || session; }catch{}
+
+if(!session || !session.user || !session.user.email){
       window.location.replace("./signup.html");
       return;
     }
