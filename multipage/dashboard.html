@@ -302,21 +302,59 @@ box-shadow: none;
 /* Quick actions (Dashboard) */
 .actionsStack{display:flex;flex-direction:column;gap:10px;align-items:stretch}
 .actionsStack .btn{width:100%;justify-content:center}
+
+/* ============================================================
+Activity log modal helpers
+============================================================ */
+.iconX{
+  border:1px solid rgba(17,19,24,.12);
+  background:rgba(17,19,24,.04);
+  border-radius:999px;
+  padding:7px 10px;
+  font-weight:950;
+  cursor:pointer;
+}
+
 </style>
 </head>
 <body>
 <header class="topbar" id="topbar">
-<nav class="nav">
-<a class="brand" href="./index.html" data-nav="1"><span class="logo" aria-hidden="true"></span><span>jobmejob</span></a>
-<div class="navlinks">
-<a class="pill" href="./index.html" data-nav="1">Home</a>
-<a class="pill" href="./profile.html" data-nav="1">Profile</a>
-<a class="pill" href="./plan.html" data-nav="1">Plan</a>
-<a class="pill" href="./jobs.html" data-nav="1">Jobs</a>
-<a class="pill active" href="./dashboard.html" data-nav="1">Dashboard</a>
-<button class="pill iconOnly" id="btnLogout" type="button" aria-label="Logout">Logout</button>
-</div>
-</nav>
+  <nav class="nav">
+    <a class="brand" href="./index.html" data-nav="1" aria-label="Home">
+      <span class="logo" aria-hidden="true"></span>
+      <span>jobmejob</span>
+    </a>
+
+    <div class="navlinks">
+      <a class="pill" href="./index.html" data-nav="1">Home</a>
+      <a class="pill" href="./cv.html" data-nav="1">CV Studio</a>
+      <a class="pill" href="./jobs.html" data-nav="1">Jobs</a>
+      <a class="pill" href="./plan.html" data-nav="1">Plan</a>
+
+      <details class="navDrop" id="navAccount" style="display:none">
+        <summary class="pill" aria-label="Account menu">
+          <span id="navAccountLabel">Account</span>
+          <span aria-hidden="true">▾</span>
+        </summary>
+
+        <div class="navMenu" role="menu" aria-label="Account menu">
+          <div class="menuLabel">Account</div>
+          <a class="pill" href="./profile.html" data-nav="1" role="menuitem">Profile setup</a>
+          <button class="btn ghost" id="navActivity" type="button" role="menuitem">Activity log</button>
+
+          <div class="menuSep" role="separator"></div>
+          <div class="menuLabel">More</div>
+          <a class="pill active" href="./dashboard.html" data-nav="1" role="menuitem">Dashboard</a>
+          <span class="pill menuDisabled" role="menuitem" aria-disabled="true">Auto-apply (coming soon)</span>
+
+          <div class="menuSep" role="separator"></div>
+          <button class="btn danger" id="navLogout" type="button" role="menuitem">Logout</button>
+        </div>
+      </details>
+
+      <a class="pill" href="./signup.html" id="navSignIn" data-nav="1">Sign in</a>
+    </div>
+  </nav>
 </header>
 
 <main class="main">
@@ -440,24 +478,10 @@ box-shadow: none;
 
 <div class="hr"></div>
 
-<div class="sectionHeader" style="border-radius:0;border-left:0;border-right:0">
-<h2 style="margin:0">Application activity log</h2>
-<p class="small">Latest timeline events (queued, prioritized, skipped, applied…).</p>
-<div class="chips" id="activityFilters">
-<button class="chip active" type="button" data-etype="">All</button>
-<button class="chip" type="button" data-etype="queued">Queued</button>
-<button class="chip" type="button" data-etype="prioritized">Prioritized</button>
-<button class="chip" type="button" data-etype="applied">Applied</button>
-<button class="chip" type="button" data-etype="sent">Sent</button>
-<button class="chip" type="button" data-etype="rejected">Rejected</button>
-<button class="chip" type="button" data-etype="skipped">Skipped</button>
+<div class="small" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+  <span>Activity log is now in the <strong>Account</strong> menu (top right) → <strong>Activity log</strong>.</span>
+  <button class="btn small ghost" id="openActivityInline" type="button">Open</button>
 </div>
-</div>
-
-<div class="hr"></div>
-
-<div id="activityWrap"><div class="skeleton block"></div></div>
-<div id="activityError"></div>
 </div>
 </section>
 
@@ -497,6 +521,42 @@ box-shadow: none;
 </div>
 </main>
 
+
+
+<!-- Activity log modal (Account dropdown) -->
+<div class="modalBackdrop" id="activityModal" style="display:none">
+  <div class="modalCard" style="max-width:980px">
+    <div class="modalScroll">
+      <div class="modalHeader">
+        <div>
+          <div class="modalTitle">Application activity log</div>
+          <div class="small">Latest timeline events (queued, prioritized, skipped, applied…).</div>
+        </div>
+        <button class="iconX" id="activityCloseX" type="button" aria-label="Close">✕</button>
+      </div>
+
+      <div class="hr" style="margin:14px 0"></div>
+
+      <div class="chips" id="activityFilters">
+        <button class="chip active" type="button" data-etype="">All</button>
+        <button class="chip" type="button" data-etype="queued">Queued</button>
+        <button class="chip" type="button" data-etype="prioritized">Prioritized</button>
+        <button class="chip" type="button" data-etype="applied">Applied</button>
+        <button class="chip" type="button" data-etype="sent">Sent</button>
+        <button class="chip" type="button" data-etype="rejected">Rejected</button>
+        <button class="chip" type="button" data-etype="skipped">Skipped</button>
+      </div>
+
+      <div id="activityWrap" style="margin-top:12px"><div class="skeleton block"></div></div>
+      <div id="activityError" style="margin-top:10px"></div>
+    </div>
+
+    <div class="modalActions">
+      <a class="btn ghost" href="./cv.html" data-nav="1">Open CV Studio</a>
+      <button class="btn" id="activityClose" type="button">Close</button>
+    </div>
+  </div>
+</div>
 <div class="modalBackdrop" id="skipModal" style="display:none">
 <div class="modalCard">
 
@@ -593,51 +653,14 @@ box-shadow: none;
 <script src="./shared.js"></script>
 <script>
 
-// Safety: some builds load helper functions later; ensure they exist before any event handlers run.
-if (typeof updateFetchMetaUI !== "function") {
-function updateFetchMetaUI(){ /* no-op until defined */ }
-}
-if (typeof updateAiSwitchState !== "function") {
-function updateAiSwitchState(){ /* no-op until defined */ }
+// Shared helpers (shared.js)
+const S = window.JobMeJobShared || null;
+try{ if(S && typeof S.wireNavTransitions === "function") S.wireNavTransitions(); }catch(_){ }
 
-async function maybeAutoPersistAiTitles(){
-  try{
-    if(!lastSessionToken) await requireSession();
-
-    // Backend profile
-    const prof = await apiGet("/me/profile", lastSessionToken);
-    const backendTitles = prof && Array.isArray(prof.ai_titles) ? prof.ai_titles : [];
-
-    if(backendTitles.length){
-      window.lastAiTitleSuggestions = backendTitles;
-      updateAiSwitchState();
-maybeAutoPersistAiTitles();
-      return;
-    }
-
-    // Bridge from local AI cache once (from profile generation)
-    const local = getAiTitlesForFetch();
-    if(!local.length) return;
-
-    await apiPost("/me/ai-titles/save", lastSessionToken, { ai_titles: local });
-
-    const prof2 = await apiGet("/me/profile", lastSessionToken);
-    const backendTitles2 = prof2 && Array.isArray(prof2.ai_titles) ? prof2.ai_titles : [];
-    if(backendTitles2.length){
-      window.lastAiTitleSuggestions = backendTitles2;
-      updateAiSwitchState();
-    }
-  }catch(e){
-    // non-blocking
-  }
-}
-}
-
-const API_BASE = (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE) || "https://jobmejob.schoene-viktor.workers.dev";
-const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
-const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
-let supabaseClient=null;
-
+// Resolve Worker API base (supports localStorage override via shared.js)
+const API_BASE = (S && typeof S.resolveApiBase === "function")
+  ? S.resolveApiBase("https://jobmejob.schoene-viktor.workers.dev")
+  : String((window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE) || "https://jobmejob.schoene-viktor.workers.dev").trim().replace(/\/+$/, "");
 let lastSessionToken="";
 let lastQueueResponse=null;
 const tailorSummaryMap=new Map();
@@ -751,18 +774,6 @@ requestAnimationFrame(tick);
 }
 function renderSkeleton(){return '<div class="skeleton block"></div>'; }
 
-function go(url){
-document.body.classList.add("leaving");
-setTimeout(()=>{window.location.href=url;},180);
-}
-document.addEventListener("click",(e)=>{
-const a=e.target.closest("a[data-nav='1']");
-if(!a) return;
-const url=a.getAttribute("href");
-if(!url || url.startsWith("#")) return;
-e.preventDefault();
-go(url);
-});
 
 function openDescModal(jobId){
 pendingDescJobId=jobId;
@@ -1335,14 +1346,17 @@ document.getElementById("skipModal").style.display="none";
 }
 
 async function requireSession(){
-const {data,error}=await supabaseClient.auth.getSession();
-if(error) throw error;
-if(!data||!data.session){
-window.location.replace("./signup.html");
-return null;
-}
-lastSessionToken=data.session.access_token;
-return data.session;
+  // Preferred: auth.js helper (keeps all pages consistent)
+  if(window.JobApplyAI && window.JobApplyAI.auth && typeof window.JobApplyAI.auth.getSession === "function"){
+    const s = await window.JobApplyAI.auth.getSession();
+    if(!s || !s.user){
+      window.location.replace("./signup.html");
+      return null;
+    }
+    lastSessionToken = s.access_token || "";
+    return s;
+  }
+  throw new Error("auth.js did not load (window.JobApplyAI.auth.getSession missing).");
 }
 
 async function apiGet(path,accessToken){
@@ -1849,6 +1863,70 @@ proofBtn.textContent=isOpen ? "Show proof" : "Hide proof";
 
 
 
+
+function isActivityModalOpen(){
+  const m = document.getElementById("activityModal");
+  return !!(m && m.style.display === "flex");
+}
+
+async function openActivityModal(){
+  try{
+    const dd = document.getElementById("navAccount");
+    if(dd) dd.open = false;
+
+    showModal("activityModal");
+    setHtml("activityError", "");
+    setHtml("activityWrap", renderSkeleton());
+
+    const s = await requireSession();
+    if(!s) return;
+
+    await loadActivity(s.access_token);
+  }catch(e){
+    setHtml("activityWrap", '<span class="badge bad">Activity failed</span>');
+    setHtml("activityError", '<div class="error">'+escapeHtml(e.message || e)+'</div>');
+  }
+}
+
+function closeActivityModal(){
+  hideModal("activityModal");
+}
+
+function wireActivityModal(){
+  const navBtn = document.getElementById("navActivity");
+  if(navBtn) navBtn.addEventListener("click", openActivityModal);
+
+  const inlineBtn = document.getElementById("openActivityInline");
+  if(inlineBtn) inlineBtn.addEventListener("click", openActivityModal);
+
+  const closeX = document.getElementById("activityCloseX");
+  if(closeX) closeX.addEventListener("click", closeActivityModal);
+
+  const closeBtn = document.getElementById("activityClose");
+  if(closeBtn) closeBtn.addEventListener("click", closeActivityModal);
+
+  const backdrop = document.getElementById("activityModal");
+  if(backdrop){
+    backdrop.addEventListener("click",(e)=>{ if(e.target && e.target.id==="activityModal") closeActivityModal(); });
+  }
+}
+
+function wireNavAccount(){
+  const logoutBtn = document.getElementById("navLogout");
+  if(logoutBtn){
+    logoutBtn.addEventListener("click", async () => {
+      try{
+        if(window.JobApplyAI && window.JobApplyAI.auth && typeof window.JobApplyAI.auth.logout === "function"){
+          await window.JobApplyAI.auth.logout("./index.html");
+          return;
+        }
+      }catch(_){ }
+      window.location.replace("./index.html");
+    });
+  }
+}
+
+
 const FETCH_COOLDOWN_MS = 10 * 60 * 1000;
 function getNextFetchAllowedAt(){
 const v = Number(localStorage.getItem("jm_last_manual_fetch_ts") || "0");
@@ -1858,16 +1936,19 @@ function updateFetchButtonCooldownUI(){
 const btn=document.getElementById("btnFetchJobsNow");
 const status=document.getElementById("fetchJobsStatus");
 if(!btn) return;
+
 const next = getNextFetchAllowedAt();
 const now = Date.now();
+
 if(next && now < next){
-const sec = Math.ceil((next-now)/1000);
-btn.disabled = true;
-btn.textContent = "Fetch new jobs";
-if(status && !status.textContent) status.textContent = "You can fetch again in " + sec + "s";
-setTimeout(updateFetchButtonCooldownUI, 1000);
+  const sec = Math.ceil((next-now)/1000);
+  btn.disabled = true;
+  btn.textContent = "Fetch new jobs";
+  if(status && !status.textContent) status.textContent = "You can fetch again in " + sec + "s";
+  setTimeout(updateFetchButtonCooldownUI, 1000);
 }else{
-btn.disabled = false;
+  btn.disabled = false;
+}
 }
 
 function updateFetchMetaUI(){
@@ -1876,8 +1957,8 @@ if(!meta) return;
 
 const lastTs = Number(localStorage.getItem("jm_last_manual_fetch_ts") || "0");
 if(!lastTs){
-meta.textContent = "";
-return;
+  meta.textContent = "";
+  return;
 }
 
 const last = new Date(lastTs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -1885,12 +1966,12 @@ const next = lastTs + FETCH_COOLDOWN_MS;
 const now = Date.now();
 
 if(now < next){
-const sec = Math.ceil((next-now)/1000);
-const min = Math.floor(sec/60);
-const s = sec % 60;
-meta.textContent = "Last fetch: " + last + " · Next fetch in " + min + ":" + String(s).padStart(2,"0");
+  const sec = Math.ceil((next-now)/1000);
+  const min = Math.floor(sec/60);
+  const s = sec % 60;
+  meta.textContent = "Last fetch: " + last + " · Next fetch in " + min + ":" + String(s).padStart(2,"0");
 }else{
-meta.textContent = "Last fetch: " + last + " · You can fetch again now";
+  meta.textContent = "Last fetch: " + last + " · You can fetch again now";
 }
 }
 
@@ -1903,13 +1984,12 @@ const titles = Array.isArray(window.lastAiTitleSuggestions) ? window.lastAiTitle
 const aiAvailable = titles.length > 0;
 
 if(aiAvailable){
-toggle.disabled = false;
-hint.style.display = "none";
+  toggle.disabled = false;
+  hint.style.display = "none";
 }else{
-toggle.disabled = true;
-toggle.checked = false;
-hint.style.display = "inline-flex";
-}
+  toggle.disabled = true;
+  toggle.checked = false;
+  hint.style.display = "inline-flex";
 }
 }
 
@@ -2004,7 +2084,7 @@ const qCount=(typeof queue.count==="number")?queue.count:(Array.isArray(queue.da
 currentQueueCount=qCount;
 await loadTailorSummariesForJobs((Array.isArray(queue.data)?queue.data.map(j=>j.id):[]));
 setHtml("queueWrap",renderQueueCards(queue));
-await loadActivity(lastSessionToken);
+if (isActivityModalOpen()) await loadActivity(lastSessionToken);
 }
 
 function renderAppsBreakdown(summary){
@@ -2120,6 +2200,18 @@ updateAiSwitchState();
 
 const email=session.user&&session.user.email?session.user.email:"—";
 setText("meEmail",email);
+
+// Nav state (Account dropdown)
+const navAcct = document.getElementById("navAccount");
+if(navAcct) navAcct.style.display = "";
+const navSignIn = document.getElementById("navSignIn");
+if(navSignIn) navSignIn.style.display = "none";
+const navLbl = document.getElementById("navAccountLabel");
+if(navLbl){
+  const short = (email && String(email).includes("@")) ? String(email).split("@")[0] : "Account";
+  navLbl.textContent = short;
+}
+
 setText("subLine","Signed in as "+email);
 
 renderAiInsightsFromCache();
@@ -2186,7 +2278,7 @@ setBadge("badgeApps","warn","Not ready");
 setHtml("appsBreakdown",'<span class="badge warn">Not available</span>');
 }
 
-await loadActivity(session.access_token);
+// Activity log is now on-demand (Account menu → Activity log)
 }
 
 function wireActivityFilters(){
@@ -2260,60 +2352,47 @@ if(qaTailor){
   });
 }
 
-document.getElementById("btnCopyToken").addEventListener("click",async()=>{
+document.getElementById("btnCopyToken").addEventListener("click", async () => {
 try{
-const {data}=await supabaseClient.auth.getSession();
-const token=data&&data.session?data.session.access_token:"";
-if(!token){ alert("No session token found. Please sign in again."); return; }
+  let token = String(lastSessionToken || "");
+  if(!token){
+    const s = await requireSession();
+    token = s && s.access_token ? String(s.access_token) : "";
+  }
+  if(!token){ alert("No session token found. Please sign in again."); return; }
 
-// Some browsers block clipboard access depending on context (permissions/iframes).
-// Fallback: show the token in a prompt so you can copy manually.
-try{
-await navigator.clipboard.writeText(token);
-alert("Access token copied.");
-return;
-}catch(_clipboardErr){
-// Fallback 1: hidden textarea + execCommand
-try{
-const ta=document.createElement("textarea");
-ta.value=token;
-ta.setAttribute("readonly","true");
-ta.style.position="fixed";
-ta.style.left="-9999px";
-ta.style.top="0";
-document.body.appendChild(ta);
-ta.select();
-const ok=document.execCommand && document.execCommand("copy");
-document.body.removeChild(ta);
-if(ok){
-alert("Access token copied.");
-return;
-}
-}catch(_){ /* ignore */ }
+  // Some browsers block clipboard access depending on context (permissions/iframes).
+  // Fallback: show the token in a prompt so you can copy manually.
+  try{
+    await navigator.clipboard.writeText(token);
+    alert("Access token copied.");
+    return;
+  }catch(_clipboardErr){
+    // Fallback 1: hidden textarea + execCommand
+    try{
+      const ta=document.createElement("textarea");
+      ta.value=token;
+      ta.setAttribute("readonly","true");
+      ta.style.position="fixed";
+      ta.style.left="-9999px";
+      ta.style.top="0";
+      document.body.appendChild(ta);
+      ta.select();
+      const ok=document.execCommand && document.execCommand("copy");
+      document.body.removeChild(ta);
+      if(ok){
+        alert("Access token copied.");
+        return;
+      }
+    }catch(_){ /* ignore */ }
 
-// Fallback 2: prompt
-window.prompt("Copy your access token:", token);
-}
+    // Fallback 2: prompt
+    window.prompt("Copy your access token:", token);
+  }
 }catch(e){
-showTopError(e.message || "Copy token failed");
+  showTopError(e.message || "Copy token failed");
 }
 });
-document.getElementById("btnLogout").addEventListener("click",async()=>{
-try{
-await supabaseClient.auth.signOut();
-Object.keys(localStorage).forEach(k=>{
-if(k.startsWith("ja_") || k.startsWith("jobapplyai_") || k.startsWith("jm_") || k.startsWith("jobmejob_") || k.startsWith("sb-")){
-localStorage.removeItem(k);
-}
-});
-try{sessionStorage.removeItem("sb_access_token");}catch{}
-window.location.replace("./index.html");
-}catch(e){ showTopError(e.message); }
-});
-
-wireQueueClicks();
-wireActivityFilters();
-wireActivityClicks();
 
 document.getElementById("skipCancel").addEventListener("click",()=>closeSkipModal());
 document.getElementById("skipConfirm").addEventListener("click",()=>submitSkip());
@@ -2373,19 +2452,34 @@ updateTailorStrengthHelp();
 
 }
 
-window.addEventListener("load",async()=>{
+window.addEventListener("load", async () => {
 try{
-if(!window.supabase) throw new Error("Supabase library did not load. Check adblockers / network.");
-supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-wireEvents();
-await loadDashboard();
+  // Require auth.js (uses Supabase v2)
+  if(!window.JobApplyAI || !window.JobApplyAI.auth || typeof window.JobApplyAI.auth.getSession !== "function"){
+    throw new Error("auth.js did not load. Ensure ./auth.js exists and is loaded after https://unpkg.com/@supabase/supabase-js@2");
+  }
+
+  wireEvents();
+  wireQueueClicks();
+  wireActivityFilters();
+  wireActivityClicks();
+  wireActivityModal();
+  wireNavAccount();
+
+  // Initialize cooldown UI (best-effort)
+  try{
+    updateFetchButtonCooldownUI();
+    updateFetchMetaUI();
+  }catch(_){}
+
+  await loadDashboard();
 }catch(e){
-showTopError(e.message);
-setText("errorBox",e.message);
-setBadge("badgeQueue","bad","Error");
-setBadge("badgeApps","bad","Error");
-setBadge("badgePlan","bad","Error");
-setBadge("badgeHealth","bad","Error");
+  showTopError(e.message);
+  setText("errorBox",e.message);
+  setBadge("badgeQueue","bad","Error");
+  setBadge("badgeApps","bad","Error");
+  setBadge("badgePlan","bad","Error");
+  setBadge("badgeHealth","bad","Error");
 }
 });
 </script>
