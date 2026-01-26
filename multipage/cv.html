@@ -2012,119 +2012,10 @@
     /* -------------------------
        API helpers
        ------------------------- */
-
-    const FETCH_TIMEOUT_MS = 45000;
-    const TOKEN_REFRESH_SKEW_SEC = 90;
-
-    function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS){
-      const controller = new AbortController();
-      const t = setTimeout(() => controller.abort(), timeoutMs);
-      return fetch(url, { ...options, signal: controller.signal })
-        .finally(() => clearTimeout(t));
-    }
-
-    function toNetworkError(path, e){
-      const msg = (e && e.message) ? String(e.message) : String(e||"");
-      const low = msg.toLowerCase();
-      if(low.includes("failed to fetch") || low.includes("network") || low.includes("abort")){
-        return new Error(
-          path + " failed: network error. " +
-          "If this keeps happening: check CORS on your Worker, disable VPN/ad blockers, and verify API_BASE."
-        );
-      }
-      return new Error(path + " failed: " + msg);
-    }
-
-    async function getSessionFresh(forceRefresh = false){
-      try{
-        if(!window.JobApplyAI || !window.JobApplyAI.auth || !window.JobApplyAI.auth.getSession){
-          return session || null;
-        }
-
-        let s = await window.JobApplyAI.auth.getSession();
-
-        // Near-expiry refresh (best effort)
-        const expiresAt = Number(s && s.expires_at ? s.expires_at : 0);
-        const now = Math.floor(Date.now()/1000);
-        const needsRefresh = forceRefresh || (expiresAt && (expiresAt - now) <= TOKEN_REFRESH_SKEW_SEC);
-
-        if(needsRefresh){
-          const sb = window.JobApplyAI?.auth?.supabaseClient;
-          if(sb && sb.auth && typeof sb.auth.refreshSession === "function"){
-            const rr = await sb.auth.refreshSession();
-            if(rr && rr.data && rr.data.session) s = rr.data.session;
-          }
-        }
-
-        if(s && s.access_token){
-          session = s;
-          try{ sessionStorage.setItem("sb_access_token", s.access_token); }catch(_){}
-        }
-        return s || null;
-      }catch(_){
-        return session || null;
-      }
-    }
-
-    async function authFetch(path, options = {}){
-      const p = String(path || "");
-      const url = API_BASE + p;
-
-      const s1 = await getSessionFresh(false);
-      const token1 = s1 && s1.access_token ? String(s1.access_token) : "";
-
-      if(!token1){
-        throw new Error(uiLang==="de" ? "Bitte anmelden." : "Please sign in.");
-      }
-
-      const headers1 = new Headers(options.headers || {});
-      headers1.set("Authorization", "Bearer " + token1);
-
-      let res;
-      try{
-        res = await fetchWithTimeout(url, { ...options, headers: headers1 }, FETCH_TIMEOUT_MS);
-      }catch(e){
-        throw toNetworkError(p, e);
-      }
-
-      // Retry once on 401 (token refresh)
-      if(res.status === 401){
-        const s2 = await getSessionFresh(true);
-        const token2 = s2 && s2.access_token ? String(s2.access_token) : "";
-        if(token2 && token2 !== token1){
-          const headers2 = new Headers(options.headers || {});
-          headers2.set("Authorization", "Bearer " + token2);
-          try{
-            res = await fetchWithTimeout(url, { ...options, headers: headers2 }, FETCH_TIMEOUT_MS);
-          }catch(e){
-            throw toNetworkError(p, e);
-          }
-        }
-      }
-
-      return res;
-    }
-
     async function apiGet(path){
-      const res = await authFetch(path, { method:"GET" });
-      const txt = await res.text().catch(()=> "");
-      let json = null;
-      try{ json = txt ? JSON.parse(txt) : null; }catch{ json = { raw: txt }; }
-      if(!res.ok){
-        const msg = path + " failed: " + res.status + " " + (json?.error || json?.details || json?.message || txt);
-        const err = new Error(msg);
-        err.status = res.status;
-        err.body = json;
-        throw err;
-      }
-      return json;
-    }
-
-    async function apiPostJson(path, body){
-      const res = await authFetch(path, {
-        method:"POST",
-        headers:{ "content-type":"application/json" },
-        body: JSON.stringify(body || {})
+      const res = await fetch(API_BASE + path, {
+        method:"GET",
+        headers:{ Authorization: "Bearer " + session.access_token }
       });
       const txt = await res.text().catch(()=> "");
       let json = null;
@@ -2139,6 +2030,25 @@
       return json;
     }
 
+    async function apiPostJson(path, body){
+      const res = await fetch(API_BASE + path, {
+        method:"POST",
+        headers:{
+          Authorization: "Bearer " + session.access_token,
+          "content-type":"application/json"
+        },
+        body: JSON.stringify(body || {})
+      });
+      const txt = await res.text().catch(()=> "");
+      let json = null;
+      try{ json = txt ? JSON.parse(txt) : null; }catch{ json = { raw: txt }; }
+      if(!res.ok){
+        const msg = path + " failed: " + res.status + " " + (json?.error || json?.details || json?.message || txt);
+        const err = new Error(msg);
+        err.status = res.status;
+        err.body = json;
+        throw err;
+      }
       return json;
     }
 
@@ -5369,7 +5279,6 @@ function openKwModal(keywordRaw){
       setBadge("authBadge","warn", uiLang==="de" ? "Prüfe…" : "Checking…");
 
       session = await window.JobApplyAI.auth.getSession();
-      try{ if(session && session.access_token) sessionStorage.setItem("sb_access_token", session.access_token); }catch(_){ }
       if(!session || !session.user || !session.user.email){
         setBadge("authBadge","warn", uiLang==="de" ? "Abgemeldet" : "Signed out");
         window.location.replace("./signup.html");
