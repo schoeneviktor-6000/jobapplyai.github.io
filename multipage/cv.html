@@ -14,14 +14,59 @@
        CV Studio (page-only styles)
        ========================================================= */
 
-    .layout{
+        /* --- Studio layout: center canvas + left setup + right inspector --- */
+    .studio{
       display:grid;
-      grid-template-columns: 1fr 1.2fr;
+      grid-template-columns: minmax(280px, 330px) minmax(540px, 1fr) minmax(320px, 380px);
       gap:14px;
       align-items:start;
+      grid-template-areas:"left canvas right";
     }
-    @media (max-width: 980px){
-      .layout{ grid-template-columns: 1fr; }
+    .studioLeft{ grid-area:left; }
+    .studioCanvas{ grid-area:canvas; }
+    .studioRight{ grid-area:right; }
+
+    /* Make left/right panels scroll independently on desktop so the CV stays centered */
+    @media (min-width: 1181px){
+      .studioLeft,
+      .studioRight{
+        position: sticky;
+        top: 88px;
+        align-self: start;
+        max-height: calc(100vh - 110px);
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+    }
+    @media (max-width: 1180px){
+      .studio{
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "left"
+          "canvas"
+          "right";
+      }
+      .studioLeft,
+      .studioRight{
+        position: static;
+        max-height: none;
+        overflow: visible;
+      }
+    }
+
+    /* Bigger canvas (preview feels like the primary surface) */
+    .studioCanvas .cvBox{ max-height: 72vh; }
+
+    /* “Paper” centered inside the canvas */
+    .studioCanvas .cvPreview,
+    .studioCanvas .cvText,
+    .studioCanvas #changeKpis,
+    .studioCanvas #changeCards,
+    .studioCanvas #diffDetails,
+    .studioCanvas .stickyRow{
+      max-width: 880px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .sectionTitle{
@@ -745,9 +790,9 @@
 
     <div class="errorTop" id="errorTop"></div>
 
-    <section class="layout">
-      <!-- LEFT: Controls -->
-      <div class="card">
+    <section class="studio">
+      <!-- LEFT: Setup -->
+      <aside class="card studioLeft">
         <div class="sectionTitle">
           <h2 id="setupTitle">Setup</h2>
           <span class="badge warn" id="authBadge">Checking…</span>
@@ -876,10 +921,10 @@
           </summary>
           <div class="monoSmall" id="pipeBox">Generate a CV to see pipeline details.</div>
         </details>
-      </div>
+      </aside>
 
-      <!-- RIGHT: Output -->
-      <div class="card">
+      <!-- CENTER: Document canvas -->
+      <section class="card studioCanvas" aria-label="CV canvas">
         <div class="outputTop">
           <div>
             <div style="font-weight:980;font-size:18px;letter-spacing:-.2px" id="tailoredTitle">Tailored CV</div>
@@ -889,27 +934,6 @@
           <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
             <span class="badge warn" id="outStatus">Not generated</span>
             <span class="badge" id="outModel">Model: —</span>
-          </div>
-        </div>
-
-        <div class="kpiRow">
-          <div class="kpi">
-            <div class="k" id="kpiAts">ATS match</div>
-            <div class="v" id="atsScore">—</div>
-            <div class="bar" aria-hidden="true"><div id="atsBar"></div></div>
-            <div class="hint" id="atsHint">Calculated from keyword coverage (used vs missing).</div>
-          </div>
-
-          <div class="kpi">
-            <div class="k" id="kpiUsed">Keywords used</div>
-            <div class="v" id="kwUsedCount">—</div>
-            <div class="hint" id="kpiUsedHint">Found in your tailored CV.</div>
-          </div>
-
-          <div class="kpi">
-            <div class="k" id="kpiMissing">Keywords missing</div>
-            <div class="v" id="kwMissCount">—</div>
-            <div class="hint" id="kpiMissingHint">Click a missing keyword to add it (truthfully).</div>
           </div>
         </div>
 
@@ -975,6 +999,51 @@
             <button class="btn primary" id="btnPrint" type="button" disabled>Print / PDF</button>
           </div>
         </div>
+      </section>
+
+      <!-- RIGHT: Inspector -->
+      <aside class="card studioRight" aria-label="Inspector panel">
+        <div class="sectionTitle">
+          <h2 id="inspectorTitle">Inspector</h2>
+          <span class="badge" id="inspectorBadge">Live</span>
+        </div>
+        <div class="hint" id="inspectorHint">
+          Your CV stays centered. Use this panel to improve ATS match and polish wording without getting overwhelmed.
+        </div>
+
+        <details class="info" style="margin-top:12px">
+          <summary id="inspectorFutureTitle">More tools (coming soon)</summary>
+          <div class="hint" id="inspectorFutureHint" style="margin-top:8px">
+            Planned next: click any line in <b>Preview</b> to edit it here, bullet tightening, quantified impact suggestions, and section re-ordering.
+          </div>
+          <div class="row" style="margin-top:10px; flex-wrap:wrap">
+            <button class="btn small" type="button" disabled title="Coming soon">Shorten bullets</button>
+            <button class="btn small" type="button" disabled title="Coming soon">Add metrics</button>
+            <button class="btn small" type="button" disabled title="Coming soon">Rewrite for clarity</button>
+            <button class="btn small" type="button" disabled title="Coming soon">Tone control</button>
+          </div>
+        </details>
+
+        <div class="kpiRow">
+          <div class="kpi">
+            <div class="k" id="kpiAts">ATS match</div>
+            <div class="v" id="atsScore">—</div>
+            <div class="bar" aria-hidden="true"><div id="atsBar"></div></div>
+            <div class="hint" id="atsHint">Calculated from keyword coverage (used vs missing).</div>
+          </div>
+
+          <div class="kpi">
+            <div class="k" id="kpiUsed">Keywords used</div>
+            <div class="v" id="kwUsedCount">—</div>
+            <div class="hint" id="kpiUsedHint">Found in your tailored CV.</div>
+          </div>
+
+          <div class="kpi">
+            <div class="k" id="kpiMissing">Keywords missing</div>
+            <div class="v" id="kwMissCount">—</div>
+            <div class="hint" id="kpiMissingHint">Click a missing keyword to add it (truthfully).</div>
+          </div>
+        </div>
 
         <div class="hr"></div>
 
@@ -999,7 +1068,7 @@
           <summary id="debugTitle">Debug details</summary>
           <div class="monoSmall" id="debugBox">—</div>
         </details>
-      </div>
+      </aside>
     </section>
   </main>
 
