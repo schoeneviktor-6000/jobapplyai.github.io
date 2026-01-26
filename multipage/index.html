@@ -4,138 +4,37 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>jobmejob • Home</title>
-  <meta name="description" content="Free: job search + CV tailoring. Paid: auto-apply that runs applications for you." />
+  <meta name="description" content="Tailor your CV to each job in minutes. CV Studio is the core. Jobs are Germany-only for now." />
 
-  <!-- Shared styles -->
   <link rel="stylesheet" href="./shared.css" />
 
   <style>
-    /* Page-specific layout only */
+    /* Page-specific layout only (keep shared.css generic) */
     .hero{
-      padding:18px;
-      border-radius:22px;
-      background:
-        radial-gradient(1000px 420px at 15% -10%, rgba(34,197,94,.20), transparent 55%),
-        radial-gradient(900px 420px at 95% 10%, rgba(22,163,74,.14), transparent 55%),
-        linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.84));
-      border:1px solid rgba(17,19,24,.10);
-      box-shadow: 0 18px 40px rgba(17,19,24,.10);
-    }
-
-    .heroTop{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:12px;
-      flex-wrap:wrap;
-    }
-    .heroTitle{
-      font-size:46px;
-      line-height:1.04;
-      letter-spacing:-1px;
-      font-weight:980;
-      margin:0;
-    }
-    .heroSub{
-      margin:8px 0 0;
-      color:rgba(17,19,24,.62);
-      font-weight:700;
-      max-width: 70ch;
-    }
-
-    .heroGrid{
       display:grid;
       grid-template-columns: 1.1fr .9fr;
       gap:14px;
-      margin-top:16px;
       align-items:stretch;
     }
-    @media (max-width: 980px){
-      .heroTitle{font-size:38px}
-      .heroGrid{grid-template-columns:1fr}
-    }
-
-    .panel{
-      background:rgba(255,255,255,.78);
-      border:1px solid rgba(17,19,24,.10);
-      border-radius:18px;
-      padding:14px;
-    }
-
-    .panelHead{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:10px;
-    }
-    .panelHead h2{
-      margin:0;
-      font-size:14px;
-      letter-spacing:.02em;
-      text-transform:uppercase;
-      color:rgba(17,19,24,.70);
-    }
-
-    .ctaRow{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      margin-top:10px;
-    }
-
-    .kv{
-      display:grid;
-      grid-template-columns: 1fr auto;
-      gap:10px;
-      align-items:center;
-      padding:10px 0;
-      border-top:1px solid rgba(17,19,24,.08);
-    }
-    .kv:first-of-type{border-top:0;padding-top:0}
-    .kv .k{color:rgba(17,19,24,.60);font-weight:750;font-size:13px}
-    .kv .v{font-weight:900;font-size:13px;color:rgba(17,19,24,.90);text-align:right}
-
-    .featureGrid{
-      display:grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap:14px;
-      margin-top:14px;
-    }
     @media (max-width:980px){
-      .featureGrid{grid-template-columns:1fr}
-    }
-    .featureCard{
-      background:rgba(255,255,255,.78);
-      border:1px solid rgba(17,19,24,.10);
-      border-radius:18px;
-      padding:14px;
-      box-shadow: 0 16px 34px rgba(17,19,24,.08);
-    }
-    .featureHead{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:12px;
-    }
-    .featureTitle{
-      font-weight:950;
-      margin:0;
-      font-size:16px;
-    }
-    .featureDesc{
-      margin:8px 0 0;
-      color:rgba(17,19,24,.62);
-      font-weight:650;
-      line-height:1.45;
+      .hero{grid-template-columns:1fr}
     }
 
-    .howCard{ margin-top:14px; }
-    .stepList{ display:grid; gap:10px; margin-top:10px; }
+    .kicker{font-weight:950;color:rgba(17,19,24,.72);letter-spacing:.02em}
+    .lead{margin:10px 0 0 0;color:rgba(17,19,24,.62);font-weight:650;line-height:1.5}
+    .ctaRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .ctaRow .btn{width:auto}
+    @media (max-width:620px){
+      .ctaRow{flex-direction:column;align-items:stretch}
+      .ctaRow .btn{width:100%;justify-content:center}
+    }
+
+    .miniRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+    .miniRow .badge{max-width:100%}
+
+    .steps{display:grid;gap:10px;margin-top:10px}
     .step{
-      display:flex;
-      gap:12px;
+      display:flex;gap:12px;
       padding:12px 14px;
       border-radius:16px;
       border:1px solid rgba(17,19,24,.10);
@@ -156,26 +55,51 @@
       line-height:1.45;
     }
 
-    details.ats{
-      margin-top:10px;
+    .features{
+      margin-top:14px;
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:14px;
+    }
+    @media (max-width:980px){
+      .features{grid-template-columns:1fr}
+    }
+    .ftTitle{font-weight:950;margin:0 0 6px 0}
+    .ftText{margin:0;color:rgba(17,19,24,.62);font-weight:650;line-height:1.5}
+
+    /* Activity list (modal) */
+    .activityList{ display:flex; flex-direction:column; gap:10px; }
+    .activityItem{
       border:1px solid rgba(17,19,24,.10);
-      border-radius:16px;
-      background:rgba(255,255,255,.70);
+      background:rgba(17,19,24,.03);
+      border-radius:14px;
       padding:10px 12px;
     }
-    details.ats summary{
-      cursor:pointer;
-      font-weight:900;
-      color:rgba(17,19,24,.80);
-      list-style:none;
+    .activityTop{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+    .activityTitle{ font-weight:950; }
+    .activityMeta{
+      margin-top:6px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      color:rgba(17,19,24,.60);
+      font-size:12px;
+      font-weight:750;
     }
-    details.ats summary::-webkit-details-marker{display:none}
-    .footer{
-      margin-top:16px;
-      text-align:center;
-      color:rgba(17,19,24,.55);
-      font-weight:650;
-      font-size:13px;
+    .iconX{
+      border:1px solid rgba(17,19,24,.12);
+      background:rgba(17,19,24,.04);
+      border-radius:999px;
+      padding:7px 10px;
+      font-weight:950;
+      cursor:pointer;
+    }
+    .small{ font-size:12px; color:rgba(17,19,24,.56); font-weight:700; line-height:1.45; }
+    .mono{
+      font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New", monospace;
+      font-size:12px;
+      word-break:break-word;
+      color:rgba(17,19,24,.64);
     }
   </style>
 </head>
@@ -190,170 +114,166 @@
 
       <div class="navlinks">
         <a class="pill active" href="./index.html" data-nav="1">Home</a>
-        <a class="pill" href="./profile.html" data-nav="1">Profile</a>
-        <a class="pill" href="./plan.html" data-nav="1">Plan</a>
+        <a class="pill" href="./cv.html" data-nav="1">CV Studio</a>
         <a class="pill" href="./jobs.html" data-nav="1">Jobs</a>
-        <a class="pill" href="./dashboard.html" data-nav="1">Dashboard</a>
+        <a class="pill" href="./plan.html" data-nav="1">Plan</a>
+
+        <!-- Account dropdown (shown only when signed in) -->
+        <details class="navDrop" id="navAccount" style="display:none">
+          <summary class="pill" aria-label="Account menu">
+            <span id="navAccountLabel">Account</span>
+            <span aria-hidden="true">▾</span>
+          </summary>
+
+          <div class="navMenu" role="menu" aria-label="Account menu">
+            <div class="menuLabel">Account</div>
+            <a class="pill" href="./profile.html" data-nav="1" role="menuitem">Profile setup</a>
+            <button class="btn ghost" id="navActivity" type="button" role="menuitem">Activity log</button>
+
+            <div class="menuSep" role="separator"></div>
+            <div class="menuLabel">More</div>
+            <a class="pill" href="./dashboard.html" data-nav="1" role="menuitem">Dashboard</a>
+            <span class="pill menuDisabled" role="menuitem" aria-disabled="true">Auto-apply (coming soon)</span>
+
+            <div class="menuSep" role="separator"></div>
+            <button class="btn danger" id="navLogout" type="button" role="menuitem">Logout</button>
+          </div>
+        </details>
+
         <a class="pill" href="./signup.html" id="navSignIn" data-nav="1">Sign in</a>
-        <button class="pill" id="navLogout" type="button" style="display:none;">Logout</button>
       </div>
     </nav>
   </header>
 
   <main class="main">
+    <h1 class="h1">Tailor your CV for each job — fast.</h1>
+    <p class="sub">CV Studio is the core. Jobs are Germany-only for now. Auto-apply is coming soon.</p>
+
+    <div class="errorTop" id="errorTop"></div>
+
     <section class="hero">
-      <div class="heroTop">
-        <div style="min-width:0">
-          <h1 class="heroTitle">Job search + CV tailoring, simplified.</h1>
-          <p class="heroSub">
-            Free: search jobs and tailor your CV per role. Paid: auto-apply that runs applications for you based on your plan.
-          </p>
+      <div class="card">
+        <div class="kicker">The simple flow</div>
+        <p class="lead">
+          Sign in → complete your profile once → tailor your CV per job.
+          You can view your application activity log anytime via the Account menu.
+        </p>
+
+        <div class="miniRow">
+          <span class="badge warn" id="stateBadge">Checking…</span>
+          <span class="badge warn" id="nextBadge" style="display:none">Next: —</span>
+          <span class="badge warn" id="countryBadge">Jobs: Germany-only (beta)</span>
         </div>
 
-        <span class="badge warn" id="homeStatus">Checking…</span>
+        <div class="ctaRow">
+          <button class="btn primary" id="primaryCta" type="button">Continue</button>
+          <a class="btn ghost" href="./cv.html" data-nav="1" id="openCv">Open CV Studio</a>
+          <a class="btn ghost" href="./jobs.html" data-nav="1">Browse Jobs</a>
+        </div>
+
+        <div class="note" style="margin-top:10px">
+          Tip: If sign-in loops, check Supabase → Auth → URL Configuration and ensure your GitHub Pages URL (and your custom domain, if used) are allowed.
+        </div>
       </div>
 
-      <div class="errorTop" id="errorTop" style="margin-top:12px;"></div>
+      <aside class="card">
+        <div style="font-weight:950;margin-bottom:8px">What you’ll do</div>
 
-      <div class="heroGrid">
-        <!-- Next step -->
-        <div class="panel">
-          <div class="panelHead">
-            <h2>Next step</h2>
-            <span class="badge" id="nextBadge">—</span>
-          </div>
-
-          <div class="note" id="nextText">
-            Checking your account status…
-          </div>
-
-          <div class="ctaRow" id="nextCtas">
-            <button class="btn primary" id="btnPrimary" type="button" disabled>Loading…</button>
-            <a class="btn ghost" id="btnSecondary" href="./signup.html" data-nav="1">Go to sign in</a>
-          </div>
-
-          <details class="ats">
-            <summary>What does “ATS” mean?</summary>
-            <div class="note" style="margin-top:8px">
-              ATS stands for <b>Applicant Tracking System</b>. It is software companies use to parse and search CVs.
-              “ATS-safe” formatting means simple headings, no tables/columns, and consistent structure, so parsing is reliable.
+        <div class="steps">
+          <div class="step">
+            <div class="num">1</div>
+            <div>
+              <div style="font-weight:950">Profile setup</div>
+              <div class="note">Upload your CV and set job preferences (titles, location, radius).</div>
             </div>
-          </details>
+          </div>
+
+          <div class="step">
+            <div class="num">2</div>
+            <div>
+              <div style="font-weight:950">CV Studio</div>
+              <div class="note">Paste a job description or pick one from your queue, then tailor your CV.</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="num">3</div>
+            <div>
+              <div style="font-weight:950">Jobs (Germany-only)</div>
+              <div class="note">Queue + prioritize jobs now. Auto-apply will come later.</div>
+            </div>
+          </div>
         </div>
 
-        <!-- Account -->
-        <div class="panel">
-          <div class="panelHead">
-            <h2>Account</h2>
-            <span class="badge warn" id="acctBadge">—</span>
-          </div>
+        <div class="hr"></div>
 
-          <div class="kv">
-            <div class="k">Signed in as</div>
-            <div class="v" id="acctEmail">—</div>
-          </div>
-          <div class="kv">
-            <div class="k">Profile</div>
-            <div class="v" id="acctProfile">—</div>
-          </div>
-          <div class="kv">
-            <div class="k">Plan</div>
-            <div class="v" id="acctPlan">—</div>
-          </div>
-          <div class="kv">
-            <div class="k">Queue (new jobs)</div>
-            <div class="v" id="acctQueue">—</div>
-          </div>
-
-          <div class="ctaRow">
-            <a class="btn" href="./profile.html" data-nav="1" id="btnEditProfile">Edit profile</a>
-            <a class="btn" href="./plan.html" data-nav="1" id="btnChangePlan">Change plan</a>
-          </div>
+        <div class="note">
+          Don’t want to think about plans right now? You can use CV Studio without a plan.
         </div>
-      </div>
+      </aside>
     </section>
 
-    <section class="featureGrid" aria-label="Features">
-      <div class="featureCard">
-        <div class="featureHead">
-          <div>
-            <h3 class="featureTitle">Jobs</h3>
-            <div class="featureDesc">Fetch and review your queue. Prioritize or skip jobs quickly.</div>
-          </div>
-          <span class="badge good">Free</span>
-        </div>
-        <div class="ctaRow" style="margin-top:12px">
-          <a class="btn primary" href="./jobs.html" data-nav="1">Open Jobs</a>
-          <a class="btn ghost" href="./dashboard.html" data-nav="1">Open Dashboard</a>
-        </div>
+    <section class="features">
+      <div class="card">
+        <div class="ftTitle">Profile setup (one-time)</div>
+        <p class="ftText">Get the basics right once: CV upload, preferred titles, location/radius, and contact data.</p>
+        <div class="hr"></div>
+        <a class="btn small" href="./profile.html" data-nav="1">Open Profile setup</a>
       </div>
 
-      <div class="featureCard">
-        <div class="featureHead">
-          <div>
-            <h3 class="featureTitle">CV tailoring</h3>
-            <div class="featureDesc">Tailor your CV per role and keep ATS-safe formatting.</div>
-          </div>
-          <span class="badge good">Free</span>
-        </div>
-        <div class="ctaRow" style="margin-top:12px">
-          <a class="btn" href="./dashboard.html" data-nav="1">Tailor from Dashboard</a>
-          <span class="badge warn">CV Studio coming next</span>
-        </div>
+      <div class="card">
+        <div class="ftTitle">CV Studio (core)</div>
+        <p class="ftText">Generate a tailored CV version for each job and keep it organized (preview + changes).</p>
+        <div class="hr"></div>
+        <a class="btn small primary" href="./cv.html" data-nav="1">Open CV Studio</a>
       </div>
 
-      <div class="featureCard">
-        <div class="featureHead">
-          <div>
-            <h3 class="featureTitle">Auto-apply</h3>
-            <div class="featureDesc">Start automated applications based on your plan and rules.</div>
-          </div>
-          <span class="badge warn">Paid</span>
-        </div>
-        <div class="ctaRow" style="margin-top:12px">
-          <a class="btn primary" href="./plan.html" data-nav="1">View plans</a>
-          <a class="btn ghost" href="./dashboard.html" data-nav="1">See status</a>
-        </div>
+      <div class="card">
+        <div class="ftTitle">Activity log (on demand)</div>
+        <p class="ftText">See what happened: queued, prioritized, skipped, applied, rejected. It’s in the Account menu.</p>
+        <div class="hr"></div>
+        <button class="btn small ghost" id="openActivityInline" type="button">Open Activity log</button>
       </div>
     </section>
-
-    <section class="card howCard">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
-        <div style="font-weight:950">How it works</div>
-        <span class="badge good">Fast</span>
-      </div>
-
-      <div class="stepList">
-        <div class="step">
-          <div class="num">1</div>
-          <div>
-            <div style="font-weight:950">Sign in and set your profile</div>
-            <div class="note">Upload your CV and define titles, locations, and filters. We use this to focus the job search.</div>
-          </div>
-        </div>
-        <div class="step">
-          <div class="num">2</div>
-          <div>
-            <div style="font-weight:950">Search jobs and tailor your CV</div>
-            <div class="note">We extract keywords from job descriptions and adjust your CV wording (truthfully) to match the role.</div>
-          </div>
-        </div>
-        <div class="step">
-          <div class="num">3</div>
-          <div>
-            <div style="font-weight:950">Auto-apply (paid)</div>
-            <div class="note">When you start auto-apply, we run your daily quota based on your plan and keep a clear activity log.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <div class="footer">
-      © jobmejob · Need help? <a href="mailto:team@jobmejob.com">team@jobmejob.com</a>
-    </div>
   </main>
 
-  <!-- Scripts: order matters -->
+  <!-- Activity log modal (Account dropdown) -->
+  <div class="modalBackdrop" id="activityModal" style="display:none">
+    <div class="modalCard">
+      <div class="modalScroll">
+        <div class="modalHeader">
+          <div style="min-width:0">
+            <div class="modalTitle">Activity log</div>
+            <div class="small">Recent actions like queued, prioritized, skipped, applied, rejected.</div>
+          </div>
+          <button class="iconX" id="activityCloseX" type="button" aria-label="Close">✕</button>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <label class="small" for="activityFilter" style="font-weight:950">Filter</label>
+          <select id="activityFilter">
+            <option value="">All</option>
+            <option value="queued">Queued</option>
+            <option value="prioritized">Prioritized</option>
+            <option value="skipped">Skipped</option>
+            <option value="applied">Applied</option>
+            <option value="rejected">Rejected</option>
+          </select>
+          <button class="btn small" id="activityRefresh" type="button">Refresh</button>
+        </div>
+
+        <div class="errorTop" id="activityError" style="margin-top:12px"></div>
+        <div id="activityWrap" style="margin-top:12px"></div>
+      </div>
+
+      <div class="modalActions">
+        <button class="btn ghost" id="activityClose" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="./auth.js"></script>
   <script src="./shared.js"></script>
@@ -362,257 +282,339 @@
   (() => {
     "use strict";
 
-    const S = window.JobMeJobShared || null;
-    if (S && S.wireNavTransitions) S.wireNavTransitions();
-
+    // Prefer shared.js helpers, but keep a minimal fallback so the page is robust.
     const $ = (id) => document.getElementById(id);
+    const S = window.JobMeJobShared || null;
+
+    const F = {
+      escapeHtml: (s) => String(s ?? "")
+        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;").replaceAll("'","&#039;"),
+      showModal: (id) => { const el=$(id); if(!el) return; el.style.display="flex"; document.body.classList.add("modalOpen"); },
+      hideModal: (id) => { const el=$(id); if(!el) return; el.style.display="none"; document.body.classList.remove("modalOpen"); },
+      showTopError: (id, msg) => {
+        const el = $(id || "errorTop");
+        if(!el) return;
+        if(!msg){ el.style.display="none"; el.textContent=""; return; }
+        el.style.display="block"; el.textContent=String(msg);
+      },
+      setBadge: (id, cls, txt) => { const el=$(id); if(!el) return; el.className="badge"+(cls?(" "+cls):""); el.textContent=txt ?? ""; },
+      resolveApiBase: (x) => String(x || "").trim().replace(/\/+$/, ""),
+      go: (url) => { window.location.href = url; }
+    };
+
+    const H = {
+      escapeHtml: (S && S.escapeHtml) ? S.escapeHtml : F.escapeHtml,
+      showModal: (S && S.showModal) ? S.showModal : F.showModal,
+      hideModal: (S && S.hideModal) ? S.hideModal : F.hideModal,
+      showTopError: (S && S.showTopError) ? S.showTopError : F.showTopError,
+      setBadge: (S && S.setBadge) ? S.setBadge : F.setBadge,
+      resolveApiBase: (S && S.resolveApiBase) ? S.resolveApiBase : F.resolveApiBase,
+      go: (S && S.go) ? S.go : F.go
+    };
+
+    // Smooth internal navigation (optional)
+    if(S && S.wireNavTransitions) S.wireNavTransitions();
+
+    const API_BASE = H.resolveApiBase(
+      (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE)
+        ? window.JobApplyAI.config.API_BASE
+        : "https://jobmejob.schoene-viktor.workers.dev"
+    );
+
+    let session = null;
 
     function showError(msg){
-      if (S && S.showTopError) return S.showTopError("errorTop", msg);
-      const el = $("errorTop");
-      if(!el) return;
-      if(!msg){ el.style.display="none"; el.textContent=""; return; }
-      el.style.display="block"; el.textContent = String(msg);
+      H.showTopError("errorTop", msg);
     }
 
-    function setBadge(id, cls, txt){
-      if (S && S.setBadge) return S.setBadge(id, cls, txt);
-      const el = $(id);
-      if(!el) return;
-      el.className = "badge" + (cls ? (" " + cls) : "");
-      el.textContent = txt || "";
+    function setState(kind, text){
+      H.setBadge("stateBadge", kind || "warn", text || "");
     }
 
-    function setText(id, txt){
-      const el = $(id);
-      if(el) el.textContent = (txt === undefined || txt === null) ? "" : String(txt);
+    function setNextBadge(text){
+      const b = $("nextBadge");
+      if(!b) return;
+      if(!text){ b.style.display="none"; b.textContent=""; return; }
+      b.style.display="inline-flex";
+      b.textContent = "Next: " + text;
+      b.className = "badge prio";
     }
 
-    function setPrimary(label, hrefOrFn){
-      const btn = $("btnPrimary");
-      if(!btn) return;
-      btn.disabled = false;
-      btn.textContent = label;
-      btn.onclick = null;
+    function go(url){ H.go(url); }
 
-      if(typeof hrefOrFn === "function"){
-        btn.addEventListener("click", hrefOrFn, { once:true });
-      }else{
-        btn.addEventListener("click", () => {
-          if (S && S.go) S.go(hrefOrFn);
-          else window.location.href = hrefOrFn;
-        }, { once:true });
-      }
-    }
-
-    function setSignedOutUI(){
-      setBadge("homeStatus", "warn", "Not signed in");
-      setBadge("acctBadge", "warn", "Signed out");
-      setText("acctEmail", "—");
-      setText("acctProfile", "—");
-      setText("acctPlan", "—");
-      setText("acctQueue", "—");
-
-      setBadge("nextBadge", "", "Sign in");
-      setText("nextText", "If you are new: sign in → upload CV → pick a plan → start applying.");
-
-      const navLogout = $("navLogout");
-      const navSignIn = $("navSignIn");
-      if(navLogout) navLogout.style.display = "none";
-      if(navSignIn) navSignIn.style.display = "";
-
-      const btn = $("btnPrimary");
-      if(btn){
-        btn.disabled = false;
-        btn.textContent = "Go to sign in";
-        btn.onclick = () => (S && S.go ? S.go("./signup.html") : (window.location.href="./signup.html"));
-      }
-      const sec = $("btnSecondary");
-      if(sec){ sec.textContent = "Open dashboard"; sec.setAttribute("href","./dashboard.html"); }
-    }
-
-    function planLabel(planId){
-      const p = String(planId || "").toLowerCase();
-      if(p === "starter") return "Starter (1/day)";
-      if(p === "pro") return "Growth (5/day)";
-      if(p === "max") return "Max (10/day)";
-      if(!p) return "—";
-      return planId;
-    }
-
-    function computeNext(state){
-      // state fields from /me/state used elsewhere:
-      // - profile_complete, plan_id
-      const profileOk = !!(state && state.profile_complete);
-      const planOk = !!(state && state.plan_id);
-
-      if(!profileOk) return { label:"Continue to Profile", href:"./profile.html", badge:"Profile" };
-      if(!planOk) return { label:"Choose a Plan", href:"./plan.html", badge:"Plan" };
-      return { label:"Open Dashboard", href:"./dashboard.html", badge:"Dashboard" };
-    }
-
-    function localFallbackState(){
-      const prof = (localStorage.getItem("jm_profile_complete") || localStorage.getItem("ja_profile_complete") || "").toLowerCase();
-      const plan = localStorage.getItem("jm_plan") || localStorage.getItem("ja_plan") || "";
-      return {
-        profile_complete: prof === "true",
-        plan_id: plan || null
-      };
-    }
-
-    async function safeGetState(session){
-      // Prefer auth helper (keeps logic consistent with other pages)
+    function cameFromOAuth(){
       try{
-        if(window.JobApplyAI && window.JobApplyAI.auth && typeof window.JobApplyAI.auth.syncStateToLocalStorage === "function"){
-          const st = await window.JobApplyAI.auth.syncStateToLocalStorage(session);
-          if(st) return st;
-        }
-      }catch(_){}
-
-      // Fallback: call /me/state directly
-      try{
-        const apiBase = (S && S.resolveApiBase) ? S.resolveApiBase("https://jobmejob.schoene-viktor.workers.dev") : "https://jobmejob.schoene-viktor.workers.dev";
-        const res = await fetch(apiBase.replace(/\/+$/,"") + "/me/state", {
-          method:"GET",
-          headers:{ Authorization: "Bearer " + session.access_token }
-        });
-        const txt = await res.text().catch(()=> "");
-        const json = txt ? JSON.parse(txt) : null;
-        if(res.ok && json) return json;
-      }catch(_){}
-
-      return localFallbackState();
-    }
-
-    async function safeGetQueueCount(session){
-      try{
-        const apiBase = (S && S.resolveApiBase) ? S.resolveApiBase("https://jobmejob.schoene-viktor.workers.dev") : "https://jobmejob.schoene-viktor.workers.dev";
-        const res = await fetch(apiBase.replace(/\/+$/,"") + "/me/jobs/queue", {
-          method:"GET",
-          headers:{ Authorization: "Bearer " + session.access_token }
-        });
-        const txt = await res.text().catch(()=> "");
-        const json = txt ? JSON.parse(txt) : null;
-        if(!res.ok) return null;
-        const c = (json && typeof json.count === "number") ? json.count : (Array.isArray(json?.data) ? json.data.length : null);
-        return (typeof c === "number") ? c : null;
+        const qs = new URLSearchParams(window.location.search || "");
+        return qs.has("code") || qs.has("access_token") || qs.has("refresh_token") || qs.has("type");
       }catch(_){
-        return null;
+        return false;
       }
     }
 
-    async function boot(){
-      showError("");
-      setBadge("homeStatus", "warn", "Checking…");
-      setBadge("acctBadge", "warn", "Checking…");
-      setText("acctEmail", "—");
-
-      // Always stop the “Checking…” state after a short time (never hang)
-      let safetyTimer = setTimeout(() => {
-        // only update if still checking
-        const hs = $("homeStatus");
-        if(hs && hs.textContent.includes("Checking")){
-          setBadge("homeStatus","warn","Offline / retry");
-          setBadge("acctBadge","warn","—");
-          setBadge("nextBadge","", "Sign in");
-          setText("nextText","Could not load account status. You can still continue.");
-          const btn = $("btnPrimary");
-          if(btn){
-            btn.disabled = false;
-            btn.textContent = "Go to sign in";
-            btn.onclick = () => (S && S.go ? S.go("./signup.html") : (window.location.href="./signup.html"));
+    async function routeNext(sess){
+      // Prefer backend truth
+      try{
+        if (window.JobApplyAI?.auth?.syncStateToLocalStorage) {
+          const st = await window.JobApplyAI.auth.syncStateToLocalStorage(sess);
+          if(st){
+            if(!st.profile_complete) return go("./profile.html");
+            return go("./cv.html");
           }
         }
-      }, 4500);
+      }catch(_){}
 
-      // Require auth.js to be present (it is already working on signup)
+      // Fallback to local flags
+      const prof = localStorage.getItem("jm_profile_complete") || localStorage.getItem("ja_profile_complete");
+      if(prof !== "true") return go("./profile.html");
+      return go("./cv.html");
+    }
+
+    /* -------------------------
+       Activity log (modal)
+       ------------------------- */
+
+    function setHtml(id, html){
+      const el = $(id);
+      if(el) el.innerHTML = html;
+    }
+
+    function fmtWhen(ts){
+      try{
+        if(!ts) return "—";
+        const d = new Date(ts);
+        if(!Number.isFinite(d.getTime())) return String(ts);
+        return d.toLocaleString();
+      }catch(_){
+        return String(ts || "—");
+      }
+    }
+
+    function badgeForEventType(t){
+      const x = String(t || "").toLowerCase();
+      if(x === "applied") return { cls:"good", label:"Applied" };
+      if(x === "rejected") return { cls:"bad", label:"Rejected" };
+      if(x === "skipped") return { cls:"warn", label:"Skipped" };
+      if(x === "prioritized") return { cls:"prio", label:"Prioritized" };
+      if(x === "queued") return { cls:"warn", label:"Queued" };
+      return { cls:"", label: (t || "Event") };
+    }
+
+    function renderActivityList(items, kind){
+      if(!items || !items.length) return '<div class="modalMonoBox">No activity yet.</div>';
+
+      const html = items.map((it) => {
+        const company = it.company || it.company_name || it.employer || "—";
+        const title = it.title || it.job_title || it.role || "—";
+        const loc = it.location || it.job_location || "—";
+        const when = it.created_at || it.inserted_at || it.updated_at || it.applied_at || it.event_time || "";
+        const et = (kind === "events") ? (it.event_type || it.type || it.status) : (it.status || it.state || "application");
+        const b = badgeForEventType(et);
+
+        const meta = it.source || it.platform || it.board || it.job_board || "";
+        const titleHtml = H.escapeHtml(title);
+
+        return (
+          '<div class="activityItem">'
+            + '<div class="activityTop">'
+              + '<div class="activityTitle">' + titleHtml + '</div>'
+              + '<span class="badge ' + H.escapeHtml(b.cls) + '">' + H.escapeHtml(b.label) + '</span>'
+            + '</div>'
+            + '<div class="activityMeta">'
+              + '<span>' + H.escapeHtml(company) + '</span>'
+              + '<span>•</span>'
+              + '<span>' + H.escapeHtml(loc) + '</span>'
+              + '<span>•</span>'
+              + '<span>' + H.escapeHtml(fmtWhen(when)) + '</span>'
+              + (meta ? ('<span class="mono">• ' + H.escapeHtml(meta) + '</span>') : '')
+            + '</div>'
+          + '</div>'
+        );
+      }).join("");
+
+      return '<div class="activityList">' + html + '</div>';
+    }
+
+    async function loadActivityLog(){
+      H.showTopError("activityError", "");
+      setHtml("activityWrap", '<div class="modalMonoBox">Loading…</div>');
+
+      const token = session && session.access_token ? String(session.access_token) : "";
+      if(!token){
+        H.showTopError("activityError", "You are signed out. Please sign in again.");
+        setHtml("activityWrap", "");
+        return;
+      }
+
+      const et = String($("activityFilter")?.value || "").trim();
+      const headers = { Authorization: "Bearer " + token };
+
+      // 1) Try timeline endpoint first
+      try{
+        let url = API_BASE + "/me/application-events?limit=20";
+        if(et) url += "&event_type=" + encodeURIComponent(et);
+
+        const res = await fetch(url, { method:"GET", headers });
+        const text = await res.text().catch(() => "");
+        let json = null;
+        try{ json = JSON.parse(text); }catch{ json = { raw: text }; }
+
+        if(!res.ok){
+          const msg = (json && (json.error || json.message)) ? String(json.error || json.message) : (text || ("HTTP " + res.status));
+          throw new Error(msg);
+        }
+
+        const items = Array.isArray(json?.data) ? json.data : [];
+        setHtml("activityWrap", renderActivityList(items, "events"));
+        return;
+      }catch(_){
+        // fallback below
+      }
+
+      // 2) Fallback: applications list
+      try{
+        const map = { queued:"new", prioritized:"new", applied:"applied", rejected:"rejected", skipped:"skipped", sent:"applied" };
+        let url = API_BASE + "/me/applications?limit=20";
+        if(et && map[et]) url += "&status=" + encodeURIComponent(map[et]);
+
+        const res = await fetch(url, { method:"GET", headers });
+        const text = await res.text().catch(() => "");
+        let json = null;
+        try{ json = JSON.parse(text); }catch{ json = { raw: text }; }
+
+        if(!res.ok){
+          const msg = (json && (json.error || json.message)) ? String(json.error || json.message) : (text || ("HTTP " + res.status));
+          throw new Error(msg);
+        }
+
+        const items = Array.isArray(json?.data) ? json.data : [];
+        setHtml("activityWrap", renderActivityList(items, "applications"));
+      }catch(e){
+        H.showTopError("activityError", e?.message || String(e));
+        setHtml("activityWrap", '<span class="badge bad">Activity failed</span>');
+      }
+    }
+
+    function openActivityModal(){
+      const dd = $("navAccount");
+      if(dd) dd.open = false;
+      H.showModal("activityModal");
+      loadActivityLog().catch((e) => H.showTopError("activityError", e?.message || String(e)));
+    }
+
+    function closeActivityModal(){
+      H.hideModal("activityModal");
+      H.showTopError("activityError", "");
+    }
+
+    /* -------------------------
+       Auth UI
+       ------------------------- */
+
+    function setAccountLabel(email){
+      const el = $("navAccountLabel");
+      if(!el) return;
+      const short = (email && String(email).includes("@")) ? String(email).split("@")[0] : "Account";
+      el.textContent = short || "Account";
+    }
+
+    async function refreshUi(){
+      showError("");
+
+      // Require auth.js
       if(!window.JobApplyAI || !window.JobApplyAI.auth || typeof window.JobApplyAI.auth.getSession !== "function"){
-        clearTimeout(safetyTimer);
-        setBadge("homeStatus","bad","Config error");
+        setState("bad", "Config error");
         showError("auth.js did not load. Ensure multipage/auth.js exists and is referenced as ./auth.js.");
         return;
       }
 
-      // Session
-      const session = await window.JobApplyAI.auth.getSession();
-      if(!session || !session.user || !session.user.email){
-        clearTimeout(safetyTimer);
-        setSignedOutUI();
+      session = await window.JobApplyAI.auth.getSession();
+
+      const navAcct = $("navAccount");
+      const navSignIn = $("navSignIn");
+
+      if(session && session.user && session.user.email){
+        setState("good", "Signed in");
+        if(navSignIn) navSignIn.style.display = "none";
+        if(navAcct) navAcct.style.display = "block";
+
+        setAccountLabel(session.user.email);
+
+        // Determine next step (don’t overwhelm; keep it simple)
+        let next = null;
+
+        try{
+          if (window.JobApplyAI?.auth?.syncStateToLocalStorage) {
+            const st = await window.JobApplyAI.auth.syncStateToLocalStorage(session);
+            if(st){
+              next = st.profile_complete ? { label:"CV Studio", url:"./cv.html" } : { label:"Profile setup", url:"./profile.html" };
+            }
+          }
+        }catch(_){}
+
+        if(!next){
+          const prof = localStorage.getItem("jm_profile_complete") || localStorage.getItem("ja_profile_complete");
+          next = (prof === "true")
+            ? { label:"CV Studio", url:"./cv.html" }
+            : { label:"Profile setup", url:"./profile.html" };
+        }
+
+        setNextBadge(next.label);
+
+        // Primary CTA becomes "Continue to ..."
+        const p = $("primaryCta");
+        if(p){
+          p.textContent = "Continue to " + next.label;
+          p.onclick = () => go(next.url);
+        }
+
+        // If we just came back from OAuth, continue automatically (keeps flow crisp)
+        if(cameFromOAuth()){
+          try{ history.replaceState({}, document.title, window.location.pathname); }catch(_){}
+          return routeNext(session);
+        }
+
         return;
       }
 
-      // Signed in UI (immediate)
-      const email = String(session.user.email);
-      setBadge("homeStatus","good","Signed in");
-      setBadge("acctBadge","good","Active");
-      setText("acctEmail", email);
+      // Signed out
+      setState("warn", "Signed out");
+      setNextBadge("");
+      if(navSignIn) navSignIn.style.display = "inline-flex";
+      if(navAcct) navAcct.style.display = "none";
 
-      const navLogout = $("navLogout");
-      const navSignIn = $("navSignIn");
-      if(navLogout) navLogout.style.display = "";
-      if(navSignIn) navSignIn.style.display = "none";
-
-      // Make sure customer exists (non-blocking, but helps downstream calls)
-      try{
-        if(typeof window.JobApplyAI.auth.requireAuthAndCustomer === "function"){
-          await window.JobApplyAI.auth.requireAuthAndCustomer({ redirectTo: "./signup.html" });
-        }
-      }catch(_){}
-
-      // Load state + queue in parallel (non-blocking)
-      const statePromise = safeGetState(session);
-      const queuePromise = safeGetQueueCount(session);
-
-      const [state, qCount] = await Promise.all([statePromise, queuePromise]);
-
-      // State -> account and next step
-      const next = computeNext(state);
-      setBadge("nextBadge","", next.badge);
-      setText("nextText", next.badge === "Profile"
-        ? "Upload your CV and set preferences so we can find the right jobs."
-        : (next.badge === "Plan"
-          ? "Pick a plan to unlock auto-apply. (Job search + CV tailoring stay free.)"
-          : "Everything is set. Review jobs, tailor CVs, and track progress."
-        )
-      );
-      setPrimary(next.label, next.href);
-
-      // Account details
-      setText("acctProfile", (state && state.profile_complete) ? "Complete" : "Needs setup");
-      setText("acctPlan", (state && state.plan_id) ? planLabel(state.plan_id) : "Not selected");
-      setText("acctQueue", (typeof qCount === "number") ? String(qCount) : "—");
-
-      clearTimeout(safetyTimer);
+      const p = $("primaryCta");
+      if(p){
+        p.textContent = "Continue with Google";
+        p.onclick = async () => {
+          try{
+            const redirectTo = window.location.href.split("#")[0];
+            await window.JobApplyAI.auth.loginWithGoogle(redirectTo);
+          }catch(e){
+            showError(e?.message || String(e));
+          }
+        };
+      }
     }
 
-    // Logout button (works even if page did not fully load)
+    // Wire nav menu buttons
     $("navLogout")?.addEventListener("click", async () => {
       try{
-        if(window.JobApplyAI && window.JobApplyAI.auth && typeof window.JobApplyAI.auth.logout === "function"){
-          await window.JobApplyAI.auth.logout("./index.html");
-          return;
-        }
+        await window.JobApplyAI.auth.logout("./index.html");
       }catch(_){}
-      // fallback
-      try{
-        if(window.supabaseClient && window.supabaseClient.auth) await window.supabaseClient.auth.signOut();
-      }catch(_){}
-      window.location.href = "./index.html";
     });
 
-    window.addEventListener("load", () => {
-      boot().catch((e) => {
-        setBadge("homeStatus","bad","Error");
-        showError(e && e.message ? e.message : String(e));
-        // still allow sign in
-        const btn = $("btnPrimary");
-        if(btn){
-          btn.disabled = false;
-          btn.textContent = "Go to sign in";
-          btn.onclick = () => (S && S.go ? S.go("./signup.html") : (window.location.href="./signup.html"));
-        }
-      });
-    });
+    // Activity modal wiring
+    $("navActivity")?.addEventListener("click", openActivityModal);
+    $("openActivityInline")?.addEventListener("click", openActivityModal);
+    $("activityCloseX")?.addEventListener("click", closeActivityModal);
+    $("activityClose")?.addEventListener("click", closeActivityModal);
+    $("activityModal")?.addEventListener("click", (e) => { if(e.target && e.target.id === "activityModal") closeActivityModal(); });
+    $("activityRefresh")?.addEventListener("click", () => loadActivityLog().catch(()=>{}));
+    $("activityFilter")?.addEventListener("change", () => loadActivityLog().catch(()=>{}));
+
+    // Boot
+    refreshUi().catch((e) => showError(e?.message || String(e)));
   })();
   </script>
 </body>
