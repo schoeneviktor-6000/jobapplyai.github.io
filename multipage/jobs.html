@@ -1,117 +1,161 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>jobmejob • Jobs</title>
-  <meta name="description" content="Fetch jobs into your queue and tailor your CV per role." />
+  <meta name="description" content="Fetch and review your job queue, then open a job in CV Studio."/>
 
-  <link rel="stylesheet" href="./shared.css" />
+  <!-- Shared styles -->
+  <link rel="stylesheet" href="./shared.css"/>
 
   <style>
-    /* Jobs page: keep it calm + focused */
-    .topRow{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:12px;
-      flex-wrap:wrap;
+    /* =========================================================
+       Jobs (page-only styles)
+       ========================================================= */
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.35fr .65fr;
+      gap:14px;
+      align-items:start;
     }
-    .small{
-      font-size:12px;
-      color:var(--muted2);
-      font-weight:650;
-      line-height:1.45;
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
     }
 
-    .toolbar{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      justify-content:flex-end;
-    }
-
-    .filterRow{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      margin-top:12px;
-    }
-    .filterRow input{
-      flex:1 1 260px;
-      min-width:220px;
-    }
-
-    .jobList{
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-      margin-top:12px;
-    }
-    .jobCard{
-      border:1px solid rgba(17,19,24,.12);
-      background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.82));
-      border-radius:18px;
+    .sectionHeader{
       padding:14px;
-      box-shadow:0 12px 34px rgba(17,19,24,.08);
+      border-bottom:1px solid rgba(17,19,24,.10);
+      background:rgba(255,255,255,.88);
+      backdrop-filter:saturate(1.2) blur(10px);
     }
-    .jobTop{
+    .sectionBody{ padding:14px; }
+
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+    .small{ font-size:12px; color:rgba(17,19,24,.56); font-weight:700; line-height:1.45; }
+    .mono{
+      font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      font-size:12px;
+      word-break:break-word;
+      color:rgba(17,19,24,.64);
+    }
+
+    .list{ display:flex; flex-direction:column; gap:12px; }
+    .listGrid{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px; }
+    @media (max-width: 980px){
+      .listGrid{ grid-template-columns: 1fr; }
+    }
+
+    .item{
+      border:1px solid rgba(17,19,24,.12);
+      background:rgba(255,255,255,.78);
+      border-radius:16px;
+      padding:14px;
+      box-shadow: 0 14px 30px rgba(17,19,24,.07);
+    }
+
+    .itemTop{
       display:flex;
-      align-items:flex-start;
       justify-content:space-between;
       gap:10px;
+      align-items:flex-start;
     }
-    .jobTitle{
-      font-weight:950;
-      line-height:1.2;
-      font-size:15px;
-      min-width:0;
-    }
-    .jobTitle a{
-      color:inherit;
-      text-decoration:underline;
-      text-decoration-color:rgba(17,19,24,.22);
-      text-underline-offset:3px;
-    }
-    .jobBadges{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-      flex:0 0 auto;
-    }
-    .jobMeta{
-      margin-top:8px;
+    .itemTitle{ font-weight:950; line-height:1.2; }
+    .itemMeta{
+      margin-top:6px;
       display:flex;
       flex-wrap:wrap;
       gap:8px;
-      color:var(--muted2);
+      color:rgba(17,19,24,.56);
       font-size:12px;
       font-weight:750;
     }
-    .jobActions{
+    .badgeGroup{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+
+    .itemActions{
       margin-top:10px;
       display:flex;
       gap:10px;
       flex-wrap:wrap;
-      align-items:center;
     }
-    .jobActions .btn{
-      flex:1 1 auto;
-      justify-content:center;
+    .itemActions .btn{ flex: 1 1 auto; justify-content:center; }
+
+    .skeleton{
+      border-radius:12px;
+      height:12px;
+      background:linear-gradient(90deg, rgba(17,19,24,.10), rgba(17,19,24,.04), rgba(17,19,24,.10));
+      background-size:200% 100%;
+      animation:shimmer 1.2s linear infinite;
+    }
+    .skeleton.block{ height:140px; border-radius:16px; }
+    @keyframes shimmer{
+      0%{ background-position:200% 0 }
+      100%{ background-position:-200% 0 }
     }
 
-    @media (max-width:620px){
-      .jobActions{flex-direction:column; align-items:stretch;}
-      .jobActions .btn{width:100%;}
+    details.advanced{
+      margin-top:10px;
+      border:1px solid rgba(17,19,24,.10);
+      border-radius:16px;
+      background:rgba(17,19,24,.03);
+      padding:10px 12px;
+    }
+    details.advanced summary{
+      cursor:pointer;
+      font-weight:900;
+      color:rgba(17,19,24,.80);
+      list-style:none;
+    }
+    details.advanced summary::-webkit-details-marker{ display:none }
+
+    .toggleRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 0;
+      border-top:1px solid rgba(17,19,24,.10);
+      margin-top:8px;
+    }
+    .toggleRow:first-of-type{ border-top:0; margin-top:0; }
+
+    .switch{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      font-weight:850;
+      font-size:13px;
+      color:rgba(17,19,24,.78);
+      user-select:none;
+    }
+    .switch input{ width:18px; height:18px; }
+
+    /* Activity list (modal) */
+    .activityList{ display:flex; flex-direction:column; gap:10px; }
+    .activityItem{
+      border:1px solid rgba(17,19,24,.10);
+      background:rgba(17,19,24,.03);
+      border-radius:14px;
+      padding:10px 12px;
+    }
+    .activityTop{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+    .activityTitle{ font-weight:950; }
+    .activityMeta{ margin-top:6px; display:flex; flex-wrap:wrap; gap:8px; color:rgba(17,19,24,.60); font-size:12px; font-weight:750; }
+
+    .iconX{
+      border:1px solid rgba(17,19,24,.12);
+      background:rgba(17,19,24,.04);
+      border-radius:999px;
+      padding:7px 10px;
+      font-weight:950;
+      cursor:pointer;
     }
   </style>
 </head>
 
 <body>
-  <!-- NAV (same structure as cv.html) -->
   <header class="topbar">
     <nav class="nav">
       <a class="brand" href="./index.html" data-nav="1" aria-label="Home">
@@ -138,6 +182,7 @@
 
             <div class="menuSep" role="separator"></div>
             <div class="menuLabel">More</div>
+            <a class="pill" href="./dashboard.html" data-nav="1" role="menuitem">Dashboard</a>
             <span class="pill menuDisabled" role="menuitem" aria-disabled="true">Auto-apply (coming soon)</span>
 
             <div class="menuSep" role="separator"></div>
@@ -151,114 +196,138 @@
   </header>
 
   <main class="main">
-    <h1 class="h1">Jobs</h1>
-    <p class="sub">Fetch jobs into your queue → then tailor your CV in CV Studio.</p>
+    <div class="row" style="align-items:flex-end; justify-content:space-between">
+      <div>
+        <h1 class="h1">Jobs</h1>
+        <p class="sub">Fetch jobs into your queue, then open any job in CV Studio to tailor your CV.</p>
+      </div>
+      <span class="badge warn" id="authBadge">Checking…</span>
+    </div>
 
     <div class="errorTop" id="errorTop"></div>
 
-    <section class="card">
-      <div class="topRow">
-        <div>
-          <div class="badge warn" id="authBadge">Checking…</div>
-          <div class="small" id="authHint" style="margin-top:8px">Loading your session…</div>
+    <section class="grid">
+      <!-- LEFT: Queue -->
+      <section class="card cardNoPad">
+        <div class="sectionHeader">
+          <div class="row" style="justify-content:space-between">
+            <div style="min-width:220px">
+              <div style="font-weight:950">Your queue</div>
+              <div class="small" id="queueHint">We show up to 16 jobs here. Use “Tailor in CV Studio” to continue.</div>
+            </div>
+
+            <div class="row" style="justify-content:flex-end">
+              <span class="badge" id="badgeQueue">—</span>
+              <button class="btn primary" id="btnFetchJobsNow" type="button">Fetch new jobs</button>
+              <button class="btn" id="btnRefresh" type="button">Refresh</button>
+            </div>
+          </div>
+
+          <div class="small" id="fetchMeta" style="margin-top:8px"></div>
         </div>
 
-        <div class="toolbar">
-          <button class="btn primary" id="btnFetch" type="button" disabled>Fetch new jobs</button>
-          <button class="btn ghost" id="btnRefresh" type="button" disabled>Refresh queue</button>
-          <a class="btn" href="./cv.html" data-nav="1">Open CV Studio</a>
+        <div class="sectionBody">
+          <div class="small" id="fetchJobsStatus"></div>
+
+          <details class="advanced" id="fetchAdvanced">
+            <summary>Fetch options</summary>
+
+            <div class="toggleRow">
+              <label class="switch">
+                <input id="toggleAiOnly" type="checkbox"/>
+                AI titles only
+              </label>
+              <span class="badge" id="badgeAi">—</span>
+            </div>
+            <div class="small" id="aiSwitchHint" style="display:none">Generate AI suggestions in Profile to unlock this.</div>
+            <div class="small">If enabled, we use your AI-recommended role titles (from Profile) to fetch jobs. Otherwise we fetch based on your profile settings.</div>
+          </details>
+
+          <div class="hr"></div>
+
+          <div id="queueWrap"><div class="skeleton block"></div></div>
+          <div id="queueError"></div>
         </div>
-      </div>
+      </section>
 
-      <div class="hr"></div>
-
-      <div class="topRow">
-        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-          <div class="badge" id="queueBadge">Queue: —</div>
-          <div class="badge" id="fetchMeta">Last fetch: —</div>
-        </div>
-        <div class="small" id="fetchStatus"></div>
-      </div>
-
-      <div class="filterRow">
-        <input id="filterInput" type="text" placeholder="Filter by title or company…" />
-        <select id="sortSelect">
-          <option value="newest">Sort: newest first</option>
-          <option value="oldest">Sort: oldest first</option>
-          <option value="company">Sort: company</option>
-          <option value="title">Sort: title</option>
-        </select>
-      </div>
-
-      <div class="jobList" id="queueWrap" aria-label="Job queue">
-        <span class="badge warn">Loading…</span>
-      </div>
-    </section>
-  </main>
-
-  <!-- ========= Activity Log Modal (from dropdown) ========= -->
-  <div class="modalBackdrop" id="activityModal" style="display:none">
-    <div class="modalCard" style="max-width:980px">
-      <div class="modalScroll">
-        <div class="modalHeader">
-          <h3 class="modalTitle">Activity log</h3>
-          <button class="btn ghost small" id="activityCloseX" type="button">Close</button>
-        </div>
-
+      <!-- RIGHT: How to use -->
+      <aside class="card">
+        <div style="font-weight:950">Simple flow</div>
         <div class="small" style="margin-top:6px">
-          This log is loaded on demand. Use filters if you have a lot of events.
-        </div>
-
-        <div class="errorTop" id="activityError" style="margin-top:12px;"></div>
-
-        <div class="actions" style="margin-top:10px">
-          <select id="activityFilter" style="min-width:220px">
-            <option value="all">All</option>
-            <option value="applied">Applied</option>
-            <option value="sent">Sent</option>
-            <option value="replied">Replied</option>
-            <option value="rejected">Rejected</option>
-            <option value="skipped">Skipped</option>
-            <option value="prioritized">Prioritized</option>
-          </select>
-          <button class="btn" id="activityRefresh" type="button">Refresh</button>
+          1) Make sure your <b>Profile</b> is complete (CV uploaded + preferences).<br/>
+          2) Click <b>Fetch new jobs</b> to fill your queue.<br/>
+          3) Pick a job and open it in <b>CV Studio</b>.
         </div>
 
         <div class="hr"></div>
-        <div id="activityWrap" class="modalMonoBox">Loading…</div>
-      </div>
 
+        <div class="row" style="justify-content:flex-start">
+          <a class="btn" href="./cv.html" data-nav="1">Open CV Studio</a>
+          <a class="btn ghost" href="./profile.html" data-nav="1">Open Profile</a>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="small" id="onboardingHint">Checking your account…</div>
+      </aside>
+    </section>
+  </main>
+
+  <!-- Job description modal -->
+  <div class="modalBackdrop" id="descModal" style="display:none">
+    <div class="modalCard">
+      <div class="modalScroll">
+        <div class="modalHeader">
+          <div style="min-width:0">
+            <div class="modalTitle" id="descTitle">Job description</div>
+            <div class="small" id="descMeta"></div>
+          </div>
+          <button class="iconX" id="descCloseX" type="button" aria-label="Close">✕</button>
+        </div>
+
+        <div class="modalMonoBox" id="descBody" style="margin-top:12px">Loading…</div>
+      </div>
       <div class="modalActions">
-        <button class="btn" id="activityClose" type="button">Close</button>
+        <button class="btn ghost" id="descCopy" type="button">Copy</button>
+        <button class="btn" id="descClose" type="button">Close</button>
       </div>
     </div>
   </div>
 
-  <!-- ========= Skip Modal ========= -->
+  <!-- Skip modal -->
   <div class="modalBackdrop" id="skipModal" style="display:none">
     <div class="modalCard" style="max-width:720px">
       <div class="modalScroll">
         <div class="modalHeader">
-          <h3 class="modalTitle">Skip this job</h3>
-          <button class="btn ghost small" id="skipCloseX" type="button">Close</button>
+          <div class="modalTitle">Skip job</div>
+          <button class="iconX" id="skipCloseX" type="button" aria-label="Close">✕</button>
         </div>
 
-        <div class="field" style="margin-top:12px">
-          <label for="skipReason">Reason</label>
-          <select id="skipReason">
-            <option value="not_relevant">Not relevant</option>
-            <option value="too_far">Too far</option>
-            <option value="wrong_industry">Wrong industry</option>
-            <option value="salary_too_low">Salary too low</option>
-            <option value="already_applied">Already applied</option>
-            <option value="other">Other</option>
-          </select>
+        <div class="small" style="margin-top:10px">
+          Skipped jobs won’t be shown in your queue. You can still see what happened in the Activity log.
         </div>
 
-        <div class="field">
-          <label for="skipNote">Note</label>
-          <textarea id="skipNote" placeholder="Optional note…"></textarea>
+        <div class="row" style="margin-top:12px">
+          <div style="flex:1 1 260px">
+            <label for="skipReason" class="small" style="display:block;margin-bottom:6px">Reason</label>
+            <select id="skipReason" style="width:100%">
+              <option value="not_relevant">Not relevant</option>
+              <option value="location">Wrong location</option>
+              <option value="seniority">Wrong seniority</option>
+              <option value="salary">Salary mismatch</option>
+              <option value="tech_stack">Tech stack mismatch</option>
+              <option value="visa">Visa / work permit</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div style="flex:1 1 260px">
+            <label for="skipNote" class="small" style="display:block;margin-bottom:6px">Note (optional)</label>
+            <input id="skipNote" type="text" placeholder="Short note (optional)" style="width:100%"/>
+          </div>
         </div>
+
+        <div class="small" id="skipGuardrail" style="display:none; margin-top:10px"></div>
       </div>
 
       <div class="modalActions">
@@ -268,28 +337,48 @@
     </div>
   </div>
 
-  <!-- ========= Description Modal ========= -->
-  <div class="modalBackdrop" id="descModal" style="display:none">
-    <div class="modalCard" style="max-width:980px">
+  <!-- Activity log modal (Account dropdown) -->
+  <div class="modalBackdrop" id="activityModal" style="display:none">
+    <div class="modalCard">
       <div class="modalScroll">
         <div class="modalHeader">
-          <h3 class="modalTitle" id="descTitle">Job description</h3>
-          <button class="btn ghost small" id="descCloseX" type="button">Close</button>
+          <div style="min-width:0">
+            <div class="modalTitle">Activity log</div>
+            <div class="small">Recent actions like queued, prioritized, skipped, applied, rejected.</div>
+          </div>
+          <button class="iconX" id="activityCloseX" type="button" aria-label="Close">✕</button>
         </div>
 
-        <div class="small" id="descMeta" style="margin-top:6px"></div>
-        <div class="hr"></div>
-        <div id="descBody" class="modalMonoBox">Loading…</div>
+        <div class="row" style="margin-top:12px; justify-content:space-between">
+          <div class="row" style="gap:10px">
+            <label class="small" for="activityFilter">Filter</label>
+            <select id="activityFilter">
+              <option value="">All</option>
+              <option value="queued">Queued</option>
+              <option value="prioritized">Prioritized</option>
+              <option value="skipped">Skipped</option>
+              <option value="applied">Applied</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+          <button class="btn" id="activityRefresh" type="button">Refresh</button>
+        </div>
+
+        <div class="errorTop" id="activityError"></div>
+
+        <div id="activityWrap" style="margin-top:10px">
+          <div class="modalMonoBox">Loading…</div>
+        </div>
       </div>
 
       <div class="modalActions">
-        <button class="btn ghost" id="descClose" type="button">Close</button>
-        <button class="btn" id="descCopy" type="button">Copy</button>
+        <a class="btn ghost" href="./cv.html" data-nav="1">Open CV Studio</a>
+        <button class="btn" id="activityClose" type="button">Close</button>
       </div>
     </div>
   </div>
 
-  <!-- Scripts (order matters) -->
+  <!-- Scripts: order matters -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="./auth.js"></script>
   <script src="./shared.js"></script>
@@ -300,25 +389,37 @@
 
     const S = window.JobMeJobShared || null;
 
-    // Safe fallbacks (so one missing helper doesn't break the whole page)
+    // Fallbacks (so one missing helper doesn't break the whole page)
     const F = {
       escapeHtml: (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])),
-      showModal: (id) => { const el = document.getElementById(id); if(el) { el.style.display="flex"; document.body.classList.add("modalOpen"); } },
-      hideModal: (id) => { const el = document.getElementById(id); if(el) { el.style.display="none"; document.body.classList.remove("modalOpen"); } },
-      showTopError: (id, msg) => { const el = document.getElementById(id); if(el){ el.textContent = msg||""; el.style.display = msg ? "" : "none"; } },
-      setBadge: (id, cls, txt) => { const el = document.getElementById(id); if(!el) return; el.className = "badge" + (cls ? (" " + cls) : ""); el.textContent = txt ?? ""; },
-      resolveApiBase: (x) => String(x || "").trim(),
-      wireNavTransitions: () => {}
+      showModal: (id) => { const el = document.getElementById(id); if(el) el.style.display = "flex"; document.body.classList.add("modalOpen"); },
+      hideModal: (id) => { const el = document.getElementById(id); if(el) el.style.display = "none"; document.body.classList.remove("modalOpen"); },
+      showTopError: (id, msg) => {
+        const el = document.getElementById(id);
+        if(!el) return;
+        if(!msg){ el.style.display = "none"; el.textContent = ""; return; }
+        el.style.display = "block";
+        el.textContent = String(msg);
+      },
+      setBadge: (id, cls, txt) => {
+        const el = document.getElementById(id);
+        if(!el) return;
+        el.className = "badge" + (cls ? (" " + cls) : "");
+        el.textContent = txt ?? "";
+      },
+      resolveApiBase: (x) => String(x || "").trim().replace(/\/+$/, ""),
+      go: (url) => { window.location.href = url; }
     };
 
     const H = {
-      escapeHtml: S?.escapeHtml ? S.escapeHtml : F.escapeHtml,
-      showModal: S?.showModal ? S.showModal : F.showModal,
-      hideModal: S?.hideModal ? S.hideModal : F.hideModal,
-      showTopError: S?.showTopError ? S.showTopError : F.showTopError,
-      setBadge: S?.setBadge ? S.setBadge : F.setBadge,
-      resolveApiBase: S?.resolveApiBase ? S.resolveApiBase : F.resolveApiBase,
-      wireNavTransitions: S?.wireNavTransitions ? S.wireNavTransitions.bind(S) : F.wireNavTransitions
+      escapeHtml: (S && S.escapeHtml) ? S.escapeHtml : F.escapeHtml,
+      showModal: (S && S.showModal) ? S.showModal : F.showModal,
+      hideModal: (S && S.hideModal) ? S.hideModal : F.hideModal,
+      showTopError: (S && S.showTopError) ? S.showTopError : F.showTopError,
+      setBadge: (S && S.setBadge) ? S.setBadge : F.setBadge,
+      resolveApiBase: (S && S.resolveApiBase) ? S.resolveApiBase : F.resolveApiBase,
+      wireNavTransitions: (S && S.wireNavTransitions) ? S.wireNavTransitions.bind(S) : (() => {}),
+      go: (S && S.go) ? S.go.bind(S) : F.go
     };
 
     H.wireNavTransitions();
@@ -326,70 +427,44 @@
     const $ = (id) => document.getElementById(id);
 
     const API_BASE = H.resolveApiBase("https://jobmejob.schoene-viktor.workers.dev").replace(/\/+$/, "");
-    const FETCH_COOLDOWN_MS = 10 * 60 * 1000;
 
     let session = null;
-    let queueJobs = [];
-    let pendingSkipJobId = null;
-    let pendingDescJobId = null;
+    let lastSessionToken = "";
+
+    let lastQueueResponse = null;
+    let currentQueueCount = 0;
+    let currentPlanDaily = 0;
+
+    let pendingDescJobId = "";
     let currentDescText = "";
 
-    function showError(msg){ H.showTopError("errorTop", msg || ""); }
+    let pendingSkipJobId = "";
+
+    // AI titles cached from backend
+    let aiTitles = [];
+
+    // CV summaries for ATS badge (best-effort)
+    const tailorSummaryMap = new Map();
 
     function setText(id, txt){
       const el = $(id);
       if(el) el.textContent = (txt === undefined || txt === null) ? "" : String(txt);
     }
-
-    function applyUrlSafe(url){
-      const u = String(url || "").trim();
-      if (!u) return "";
-      if (/^https?:\/\//i.test(u)) return u;
-      return "https://" + u.replace(/^\/+/, "");
+    function setHtml(id, html){
+      const el = $(id);
+      if(el) el.innerHTML = html || "";
     }
 
-    function formatLoc(j){
-      const parts = [];
-      if (j?.city) parts.push(j.city);
-      if (j?.region && j.region !== j.city) parts.push(j.region);
-      if (j?.country) parts.push(j.country);
-      return parts.filter(Boolean).join(", ");
-    }
+    function showError(msg){ H.showTopError("errorTop", msg); }
 
-    function getNextFetchAllowedAt(){
-      const v = Number(localStorage.getItem("jm_last_manual_fetch_ts") || "0");
-      return v ? (v + FETCH_COOLDOWN_MS) : 0;
-    }
-
-    function updateFetchMetaUI(){
-      const lastTs = Number(localStorage.getItem("jm_last_manual_fetch_ts") || "0");
-      if(!lastTs){
-        H.setBadge("fetchMeta","", "Last fetch: —");
-        return;
-      }
-      const last = new Date(lastTs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      const next = lastTs + FETCH_COOLDOWN_MS;
-      const now = Date.now();
-      if(now < next){
-        const sec = Math.ceil((next-now)/1000);
-        const min = Math.floor(sec/60);
-        const s = sec % 60;
-        H.setBadge("fetchMeta","warn", "Last fetch: " + last + " · Next: " + min + ":" + String(s).padStart(2,"0"));
-      }else{
-        H.setBadge("fetchMeta","good", "Last fetch: " + last + " · Ready");
-      }
-    }
-
-    function authHeaders(){
-      const token = session?.access_token || "";
-      return token ? { Authorization: "Bearer " + token } : {};
-    }
-
-    async function apiGet(path){
-      const res = await fetch(API_BASE + path, { method:"GET", headers: authHeaders() });
-      const text = await res.text().catch(()=> "");
+    async function apiGet(path, accessToken){
+      const res = await fetch(API_BASE + path, {
+        method: "GET",
+        headers: { Authorization: "Bearer " + accessToken }
+      });
+      const text = await res.text().catch(() => "");
       let json = null;
-      try{ json = text ? JSON.parse(text) : {}; }catch{ json = { raw: text }; }
+      try{ json = JSON.parse(text); }catch{ json = { raw: text }; }
       if(!res.ok){
         const msg = (json && (json.error || json.message)) ? String(json.error || json.message) : (text || ("HTTP " + res.status));
         throw new Error(msg);
@@ -397,15 +472,18 @@
       return json;
     }
 
-    async function apiPost(path, body){
+    async function apiPost(path, accessToken, body){
       const res = await fetch(API_BASE + path, {
-        method:"POST",
-        headers: { ...authHeaders(), "content-type":"application/json" },
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + accessToken,
+          "content-type": "application/json"
+        },
         body: JSON.stringify(body || {})
       });
-      const text = await res.text().catch(()=> "");
+      const text = await res.text().catch(() => "");
       let json = null;
-      try{ json = text ? JSON.parse(text) : {}; }catch{ json = { raw: text }; }
+      try{ json = JSON.parse(text); }catch{ json = { raw: text }; }
       if(!res.ok){
         const msg = (json && (json.error || json.message)) ? String(json.error || json.message) : (text || ("HTTP " + res.status));
         throw new Error(msg);
@@ -413,130 +491,229 @@
       return json;
     }
 
-    function sortJobs(list, mode){
-      const arr = [...list];
-      const s = String(mode || "newest");
-      const byStr = (a,b, k) => String(a?.[k]||"").localeCompare(String(b?.[k]||""), undefined, { sensitivity:"base" });
-
-      if(s === "company"){ arr.sort((a,b)=>byStr(a,b,"company_name")); return arr; }
-      if(s === "title"){ arr.sort((a,b)=>byStr(a,b,"title")); return arr; }
-      if(s === "oldest"){
-        arr.sort((a,b)=>String(a?.created_at||"").localeCompare(String(b?.created_at||"")));
-        return arr;
-      }
-      // newest
-      arr.sort((a,b)=>String(b?.created_at||"").localeCompare(String(a?.created_at||"")));
-      return arr;
+    function planFromState(planId){
+      const pid = String(planId || "").trim().toLowerCase();
+      if(pid === "starter") return { id:"starter", name:"Starter", daily:1, short:"Starter (1/day)" };
+      if(pid === "pro") return { id:"pro", name:"Growth", daily:5, short:"Growth (5/day)" };
+      if(pid === "max") return { id:"max", name:"Max", daily:10, short:"Max (10/day)" };
+      return { id:null, name:"No plan", daily:0, short:"No plan" };
     }
 
-    function renderQueue(){
+    function normalizeKeywordList(x){
+      if(!x) return [];
+      if(Array.isArray(x)) return x.map(v => String(v || "").trim()).filter(Boolean);
+      if(typeof x === "string"){
+        const s = x.trim();
+        if(!s) return [];
+        try{
+          const j = JSON.parse(s);
+          if(Array.isArray(j)) return j.map(v => String(v || "").trim()).filter(Boolean);
+        }catch(_){ }
+        return s.split(/[\n,;]+/).map(t => t.trim()).filter(Boolean);
+      }
+      return [];
+    }
+
+    function computeAtsMatchPercent(used, missing){
+      const u = normalizeKeywordList(used);
+      const m = normalizeKeywordList(missing);
+      const denom = u.length + m.length;
+      if(denom <= 0) return null;
+      return Math.round((u.length / denom) * 100);
+    }
+
+    async function loadTailorSummariesForJobs(jobIds){
+      tailorSummaryMap.clear();
+
+      const ids = Array.isArray(jobIds) ? jobIds : [];
+      const uniq = [...new Set(ids.map(x => String(x || "").trim()).filter(Boolean))];
+      if(!uniq.length) return;
+
+      const chunkSize = 40;
+      for(let i = 0; i < uniq.length; i += chunkSize){
+        const chunk = uniq.slice(i, i + chunkSize);
+        try{
+          const qs = "job_ids=" + encodeURIComponent(chunk.join(","));
+          const res = await apiGet("/me/cv/tailored?" + qs, lastSessionToken);
+          const rows = (res && Array.isArray(res.data)) ? res.data : [];
+          for(const row of rows){
+            if(row && row.job_id) tailorSummaryMap.set(String(row.job_id), row);
+          }
+        }catch(err){
+          // best-effort only
+          return;
+        }
+      }
+    }
+
+    function isSingleColumn(){
+      return window.matchMedia && window.matchMedia("(max-width: 980px)").matches;
+    }
+
+    function daysAgo(ts){
+      if(!ts) return null;
+      let d = new Date(ts);
+      if(Number.isNaN(d.getTime())){
+        const m = String(ts).match(/^(\d{4}-\d{2}-\d{2})/);
+        if(!m) return null;
+        d = new Date(m[1] + "T00:00:00Z");
+        if(Number.isNaN(d.getTime())) return null;
+      }
+      const diffMs = Date.now() - d.getTime();
+      const days = Math.floor(diffMs / 86400000);
+      return days < 0 ? 0 : days;
+    }
+
+    function goToCvStudio(jobId){
+      try{ localStorage.setItem("cvstudio_job_source", "queue"); }catch(_){ }
+      try{ localStorage.setItem("cvstudio_selected_job_id", String(jobId)); }catch(_){ }
+      H.go("./cv.html");
+    }
+
+    function renderQueueCards(queue){
+      const items = Array.isArray(queue?.data) ? queue.data : (Array.isArray(queue?.jobs) ? queue.jobs : []);
+      if(!items.length){
+        return (
+          '<div class="item">'
+          + '<div class="itemTitle">No jobs in your queue yet</div>'
+          + '<div class="itemMeta"><span>Tip:</span><span>Click “Fetch new jobs” after completing your profile.</span></div>'
+          + '<div class="itemActions" style="margin-top:12px">'
+            + '<a class="btn" href="./profile.html" data-nav="1">Open Profile</a>'
+            + '<button class="btn primary" id="btnFetchInline" type="button">Fetch now</button>'
+          + '</div>'
+          + '</div>'
+        );
+      }
+
+      const wrapClass = isSingleColumn() ? "list" : "listGrid";
+
+      const html = items.slice(0, 16).map((j) => {
+        const jobId = j.id ? String(j.id) : "";
+        const title = String(j.title || "Untitled");
+        const company = String(j.company_name || "—");
+        const loc = [j.city || "", j.region || ""].filter(Boolean).join(", ") || "—";
+        const posted = j.posted_at ? String(j.posted_at).slice(0, 10) : "—";
+        const link = j.apply_url ? String(j.apply_url) : "";
+
+        const prio = !!(j._application && j._application.priority);
+        const prioBadge = prio ? "<span class='badge prio'>prio</span>" : "<span class='badge'>new</span>";
+
+        const tSum = tailorSummaryMap.get(String(jobId));
+        let atsBadge = "";
+        if(tSum){
+          const pct = computeAtsMatchPercent(tSum.ats_keywords_used, tSum.ats_keywords_missing);
+          if(pct !== null){
+            const cls = (pct >= 80) ? "good" : (pct >= 60 ? "warn" : "bad");
+            atsBadge = "<span class='badge " + H.escapeHtml(cls) + "'>ATS " + H.escapeHtml(pct) + "%</span>";
+          }else{
+            atsBadge = "<span class='badge'>tailored</span>";
+          }
+        }
+
+        const badge = "<div class='badgeGroup'>" + prioBadge + atsBadge + "</div>";
+
+        const updatedDays = daysAgo(j.source_modified_at);
+        const updatedLabel = (updatedDays === null)
+          ? "Updated —"
+          : (updatedDays === 0 ? "Updated today" : ("Updated " + updatedDays + "d ago"));
+
+        const titleHtml = link
+          ? ('<a href="' + H.escapeHtml(link) + '" target="_blank" rel="noopener">' + H.escapeHtml(title) + "</a>")
+          : H.escapeHtml(title);
+
+        const prioBtn = prio
+          ? "<button class='btn small ghost' type='button' data-unprio='" + H.escapeHtml(jobId) + "'>Unprio</button>"
+          : "<button class='btn small' type='button' data-prio='" + H.escapeHtml(jobId) + "'>Prio</button>";
+
+        return (
+          '<div class="item">'
+            + '<div class="itemTop">'
+              + '<div class="itemTitle">' + titleHtml + '</div>'
+              + badge
+            + '</div>'
+            + '<div class="itemMeta">'
+              + '<span>' + H.escapeHtml(company) + '</span><span>•</span>'
+              + '<span>' + H.escapeHtml(loc) + '</span><span>•</span>'
+              + '<span>Posted ' + H.escapeHtml(posted) + '</span>'
+              + (updatedLabel ? ('<span>•</span><span>' + H.escapeHtml(updatedLabel) + '</span>') : '')
+            + '</div>'
+            + '<div class="itemActions">'
+              + prioBtn
+              + '<button class="btn small" type="button" data-tailor="' + H.escapeHtml(jobId) + '">Tailor in CV Studio</button>'
+              + '<button class="btn small ghost" type="button" data-desc="' + H.escapeHtml(jobId) + '">Description</button>'
+              + '<button class="btn small danger" type="button" data-skip="' + H.escapeHtml(jobId) + '">Skip</button>'
+            + '</div>'
+          + '</div>'
+        );
+      }).join("");
+
+      return '<div class="' + wrapClass + '">' + html + '</div>';
+    }
+
+    function wireQueueClicks(){
       const wrap = $("queueWrap");
       if(!wrap) return;
 
-      const q = String($("filterInput")?.value || "").trim().toLowerCase();
-      const sortMode = $("sortSelect")?.value || "newest";
+      wrap.addEventListener("click", async (e) => {
+        // Inline fetch CTA inside empty state
+        const inlineFetch = e.target && e.target.id === "btnFetchInline";
+        if(inlineFetch){
+          const b = $("btnFetchJobsNow");
+          if(b) b.click();
+          return;
+        }
 
-      let items = Array.isArray(queueJobs) ? queueJobs : [];
-      if(q){
-        items = items.filter(j => {
-          const t = String(j?.title || "").toLowerCase();
-          const c = String(j?.company_name || "").toLowerCase();
-          return t.includes(q) || c.includes(q);
-        });
-      }
+        const skip = e.target.closest("button[data-skip]");
+        if(skip){
+          const jobId = skip.getAttribute("data-skip") || "";
+          if(jobId) openSkipModal(jobId);
+          return;
+        }
 
-      items = sortJobs(items, sortMode);
+        const desc = e.target.closest("button[data-desc]");
+        if(desc){
+          const jobId = desc.getAttribute("data-desc") || "";
+          if(jobId) openDescModal(jobId);
+          return;
+        }
 
-      H.setBadge("queueBadge", items.length ? "good" : "warn", "Queue: " + items.length);
+        const tl = e.target.closest("button[data-tailor]");
+        if(tl){
+          const jobId = tl.getAttribute("data-tailor") || "";
+          if(jobId) goToCvStudio(jobId);
+          return;
+        }
 
-      if(!items.length){
-        wrap.innerHTML = '<span class="badge warn">No jobs found</span>';
-        return;
-      }
+        const pr = e.target.closest("button[data-prio]");
+        if(pr){
+          const jobId = pr.getAttribute("data-prio") || "";
+          if(!jobId) return;
+          try{
+            await apiPost("/me/applications/prioritize", lastSessionToken, { job_id: jobId });
+            await refreshQueue();
+          }catch(err){
+            showError(err?.message || String(err));
+          }
+          return;
+        }
 
-      wrap.innerHTML = items.slice(0, 60).map(j => {
-        const id = String(j?.id || "");
-        const title = j?.title ? String(j.title) : "Untitled";
-        const company = j?.company_name ? String(j.company_name) : "—";
-        const loc = formatLoc(j) || "—";
-        const posted = j?.posted_at ? String(j.posted_at).slice(0,10) : "—";
-        const apply = applyUrlSafe(j?.apply_url || "");
-        const prio = !!(j?._application && j._application.priority);
-
-        const titleHtml = apply
-          ? '<a href="'+H.escapeHtml(apply)+'" target="_blank" rel="noopener">'+H.escapeHtml(title)+'</a>'
-          : H.escapeHtml(title);
-
-        const prioBadge = prio ? '<span class="badge prio">prio</span>' : '<span class="badge">new</span>';
-
-        return (
-          '<div class="jobCard">' +
-            '<div class="jobTop">' +
-              '<div class="jobTitle">' + titleHtml + '</div>' +
-              '<div class="jobBadges">' + prioBadge + '</div>' +
-            '</div>' +
-
-            '<div class="jobMeta">' +
-              '<span>' + H.escapeHtml(company) + '</span>' +
-              '<span>•</span><span>' + H.escapeHtml(loc) + '</span>' +
-              '<span>•</span><span>Posted ' + H.escapeHtml(posted) + '</span>' +
-            '</div>' +
-
-            '<div class="jobActions">' +
-              '<a class="btn small primary" href="./cv.html?job_id=' + encodeURIComponent(id) + '" data-nav="1">Tailor in CV Studio</a>' +
-              '<button class="btn small ghost" type="button" data-desc="'+H.escapeHtml(id)+'">Description</button>' +
-              (prio
-                ? '<button class="btn small ghost" type="button" data-unprio="'+H.escapeHtml(id)+'">Unprio</button>'
-                : '<button class="btn small" type="button" data-prio="'+H.escapeHtml(id)+'">Prio</button>'
-              ) +
-              '<button class="btn small danger" type="button" data-skip="'+H.escapeHtml(id)+'">Skip</button>' +
-            '</div>' +
-          '</div>'
-        );
-      }).join("");
+        const un = e.target.closest("button[data-unprio]");
+        if(un){
+          const jobId = un.getAttribute("data-unprio") || "";
+          if(!jobId) return;
+          try{
+            await apiPost("/me/applications/unprioritize", lastSessionToken, { job_id: jobId });
+            await refreshQueue();
+          }catch(err){
+            showError(err?.message || String(err));
+          }
+        }
+      });
     }
 
-    async function loadQueue(){
-      setText("fetchStatus", "");
-      const wrap = $("queueWrap");
-      if(wrap) wrap.innerHTML = '<span class="badge warn">Loading…</span>';
-
-      const resp = await apiGet("/me/jobs/queue");
-      const items = Array.isArray(resp?.data) ? resp.data : (Array.isArray(resp?.jobs) ? resp.jobs : []);
-      queueJobs = items || [];
-      renderQueue();
-    }
-
-    function openSkipModal(jobId){
-      pendingSkipJobId = jobId;
-      $("skipReason").value = "not_relevant";
-      $("skipNote").value = "";
-      H.showModal("skipModal");
-    }
-    function closeSkipModal(){
-      pendingSkipJobId = null;
-      H.hideModal("skipModal");
-    }
-
-    async function submitSkip(){
-      if(!pendingSkipJobId) return;
-      const reason_code = $("skipReason").value || "not_relevant";
-      const reason_note = String($("skipNote").value || "").trim();
-
-      try{
-        await apiPost("/me/applications/skip", {
-          job_id: pendingSkipJobId,
-          reason_code,
-          reason_note
-        });
-        closeSkipModal();
-        await loadQueue();
-      }catch(e){
-        closeSkipModal();
-        showError(e?.message || String(e));
-      }
-    }
-
+    /* -------------------------
+       Description modal
+       ------------------------- */
     function openDescModal(jobId){
       pendingDescJobId = jobId;
       currentDescText = "";
@@ -544,38 +721,36 @@
       setText("descMeta", "");
       setText("descBody", "Loading…");
       H.showModal("descModal");
-      loadDesc(jobId).catch(()=>{});
+      loadDesc(jobId).catch((e) => {
+        setText("descBody", "Failed to load description: " + (e?.message || String(e)));
+      });
     }
+
     function closeDescModal(){
-      pendingDescJobId = null;
+      pendingDescJobId = "";
       H.hideModal("descModal");
     }
 
     async function loadDesc(jobId){
-      try{
-        const resp = await apiGet("/me/jobs/description?job_id=" + encodeURIComponent(jobId));
-        const job = resp && resp.job ? resp.job : null;
+      const resp = await apiGet("/me/jobs/description?job_id=" + encodeURIComponent(jobId), lastSessionToken);
+      const job = resp && resp.job ? resp.job : null;
+      const title = (job && job.title) ? String(job.title) : "Job description";
+      const company = (job && job.company_name) ? String(job.company_name) : "";
+      const source = (job && job.description_full_source) ? String(job.description_full_source) : "";
+      const fetchedAt = (job && job.description_full_fetched_at) ? String(job.description_full_fetched_at) : "";
 
-        const title = (job && job.title) ? String(job.title) : "Job description";
-        const company = (job && job.company_name) ? String(job.company_name) : "";
-        const source = (job && job.description_full_source) ? String(job.description_full_source) : "";
-        const fetchedAt = (job && job.description_full_fetched_at) ? String(job.description_full_fetched_at) : "";
+      setText("descTitle", title);
+      setText("descMeta", [company ? ("Company: " + company) : "", source ? ("Source: " + source) : "", fetchedAt ? ("Fetched: " + fetchedAt) : ""].filter(Boolean).join(" · "));
 
-        setText("descTitle", title);
-        setText("descMeta", [company ? ("Company: " + company) : "", source ? ("Source: " + source) : "", fetchedAt ? ("Fetched: " + fetchedAt) : ""].filter(Boolean).join(" · "));
+      const text = (job && job.description_full) ? String(job.description_full) : "";
+      currentDescText = text;
 
-        const text = (job && job.description_full) ? String(job.description_full) : "";
-        currentDescText = text;
-
-        if(text){
-          setText("descBody", text);
-        }else if(job && job.description_full_error){
-          setText("descBody", "No description yet. Last error: " + job.description_full_error);
-        }else{
-          setText("descBody", "No description found.");
-        }
-      }catch(e){
-        setText("descBody", "Failed to load description: " + (e?.message || String(e)));
+      if(text){
+        setText("descBody", text);
+      }else if(job && job.description_full_error){
+        setText("descBody", "No description yet. Last error: " + String(job.description_full_error));
+      }else{
+        setText("descBody", "No description found.");
       }
     }
 
@@ -590,147 +765,379 @@
       }
     }
 
-    async function prioritize(jobId){
-      await apiPost("/me/applications/prioritize", { job_id: jobId });
-      await loadQueue();
-    }
-    async function unprioritize(jobId){
-      await apiPost("/me/applications/unprioritize", { job_id: jobId });
-      await loadQueue();
+    /* -------------------------
+       Skip modal
+       ------------------------- */
+    function openSkipModal(jobId){
+      pendingSkipJobId = jobId;
+      const reason = $("skipReason");
+      const note = $("skipNote");
+      const guard = $("skipGuardrail");
+      if(reason) reason.value = "not_relevant";
+      if(note) note.value = "";
+      if(guard){ guard.style.display = "none"; guard.textContent = ""; }
+      H.showModal("skipModal");
     }
 
-    async function manualFetchJobs(){
-      const btn = $("btnFetch");
-      const next = getNextFetchAllowedAt();
-      const now = Date.now();
-      if(next && now < next){
-        const sec = Math.ceil((next-now)/1000);
-        setText("fetchStatus", "Please wait " + sec + "s before fetching again.");
-        updateFetchMetaUI();
+    function closeSkipModal(){
+      pendingSkipJobId = "";
+      H.hideModal("skipModal");
+    }
+
+    async function submitSkip(){
+      if(!pendingSkipJobId) return;
+
+      // Guardrail (soft): avoid emptying the queue too hard if a plan is active
+      const minSupply = Math.max(5, currentPlanDaily * 3);
+      if(currentPlanDaily > 0 && currentQueueCount <= minSupply){
+        const el = $("skipGuardrail");
+        if(el){
+          el.style.display = "block";
+          el.style.color = "rgba(184,107,0,.95)";
+          el.textContent = "Skipping is limited because your queue is getting low. Fetch more jobs or broaden your titles / radius.";
+        }
+        closeSkipModal();
         return;
       }
 
-      try{
-        showError("");
-        if(btn){ btn.disabled = true; btn.textContent = "Fetching…"; }
-        setText("fetchStatus", "Fetching…");
+      const reason_code = String($("skipReason")?.value || "not_relevant");
+      const reason_note = String($("skipNote")?.value || "").trim();
 
-        // start cooldown immediately (prevents double clicks)
-        localStorage.setItem("jm_last_manual_fetch_ts", String(Date.now()));
+      try{
+        await apiPost("/me/applications/skip", lastSessionToken, {
+          job_id: pendingSkipJobId,
+          reason_code,
+          reason_note
+        });
+        closeSkipModal();
+        await refreshQueue();
+      }catch(e){
+        closeSkipModal();
+        showError(e?.message || String(e));
+      }
+    }
+
+    /* -------------------------
+       Fetch new jobs
+       ------------------------- */
+    const FETCH_COOLDOWN_MS = 10 * 60 * 1000;
+
+    function getNextFetchAllowedAt(){
+      try{
+        const raw = localStorage.getItem("jm_last_manual_fetch_ts") || "";
+        const v = Number(raw || "0");
+        if(!v || !Number.isFinite(v)) return 0;
+        return v + FETCH_COOLDOWN_MS;
+      }catch(_){
+        return 0;
+      }
+    }
+
+    function updateFetchMetaUI(){
+      const meta = $("fetchMeta");
+      if(!meta) return;
+      try{
+        const raw = localStorage.getItem("jm_last_manual_fetch_ts") || "";
+        const lastTs = Number(raw || "0");
+        if(!lastTs){
+          meta.textContent = "Tip: fetch jobs after your Profile is complete.";
+          return;
+        }
+        const last = new Date(lastTs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        const next = lastTs + FETCH_COOLDOWN_MS;
+        const now = Date.now();
+
+        if(now < next){
+          const sec = Math.ceil((next - now) / 1000);
+          const min = Math.floor(sec / 60);
+          const s = sec % 60;
+          meta.textContent = "Last fetch: " + last + " · Next fetch in " + min + ":" + String(s).padStart(2, "0");
+        }else{
+          meta.textContent = "Last fetch: " + last + " · You can fetch again now";
+        }
+      }catch(_){
+        meta.textContent = "";
+      }
+    }
+
+    function getAiTitlesForFetch(){
+      const out = [];
+      const seen = new Set();
+
+      const push = (t) => {
+        const s = String(t || "").trim();
+        if(!s) return;
+        const k = s.toLowerCase();
+        if(seen.has(k)) return;
+        seen.add(k);
+        out.push(s);
+      };
+
+      // Prefer server
+      if(Array.isArray(aiTitles)){
+        for(const t of aiTitles) push(t);
+      }
+
+      // Fallback: cached
+      if(!out.length){
+        try{
+          const raw = localStorage.getItem("jm_ai_titles_server") || localStorage.getItem("ja_ai_titles_server") || "[]";
+          const arr = JSON.parse(raw);
+          if(Array.isArray(arr)) for(const t of arr) push(t);
+        }catch(_){ }
+      }
+
+      return out;
+    }
+
+    function updateAiSwitchState(){
+      const toggle = $("toggleAiOnly");
+      const hint = $("aiSwitchHint");
+      const badge = $("badgeAi");
+
+      const titles = getAiTitlesForFetch();
+      const available = titles.length > 0;
+
+      if(toggle){
+        toggle.disabled = !available;
+        if(!available) toggle.checked = false;
+      }
+
+      if(hint) hint.style.display = available ? "none" : "block";
+      if(badge) H.setBadge("badgeAi", available ? "good" : "warn", available ? (titles.length + " titles") : "Locked");
+    }
+
+    async function manualFetchJobs(){
+      const btn = $("btnFetchJobsNow");
+      const status = $("fetchJobsStatus");
+      const toggle = $("toggleAiOnly");
+
+      const setState = (loading, msg) => {
+        if(btn){
+          btn.disabled = !!loading;
+          btn.textContent = loading ? "Fetching…" : "Fetch new jobs";
+        }
+        if(status) status.textContent = msg || "";
+      };
+
+      try{
+        const next = getNextFetchAllowedAt();
+        if(next && Date.now() < next){
+          const sec = Math.ceil((next - Date.now()) / 1000);
+          setState(false, "Please wait " + sec + "s before fetching again.");
+          updateFetchMetaUI();
+          return;
+        }
+
+        if(!lastSessionToken){
+          throw new Error("No session token. Please sign in again.");
+        }
+
+        // Start cooldown immediately (avoid double-click spamming)
+        try{ localStorage.setItem("jm_last_manual_fetch_ts", String(Date.now())); }catch(_){ }
         updateFetchMetaUI();
 
-        const resp = await apiPost("/me/jobs/fetch", { fetch_mode: "profile" });
+        const aiOnly = !!(toggle && toggle.checked);
+        const titles = aiOnly ? getAiTitlesForFetch() : [];
+
+        setState(true, aiOnly ? "Fetching (AI titles only)…" : "Fetching…");
+
+        const resp = await apiPost("/me/jobs/fetch", lastSessionToken, {
+          include_ai_titles: aiOnly,
+          ai_titles: titles,
+          fetch_mode: aiOnly ? "ai_only" : "profile"
+        });
 
         if(resp && resp.skipped){
           if(resp.reason === "queue_full"){
-            setText("fetchStatus", "Skipped: queue is full (" + resp.queue_new_count + " new jobs).");
+            setState(false, "Skipped: queue has " + resp.queue_new_count + " new jobs (cap " + resp.max_queue_new + ").");
           }else{
-            setText("fetchStatus", "Skipped: " + String(resp.reason || "unknown"));
+            setState(false, "Skipped: " + String(resp.reason || ""));
           }
-        }else{
-          const added = (typeof resp?.jobs_added === "number") ? resp.jobs_added : 0;
-          const q = (typeof resp?.queue_new_count === "number") ? resp.queue_new_count : "—";
-          setText("fetchStatus", "Added " + added + " · Queue new: " + q);
+          await refreshQueue();
+          return;
         }
 
-        await loadQueue();
+        const added = (typeof resp.jobs_added === "number") ? resp.jobs_added : 0;
+        const q = (typeof resp.queue_new_count === "number") ? resp.queue_new_count : "—";
+        const rad = (resp.used_radius !== undefined && resp.used_radius !== null) ? resp.used_radius : "—";
+        const ml = (resp.match_level !== undefined && resp.match_level !== null) ? resp.match_level : "—";
+
+        setState(false, "Added " + added + " · Queue new: " + q + " · Radius " + rad + "km · Match " + ml);
+
+        await refreshQueue();
       }catch(e){
-        showError(e?.message || String(e));
-        setText("fetchStatus", "Fetch failed.");
+        setState(false, e?.message || "Fetch failed");
+        showError(e?.message || "Fetch failed");
       }finally{
-        if(btn){ btn.disabled = false; btn.textContent = "Fetch new jobs"; }
         updateFetchMetaUI();
       }
     }
 
-    /* =========================
-       Activity log (same logic as cv.html)
-       ========================= */
-    function eventBadge(t){
-      const x = String(t||"").toLowerCase();
-      if(x==="applied"||x==="sent"||x==="replied") return {cls:"good", label:x};
-      if(x==="rejected") return {cls:"bad", label:x};
-      if(x==="skipped") return {cls:"warn", label:x};
-      if(x==="prioritized") return {cls:"prio", label:"prio"};
-      if(x==="unprioritized") return {cls:"", label:"unprio"};
-      if(x==="queued") return {cls:"", label:"queued"};
-      if(x==="unskipped") return {cls:"", label:"undo"};
-      return {cls:"", label:x||"event"};
+    /* -------------------------
+       Refresh queue
+       ------------------------- */
+    async function refreshQueue(){
+      showError("");
+      setHtml("queueError", "");
+      setHtml("queueWrap", '<div class="skeleton block"></div>');
+
+      const queue = await apiGet("/me/jobs/queue", lastSessionToken);
+      lastQueueResponse = queue;
+
+      const qCount = (typeof queue.count === "number") ? queue.count : (Array.isArray(queue.data) ? queue.data.length : 0);
+      currentQueueCount = qCount;
+
+      H.setBadge("badgeQueue", qCount > 0 ? "good" : "warn", (qCount > 0 ? (qCount + " jobs") : "Empty"));
+
+      // Tailor summaries (ATS badge) - best effort
+      try{
+        const ids = Array.isArray(queue.data) ? queue.data.map(j => j && j.id).filter(Boolean) : [];
+        await loadTailorSummariesForJobs(ids);
+      }catch(_){ }
+
+      setHtml("queueWrap", renderQueueCards(queue));
+
+      // Wire inline fetch if queue is empty (after we re-render)
+      // (No-op if the element doesn't exist)
+      updateFetchMetaUI();
+
+      return queue;
     }
 
-    function renderActivityList(items, mode){
-      if(!items || !items.length) return '<span class="badge warn">No events yet</span>';
+    /* -------------------------
+       Nav: Activity log modal
+       ------------------------- */
+    function activityBadge(type){
+      const t = String(type || "").toLowerCase();
+      if(t === "applied") return { cls:"good", label:"Applied" };
+      if(t === "sent") return { cls:"good", label:"Sent" };
+      if(t === "rejected") return { cls:"bad", label:"Rejected" };
+      if(t === "skipped") return { cls:"warn", label:"Skipped" };
+      if(t === "prioritized") return { cls:"prio", label:"Prioritized" };
+      if(t === "queued") return { cls:"warn", label:"Queued" };
+      if(t === "new") return { cls:"warn", label:"New" };
+      return { cls:"", label:(type || "Event") };
+    }
 
-      const rows = items.slice(0, 50).map(ev => {
-        const type = (ev.event_type || ev.type || ev.status || "");
-        const b = eventBadge(type);
-        const when = (ev.created_at || ev.at || ev.timestamp || ev.updated_at || "");
-        const w = when ? String(when).replace("T"," ").slice(0,16) : "—";
+    function fmtWhen(ts){
+      try{
+        if(!ts) return "—";
+        const d = new Date(ts);
+        if(Number.isNaN(d.getTime())) return String(ts);
+        return d.toLocaleString();
+      }catch(_){
+        return String(ts || "—");
+      }
+    }
 
-        // job fields can be nested in event.job, or directly on event
-        const job = ev.job || ev;
-        const title = job?.title ? String(job.title) : "—";
-        const company = job?.company_name ? String(job.company_name) : "";
-        const note = ev.reason_note || ev.note || "";
+    function renderActivityList(items, kind){
+      const arr = Array.isArray(items) ? items : [];
+      if(!arr.length){
+        return '<span class="badge warn">No activity yet</span>';
+      }
+
+      const html = arr.slice(0, 20).map((row) => {
+        const evType = kind === "applications" ? String(row.status || "new") : String(row.event_type || "");
+        const b = activityBadge(evType);
+
+        const job = (row && row.job) ? row.job : {};
+        const title = String(job.title || "Untitled");
+        const company = String(job.company_name || job.company || "—");
+        const loc = [job.city || "", job.region || ""].filter(Boolean).join(", ") || "—";
+        const when = kind === "applications" ? (row.updated_at || row.created_at) : row.created_at;
+        const link = job.apply_url ? String(job.apply_url) : "";
+
+        const titleHtml = link
+          ? ('<a href="' + H.escapeHtml(link) + '" target="_blank" rel="noopener">' + H.escapeHtml(title) + "</a>")
+          : H.escapeHtml(title);
+
+        let meta = "";
+        try{
+          if(kind !== "applications" && row.meta && typeof row.meta === "object"){
+            if(row.meta.channel) meta = "via " + String(row.meta.channel);
+            if(row.meta.reason_code) meta = meta ? (meta + " • reason: " + String(row.meta.reason_code)) : ("reason: " + String(row.meta.reason_code));
+          }
+        }catch(_){ }
 
         return (
-          '<div style="display:flex;gap:10px;align-items:flex-start;justify-content:space-between; padding:10px 0; border-top:1px solid rgba(17,19,24,.10)">' +
-            '<div style="min-width:0">' +
-              '<div style="font-weight:900">' + H.escapeHtml(title) + (company ? (' <span class="small">· ' + H.escapeHtml(company) + '</span>') : "") + '</div>' +
-              (note ? ('<div class="small" style="margin-top:4px">' + H.escapeHtml(note) + '</div>') : '') +
-              '<div class="small" style="margin-top:4px">' + H.escapeHtml(w) + '</div>' +
-            '</div>' +
-            '<span class="badge ' + H.escapeHtml(b.cls) + '">' + H.escapeHtml(b.label) + '</span>' +
-          '</div>'
+          '<div class="activityItem">'
+            + '<div class="activityTop">'
+              + '<div class="activityTitle">' + titleHtml + '</div>'
+              + '<span class="badge ' + H.escapeHtml(b.cls) + '">' + H.escapeHtml(b.label) + '</span>'
+            + '</div>'
+            + '<div class="activityMeta">'
+              + '<span>' + H.escapeHtml(company) + '</span>'
+              + '<span>•</span>'
+              + '<span>' + H.escapeHtml(loc) + '</span>'
+              + '<span>•</span>'
+              + '<span>' + H.escapeHtml(fmtWhen(when)) + '</span>'
+              + (meta ? ('<span class="mono">• ' + H.escapeHtml(meta) + '</span>') : '')
+            + '</div>'
+          + '</div>'
         );
       }).join("");
 
-      return '<div style="border-top:1px solid rgba(17,19,24,.10)">' + rows + '</div>';
+      return '<div class="activityList">' + html + '</div>';
     }
 
     async function loadActivityLog(){
       H.showTopError("activityError", "");
-      const wrap = $("activityWrap");
-      if(wrap) wrap.innerHTML = "Loading…";
+      setHtml("activityWrap", '<div class="modalMonoBox">Loading…</div>');
 
-      const et = String($("activityFilter")?.value || "all").trim().toLowerCase();
-      const headers = { ...authHeaders() };
+      const token = session && session.access_token ? String(session.access_token) : "";
+      if(!token){
+        H.showTopError("activityError", "You are signed out. Please sign in again.");
+        setHtml("activityWrap", "");
+        return;
+      }
 
-      // 1) Try /me/activity first
+      const et = String($("activityFilter")?.value || "").trim();
+      const headers = { Authorization: "Bearer " + token };
+
+      // 1) Try timeline endpoint first
       try{
-        let url = API_BASE + "/me/activity?limit=30";
-        if(et && et !== "all") url += "&event_type=" + encodeURIComponent(et);
+        let url = API_BASE + "/me/application-events?limit=20";
+        if(et) url += "&event_type=" + encodeURIComponent(et);
 
         const res = await fetch(url, { method:"GET", headers });
-        const text = await res.text().catch(()=> "");
+        const text = await res.text().catch(() => "");
         let json = null;
-        try{ json = text ? JSON.parse(text) : {}; }catch{ json = { raw: text }; }
+        try{ json = JSON.parse(text); }catch{ json = { raw: text }; }
 
-        if(!res.ok) throw new Error((json && (json.error || json.message)) ? String(json.error || json.message) : (text || ("HTTP " + res.status)));
+        if(!res.ok){
+          const msg = (json && (json.error || json.message)) ? String(json.error || json.message) : (text || ("HTTP " + res.status));
+          throw new Error(msg);
+        }
 
         const items = Array.isArray(json?.data) ? json.data : [];
-        if(wrap) wrap.innerHTML = renderActivityList(items, "events");
+        setHtml("activityWrap", renderActivityList(items, "events"));
         return;
-      }catch(_){ /* fallback */ }
+      }catch(_){
+        // fallback below
+      }
 
-      // 2) Fallback: /me/applications
+      // 2) Fallback: applications list
       try{
         const map = { queued:"new", prioritized:"new", applied:"applied", rejected:"rejected", skipped:"skipped", sent:"applied" };
         let url = API_BASE + "/me/applications?limit=20";
         if(et && map[et]) url += "&status=" + encodeURIComponent(map[et]);
 
         const res = await fetch(url, { method:"GET", headers });
-        const text = await res.text().catch(()=> "");
+        const text = await res.text().catch(() => "");
         let json = null;
-        try{ json = text ? JSON.parse(text) : {}; }catch{ json = { raw: text }; }
+        try{ json = JSON.parse(text); }catch{ json = { raw: text }; }
 
-        if(!res.ok) throw new Error((json && (json.error || json.message)) ? String(json.error || json.message) : (text || ("HTTP " + res.status)));
+        if(!res.ok){
+          const msg = (json && (json.error || json.message)) ? String(json.error || json.message) : (text || ("HTTP " + res.status));
+          throw new Error(msg);
+        }
 
         const items = Array.isArray(json?.data) ? json.data : [];
-        if(wrap) wrap.innerHTML = renderActivityList(items, "applications");
+        setHtml("activityWrap", renderActivityList(items, "applications"));
       }catch(e){
         H.showTopError("activityError", e?.message || String(e));
-        if(wrap) wrap.innerHTML = '<span class="badge bad">Activity failed</span>';
+        setHtml("activityWrap", '<span class="badge bad">Activity failed</span>');
       }
     }
 
@@ -738,107 +1145,125 @@
       const dd = $("navAccount");
       if(dd) dd.open = false;
       H.showModal("activityModal");
-      loadActivityLog().catch((e)=>H.showTopError("activityError", e?.message || String(e)));
+      loadActivityLog().catch((e) => H.showTopError("activityError", e?.message || String(e)));
     }
+
     function closeActivityModal(){
       H.hideModal("activityModal");
       H.showTopError("activityError", "");
     }
 
-    /* =========================
+    /* -------------------------
        Boot
-       ========================= */
-    async function boot(){
-      showError("");
+       ------------------------- */
+    async function loadStateAndNav(){
+      H.setBadge("authBadge", "warn", "Checking…");
 
+      // Sanity check: auth.js must be present
       if(!window.JobApplyAI || !window.JobApplyAI.auth || typeof window.JobApplyAI.auth.getSession !== "function"){
         H.setBadge("authBadge", "bad", "Config error");
-        setText("authHint", "auth.js did not load. Ensure multipage/auth.js exists and is referenced as ./auth.js.");
-        return;
+        showError("auth.js did not load. Ensure multipage/auth.js exists and is referenced as ./auth.js.");
+        return null;
       }
 
       session = await window.JobApplyAI.auth.getSession();
-      try{ if(session?.access_token) sessionStorage.setItem("sb_access_token", session.access_token); }catch(_){}
-
       if(!session || !session.user || !session.user.email){
         H.setBadge("authBadge", "warn", "Signed out");
-        setText("authHint", "Please sign in to manage your jobs.");
         window.location.replace("./signup.html");
-        return;
+        return null;
       }
 
-      // Signed in nav state
-      $("navAccount").style.display = "";
-      $("navSignIn").style.display = "none";
-      const email = String(session.user.email || "");
-      $("navAccountLabel").textContent = email ? email.split("@")[0] : "Account";
+      lastSessionToken = String(session.access_token || "");
+      try{ if(lastSessionToken) sessionStorage.setItem("sb_access_token", lastSessionToken); }catch(_){ }
+
+      // Nav state
+      const navAcct = $("navAccount");
+      if(navAcct) navAcct.style.display = "";
+      const navSignIn = $("navSignIn");
+      if(navSignIn) navSignIn.style.display = "none";
 
       H.setBadge("authBadge", "good", "Signed in");
-      setText("authHint", "Fetch jobs, then open CV Studio to tailor per role.");
 
-      // Ensure customer exists (best effort)
-      try{ await window.JobApplyAI.auth.requireAuthAndCustomer({ redirectTo: "./signup.html" }); }catch(_){}
-      try{ await window.JobApplyAI.auth.syncStateToLocalStorage(session); }catch(_){}
+      // Ensure customer exists (best-effort)
+      try{ await window.JobApplyAI.auth.requireAuthAndCustomer({ redirectTo: "./signup.html" }); }catch(_){ }
+      try{ await window.JobApplyAI.auth.syncStateToLocalStorage(session); }catch(_){ }
 
-      // Enable buttons
-      $("btnFetch").disabled = false;
-      $("btnRefresh").disabled = false;
-
-      updateFetchMetaUI();
-      await loadQueue();
+      return session;
     }
 
-    /* =========================
-       Events
-       ========================= */
-    $("btnFetch")?.addEventListener("click", () => manualFetchJobs());
-    $("btnRefresh")?.addEventListener("click", () => loadQueue().catch(e => showError(e?.message || String(e))));
-    $("filterInput")?.addEventListener("input", () => renderQueue());
-    $("sortSelect")?.addEventListener("change", () => renderQueue());
-
-    // Queue actions (event delegation)
-    $("queueWrap")?.addEventListener("click", async (e) => {
-      const desc = e.target.closest("[data-desc]");
-      if(desc){
-        const jobId = desc.getAttribute("data-desc") || "";
-        if(jobId) openDescModal(jobId);
-        return;
+    async function loadAccountHints(){
+      // AI titles from server for the fetch toggle
+      try{
+        const prof = await apiGet("/me/profile", lastSessionToken);
+        const a = (prof && prof.profile && Array.isArray(prof.profile.ai_titles)) ? prof.profile.ai_titles : [];
+        aiTitles = Array.isArray(a) ? a : [];
+        try{ localStorage.setItem("jm_ai_titles_server", JSON.stringify(aiTitles)); }catch(_){ }
+      }catch(_){
+        aiTitles = [];
       }
 
-      const skip = e.target.closest("[data-skip]");
-      if(skip){
-        const jobId = skip.getAttribute("data-skip") || "";
-        if(jobId) openSkipModal(jobId);
-        return;
+      // State for onboarding hint + plan daily
+      try{
+        const st = await apiGet("/me/state", lastSessionToken);
+        const profileOk = !!(st && st.profile_complete);
+        const cvOk = !!(st && st.cv_uploaded);
+        const plan = planFromState(st && st.plan_id);
+        currentPlanDaily = plan.daily;
+
+        if(!profileOk || !cvOk){
+          setText("onboardingHint", "Your Profile is not complete yet. Go to Profile, upload your CV, then come back to fetch jobs.");
+        }else{
+          setText("onboardingHint", "Profile looks good. Fetch jobs, then tailor your CV per job.");
+        }
+      }catch(_){
+        setText("onboardingHint", "You can fetch jobs after your Profile is complete.");
       }
 
-      const pr = e.target.closest("[data-prio]");
-      if(pr){
-        const jobId = pr.getAttribute("data-prio") || "";
-        try{ await prioritize(jobId); }catch(err){ showError(err?.message || String(err)); }
-        return;
-      }
+      updateAiSwitchState();
+      updateFetchMetaUI();
+    }
 
-      const un = e.target.closest("[data-unprio]");
-      if(un){
-        const jobId = un.getAttribute("data-unprio") || "";
-        try{ await unprioritize(jobId); }catch(err){ showError(err?.message || String(err)); }
-      }
+    async function boot(){
+      showError("");
+      await loadStateAndNav();
+      if(!session) return;
+
+      await loadAccountHints();
+      wireQueueClicks();
+
+      // Initial data
+      await refreshQueue();
+    }
+
+    /* -------------------------
+       Wire UI events
+       ------------------------- */
+    $("btnRefresh")?.addEventListener("click", () => {
+      refreshQueue().catch((e) => showError(e?.message || String(e)));
     });
 
-    // Skip modal
-    $("skipCancel")?.addEventListener("click", closeSkipModal);
-    $("skipCloseX")?.addEventListener("click", closeSkipModal);
-    $("skipConfirm")?.addEventListener("click", submitSkip);
-    $("skipModal")?.addEventListener("click", (e) => { if(e.target && e.target.id === "skipModal") closeSkipModal(); });
+    $("btnFetchJobsNow")?.addEventListener("click", () => {
+      manualFetchJobs().catch((e) => showError(e?.message || String(e)));
+    });
 
-    // Desc modal
-    $("descClose")?.addEventListener("click", closeDescModal);
+    $("toggleAiOnly")?.addEventListener("change", () => {
+      // Keep the badge fresh
+      updateAiSwitchState();
+    });
+
+    // Description modal wiring
     $("descCloseX")?.addEventListener("click", closeDescModal);
+    $("descClose")?.addEventListener("click", closeDescModal);
     $("descCopy")?.addEventListener("click", copyDesc);
     $("descModal")?.addEventListener("click", (e) => { if(e.target && e.target.id === "descModal") closeDescModal(); });
 
-    // Activity modal
+    // Skip modal wiring
+    $("skipCloseX")?.addEventListener("click", closeSkipModal);
+    $("skipCancel")?.addEventListener("click", closeSkipModal);
+    $("skipConfirm")?.addEventListener("click", submitSkip);
+    $("skipModal")?.addEventListener("click", (e) => { if(e.target && e.target.id === "skipModal") closeSkipModal(); });
+
+    // Activity modal wiring
     $("navActivity")?.addEventListener("click", openActivityModal);
     $("activityCloseX")?.addEventListener("click", closeActivityModal);
     $("activityClose")?.addEventListener("click", closeActivityModal);
@@ -848,11 +1273,8 @@
 
     // Logout
     $("navLogout")?.addEventListener("click", async () => {
-      try{
-        await window.JobApplyAI.auth.logout("./index.html");
-      }catch(_){
-        window.location.href = "./index.html";
-      }
+      try{ await window.JobApplyAI.auth.logout("./index.html"); }
+      catch(_){ window.location.href = "./index.html"; }
     });
 
     window.addEventListener("load", () => {
@@ -861,6 +1283,7 @@
         H.setBadge("authBadge", "bad", "Error");
       });
     });
+
   })();
   </script>
 </body>
