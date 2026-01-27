@@ -772,6 +772,240 @@
       word-break:break-all;
       color:rgba(17,19,24,.56);
     }
+
+/* ============================================================
+   CV Studio – “Merge preview” animation in Generate modal
+   (small, self-contained, no external assets)
+============================================================ */
+.genViz{
+  margin-top:12px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background: rgba(255,255,255,.70);
+  box-shadow: 0 10px 30px rgba(17,19,24,.08);
+  overflow:hidden;
+}
+.genVizInner{ padding:12px; }
+.genVizTop{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+.genVizLabel{
+  font-weight:980;
+  font-size:12px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color: rgba(17,19,24,.50);
+}
+.genVizCols{
+  display:flex;
+  align-items:stretch;
+  gap:12px;
+}
+.genVizStack{
+  flex:1;
+  min-width: 200px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.genVizMiniCard{
+  border:1px solid rgba(17,19,24,.10);
+  border-radius:14px;
+  background: rgba(255,255,255,.92);
+  padding:10px;
+  position:relative;
+}
+.genVizMiniHead{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:900;
+  color: rgba(17,19,24,.76);
+  font-size:13px;
+}
+.genVizDot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background: rgba(34,197,94,.92);
+  box-shadow:0 0 0 4px rgba(34,197,94,.14);
+  flex: 0 0 auto;
+}
+.genVizDot.cv{
+  background: rgba(59,130,246,.92);
+  box-shadow:0 0 0 4px rgba(59,130,246,.12);
+}
+.genVizDot.out{
+  background: rgba(245,158,11,.95);
+  box-shadow:0 0 0 4px rgba(245,158,11,.14);
+}
+.genVizLines{
+  margin-top:8px;
+  display:grid;
+  gap:6px;
+}
+.genVizLine{
+  height:8px;
+  border-radius:999px;
+  background: rgba(17,19,24,.08);
+}
+.genVizLine.w90{ width:90%; }
+.genVizLine.w85{ width:85%; }
+.genVizLine.w80{ width:80%; }
+.genVizLine.w75{ width:75%; }
+.genVizLine.w70{ width:70%; }
+.genVizLine.w60{ width:60%; }
+
+.genVizPlus{
+  align-self:center;
+  font-weight:980;
+  font-size:16px;
+  color: rgba(17,19,24,.28);
+  user-select:none;
+}
+
+.genVizFlow{
+  width:54px;
+  min-width:54px;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.genVizFlow::before{
+  content:"";
+  position:absolute;
+  left:6px;
+  right:10px;
+  top:50%;
+  height:2px;
+  transform: translateY(-50%);
+  background: rgba(17,19,24,.14);
+  border-radius:999px;
+}
+.genVizFlow::after{
+  content:"";
+  position:absolute;
+  right:8px;
+  top:50%;
+  width:9px;
+  height:9px;
+  border-right:2px solid rgba(17,19,24,.18);
+  border-top:2px solid rgba(17,19,24,.18);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.genVizOut{ flex:1.12; min-width: 240px; }
+.genVizJobTitle{
+  margin-top:8px;
+  font-weight:980;
+  font-size:14px;
+  line-height:1.2;
+  color: rgba(17,19,24,.86);
+}
+.genVizJobMeta{
+  margin-top:2px;
+  font-weight:750;
+  font-size:12px;
+  color: rgba(17,19,24,.55);
+}
+
+/* Animated “merge” state */
+.genViz.isRunning .genVizFlow::before{
+  background: linear-gradient(90deg,
+    rgba(34,197,94,0),
+    rgba(34,197,94,.55),
+    rgba(34,197,94,0));
+  background-size: 180px 100%;
+  animation: genVizFlow 1.15s linear infinite;
+}
+@keyframes genVizFlow{
+  from{ background-position: 0 0; }
+  to{ background-position: 180px 0; }
+}
+.genViz.isRunning .genVizLine{
+  background: linear-gradient(90deg,
+    rgba(17,19,24,.06),
+    rgba(17,19,24,.12),
+    rgba(17,19,24,.06));
+  background-size: 220% 100%;
+  animation: genVizShimmer 1.25s ease-in-out infinite;
+}
+@keyframes genVizShimmer{
+  0%{ background-position: 0 0; }
+  100%{ background-position: -220% 0; }
+}
+.genViz.isRunning .genVizOut::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:14px;
+  pointer-events:none;
+  background: linear-gradient(110deg,
+    rgba(34,197,94,0) 0%,
+    rgba(34,197,94,.10) 45%,
+    rgba(34,197,94,0) 90%);
+  background-size: 200% 100%;
+  animation: genVizScan 1.35s ease-in-out infinite;
+}
+@keyframes genVizScan{
+  0%{ background-position: 200% 0; }
+  100%{ background-position: -200% 0; }
+}
+
+/* Done / Error accents */
+.genViz.isDone .genVizOut{ border-color: rgba(22,163,74,.32); }
+.genViz.isError .genVizOut{ border-color: rgba(216,27,96,.32); }
+.genViz.isDone .genVizDot.out{ background: rgba(22,163,74,.92); box-shadow:0 0 0 4px rgba(22,163,74,.14); }
+.genViz.isError .genVizDot.out{ background: rgba(216,27,96,.92); box-shadow:0 0 0 4px rgba(216,27,96,.14); }
+
+/* Responsive: stack on small screens */
+@media (max-width: 640px){
+  .genVizCols{ flex-direction:column; }
+  .genVizFlow{
+    width:auto;
+    min-width:0;
+    height:34px;
+  }
+  .genVizFlow::before{
+    left:50%;
+    right:auto;
+    top:6px;
+    bottom:10px;
+    width:2px;
+    height:auto;
+    transform: translateX(-50%);
+  }
+  .genVizFlow::after{
+    right:auto;
+    left:50%;
+    top:auto;
+    bottom:8px;
+    transform: translateX(-50%) rotate(135deg);
+  }
+  .genViz.isRunning .genVizFlow::before{
+    background: linear-gradient(180deg,
+      rgba(34,197,94,0),
+      rgba(34,197,94,.55),
+      rgba(34,197,94,0));
+    background-size: 100% 180px;
+    animation: genVizFlowVert 1.15s linear infinite;
+  }
+  @keyframes genVizFlowVert{
+    from{ background-position: 0 0; }
+    to{ background-position: 0 180px; }
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .genViz *{ animation: none !important; }
+}
+
 </style>
 </head>
 
@@ -1111,7 +1345,66 @@
         <span class="badge" id="genJobBadge">—</span>
       </div>
 
-      <div class="hint" style="margin-top:10px" id="stepsIntro">
+      <div class="genViz" id="genViz" aria-label="Tailoring visual">
+        <div class="genVizInner">
+          <div class="genVizTop">
+            <div class="genVizLabel" id="genVizLabel">Merge preview</div>
+            <span class="badge warn" id="genVizChip">Working…</span>
+          </div>
+
+          <div class="genVizCols">
+            <div class="genVizStack">
+              <div class="genVizMiniCard">
+                <div class="genVizMiniHead">
+                  <span class="genVizDot jd" aria-hidden="true"></span>
+                  <span id="genVizJdTitle">Job description</span>
+                </div>
+                <div class="genVizLines" aria-hidden="true">
+                  <span class="genVizLine w90"></span>
+                  <span class="genVizLine w70"></span>
+                  <span class="genVizLine w80"></span>
+                </div>
+              </div>
+
+              <div class="genVizPlus" aria-hidden="true">+</div>
+
+              <div class="genVizMiniCard">
+                <div class="genVizMiniHead">
+                  <span class="genVizDot cv" aria-hidden="true"></span>
+                  <span id="genVizCvTitle">Your CV</span>
+                </div>
+                <div class="genVizLines" aria-hidden="true">
+                  <span class="genVizLine w85"></span>
+                  <span class="genVizLine w60"></span>
+                  <span class="genVizLine w75"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="genVizFlow" aria-hidden="true"></div>
+
+            <div class="genVizMiniCard genVizOut">
+              <div class="genVizMiniHead">
+                <span style="display:flex;align-items:center;gap:8px">
+                  <span class="genVizDot out" aria-hidden="true"></span>
+                  <span id="genVizOutTitle">Tailored CV</span>
+                </span>
+              </div>
+
+              <div class="genVizJobTitle" id="genVizJobTitle">—</div>
+              <div class="genVizJobMeta" id="genVizJobMeta">—</div>
+
+              <div class="genVizLines" aria-hidden="true" style="margin-top:8px">
+                <span class="genVizLine w80"></span>
+                <span class="genVizLine w90"></span>
+                <span class="genVizLine w70"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hint style="margin-top:10px" id="stepsIntro">
         This is what happens when you click “Generate”:
       </div>
 
@@ -1482,6 +1775,8 @@ let setupAutoCollapsedOnce = false;
 
 // UI: generation steps modal (auto-open while generating)
 let genModalAuto = false;
+let genStepsState = "idle";
+
 
     let lastCvText = "";
     let lastCvDoc = null;
@@ -1873,13 +2168,33 @@ function maybeAutoCollapseAfterPaste(){
 
 function openGenModal(auto = false){
   genModalAuto = !!auto;
+
+  // Ensure labels are localized (light touch; no refactor)
+  setText("genVizLabel", uiLang==="de" ? "Vorschau" : "Merge preview");
+  setText("genVizJdTitle", uiLang==="de" ? "Jobbeschreibung" : "Job description");
+  setText("genVizCvTitle", uiLang==="de" ? "Dein CV" : "Your CV");
+  setText("genVizOutTitle", uiLang==="de" ? "Angepasster CV" : "Tailored CV");
+
   const jm = getActiveJobMeta();
-  const label = (jm && jm.title)
-    ? (String(jm.title) + (jm.company_name ? (" · " + String(jm.company_name)) : ""))
+  const title = (jm && jm.title) ? String(jm.title).trim() : "";
+  const company = (jm && jm.company_name) ? String(jm.company_name).trim() : "";
+
+  const label = title
+    ? (title + (company ? (" · " + company) : ""))
     : "—";
+
   setText("genJobBadge", label);
+
+  // Show the job title at the top of the “Tailored CV” card
+  setText("genVizJobTitle", title || "—");
+  setText("genVizJobMeta", company || "");
+
+  // Sync the little animation to current state (idle/running/done/error)
+  try{ setGenVizState(auto ? "running" : (genStepsState || "idle")); }catch(_){ }
+
   H.showModal("genModal");
 }
+
 
 function closeGenModal(){
   genModalAuto = false;
@@ -2531,7 +2846,33 @@ function closeGenModal(){
       }
     }
 
-    function markSteps(state){
+    function setGenVizState(state){
+  genStepsState = state || "idle";
+  const el = $("genViz");
+  if(!el) return;
+
+  el.classList.remove("isIdle","isRunning","isDone","isError");
+  if(genStepsState === "running") el.classList.add("isRunning");
+  else if(genStepsState === "done") el.classList.add("isDone");
+  else if(genStepsState === "error") el.classList.add("isError");
+  else el.classList.add("isIdle");
+
+  const chip = $("genVizChip");
+  if(chip){
+    const cls = (genStepsState === "running") ? "warn"
+      : (genStepsState === "done") ? "good"
+      : (genStepsState === "error") ? "bad" : "";
+    chip.className = "badge" + (cls ? (" " + cls) : "");
+    chip.textContent = (genStepsState === "running") ? (uiLang==="de" ? "Arbeite…" : "Working…")
+      : (genStepsState === "done") ? (uiLang==="de" ? "Fertig" : "Done")
+      : (genStepsState === "error") ? (uiLang==="de" ? "Fehlgeschlagen" : "Failed")
+      : (uiLang==="de" ? "Bereit" : "Ready");
+  }
+}
+
+function markSteps(state){
+  try{ setGenVizState(state); }catch(_){ genStepsState = state || "idle"; }
+
   const ids = ["s1","s2","s3","s4","s5"];
   ids.forEach(id => {
     const el = $(id);
