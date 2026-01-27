@@ -1006,7 +1006,219 @@
   .genViz *{ animation: none !important; }
 }
 
-</style>
+
+    /* ============================================================
+       Resume.io-inspired Studio Bar + Modes (page-only)
+       ============================================================ */
+
+    .studioBar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      margin: 10px 0 14px;
+      padding: 10px 10px;
+      border:1px solid rgba(17,19,24,.10);
+      border-radius:16px;
+      background: rgba(255,255,255,.72);
+      backdrop-filter: saturate(1.2) blur(10px);
+    }
+    .studioTabsTop{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .modeTab{
+      border:1px solid rgba(17,19,24,.12);
+      background:rgba(255,255,255,.66);
+      border-radius:999px;
+      padding:10px 14px;
+      font-weight:900;
+      color:rgba(17,19,24,.78);
+      cursor:pointer;
+      transition:.15s ease;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .modeTab:hover{ transform:translateY(-1px); background:rgba(255,255,255,.82); }
+    .modeTab.active{
+      background: rgba(34,197,94,.14);
+      border-color: rgba(34,197,94,.50);
+      color:#0a3d1f;
+    }
+    .modeTab[disabled]{
+      opacity:.55;
+      cursor:not-allowed;
+      transform:none;
+    }
+    .modeTag{
+      font-size:11px;
+      font-weight:950;
+      padding:2px 8px;
+      border-radius:999px;
+      border:1px solid rgba(17,19,24,.10);
+      background:rgba(255,255,255,.80);
+      color:rgba(17,19,24,.70);
+    }
+
+    .studioActionsTop{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    /* “Download” dropdown */
+    .studioDrop{
+      position:relative;
+    }
+    .studioDrop > summary{
+      list-style:none;
+      cursor:pointer;
+      user-select:none;
+    }
+    .studioDrop > summary::-webkit-details-marker{ display:none; }
+    .studioMenu{
+      position:absolute;
+      right:0;
+      top: calc(100% + 10px);
+      min-width: 220px;
+      z-index: 50;
+      border:1px solid rgba(17,19,24,.12);
+      background: rgba(255,255,255,.92);
+      border-radius:14px;
+      padding:10px;
+      box-shadow: 0 18px 60px rgba(17,19,24,.16);
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .studioMenu .menuLabel{
+      font-size:11px;
+      font-weight:950;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      color: rgba(17,19,24,.55);
+      padding:4px 8px 2px;
+    }
+    .studioMenu .menuSep{
+      height:1px;
+      background: rgba(17,19,24,.10);
+      margin:6px 0;
+    }
+
+    /* Mode-based “show/hide” – keeps the interface calmer */
+    #studioRoot[data-mode="tailor"] #canvasTabs{ display:none; }
+    #studioRoot[data-mode="tailor"] #cvTextWrap,
+    #studioRoot[data-mode="tailor"] #cvChangesWrap{ display:none !important; }
+    #studioRoot[data-mode="tailor"] #cvPreviewWrap{ display:block !important; }
+
+    #studioRoot[data-mode="review"] #canvasTabs{ display:none; }
+    #studioRoot[data-mode="review"] #cvTextWrap,
+    #studioRoot[data-mode="review"] #cvChangesWrap{ display:none !important; }
+    #studioRoot[data-mode="review"] #cvPreviewWrap{ display:block !important; }
+    #studioRoot[data-mode="review"] #inspectorKeywords{ display:none !important; }
+    #studioRoot[data-mode="review"] #inspectorReview{ display:block !important; }
+
+    #studioRoot[data-mode="edit"] #canvasTabs{ display:flex; }
+    #studioRoot[data-mode="edit"] #inspectorReview{ display:none !important; }
+
+    #studioRoot[data-mode="customize"] #inspectorReview{ display:none !important; }
+
+    /* Resume-like “page preview” feel + zoom HUD */
+    .pageStage{
+      padding: 10px 8px 0;
+    }
+    .pageZoom{
+      transform-origin: top center;
+    }
+    .cvPreview.page{
+      background:#fff;
+      border-color: rgba(17,19,24,.10);
+      border-radius: 12px;
+      box-shadow: 0 18px 60px rgba(17,19,24,.14);
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 26px 26px;
+    }
+    .zoomHud{
+      position: sticky;
+      bottom: 10px;
+      z-index: 5;
+      margin: 12px auto 0;
+      width: fit-content;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 10px;
+      background: rgba(255,255,255,.88);
+      border:1px solid rgba(17,19,24,.12);
+      border-radius: 999px;
+      box-shadow: 0 16px 50px rgba(17,19,24,.14);
+      backdrop-filter: saturate(1.2) blur(10px);
+    }
+    .iconBtn{
+      width:34px;
+      height:34px;
+      border-radius:999px;
+      border:1px solid rgba(17,19,24,.12);
+      background: rgba(255,255,255,.72);
+      font-weight:980;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transition:.15s ease;
+    }
+    .iconBtn:hover{ transform:translateY(-1px); background:rgba(255,255,255,.86); }
+    .zoomPct{
+      font-weight:950;
+      color:rgba(17,19,24,.78);
+      min-width: 54px;
+      text-align:center;
+    }
+    .zoomSep{
+      width:1px;
+      height:18px;
+      background: rgba(17,19,24,.14);
+      margin: 0 2px;
+    }
+
+    /* AI Review panel in Inspector */
+    #inspectorReview{ display:none; }
+    .reviewCard{
+      border:1px solid rgba(17,19,24,.10);
+      border-radius:16px;
+      padding:12px;
+      background: rgba(255,255,255,.72);
+    }
+    .reviewTitle{
+      font-weight:980;
+      font-size:14px;
+      letter-spacing:-.1px;
+      margin:0;
+    }
+    .reviewRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:8px;
+    }
+    .reviewList{
+      margin:10px 0 0 18px;
+      color: rgba(17,19,24,.72);
+      font-weight:750;
+      line-height:1.5;
+      font-size:13px;
+    }
+
+  </style>
 </head>
 
 <body>
@@ -1054,7 +1266,35 @@
 
     <div class="errorTop" id="errorTop"></div>
 
-    <section class="studio">
+    <div class="studioBar" aria-label="CV Studio modes">
+      <div class="studioTabsTop" role="tablist" aria-label="Studio modes">
+        <button class="modeTab" id="modeEdit" type="button" role="tab" aria-selected="false">Edit</button>
+        <button class="modeTab" id="modeCustomize" type="button" role="tab" aria-selected="false" disabled>Customize <span class="modeTag">Soon</span></button>
+        <button class="modeTab" id="modeReview" type="button" role="tab" aria-selected="false">AI Review</button>
+        <button class="modeTab active" id="modeTailor" type="button" role="tab" aria-selected="true">Tailor <span class="modeTag">NEW</span></button>
+      </div>
+
+      <div class="studioActionsTop">
+        <span class="badge warn" id="authBadgeTop">Checking…</span>
+
+        <details class="studioDrop" id="studioDownloadDrop">
+          <summary class="btn primary" id="studioDownloadSummary" aria-label="Download menu">Download ▾</summary>
+          <div class="studioMenu" role="menu" aria-label="Download options">
+            <div class="menuLabel">Export</div>
+            <button class="btn ghost" id="studioActCopy" type="button" role="menuitem">Copy</button>
+            <button class="btn ghost" id="studioActDownload" type="button" role="menuitem">Download .txt</button>
+            <button class="btn ghost" id="studioActPrint" type="button" role="menuitem">Print / PDF</button>
+
+            <div class="menuSep" role="separator"></div>
+            <div class="menuLabel">Quality</div>
+            <button class="btn ghost" id="studioActQa" type="button" role="menuitem">Final QA</button>
+          </div>
+        </details>
+      </div>
+    </div>
+
+
+    <section class="studio" id="studioRoot" data-mode="tailor">
       <!-- LEFT: Setup -->
       <aside class="card studioLeft">
         <div class="sectionTitle">
@@ -1194,7 +1434,7 @@
 
         <div class="hr"></div>
 
-        <div class="tabs" role="tablist" aria-label="Output view">
+        <div class="tabs" id="canvasTabs" role="tablist" aria-label="Output view">
           <button class="tabBtn active" id="tabPreview" type="button">Preview</button>
           <button class="tabBtn" id="tabText" type="button">Text</button>
           <button class="tabBtn" id="tabChanges" type="button">Changes</button>
@@ -1202,8 +1442,20 @@
 
         <div class="cvBox" id="cvBox">
           <div id="cvPreviewWrap" style="display:block;">
-            <div id="cvPreview" class="cvPreview">
+            <div class="pageStage">
+              <div class="pageZoom" id="pageZoom">
+                <div id="cvPreview" class="cvPreview page">
               <div class="hint">No CV generated yet.</div>
+            </div>
+              </div>
+            </div>
+
+            <div class="zoomHud" aria-label="Preview zoom controls">
+              <button class="iconBtn" id="zoomOut" type="button" aria-label="Zoom out">−</button>
+              <span class="zoomPct" id="zoomPct">100%</span>
+              <button class="iconBtn" id="zoomIn" type="button" aria-label="Zoom in">+</button>
+              <span class="zoomSep" aria-hidden="true"></span>
+              <span class="badge" id="pageIndicator">1 / 1</span>
             </div>
           </div>
 
@@ -1266,6 +1518,8 @@
           Your CV stays centered. Use this panel to improve ATS match and polish wording without getting overwhelmed.
         </div>
 
+        <div id="inspectorKeywords">
+
         <details class="info" style="margin-top:12px">
           <summary id="inspectorFutureTitle">More tools (coming soon)</summary>
           <div class="hint" id="inspectorFutureHint" style="margin-top:8px">
@@ -1323,7 +1577,41 @@
           <summary id="debugTitle">Debug details</summary>
           <div class="monoSmall" id="debugBox">—</div>
         </details>
-      </aside>
+        </div><!-- /inspectorKeywords -->
+
+        <div id="inspectorReview">
+          <div class="reviewCard">
+            <div class="reviewRow" style="margin-top:0">
+              <h3 class="reviewTitle" id="reviewTitle">AI Review</h3>
+              <span class="badge" id="reviewBadge">Not run</span>
+            </div>
+
+            <div class="hint" id="reviewHint" style="margin-top:8px">
+              Run a final check before you send or print. We flag missing basics, ATS risks, and “too good to be true” claims.
+            </div>
+
+            <div class="reviewRow">
+              <button class="btn" id="btnRunReview" type="button">Run review</button>
+              <button class="btn ghost" id="btnOpenReview" type="button">Open full report</button>
+            </div>
+
+            <ul class="reviewList" id="reviewList">
+              <li>ATS-safe structure & headings</li>
+              <li>Contact + location basics</li>
+              <li>Experience bullets (clarity, metrics, repetition)</li>
+              <li>Keyword coverage sanity check</li>
+            </ul>
+          </div>
+
+          <details class="info" style="margin-top:12px">
+            <summary>What happens to my data?</summary>
+            <div class="hint" style="margin-top:8px">
+              We only use your uploaded CV + the job description you provide to generate and score this tailored version.
+            </div>
+          </details>
+        </div>
+
+      </aside
     </section>
   
 <!-- Tailoring steps + progress modal -->
@@ -2122,7 +2410,11 @@ let genStepsState = "idle";
        Helpers
        ------------------------- */
     function showError(msg){ H.showTopError("errorTop", msg || ""); }
-    function setBadge(id, cls, txt){ H.setBadge(id, cls, txt); }
+    function setBadge(id, cls, txt){
+      H.setBadge(id, cls, txt);
+      // Mirror auth status into the top bar (so it stays visible when Setup is collapsed)
+      if(id === "authBadge") H.setBadge("authBadgeTop", cls, txt);
+    }
     function setText(id, txt){ const el = $(id); if (el) el.textContent = (txt == null) ? "" : String(txt); }
 
 /* -------------------------
@@ -3310,6 +3602,64 @@ ${bodyHtml}
       if(isChanges){
         renderChangesView();
       }
+
+    /* -------------------------
+       Studio modes (Resume.io-inspired)
+       - Tailor: keep UI calm (Preview only)
+       - Edit: show Preview/Text/Changes tabs
+       - AI Review: show review panel in Inspector
+       ------------------------- */
+    const studioRoot = $("studioRoot");
+    let studioMode = "tailor";
+
+    function setModeButton(activeId){
+      const ids = ["modeEdit","modeCustomize","modeReview","modeTailor"];
+      ids.forEach((id) => {
+        const b = $(id);
+        if(!b) return;
+        const isActive = id === activeId;
+        b.classList.toggle("active", isActive);
+        b.setAttribute("aria-selected", isActive ? "true" : "false");
+      });
+    }
+
+    function setStudioMode(mode){
+      studioMode = mode || "tailor";
+      if(studioRoot) studioRoot.setAttribute("data-mode", studioMode);
+
+      if(studioMode === "edit"){
+        setModeButton("modeEdit");
+        // Default to Text editor for editing
+        setTabs("text");
+      }else if(studioMode === "review"){
+        setModeButton("modeReview");
+        setTabs("preview");
+      }else if(studioMode === "customize"){
+        setModeButton("modeCustomize");
+        setTabs("preview");
+      }else{
+        setModeButton("modeTailor");
+        setTabs("preview");
+      }
+
+      // Inspector header copy
+      if(studioMode === "review"){
+        $("inspectorTitle").textContent = "AI Review";
+        $("inspectorHint").textContent = "Quick quality checks before you send or export. Open the full report for details.";
+        $("inspectorBadge").textContent = "Review";
+      }else{
+        $("inspectorTitle").textContent = "Inspector";
+        $("inspectorHint").textContent = "Your CV stays centered. Use this panel to improve ATS match and polish wording without getting overwhelmed.";
+        $("inspectorBadge").textContent = "Live";
+      }
+
+      // Close the download dropdown if it's open (keeps things tidy)
+      const dl = $("studioDownloadDrop");
+      if(dl) dl.open = false;
+
+      try { localStorage.setItem("jmj_cv_mode", studioMode); } catch(_) {}
+    }
+
     }
 
     /* -------------------------
@@ -4548,6 +4898,15 @@ ${bodyHtml}
       dot.title = up
         ? (uiLang==="de" ? "QA aktuell" : "QA up to date")
         : (hasRun ? (uiLang==="de" ? "QA veraltet" : "QA out of date") : (uiLang==="de" ? "QA noch nicht ausgeführt" : "QA not run yet"));
+
+      // Mirror status into the Inspector AI Review panel (if visible)
+      const rb = $("reviewBadge");
+      if(rb){
+        rb.className = "badge " + (up ? "good" : (hasRun ? "warn" : "bad"));
+        rb.textContent = up
+          ? (uiLang==="de" ? "Aktuell" : "Up to date")
+          : (hasRun ? (uiLang==="de" ? "Veraltet" : "Out of date") : (uiLang==="de" ? "Nicht gestartet" : "Not run"));
+      }
     }
 
     function openQaModal(action){
@@ -6191,7 +6550,46 @@ $("genModal")?.addEventListener("click", (e) => { if(e.target && e.target.id ===
     $("btnGenerate").addEventListener("click", generate);
     $("btnGenerateAgain").addEventListener("click", generate);
 
-    $("tabPreview").addEventListener("click", () => setTabs("preview"));
+    
+    // Studio mode buttons
+    $("modeTailor")?.addEventListener("click", () => setStudioMode("tailor"));
+    $("modeEdit")?.addEventListener("click", () => setStudioMode("edit"));
+    $("modeReview")?.addEventListener("click", () => setStudioMode("review"));
+    $("modeCustomize")?.addEventListener("click", () => setStudioMode("customize"));
+
+    // Top-bar download menu hooks (reuse existing buttons)
+    function closeStudioDownloadMenu(){
+      const d = $("studioDownloadDrop");
+      if(d) d.open = false;
+    }
+    $("studioActCopy")?.addEventListener("click", () => { closeStudioDownloadMenu(); $("btnCopy")?.click(); });
+    $("studioActDownload")?.addEventListener("click", () => { closeStudioDownloadMenu(); $("btnDownload")?.click(); });
+    $("studioActPrint")?.addEventListener("click", () => { closeStudioDownloadMenu(); $("btnPrint")?.click(); });
+    $("studioActQa")?.addEventListener("click", () => { closeStudioDownloadMenu(); $("btnQa")?.click(); });
+
+    // AI Review panel buttons
+    $("btnRunReview")?.addEventListener("click", () => $("btnQa")?.click());
+    $("btnOpenReview")?.addEventListener("click", () => $("btnQa")?.click());
+
+    // Zoom controls (Preview)
+    let zoom = 1.0;
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+    function applyZoom(){
+      const z = $("pageZoom");
+      if(z) z.style.transform = "scale(" + zoom.toFixed(2) + ")";
+      const pct = $("zoomPct");
+      if(pct) pct.textContent = Math.round(zoom * 100) + "%";
+      try { localStorage.setItem("jmj_cv_zoom", String(zoom)); } catch(_) {}
+    }
+    try{
+      const saved = Number(localStorage.getItem("jmj_cv_zoom") || "");
+      if(saved && isFinite(saved)) zoom = clamp(saved, 0.6, 1.4);
+    }catch(_){}
+    $("zoomIn")?.addEventListener("click", () => { zoom = clamp(zoom + 0.1, 0.6, 1.4); applyZoom(); });
+    $("zoomOut")?.addEventListener("click", () => { zoom = clamp(zoom - 0.1, 0.6, 1.4); applyZoom(); });
+    applyZoom();
+
+$("tabPreview").addEventListener("click", () => setTabs("preview"));
     $("tabText").addEventListener("click", () => setTabs("text"));
     $("tabChanges").addEventListener("click", () => setTabs("changes"));
 
@@ -6501,6 +6899,15 @@ $("kwApply").addEventListener("click", applyKeyword);
     // Initial view
     setTabs("preview");
     markSteps("idle");
+
+    // Initial studio mode
+    try{
+      const savedMode = (localStorage.getItem("jmj_cv_mode") || "").trim();
+      setStudioMode(savedMode || "tailor");
+    }catch(_){
+      setStudioMode("tailor");
+    }
+
 
     window.addEventListener("load", () => {
       boot().catch((e) => {
