@@ -1,12 +1,20 @@
-/* shared.js - tiny helpers shared across JobMeJob multipage site
-   - Safe to include on every page
-   - No dependencies
+/* shared.js — JobMeJob multipage helpers (site-wide)
+   Version: 2026-01-27
+
+   Goals:
+   - Be safe to include on EVERY page (no assumptions).
+   - Provide small, reusable helpers: nav transitions, dropdown behavior, modals, toasts, clipboard, API base resolution.
+   - Fix CV Studio error: "setStudioMode is not defined" by exporting a global window.setStudioMode.
+
+   No dependencies.
 */
 (() => {
   "use strict";
 
-  // Avoid double-init if a page loads shared.js twice by accident.
-  if (window.JobMeJobShared && window.JobMeJobShared.__loaded) return;
+  // Avoid double-init if a page loads shared.js twice.
+  if (window.JobMeJobShared && window.JobMeJobShared.__loaded_v2) return;
+
+  const VERSION = "2026-01-27";
 
   const $ = (id) => document.getElementById(id);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -19,28 +27,65 @@
   function safeLocalGet(key){
     try { return localStorage.getItem(key); } catch { return null; }
   }
+  function safeLocalSet(key, val){
+    try { localStorage.setItem(key, val); } catch {}
+  }
+  function safeLocalRemove(key){
+    try { localStorage.removeItem(key); } catch {}
+  }
+
+  function getQueryParam(name){
+    try{
+      const u = new URL(window.location.href);
+      const v = u.searchParams.get(String(name || ""));
+      return v == null ? "" : String(v);
+    }catch(_){
+      return "";
+    }
+  }
+
+  function normalizeBaseUrl(u){
+    return String(u || "").trim().replace(/\/+$/, "");
+  }
 
   function resolveApiBase(fallback){
-    // Allow override during debugging:
-    // localStorage.setItem("ja_api_base","http://localhost:8787")
-    const apiOverride = (safeLocalGet("ja_api_base") || "").trim().replace(/\/+$/, "");
+    // Debug override 1: query param
+    // Example: ?api=http://localhost:8787
+    const qp = normalizeBaseUrl(getQueryParam("api"));
 
-    // Allow pages/auth.js to set a base
+    // Debug override 2: localStorage
+    // localStorage.setItem("ja_api_base","http://localhost:8787")
+    const apiOverride = normalizeBaseUrl(safeLocalGet("ja_api_base"));
+
+    // Prefer base defined by auth.js/pages
     const apiFromWindow =
       (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE)
-        ? String(window.JobApplyAI.config.API_BASE).trim().replace(/\/+$/, "")
+        ? normalizeBaseUrl(window.JobApplyAI.config.API_BASE)
         : "";
 
-    return apiOverride || apiFromWindow || (String(fallback || "").trim());
+    return qp || apiOverride || apiFromWindow || normalizeBaseUrl(fallback);
+  }
+
+  function prefersReducedMotion(){
+    try{
+      return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    }catch(_){
+      return false;
+    }
   }
 
   function go(url){
     if(!url) return;
-    try{
-      document.body.classList.add("leaving");
-    }catch(_){}
-    // Small delay so the fade applies.
-    setTimeout(() => { window.location.href = url; }, 160);
+    const href = String(url);
+
+    // If reduced motion, navigate immediately.
+    if (prefersReducedMotion()){
+      window.location.href = href;
+      return;
+    }
+
+    try{ document.body.classList.add("leaving"); }catch(_){}
+    setTimeout(() => { window.location.href = href; }, 160);
   }
 
   function wireNavTransitions(){
@@ -51,13 +96,16 @@
       const a = e.target && e.target.closest ? e.target.closest("a[data-nav='1']") : null;
       if(!a) return;
 
+      // Allow modified clicks (new tab etc.)
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
       const url = a.getAttribute("href");
       if(!url || url.startsWith("#")) return;
 
-      // Let real external links behave normally
+      // External links: do nothing
       if(/^https?:\/\//i.test(url)) return;
 
-      // Allow force-new-tab
+      // New tab explicitly
       if (a.getAttribute("target") === "_blank") return;
 
       e.preventDefault();
@@ -65,30 +113,33 @@
     });
   }
 
-  function wireNavDropdowns(){
-    // Close nav dropdowns when clicking outside / navigating inside.
-    if (wireNavDropdowns.__wired) return;
-    wireNavDropdowns.__wired = true;
+  function wireDetailsDropdowns(selector = "details.navDrop, details.studioDrop, details[data-dd='1']"){
+    if (wireDetailsDropdowns.__wired) return;
+    wireDetailsDropdowns.__wired = true;
 
     const closeAll = (except) => {
-      $$(".navDrop").forEach(d => { if(d !== except) d.open = false; });
+      $$(selector).forEach(d => { if(d !== except) d.open = false; });
     };
 
     document.addEventListener("click", (e) => {
-      const openDrop = e.target && e.target.closest ? e.target.closest("details.navDrop") : null;
+      const openDrop = e.target && e.target.closest ? e.target.closest(selector) : null;
+
       if(openDrop){
-        // Click inside: if they clicked a menu item (not the summary), close after click.
+        // If they clicked inside an open dropdown, close other dropdowns.
+        closeAll(openDrop);
+
+        // If they clicked a menu item (not the summary), close after click.
         const sum = openDrop.querySelector("summary");
         const clickedSummary = sum && (e.target === sum || (e.target && sum.contains(e.target)));
+
         if(!clickedSummary){
           const isItem = e.target && e.target.closest ? e.target.closest("a,button") : null;
           if(isItem) setTimeout(() => { openDrop.open = false; }, 0);
         }
-        closeAll(openDrop);
         return;
       }
 
-      // Click outside any dropdown
+      // Click outside any dropdown: close all.
       closeAll(null);
     });
 
@@ -97,8 +148,13 @@
     });
   }
 
+  // Backwards compatible alias used by earlier pages
+  function wireNavDropdowns(){
+    return wireDetailsDropdowns("details.navDrop, details[data-dd='1']");
+  }
+
   function showTopError(idOrMsg, maybeMsg){
-    // Backwards compatible:
+    // Compatible:
     // showTopError("errorTop", "msg") OR showTopError("msg")
     let id = "errorTop";
     let msg = idOrMsg;
@@ -148,10 +204,10 @@
   }
 
   function wireModalDismiss(){
-    // Click on backdrop closes modal (only if click is directly on backdrop)
     if (wireModalDismiss.__wired) return;
     wireModalDismiss.__wired = true;
 
+    // Click on backdrop closes modal (only if click is directly on backdrop)
     document.addEventListener("click", (e) => {
       const backdrop = e.target && e.target.classList && e.target.classList.contains("modalBackdrop")
         ? e.target
@@ -232,7 +288,6 @@
     }
   }
 
-  // Small convenience setters (safe if element not present)
   function setText(id, text){
     const el = $(id);
     if(!el) return;
@@ -254,17 +309,57 @@
     el.style.display = "none";
   }
 
-  // Export
+  // ------------------------------------------------------------
+  // CV Studio helper (global) — fixes: "setStudioMode is not defined"
+  // ------------------------------------------------------------
+  function setStudioMode(mode, opts = {}){
+    const m = String(mode || "tailor").trim().toLowerCase() || "tailor";
+    const rootId = String(opts.rootId || "studioRoot");
+    const root = $(rootId) || document.querySelector("[data-studio-root]");
+    if(root) root.setAttribute("data-mode", m);
+
+    // Persist so the studio can restore the last mode after refresh.
+    safeLocalSet("jmj_cv_mode", m);
+
+    // Toggle active state on elements that declare a mode.
+    $$("[data-studio-mode]").forEach((el) => {
+      const em = String(el.getAttribute("data-studio-mode") || "").trim().toLowerCase();
+      const on = em === m;
+      el.classList.toggle("active", on);
+      try{ el.setAttribute("aria-selected", on ? "true" : "false"); }catch(_){}
+    });
+
+    // Notify page scripts (optional).
+    try{
+      window.dispatchEvent(new CustomEvent("jmj:studioMode", { detail: { mode: m } }));
+    }catch(_){}
+
+    return m;
+  }
+
+  // Expose globally so inline handlers / other scripts can call it.
+  window.setStudioMode = setStudioMode;
+
+  // Export (shared object)
   const api = {
-    __loaded: true,
+    __loaded_v2: true,
+    VERSION,
+
     $,
     $$,
     escapeHtml,
+
+    safeLocalGet,
+    safeLocalSet,
+    safeLocalRemove,
+
     resolveApiBase,
+    normalizeBaseUrl,
 
     go,
     wireNavTransitions,
-    wireNavDropdowns,
+    wireDetailsDropdowns,
+    wireNavDropdowns, // backward compatibility
 
     showTopError,
     setBadge,
@@ -279,7 +374,10 @@
     setText,
     setHtml,
     show,
-    hide
+    hide,
+
+    // CV Studio
+    setStudioMode,
   };
 
   // Keep compatibility with existing pages.
@@ -292,7 +390,7 @@
   // Auto-wire global behavior (safe no-ops if page doesn't use it)
   window.addEventListener("DOMContentLoaded", () => {
     wireNavTransitions();
-    wireNavDropdowns();
+    wireDetailsDropdowns();
     wireModalDismiss();
   });
 })();
