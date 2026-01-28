@@ -1243,7 +1243,29 @@ body.fromJobsLink #settingsDetails{
   font-size: 13px;
 }
 
-  </style>
+  
+
+    /* ---------------------------------------------------------
+       Guided highlight (Jobs → CV Studio)
+       - Subtle glow around Template + Tailoring strength
+       - Active until user clicks "Generate tailored CV"
+       --------------------------------------------------------- */
+    .guidedGlow{
+      border-radius:16px;
+      box-shadow: 0 0 0 3px rgba(34,197,94,.14), 0 18px 44px rgba(34,197,94,.10);
+      transition: box-shadow .2s ease, transform .2s ease;
+    }
+    .guidedGlow.guidedPulse{
+      animation: guidedPulse 1.8s ease-in-out infinite;
+    }
+    @keyframes guidedPulse{
+      0%,100%{ box-shadow: 0 0 0 3px rgba(34,197,94,.12), 0 14px 34px rgba(34,197,94,.08); }
+      50%{ box-shadow: 0 0 0 4px rgba(34,197,94,.22), 0 20px 50px rgba(34,197,94,.12); }
+    }
+    @media (prefers-reduced-motion: reduce){
+      .guidedGlow.guidedPulse{ animation:none; }
+    }
+</style>
 </head>
 
 <body>
@@ -1441,13 +1463,13 @@ body.fromJobsLink #settingsDetails{
         <!-- Auto-start (when coming from Jobs) -->
         <div id="autoStartBar" class="autoStartBar" style="display:none; margin-top:10px">
           <div class="autoStartTop">
-            <div class="autoStartTitle" id="autoStartTitle">Ready to tailor</div>
+            <div class="autoStartTitle" id="autoStartTitle">Next: Tailoring settings</div>
             <span class="badge good" id="autoStartBadge">From Jobs</span>
           </div>
-          <div class="autoStartDesc" id="autoStartDesc">Review template & strength. Tailoring will start automatically.</div>
+          <div class="autoStartDesc" id="autoStartDesc">Choose template & strength, then click Generate tailored CV.</div>
           <div class="row" style="margin-top:10px">
-            <button class="btn primary small" id="btnStartNow" type="button">Start now</button>
-            <button class="btn small ghost" id="btnCancelAuto" type="button">Cancel</button>
+            <button class="btn primary small" id="btnStartNow" type="button">Generate</button>
+            <button class="btn small ghost" id="btnCancelAuto" type="button">Hide</button>
           </div>
         </div>
 
@@ -2688,19 +2710,49 @@ function cancelAutoStart(userInitiated = true){
   clearAutoStartTimer();
   showAutoStartBar(false);
   if(userInitiated){
-    try{ window.JobMeJobShared?.toast?.("Auto-start cancelled. You can tweak settings and click Generate.", { kind:"warn", title:"CV Studio" }); }catch(_){}
+    try{ window.JobMeJobShared?.toast?.("Tip hidden. You can tweak settings and click Generate.", { kind:"warn", title:"CV Studio" }); }catch(_){}
+  }
+}
+
+
+/* -------------------------
+   Guided settings glow (Jobs → CV Studio)
+   - Highlights Template + Tailoring strength until user clicks Generate
+   ------------------------- */
+let guidedSettingsGlowOn = false;
+
+function setGuidedSettingsGlow(on){
+  guidedSettingsGlowOn = !!on;
+
+  // Template: highlight the entire row (select + ATS? button)
+  let tplRow = null;
+  try{
+    const sel = $("tplSelect");
+    tplRow = sel && sel.closest ? sel.closest(".row") : null;
+  }catch(_){}
+
+  // Strength: highlight the whole strength wrapper
+  let strengthBox = null;
+  try{
+    strengthBox = document.querySelector(".strengthWrap");
+  }catch(_){}
+
+  const els = [tplRow, strengthBox];
+  for(const el of els){
+    if(!el) continue;
+    el.classList.toggle("guidedGlow", guidedSettingsGlowOn);
+    el.classList.toggle("guidedPulse", guidedSettingsGlowOn);
   }
 }
 
 function armAutoStartFromJobs(){
   if(!isIncomingFromJobs()) return;
-  if(autoStartArmed) return;
 
   // Only meaningful in queue mode
   if(jobSource !== "queue") return;
   if(!selectedJob) return;
 
-  // Safety: if the job_id isn't in your queue, don't auto-run (avoid tailoring the wrong job)
+  // Safety: if the job_id isn't in your queue, don't proceed (avoid tailoring the wrong job)
   if(String(selectedJob?.id || "") !== String(incomingJobId || "")){
     showAutoStartBar(false);
     try{
@@ -2714,40 +2766,22 @@ function armAutoStartFromJobs(){
     return;
   }
 
-
-  // Ensure the user sees the tailoring settings first
+  // IMPORTANT UX:
+  // Coming from Jobs should *stop* at the tailoring settings so the user can review Template + Strength.
+  // No auto-start.
   try{ setSetupCollapsed(false, { persist:false, scroll:false }); }catch(_){}
   setupUserToggled = true;
-
   try{ $("settingsDetails").open = true; }catch(_){}
 
-  // Show banner
   showAutoStartBar(true, uiLang==="de"
-    ? "Vorlage & Stärke prüfen. Tailoring startet automatisch…"
-    : "Review template & strength. Tailoring will start automatically…"
+    ? "Vorlage & Stärke auswählen – dann „Generate tailored CV“ klicken."
+    : "Choose template & strength — then click “Generate tailored CV”."
   );
 
-  const key = "cvstudio_autostart_" + String(incomingJobId);
+  try{ setGuidedSettingsGlow(true); }catch(_){ }
 
-  // Only auto-start once per session for this job_id
-  try{
-    if(sessionStorage.getItem(key) === "1"){
-      showAutoStartBar(false);
-      return;
-    }
-    sessionStorage.setItem(key, "1");
-  }catch(_){}
 
-  clearAutoStartTimer();
-
-  autoStartArmed = true;
-
-  // Give a tiny moment so UI paints and user can change settings if they want
-  autoStartTimer = setTimeout(async () => {
-    showAutoStartBar(false);
-    autoStartArmed = false;
-    try{ await generate(); }catch(_){}
-  }, 1200);
+  // No timer, no auto-run.
 }
 
 let gateActive = false;
@@ -2847,6 +2881,7 @@ function setGateActive(on){
   // Make sure Setup is visible in Step 1
   if(gateActive){
     setSetupCollapsed(false, { persist:false, scroll:false });
+    try{ setGuidedSettingsGlow(false); }catch(_){ }
     setupUserToggled = true; // avoid auto-collapse fighting Step 1
   }
 
@@ -4921,6 +4956,9 @@ ${bodyHtml}
 
       // If an auto-start timer is pending, stop it (avoid double-run).
       try{ clearAutoStartTimer(); showAutoStartBar(false); }catch(_){ }
+
+      try{ setGuidedSettingsGlow(false); }catch(_){ }
+
 
 
       if(jobSource === "paste"){
