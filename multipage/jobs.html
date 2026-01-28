@@ -12,13 +12,14 @@
   <style>
     /* =========================================================
        Jobs (page-only styles)
+       Goal: LinkedIn-like 2-pane layout (list left, details right)
        ========================================================= */
 
     .grid{
       display:grid;
-      grid-template-columns: 1.35fr .65fr;
+      grid-template-columns: minmax(340px, 420px) 1fr;
       gap:14px;
-      align-items:start;
+      align-items:stretch;
     }
     @media (max-width: 980px){
       .grid{ grid-template-columns: 1fr; }
@@ -32,6 +33,23 @@
     }
     .sectionBody{ padding:14px; }
 
+    /* On desktop: both panes scroll inside their cards */
+    .queueCard, .detailCard{
+      display:flex;
+      flex-direction:column;
+    }
+    @media (min-width: 981px){
+      .queueCard, .detailCard{
+        height: calc(100dvh - 210px);
+      }
+      .queueCard .sectionBody,
+      .detailCard .sectionBody{
+        flex:1 1 auto;
+        min-height:0;
+        overflow:auto;
+      }
+    }
+
     .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
 
     .small{ font-size:12px; color:rgba(17,19,24,.56); font-weight:700; line-height:1.45; }
@@ -42,28 +60,48 @@
       color:rgba(17,19,24,.64);
     }
 
-    .list{ display:flex; flex-direction:column; gap:12px; }
-    .listGrid{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px; }
-    @media (max-width: 980px){
-      .listGrid{ grid-template-columns: 1fr; }
-    }
+    /* -------------------------
+       Queue list (left)
+       ------------------------- */
+    .jobList{ display:flex; flex-direction:column; gap:10px; }
 
-    .item{
+    .jobRow{
       border:1px solid rgba(17,19,24,.12);
-      background:rgba(255,255,255,.78);
+      background:rgba(255,255,255,.72);
       border-radius:16px;
-      padding:14px;
-      box-shadow: 0 14px 30px rgba(17,19,24,.07);
+      padding:12px 12px;
+      box-shadow: 0 14px 30px rgba(17,19,24,.06);
+      cursor:pointer;
+      transition:.12s ease;
+      position:relative;
+    }
+    .jobRow:hover{ transform: translateY(-1px); background:rgba(255,255,255,.82); }
+    .jobRow.selected{
+      border-color: rgba(34,197,94,.55);
+      background: rgba(34,197,94,.10);
+      box-shadow: 0 18px 44px rgba(34,197,94,.10);
     }
 
-    .itemTop{
+    .jobRowTop{
       display:flex;
+      align-items:flex-start;
       justify-content:space-between;
       gap:10px;
-      align-items:flex-start;
     }
-    .itemTitle{ font-weight:950; line-height:1.2; }
-    .itemMeta{
+    .jobRowTitle{
+      font-weight:950;
+      line-height:1.2;
+      letter-spacing:-.2px;
+      color:rgba(17,19,24,.92);
+    }
+    .jobRowRight{
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .jobRowMeta{
       margin-top:6px;
       display:flex;
       flex-wrap:wrap;
@@ -72,16 +110,93 @@
       font-size:12px;
       font-weight:750;
     }
+    .jobRowMeta span{ white-space:nowrap; }
     .badgeGroup{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
 
-    .itemActions{
-      margin-top:10px;
+    .heartBtn{
+      width:38px;
+      height:38px;
+      flex: 0 0 auto;
+    }
+    .heartBtn span{
+      font-size:16px;
+      line-height:1;
+      transform: translateY(-1px);
+      display:inline-block;
+    }
+    .heartBtn.on{
+      border-color: rgba(34,197,94,.38);
+      background: rgba(34,197,94,.14);
+    }
+
+    /* -------------------------
+       Details pane (right)
+       ------------------------- */
+    .detailHeaderTop{
       display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
       gap:10px;
       flex-wrap:wrap;
     }
-    .itemActions .btn{ flex: 1 1 auto; justify-content:center; }
+    .detailTitle{
+      font-weight:980;
+      font-size:18px;
+      line-height:1.15;
+      letter-spacing:-.3px;
+    }
+    .detailMeta{
+      margin-top:6px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      color:rgba(17,19,24,.58);
+      font-size:12px;
+      font-weight:750;
+    }
+    .detailActions{
+      margin-top:12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .detailActions .btn{ justify-content:center; }
+    .detailActions .btn.primary{ flex: 1 1 240px; }
+    .detailActions .btn.ghost{ flex: 0 1 auto; }
+    .detailActions .btn.danger{ flex: 0 1 auto; }
 
+    .skipInlineNote{
+      margin-top:8px;
+      font-size:12px;
+      color:rgba(17,19,24,.56);
+      font-weight:700;
+      line-height:1.4;
+    }
+
+    .descBox{
+      margin-top:10px;
+      padding:12px;
+      border-radius:16px;
+      border:1px solid rgba(17,19,24,.10);
+      background:rgba(17,19,24,.03);
+      white-space:pre-wrap;
+      word-break:break-word;
+      font-size:12px;
+      color:rgba(17,19,24,.74);
+    }
+
+    .detailEmpty{
+      padding:14px;
+    }
+    .detailEmptyTitle{
+      font-weight:950;
+      letter-spacing:-.2px;
+    }
+
+    /* -------------------------
+       Skeletons
+       ------------------------- */
     .skeleton{
       border-radius:12px;
       height:12px;
@@ -90,6 +205,8 @@
       animation:shimmer 1.2s linear infinite;
     }
     .skeleton.block{ height:140px; border-radius:16px; }
+    .skeleton.line{ height:12px; border-radius:10px; }
+    .skeleton.tall{ height:220px; border-radius:16px; }
     @keyframes shimmer{
       0%{ background-position:200% 0 }
       100%{ background-position:-200% 0 }
@@ -151,57 +268,6 @@
       padding:7px 10px;
       font-weight:950;
       cursor:pointer;
-    }
-  
-
-    /* --- UX polish: prio heart + scroll restore --- */
-    .itemActions{
-      align-items:center;
-    }
-    .itemActions .btn{
-      flex: 1 1 170px;
-      justify-content:center;
-    }
-    .heartBtn{
-      width:38px;
-      height:38px;
-      flex: 0 0 auto;
-    }
-    .heartBtn span{
-      font-size:16px;
-      line-height:1;
-      transform: translateY(-1px);
-      display:inline-block;
-      color: rgba(17,19,24,.55);
-    }
-    .heartBtn.on{
-      border-color: rgba(216,27,96,.30);
-      background: rgba(216,27,96,.10);
-    }
-    .heartBtn.on span{
-      color: rgba(216,27,96,.95);
-    }
-
-    /* Better scrolling on desktop: queue list scrolls, header stays visible */
-    @media (min-width: 981px){
-      .grid{ align-items:stretch; }
-      .queueCard{
-        display:flex;
-        flex-direction:column;
-        /* Fits nicely on desktop without feeling jumpy */
-        max-height: calc(100dvh - 210px);
-      }
-      .queueCard .sectionBody{
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow:auto;
-        padding-right: 6px; /* nicer scrollbar spacing */
-      }
-      .asideSticky{
-        position: sticky;
-        top: calc(12px + var(--safeTop) + 62px);
-        align-self:start;
-      }
     }
 </style>
 </head>
@@ -302,25 +368,36 @@
         </div>
       </section>
 
-      <!-- RIGHT: How to use -->
-      <aside class="card asideSticky">
-        <div style="font-weight:950">Simple flow</div>
-        <div class="small" style="margin-top:6px">
-          1) Make sure your <b>Profile</b> is complete (CV uploaded + preferences).<br/>
-          2) Click <b>Fetch new jobs</b> to fill your queue.<br/>
-          3) Pick a job and open it in <b>CV Studio</b>.
+      <!-- RIGHT: Job details (LinkedIn-like) -->
+      <aside class="card cardNoPad detailCard">
+        <div class="sectionHeader">
+          <div class="row" style="justify-content:space-between">
+            <div>
+              <div style="font-weight:950">Job details</div>
+              <div class="small" id="detailHint">Select a job on the left.</div>
+            </div>
+            <span class="badge" id="detailBadge">—</span>
+          </div>
         </div>
 
-        <div class="hr"></div>
+        <div class="sectionBody" id="detailScroll">
+          <div id="detailWrap">
+            <div class="detailEmpty">
+              <div class="detailEmptyTitle">Select a job</div>
+              <div class="small" style="margin-top:6px">Pick a job from the list to see its full description and tailor your CV.</div>
 
-        <div class="row" style="justify-content:flex-start">
-          <a class="btn" href="./cv.html" data-nav="1">Open CV Studio</a>
-          <a class="btn ghost" href="./profile.html" data-nav="1">Open Profile</a>
+              <div class="hr"></div>
+
+              <div class="row" style="justify-content:flex-start">
+                <a class="btn" href="./cv.html" data-nav="1">Open CV Studio</a>
+                <a class="btn ghost" href="./profile.html" data-nav="1">Open Profile</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+          <div class="small" id="onboardingHint">Checking your account…</div>
         </div>
-
-        <div class="hr"></div>
-
-        <div class="small" id="onboardingHint">Checking your account…</div>
       </aside>
     </section>
   </main>
@@ -377,6 +454,10 @@
             <label for="skipNote" class="small" style="display:block;margin-bottom:6px">Note (optional)</label>
             <input id="skipNote" type="text" placeholder="Short note (optional)" style="width:100%"/>
           </div>
+        </div>
+
+                <div class="small" style="margin-top:10px">
+          <b>Note:</b> Skipped jobs will be excluded from Auto‑Apply once you activate a plan (coming soon).
         </div>
 
         <div class="small" id="skipGuardrail" style="display:none; margin-top:10px"></div>
@@ -486,6 +567,12 @@
     let lastQueueResponse = null;
     let currentQueueCount = 0;
     let currentPlanDaily = 0;
+
+
+    let currentQueueItems = [];
+    let selectedJobId = "";
+    const detailCache = new Map();
+    let detailReqSeq = 0;
 
     let pendingDescJobId = "";
     let currentDescText = "";
@@ -619,25 +706,51 @@
     function goToCvStudio(jobId){
       try{ localStorage.setItem("cvstudio_job_source", "queue"); }catch(_){ }
       try{ localStorage.setItem("cvstudio_selected_job_id", String(jobId)); }catch(_){ }
-      H.go("./cv.html");
+      H.go("./cv.html?job_id=" + encodeURIComponent(jobId));
     }
 
     function renderQueueCards(queue){
       const items = Array.isArray(queue?.data) ? queue.data : (Array.isArray(queue?.jobs) ? queue.jobs : []);
+      currentQueueItems = items.slice(0, 16);
+
       if(!items.length){
+        // Clear selection + details when empty
+        selectedJobId = "";
+        try{ localStorage.removeItem("jobs_selected_job_id"); }catch(_){ }
+        renderDetailEmpty();
+
         return (
-          '<div class="item">'
-          + '<div class="itemTitle">No jobs in your queue yet</div>'
-          + '<div class="itemMeta"><span>Tip:</span><span>Click “Fetch new jobs” after completing your profile.</span></div>'
-          + '<div class="itemActions" style="margin-top:12px">'
-            + '<a class="btn" href="./profile.html" data-nav="1">Open Profile</a>'
-            + '<button class="btn primary" id="btnFetchInline" type="button">Fetch now</button>'
-          + '</div>'
+          '<div class="jobList">'
+            + '<div class="jobRow" style="cursor:default">'
+              + '<div class="jobRowTop">'
+                + '<div class="jobRowTitle">No jobs in your queue yet</div>'
+                + '<div class="badgeGroup"><span class="badge warn">Empty</span></div>'
+              + '</div>'
+              + '<div class="jobRowMeta"><span>Tip:</span><span>Complete your Profile and click “Fetch new jobs”.</span></div>'
+              + '<div class="detailActions" style="margin-top:12px">'
+                + '<a class="btn" href="./profile.html" data-nav="1">Open Profile</a>'
+                + '<button class="btn primary" id="btnFetchInline" type="button">Fetch now</button>'
+              + '</div>'
+            + '</div>'
           + '</div>'
         );
       }
 
-      const wrapClass = isSingleColumn() ? "list" : "listGrid";
+      // Restore last selected job (or default to first)
+      const stored = (() => { try{ return localStorage.getItem("jobs_selected_job_id") || ""; }catch(_){ return ""; } })();
+      if(!selectedJobId && stored) selectedJobId = stored;
+
+      const hasSelected = selectedJobId && items.some(j => String(j?.id || "") === String(selectedJobId));
+      if(!hasSelected){
+        selectedJobId = items[0]?.id ? String(items[0].id) : "";
+        try{ localStorage.setItem("jobs_selected_job_id", selectedJobId); }catch(_){ }
+      }
+
+      // Ensure right pane shows the selected job (best-effort; no await here)
+      if(selectedJobId){
+        // defer so DOM exists
+        setTimeout(() => { selectJob(selectedJobId, { keepDetailScroll: true, fromRender: true }).catch(()=>{}); }, 0);
+      }
 
       const html = items.slice(0, 16).map((j) => {
         const jobId = j.id ? String(j.id) : "";
@@ -645,7 +758,6 @@
         const company = String(j.company_name || "—");
         const loc = [j.city || "", j.region || ""].filter(Boolean).join(", ") || "—";
         const posted = j.posted_at ? String(j.posted_at).slice(0, 10) : "—";
-        const link = j.apply_url ? String(j.apply_url) : "";
 
         const prio = !!(j._application && j._application.priority);
         const prioBadge = prio ? "<span class='badge prio'>♥ prio</span>" : "<span class='badge'>new</span>";
@@ -669,37 +781,29 @@
           ? "Updated —"
           : (updatedDays === 0 ? "Updated today" : ("Updated " + updatedDays + "d ago"));
 
-        const titleHtml = link
-          ? ('<a href="' + H.escapeHtml(link) + '" target="_blank" rel="noopener">' + H.escapeHtml(title) + "</a>")
-          : H.escapeHtml(title);
-
         const heartBtn = prio
           ? "<button class='iconBtn heartBtn on' type='button' data-unprio='" + H.escapeHtml(jobId) + "' aria-label='Remove priority' aria-pressed='true' title='Unprioritize'><span aria-hidden='true'>♥</span></button>"
           : "<button class='iconBtn heartBtn' type='button' data-prio='" + H.escapeHtml(jobId) + "' aria-label='Mark as priority' aria-pressed='false' title='Prioritize'><span aria-hidden='true'>♡</span></button>";
 
+        const selectedCls = (String(jobId) === String(selectedJobId)) ? " selected" : "";
+
         return (
-          '<div class="item">'
-            + '<div class="itemTop">'
-              + '<div class="itemTitle">' + titleHtml + '</div>'
-              + badge
+          '<div class="jobRow' + selectedCls + '" data-select="' + H.escapeHtml(jobId) + '" role="button" tabindex="0" aria-label="Select job">'
+            + '<div class="jobRowTop">'
+              + '<div class="jobRowTitle">' + H.escapeHtml(title) + '</div>'
+              + '<div class="jobRowRight">' + badge + heartBtn + '</div>'
             + '</div>'
-            + '<div class="itemMeta">'
+            + '<div class="jobRowMeta">'
               + '<span>' + H.escapeHtml(company) + '</span><span>•</span>'
               + '<span>' + H.escapeHtml(loc) + '</span><span>•</span>'
               + '<span>Posted ' + H.escapeHtml(posted) + '</span>'
               + (updatedLabel ? ('<span>•</span><span>' + H.escapeHtml(updatedLabel) + '</span>') : '')
             + '</div>'
-            + '<div class="itemActions">'
-              + heartBtn
-              + '<button class="btn small" type="button" data-tailor="' + H.escapeHtml(jobId) + '">Tailor in CV Studio</button>'
-              + '<button class="btn small ghost" type="button" data-desc="' + H.escapeHtml(jobId) + '">Description</button>'
-              + '<button class="btn small danger" type="button" data-skip="' + H.escapeHtml(jobId) + '">Skip</button>'
-            + '</div>'
           + '</div>'
         );
       }).join("");
 
-      return '<div class="' + wrapClass + '">' + html + '</div>';
+      return '<div class="jobList">' + html + '</div>';
     }
 
     function wireQueueClicks(){
@@ -712,27 +816,6 @@
         if(inlineFetch){
           const b = $("btnFetchJobsNow");
           if(b) b.click();
-          return;
-        }
-
-        const skip = e.target.closest("button[data-skip]");
-        if(skip){
-          const jobId = skip.getAttribute("data-skip") || "";
-          if(jobId) openSkipModal(jobId);
-          return;
-        }
-
-        const desc = e.target.closest("button[data-desc]");
-        if(desc){
-          const jobId = desc.getAttribute("data-desc") || "";
-          if(jobId) openDescModal(jobId);
-          return;
-        }
-
-        const tl = e.target.closest("button[data-tailor]");
-        if(tl){
-          const jobId = tl.getAttribute("data-tailor") || "";
-          if(jobId) goToCvStudio(jobId);
           return;
         }
 
@@ -760,10 +843,286 @@
             showError(err?.message || String(err));
           }
         }
+
+
+        const row = e.target && e.target.closest ? e.target.closest(".jobRow[data-select]") : null;
+        if(row){
+          const jobId = row.getAttribute("data-select") || "";
+          if(jobId){
+            await selectJob(jobId, { keepDetailScroll:false });
+          }
+          return;
+        }
+
       });
     }
 
+    
     /* -------------------------
+       Details pane (right)
+       ------------------------- */
+    function renderDetailEmpty(){
+      setText("detailHint", "Select a job on the left.");
+      H.setBadge("detailBadge", "", "—");
+
+      setHtml("detailWrap", (
+        '<div class="detailEmpty">'
+          + '<div class="detailEmptyTitle">Select a job</div>'
+          + '<div class="small" style="margin-top:6px">Pick a job from the list to see its full description and tailor your CV.</div>'
+          + '<div class="hr"></div>'
+          + '<div class="row" style="justify-content:flex-start">'
+            + '<a class="btn" href="./cv.html" data-nav="1">Open CV Studio</a>'
+            + '<a class="btn ghost" href="./profile.html" data-nav="1">Open Profile</a>'
+          + '</div>'
+        + '</div>'
+      ));
+    }
+
+    function findJobBase(jobId){
+      const id = String(jobId || "");
+      if(!id) return null;
+      const j = currentQueueItems.find(x => String(x?.id || "") === id);
+      return j || null;
+    }
+
+    function setSelectedJob(jobId){
+      selectedJobId = String(jobId || "");
+      if(!selectedJobId) return;
+      try{ localStorage.setItem("jobs_selected_job_id", selectedJobId); }catch(_){ }
+    }
+
+    function highlightSelectedJob(){
+      const wrap = $("queueWrap");
+      if(!wrap) return;
+      wrap.querySelectorAll(".jobRow[data-select]").forEach((el) => {
+        const id = el.getAttribute("data-select") || "";
+        el.classList.toggle("selected", String(id) === String(selectedJobId));
+      });
+    }
+
+    function renderDetailLoading(baseJob){
+      const title = baseJob?.title ? String(baseJob.title) : "Loading…";
+      const company = baseJob?.company_name ? String(baseJob.company_name) : "—";
+      const loc = [baseJob?.city || "", baseJob?.region || ""].filter(Boolean).join(", ") || "—";
+      const posted = baseJob?.posted_at ? String(baseJob.posted_at).slice(0,10) : "—";
+
+      setText("detailHint", "Loading description…");
+      H.setBadge("detailBadge", "warn", "Loading");
+
+      setHtml("detailWrap", (
+        '<div>'
+          + '<div class="detailHeaderTop">'
+            + '<div>'
+              + '<div class="detailTitle">' + H.escapeHtml(title) + '</div>'
+              + '<div class="detailMeta">'
+                + '<span>' + H.escapeHtml(company) + '</span><span>•</span>'
+                + '<span>' + H.escapeHtml(loc) + '</span><span>•</span>'
+                + '<span>Posted ' + H.escapeHtml(posted) + '</span>'
+              + '</div>'
+            + '</div>'
+          + '</div>'
+          + '<div class="detailActions">'
+            + '<div class="skeleton line" style="width:180px"></div>'
+            + '<div class="skeleton line" style="width:140px"></div>'
+            + '<div class="skeleton line" style="width:90px"></div>'
+          + '</div>'
+          + '<div class="hr"></div>'
+          + '<div class="small">About the job</div>'
+          + '<div class="skeleton tall" style="margin-top:10px"></div>'
+        + '</div>'
+      ));
+    }
+
+    function renderDetail(jobId, baseJob, fullJob){
+      const j = fullJob || baseJob || {};
+      const title = j?.title ? String(j.title) : "Untitled";
+      const company = j?.company_name ? String(j.company_name) : "—";
+      const loc = [j?.city || "", j?.region || ""].filter(Boolean).join(", ") || "—";
+      const posted = j?.posted_at ? String(j.posted_at).slice(0,10) : "—";
+      const applyUrl = j?.apply_url ? String(j.apply_url) : "";
+
+      const prio = !!(j?._application && j._application.priority) || !!(baseJob?._application && baseJob._application.priority);
+      const heartBtn = prio
+        ? "<button class='iconBtn heartBtn on' type='button' data-unprio='" + H.escapeHtml(String(jobId)) + "' aria-label='Remove priority' aria-pressed='true' title='Unprioritize'><span aria-hidden='true'>♥</span></button>"
+        : "<button class='iconBtn heartBtn' type='button' data-prio='" + H.escapeHtml(String(jobId)) + "' aria-label='Mark as priority' aria-pressed='false' title='Prioritize'><span aria-hidden='true'>♡</span></button>";
+
+      const source = j?.description_full_source ? String(j.description_full_source) : "";
+      const fetchedAt = j?.description_full_fetched_at ? String(j.description_full_fetched_at) : "";
+
+      let descText = "";
+      if(j && j.description_full){
+        descText = String(j.description_full);
+      }else if(j && j.description_full_error){
+        descText = "No description yet.\nLast error: " + String(j.description_full_error);
+      }else{
+        descText = "No description found.";
+      }
+      currentDescText = descText;
+
+      setText("detailHint", "Selected job");
+      H.setBadge("detailBadge", prio ? "prio" : "", prio ? "Priority" : "Ready");
+
+      const openOriginalBtn = applyUrl
+        ? ('<a class="btn ghost" href="' + H.escapeHtml(applyUrl) + '" target="_blank" rel="noopener">Open original ↗</a>')
+        : "";
+
+      setHtml("detailWrap", (
+        '<div>'
+          + '<div class="detailHeaderTop">'
+            + '<div style="min-width:260px">'
+              + '<div class="detailTitle">' + H.escapeHtml(title) + '</div>'
+              + '<div class="detailMeta">'
+                + '<span>' + H.escapeHtml(company) + '</span><span>•</span>'
+                + '<span>' + H.escapeHtml(loc) + '</span><span>•</span>'
+                + '<span>Posted ' + H.escapeHtml(posted) + '</span>'
+                + (source ? ('<span>•</span><span>Source: ' + H.escapeHtml(source) + '</span>') : '')
+                + (fetchedAt ? ('<span>•</span><span>Fetched: ' + H.escapeHtml(fetchedAt) + '</span>') : '')
+              + '</div>'
+            + '</div>'
+            + '<div class="row" style="justify-content:flex-end">' + heartBtn + '</div>'
+          + '</div>'
+
+          + '<div class="detailActions">'
+            + '<button class="btn primary" type="button" data-tailor="' + H.escapeHtml(String(jobId)) + '">Tailor in CV Studio</button>'
+            + '<button class="btn ghost" type="button" data-copydesc="1">Copy description</button>'
+            + openOriginalBtn
+            + '<button class="btn danger" type="button" data-skip="' + H.escapeHtml(String(jobId)) + '">Skip</button>'
+          + '</div>'
+
+          + '<div class="skipInlineNote">Skipped jobs will be excluded from Auto‑Apply once you activate a plan (coming soon).</div>'
+
+          + '<div class="hr"></div>'
+          + '<div class="small" style="font-weight:950;color:rgba(17,19,24,.70)">About the job</div>'
+          + '<div class="descBox" id="detailDesc">' + H.escapeHtml(descText) + '</div>'
+        + '</div>'
+      ));
+    }
+
+    async function ensureDetail(jobId, opts = {}){
+      const id = String(jobId || "");
+      if(!id){
+        renderDetailEmpty();
+        return;
+      }
+
+      const base = findJobBase(id);
+      if(!opts.keepDetailScroll){
+        try{ const ds = $("detailScroll"); if(ds) ds.scrollTop = 0; }catch(_){ }
+      }
+
+      // show quick skeleton (with base info)
+      renderDetailLoading(base);
+
+      const seq = ++detailReqSeq;
+
+      try{
+        let cached = detailCache.get(id);
+        if(!cached){
+          cached = await apiGet("/me/jobs/description?job_id=" + encodeURIComponent(id), lastSessionToken);
+          detailCache.set(id, cached);
+        }
+
+        if(seq !== detailReqSeq) return; // stale response
+
+        const fullJob = cached && cached.job ? cached.job : null;
+        renderDetail(id, base, fullJob);
+      }catch(err){
+        if(seq !== detailReqSeq) return;
+        setText("detailHint", "Failed to load details");
+        H.setBadge("detailBadge", "bad", "Error");
+        setHtml("detailWrap", (
+          '<div class="detailEmpty">'
+            + '<div class="detailEmptyTitle">Could not load job description</div>'
+            + '<div class="small" style="margin-top:6px">' + H.escapeHtml(err?.message || String(err)) + '</div>'
+            + '<div class="hr"></div>'
+            + '<button class="btn" type="button" data-retry-detail="' + H.escapeHtml(id) + '">Retry</button>'
+          + '</div>'
+        ));
+      }
+    }
+
+    async function selectJob(jobId, opts = {}){
+      const id = String(jobId || "");
+      if(!id){
+        selectedJobId = "";
+        renderDetailEmpty();
+        return;
+      }
+      setSelectedJob(id);
+      highlightSelectedJob();
+      await ensureDetail(id, { keepDetailScroll: !!opts.keepDetailScroll });
+    }
+
+    function wireDetailClicks(){
+      const wrap = $("detailWrap");
+      if(!wrap || wireDetailClicks.__wired) return;
+      wireDetailClicks.__wired = true;
+
+      wrap.addEventListener("click", async (e) => {
+        const retry = e.target.closest("button[data-retry-detail]");
+        if(retry){
+          const id = retry.getAttribute("data-retry-detail") || "";
+          if(id) await ensureDetail(id, { keepDetailScroll:false });
+          return;
+        }
+
+        const tl = e.target.closest("button[data-tailor]");
+        if(tl){
+          const id = tl.getAttribute("data-tailor") || selectedJobId;
+          if(id) goToCvStudio(id);
+          return;
+        }
+
+        const cp = e.target.closest("button[data-copydesc]");
+        if(cp){
+          const t = currentDescText || "";
+          if(!t){
+            H.toast?.("Nothing to copy yet.", { kind:"warn", title:"Copy" });
+            return;
+          }
+          const ok = await (H.copyToClipboard ? H.copyToClipboard(t) : navigator.clipboard.writeText(t).then(()=>true).catch(()=>false));
+          if(ok) H.toast?.("Job description copied.", { kind:"good", title:"Copied" });
+          else window.prompt("Copy description:", t);
+          return;
+        }
+
+        const skip = e.target.closest("button[data-skip]");
+        if(skip){
+          const id = skip.getAttribute("data-skip") || "";
+          if(id) openSkipModal(id);
+          return;
+        }
+
+        const pr = e.target.closest("button[data-prio]");
+        if(pr){
+          const id = pr.getAttribute("data-prio") || "";
+          if(!id) return;
+          try{
+            await apiPost("/me/applications/prioritize", lastSessionToken, { job_id: id });
+            await refreshQueue();
+            await selectJob(id, { keepDetailScroll:true });
+          }catch(err){
+            showError(err?.message || String(err));
+          }
+          return;
+        }
+
+        const un = e.target.closest("button[data-unprio]");
+        if(un){
+          const id = un.getAttribute("data-unprio") || "";
+          if(!id) return;
+          try{
+            await apiPost("/me/applications/unprioritize", lastSessionToken, { job_id: id });
+            await refreshQueue();
+            await selectJob(id, { keepDetailScroll:true });
+          }catch(err){
+            showError(err?.message || String(err));
+          }
+        }
+      });
+    }
+
+/* -------------------------
        Description modal
        ------------------------- */
     function openDescModal(jobId){
@@ -1290,6 +1649,7 @@
 
       await loadAccountHints();
       wireQueueClicks();
+      wireDetailClicks();
 
       // Initial data
       await refreshQueue();
