@@ -1,20 +1,23 @@
 /* shared.js — JobMeJob multipage helpers (site-wide)
-   Version: 2026-01-27
+   Version: 2026-01-27 (v3)
 
-   Goals:
-   - Be safe to include on EVERY page (no assumptions).
-   - Provide small, reusable helpers: nav transitions, dropdown behavior, modals, toasts, clipboard, API base resolution.
-   - Fix CV Studio error: "setStudioMode is not defined" by exporting a global window.setStudioMode.
-
-   No dependencies.
+   Safe to include on every page.
+   Includes:
+   - nav transitions (nice page feel)
+   - details dropdown auto-close (Account dropdown etc.)
+   - modal open/close + ESC + backdrop click
+   - toast notifications
+   - clipboard copy helper
+   - API_BASE resolver
+   - (optional) global setStudioMode (only defined if missing)
 */
 (() => {
   "use strict";
 
-  // Avoid double-init if a page loads shared.js twice.
-  if (window.JobMeJobShared && window.JobMeJobShared.__loaded_v2) return;
+  // Avoid double-init
+  if (window.JobMeJobShared && window.JobMeJobShared.__loaded_v3) return;
 
-  const VERSION = "2026-01-27";
+  const VERSION = "2026-01-27-v3";
 
   const $ = (id) => document.getElementById(id);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -30,41 +33,6 @@
   function safeLocalSet(key, val){
     try { localStorage.setItem(key, val); } catch {}
   }
-  function safeLocalRemove(key){
-    try { localStorage.removeItem(key); } catch {}
-  }
-
-  function getQueryParam(name){
-    try{
-      const u = new URL(window.location.href);
-      const v = u.searchParams.get(String(name || ""));
-      return v == null ? "" : String(v);
-    }catch(_){
-      return "";
-    }
-  }
-
-  function normalizeBaseUrl(u){
-    return String(u || "").trim().replace(/\/+$/, "");
-  }
-
-  function resolveApiBase(fallback){
-    // Debug override 1: query param
-    // Example: ?api=http://localhost:8787
-    const qp = normalizeBaseUrl(getQueryParam("api"));
-
-    // Debug override 2: localStorage
-    // localStorage.setItem("ja_api_base","http://localhost:8787")
-    const apiOverride = normalizeBaseUrl(safeLocalGet("ja_api_base"));
-
-    // Prefer base defined by auth.js/pages
-    const apiFromWindow =
-      (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE)
-        ? normalizeBaseUrl(window.JobApplyAI.config.API_BASE)
-        : "";
-
-    return qp || apiOverride || apiFromWindow || normalizeBaseUrl(fallback);
-  }
 
   function prefersReducedMotion(){
     try{
@@ -74,11 +42,34 @@
     }
   }
 
+  function normalizeBaseUrl(u){
+    return String(u || "").trim().replace(/\/+$/, "");
+  }
+
+  function resolveApiBase(fallback){
+    // Debug override (query): ?api=http://localhost:8787
+    let qp = "";
+    try{
+      const u = new URL(window.location.href);
+      qp = normalizeBaseUrl(u.searchParams.get("api") || "");
+    }catch(_){}
+
+    // Debug override (localStorage): localStorage.setItem("ja_api_base","http://localhost:8787")
+    const apiOverride = normalizeBaseUrl(safeLocalGet("ja_api_base"));
+
+    // Base set by auth.js/pages
+    const apiFromWindow =
+      (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE)
+        ? normalizeBaseUrl(window.JobApplyAI.config.API_BASE)
+        : "";
+
+    return qp || apiOverride || apiFromWindow || normalizeBaseUrl(fallback);
+  }
+
   function go(url){
     if(!url) return;
     const href = String(url);
 
-    // If reduced motion, navigate immediately.
     if (prefersReducedMotion()){
       window.location.href = href;
       return;
@@ -96,16 +87,16 @@
       const a = e.target && e.target.closest ? e.target.closest("a[data-nav='1']") : null;
       if(!a) return;
 
-      // Allow modified clicks (new tab etc.)
+      // allow new tab clicks
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
 
       const url = a.getAttribute("href");
       if(!url || url.startsWith("#")) return;
 
-      // External links: do nothing
+      // external links: normal behavior
       if(/^https?:\/\//i.test(url)) return;
 
-      // New tab explicitly
+      // explicit new tab
       if (a.getAttribute("target") === "_blank") return;
 
       e.preventDefault();
@@ -125,21 +116,17 @@
       const openDrop = e.target && e.target.closest ? e.target.closest(selector) : null;
 
       if(openDrop){
-        // If they clicked inside an open dropdown, close other dropdowns.
         closeAll(openDrop);
 
-        // If they clicked a menu item (not the summary), close after click.
+        // If clicked a menu item (not summary), close after click.
         const sum = openDrop.querySelector("summary");
         const clickedSummary = sum && (e.target === sum || (e.target && sum.contains(e.target)));
-
         if(!clickedSummary){
           const isItem = e.target && e.target.closest ? e.target.closest("a,button") : null;
           if(isItem) setTimeout(() => { openDrop.open = false; }, 0);
         }
         return;
       }
-
-      // Click outside any dropdown: close all.
       closeAll(null);
     });
 
@@ -148,14 +135,12 @@
     });
   }
 
-  // Backwards compatible alias used by earlier pages
+  // Backwards alias (some pages call this)
   function wireNavDropdowns(){
     return wireDetailsDropdowns("details.navDrop, details[data-dd='1']");
   }
 
   function showTopError(idOrMsg, maybeMsg){
-    // Compatible:
-    // showTopError("errorTop", "msg") OR showTopError("msg")
     let id = "errorTop";
     let msg = idOrMsg;
 
@@ -269,7 +254,6 @@
       await navigator.clipboard.writeText(t);
       return true;
     }catch(_){
-      // Fallback (older browsers)
       try{
         const ta = document.createElement("textarea");
         ta.value = t;
@@ -288,40 +272,18 @@
     }
   }
 
-  function setText(id, text){
-    const el = $(id);
-    if(!el) return;
-    el.textContent = String(text ?? "");
-  }
-  function setHtml(id, html){
-    const el = $(id);
-    if(!el) return;
-    el.innerHTML = String(html ?? "");
-  }
-  function show(id){
-    const el = $(id);
-    if(!el) return;
-    el.style.display = "";
-  }
-  function hide(id){
-    const el = $(id);
-    if(!el) return;
-    el.style.display = "none";
-  }
-
   // ------------------------------------------------------------
-  // CV Studio helper (global) — fixes: "setStudioMode is not defined"
+  // CV Studio helper (global): setStudioMode
+  // Only define if missing to avoid overriding cv.html's own implementation.
   // ------------------------------------------------------------
-  function setStudioMode(mode, opts = {}){
+  function defaultSetStudioMode(mode, opts = {}){
     const m = String(mode || "tailor").trim().toLowerCase() || "tailor";
     const rootId = String(opts.rootId || "studioRoot");
     const root = $(rootId) || document.querySelector("[data-studio-root]");
     if(root) root.setAttribute("data-mode", m);
 
-    // Persist so the studio can restore the last mode after refresh.
     safeLocalSet("jmj_cv_mode", m);
 
-    // Toggle active state on elements that declare a mode.
     $$("[data-studio-mode]").forEach((el) => {
       const em = String(el.getAttribute("data-studio-mode") || "").trim().toLowerCase();
       const on = em === m;
@@ -329,7 +291,6 @@
       try{ el.setAttribute("aria-selected", on ? "true" : "false"); }catch(_){}
     });
 
-    // Notify page scripts (optional).
     try{
       window.dispatchEvent(new CustomEvent("jmj:studioMode", { detail: { mode: m } }));
     }catch(_){}
@@ -337,12 +298,13 @@
     return m;
   }
 
-  // Expose globally so inline handlers / other scripts can call it.
-  window.setStudioMode = setStudioMode;
+  if (typeof window.setStudioMode !== "function"){
+    window.setStudioMode = defaultSetStudioMode;
+  }
 
-  // Export (shared object)
+  // Export shared API (merge with existing)
   const api = {
-    __loaded_v2: true,
+    __loaded_v3: true,
     VERSION,
 
     $,
@@ -351,15 +313,14 @@
 
     safeLocalGet,
     safeLocalSet,
-    safeLocalRemove,
 
-    resolveApiBase,
     normalizeBaseUrl,
+    resolveApiBase,
 
     go,
     wireNavTransitions,
     wireDetailsDropdowns,
-    wireNavDropdowns, // backward compatibility
+    wireNavDropdowns,
 
     showTopError,
     setBadge,
@@ -371,23 +332,16 @@
     toast,
     copyToClipboard,
 
-    setText,
-    setHtml,
-    show,
-    hide,
-
-    // CV Studio
-    setStudioMode,
+    setStudioMode: window.setStudioMode
   };
 
-  // Keep compatibility with existing pages.
   window.JobMeJobShared = Object.assign({}, window.JobMeJobShared || {}, api);
 
-  // Optional alias (some pages prefer JobApplyAI.shared)
+  // Optional alias
   window.JobApplyAI = window.JobApplyAI || {};
   window.JobApplyAI.shared = window.JobMeJobShared;
 
-  // Auto-wire global behavior (safe no-ops if page doesn't use it)
+  // Auto-wire global behaviors
   window.addEventListener("DOMContentLoaded", () => {
     wireNavTransitions();
     wireDetailsDropdowns();
