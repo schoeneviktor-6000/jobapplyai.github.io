@@ -17,7 +17,7 @@
         /* --- Studio layout: center canvas + left setup + right inspector --- */
     .studio{
       display:grid;
-      grid-template-columns: minmax(280px, 330px) minmax(540px, 1fr) minmax(320px, 380px);
+      grid-template-columns: minmax(300px, 380px) minmax(640px, 1fr) minmax(340px, 430px);
       gap:14px;
       align-items:start;
       grid-template-areas:"left canvas right";
@@ -25,6 +25,18 @@
     .studioLeft{ grid-area:left; }
     .studioCanvas{ grid-area:canvas; }
     .studioRight{ grid-area:right; }
+
+/* Use more of the desktop width on CV Studio (other pages stay at shared max-width) */
+main.main{
+  max-width: min(1760px, 98vw);
+}
+
+/* Slightly roomier studio grid on very wide monitors */
+@media (min-width: 1500px){
+  .studio{
+    grid-template-columns: 360px minmax(720px, 1fr) 420px;
+  }
+}
 
 /* Focus mode: collapsible Setup (left) panel to reduce overload */
 .studio{ position:relative; }
@@ -35,6 +47,26 @@
 .studio.setupCollapsed .studioLeft{ display:none; }
 .showWhenSetupCollapsed{ display:none !important; }
 .studio.setupCollapsed .showWhenSetupCollapsed{ display:inline-flex !important; }
+
+/* ============================================================
+   Step 1 Gate (entry flow)
+   - If user did NOT come from Jobs, we start with job selection/paste as the main screen.
+   - After starting tailoring, we open the full studio (canvas + inspector).
+   ============================================================ */
+body.cvGate .studioBar{ display:none; }
+body.cvGate .studio{
+  grid-template-columns: 1fr !important;
+  grid-template-areas: "left" !important;
+}
+body.cvGate .studioCanvas,
+body.cvGate .studioRight{ display:none !important; }
+body.cvGate .studioLeft{
+  max-width: 920px;
+  margin: 0 auto;
+}
+body.cvGate #btnCollapseSetup{ display:none !important; }
+body.cvGate #gateIntro{ display:block !important; }
+body.cvGate #btnGenerateAgain{ display:none !important; }
 
 /* Compact “How it works” button (opens progress/steps modal) */
 .infoButton{
@@ -1072,6 +1104,41 @@
       justify-content:flex-end;
     }
 
+
+    /* Source chip (top bar): Using: <job> · Change */
+    .sourceChipBtn{
+      max-width: min(520px, 58vw);
+      overflow:hidden;
+    }
+    .sourceChipBtn .sourceChipLabel{
+      color: rgba(17,19,24,.56);
+      font-weight:950;
+    }
+    .sourceChipBtn .sourceChipValue{
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      font-weight:950;
+      color: rgba(17,19,24,.82);
+    }
+    .sourceChipBtn .sourceChipSep{
+      opacity:.55;
+      font-weight:900;
+    }
+    .sourceChipBtn .sourceChipAction{
+      opacity:.85;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      font-weight:950;
+    }
+
+    @media (max-width: 620px){
+      .sourceChipBtn{ max-width: 92vw; }
+      .sourceChipBtn .sourceChipAction{ display:none; }
+      .sourceChipBtn .sourceChipSep{ display:none; }
+    }
+
     /* “Download” dropdown */
     .studioDrop{
       position:relative;
@@ -1132,6 +1199,9 @@
     /* Resume-like “page preview” feel + zoom HUD */
     .pageStage{
       padding: 10px 8px 0;
+      display:flex;
+      justify-content:center;
+      overflow:auto;
     }
     .pageZoom{
       transform-origin: top center;
@@ -1139,11 +1209,13 @@
     .cvPreview.page{
       background:#fff;
       border-color: rgba(17,19,24,.10);
-      border-radius: 12px;
+      border-radius: 10px;
       box-shadow: 0 18px 60px rgba(17,19,24,.14);
-      max-width: 780px;
+      width: 210mm;
+      min-height: 297mm;
+      box-sizing: border-box;
       margin: 0 auto;
-      padding: 26px 26px;
+      padding: 16mm 14mm;
     }
     .zoomHud{
       position: sticky;
@@ -1218,7 +1290,19 @@
       font-size:13px;
     }
 
-  </style>
+  
+/* Print: export the A4 page cleanly */
+@media print{
+  body{ background:#fff !important; }
+  .topbar, .studioBar, .studioLeft, .studioRight, .zoomHud{ display:none !important; }
+  .studio{ display:block !important; }
+  .studioCanvas{ border:none !important; box-shadow:none !important; padding:0 !important; }
+  .pageStage{ padding:0 !important; overflow:visible !important; }
+  #pageZoom{ transform:none !important; }
+  .cvPreview.page{ box-shadow:none !important; border:none !important; margin:0 !important; }
+}
+
+</style>
 </head>
 
 <body>
@@ -1268,14 +1352,21 @@
 
     <div class="studioBar" aria-label="CV Studio modes">
       <div class="studioTabsTop" role="tablist" aria-label="Studio modes">
-        <button class="modeTab" id="modeEdit" type="button" role="tab" aria-selected="false">Edit</button>
+        <button class="modeTab active" id="modeTailor" type="button" role="tab" aria-selected="true" title="AI tailoring + ATS keywords">Tailor ✨</button>
+        <button class="modeTab" id="modeEdit" type="button" role="tab" aria-selected="false" title="Manually edit the generated CV (Text view)">Edit text ✍️</button>
+        <button class="modeTab" id="modeReview" type="button" role="tab" aria-selected="false" title="Quality check + suggestions">AI Review</button>
         <button class="modeTab" id="modeCustomize" type="button" role="tab" aria-selected="false" disabled>Customize <span class="modeTag">Soon</span></button>
-        <button class="modeTab" id="modeReview" type="button" role="tab" aria-selected="false">AI Review</button>
-        <button class="modeTab active" id="modeTailor" type="button" role="tab" aria-selected="true">Tailor <span class="modeTag">NEW</span></button>
       </div>
 
       <div class="studioActionsTop">
         <span class="badge warn" id="authBadgeTop">Checking…</span>
+
+        <button class="pill mini sourceChipBtn" id="sourceChipBtn" type="button" style="display:none" title="Change job / description">
+          <span class="sourceChipLabel" id="sourceChipLabel">Using:</span>
+          <span class="sourceChipValue" id="sourceChipValue">—</span>
+          <span class="sourceChipSep">·</span>
+          <span class="sourceChipAction" id="sourceChipAction">Change</span>
+        </button>
 
         <details class="studioDrop" id="studioDownloadDrop">
           <summary class="btn primary" id="studioDownloadSummary" aria-label="Download menu">Download ▾</summary>
@@ -1303,7 +1394,18 @@
           <div style="display:flex; gap:10px; align-items:center; flex:0 0 auto">
             <button class="btn small ghost" id="btnCollapseSetup" type="button" title="Hide setup">Hide</button>
             <span class="badge warn" id="authBadge">Checking…</span>
+          
+        <div class="gateIntro" id="gateIntro" style="display:none">
+          <div class="row" style="justify-content:space-between; align-items:flex-start; gap:10px">
+            <div>
+              <div style="font-weight:980; font-size:14px; letter-spacing:-.1px" id="gateStepTitle">Step 1 — Choose job context</div>
+              <div class="hint" id="gateStepHint">Pick a job from your queue or paste a job description. Next, we open the studio and generate an A4 tailored CV.</div>
+            </div>
+            <span class="badge prio" id="gateStepBadge">Step 1 of 2</span>
           </div>
+        </div>
+
+</div>
         </div>
 
         <div class="label" id="jobSourceLbl">Job source</div>
@@ -1362,6 +1464,9 @@
 
         <div class="hr"></div>
 
+        <details class="info" id="settingsDetails" style="margin-top:2px">
+          <summary id="settingsSummary">Settings (optional)</summary>
+          <div style="margin-top:10px">
         <div class="label">
           <span id="templateLbl">Template</span>
           <span class="badge" title="ATS-safe formatting" id="atsSafeBadge">ATS-safe</span>
@@ -1391,12 +1496,15 @@
             Improves summary and bullets to match the job, without over-rewriting.
           </div>
         </div>
+          </div>
+        </details>
+
 
         <div class="hr"></div>
 
         <div class="row">
           <button class="btn primary" id="btnGenerate" type="button" disabled>Generate tailored CV</button>
-          <button class="btn" id="btnGenerateAgain" type="button" disabled>Generate again</button>
+          <button class="btn" id="btnGenerateAgain" type="button" disabled style="display:none">Generate again</button>
         </div>
         <div class="hint" id="genHint">
           Same settings reuse a cached result (fast). To create a different version, change the tailoring strength.
@@ -2453,6 +2561,9 @@ function maybeAutoCollapseAfterPaste(){
     if(setupAutoCollapsedOnce) return;
     if(getPasteDesc().length >= 260){
       setupAutoCollapsedOnce = true;
+      // Leaving Step 1 gate (if active) opens the full studio view
+      exitGate();
+
       setSetupCollapsed(true, { persist:false });
     }
   }, 900);
@@ -2517,7 +2628,77 @@ function closeGenModal(){
       return ("00000000" + h.toString(16)).slice(-8);
     }
 
-    function getPasteDesc(){
+    
+/* -------------------------
+   Step 1 Gate (entry flow)
+   ------------------------- */
+let gateActive = false;
+
+function cameFromJobsPage(){
+  const urlJobId = String(qs("job_id") || "").trim();
+  if(urlJobId) return true;
+
+  try{
+    const ref = String(document.referrer || "");
+    if(ref.includes("/jobs.html")) return true;
+  }catch(_){}
+
+  return false;
+}
+
+function shouldShowGate(){
+  if(cameFromJobsPage()) return false;
+  try{
+    if(sessionStorage.getItem("cvstudio_started") === "1") return false;
+  }catch(_){}
+  return true;
+}
+
+function setGateActive(on){
+  gateActive = !!on;
+
+  document.body.classList.toggle("cvGate", gateActive);
+  try{ $("gateIntro").style.display = gateActive ? "" : "none"; }catch(_){}
+
+  // Make sure Setup is visible in Step 1
+  if(gateActive){
+    setSetupCollapsed(false, { persist:false, scroll:false });
+    setupUserToggled = true; // avoid auto-collapse fighting Step 1
+  }
+
+  // Make the primary action clear
+  const genBtn = $("btnGenerate");
+  if(genBtn){
+    genBtn.textContent = gateActive ? "Start tailoring →" : "Generate tailored CV";
+  }
+
+  // Title clarity
+  const st = $("setupTitle");
+  if(st){
+    st.textContent = gateActive ? "Step 1" : (t("setupTitle") || "Setup");
+  }
+
+  // Keep second button hidden to reduce confusion
+  try{ $("btnGenerateAgain").style.display = "none"; }catch(_){}
+}
+
+function exitGate(){
+  if(!gateActive) return;
+  try{ sessionStorage.setItem("cvstudio_started","1"); }catch(_){}
+  setGateActive(false);
+  // After Step 1, open the studio in Tailor mode (calm preview)
+  try{ setStudioMode("tailor"); }catch(_){ }
+
+  // Restore normal title
+  const st = $("setupTitle");
+  if(st){
+    st.textContent = t("setupTitle") || "Setup";
+  }
+
+  try{ if(typeof updateSourceChip === "function") updateSourceChip(); }catch(_){ }
+}
+
+function getPasteDesc(){
       return String($("pasteDesc")?.value || "").trim();
     }
 
@@ -2538,6 +2719,92 @@ function closeGenModal(){
         apply_url: applyUrlSafe(selectedJob?.apply_url || "")
       };
     }
+
+    function shortText(s, maxLen){
+      const str = String(s || "");
+      const n = Number(maxLen || 42);
+      if(!str) return "";
+      if(str.length <= n) return str;
+      return str.slice(0, Math.max(0, n - 1)) + "…";
+    }
+
+    function updateSourceChip(){
+      const btn = $("sourceChipBtn");
+      if(!btn) return;
+
+      // In Step 1 gate the studio bar is hidden anyway
+      if(gateActive){
+        btn.style.display = "none";
+        return;
+      }
+
+      // Determine current "context" (job or paste)
+      let meta = null;
+      try{ meta = getActiveJobMeta(); }catch(_){ meta = null; }
+
+      const title = String(meta?.title || "").trim();
+      const company = String(meta?.company_name || "").trim();
+
+      // If paste mode but no real description yet, keep it hidden (avoids confusion)
+      if(jobSource === "paste"){
+        const d = getPasteDesc();
+        if(d.length < 40 && !title){
+          btn.style.display = "none";
+          return;
+        }
+      }
+
+      let full = title || (jobSource === "paste"
+        ? (uiLang==="de" ? "Eingefügte Beschreibung" : "Pasted description")
+        : (uiLang==="de" ? "Ausgewählter Job" : "Selected job")
+      );
+
+      if(company) full = full + " · " + company;
+
+      // Update texts (EN/DE)
+      const lbl = $("sourceChipLabel");
+      const act = $("sourceChipAction");
+      if(lbl) lbl.textContent = (uiLang==="de" ? "Aktiv:" : "Using:");
+      if(act) act.textContent = (uiLang==="de" ? "Ändern" : "Change");
+
+      const val = $("sourceChipValue");
+      if(val){
+        val.textContent = shortText(full, 56);
+        val.title = full;
+      }
+
+      btn.style.display = "";
+    }
+
+    function openGateForChange(){
+      // Return user to Step 1 without reloading (like resume.io "Change" link)
+      try{
+        // Make the gate persistent if they reload while changing
+        sessionStorage.removeItem("cvstudio_started");
+      }catch(_){}
+
+      try{
+        setGateActive(true);
+        setStudioMode("tailor");
+      }catch(_){
+        try{ document.body.classList.add("cvGate"); }catch(__){}
+      }
+
+      // Focus the relevant input
+      setTimeout(() => {
+        try{
+          if(jobSource === "paste") $("pasteDesc")?.focus();
+          else $("jobSelect")?.focus();
+        }catch(_){}
+      }, 60);
+
+      try{
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }catch(_){
+        try{ window.scrollTo(0,0); }catch(__){}
+      }
+    }
+
 
     function loadJobSource(){
       try{
@@ -2606,6 +2873,9 @@ function closeGenModal(){
         // update quality and enablement
         try{ updatePasteQuality(); }catch(_){}
       }
+
+      try{ updateSourceChip(); }catch(_){}
+
     }
 
     function refreshModeUi(){
@@ -3206,6 +3476,14 @@ function markSteps(state){
       $("btnUndoEdit").disabled = !enabled;
       $("btnResetEdits").disabled = !enabled;
       try{ updateQaDot(); }catch(_){}
+
+      // Keep the primary action label clear (avoid "two generate buttons" confusion)
+      try{
+        const genBtn = $("btnGenerate");
+        if(genBtn && !gateActive){
+          genBtn.textContent = enabled ? "Regenerate tailored CV" : "Generate tailored CV";
+        }
+      }catch(_){}
     }
 
     function updateUndoResetButtons(){
@@ -4412,6 +4690,8 @@ ${bodyHtml}
           }
         }
       }catch(_){}
+
+      try{ updateSourceChip(); }catch(_){}
     }
 
     function buildTailorPayload(){
@@ -4436,6 +4716,9 @@ ${bodyHtml}
         showError(t("pickJob"));
         return;
       }
+
+      // Leaving Step 1 gate (if active) opens the full studio view
+      exitGate();
 
       setSetupCollapsed(true, { persist:false });
       openGenModal(true);
@@ -4579,6 +4862,9 @@ ${bodyHtml}
         showError(t("pasteTooShort"));
         return;
       }
+
+      // Leaving Step 1 gate (if active) opens the full studio view
+      exitGate();
 
       setSetupCollapsed(true, { persist:false });
       openGenModal(true);
@@ -6405,6 +6691,10 @@ function openKwModal(keywordRaw){
       applyUiTexts();
       setStrengthUi();
 
+      // Step 1 Gate: if user didn't come from Jobs, start with job selection/paste as the main screen
+      try{ setGateActive(shouldShowGate()); }catch(_){ }
+
+
       if(!window.JobApplyAI || !window.JobApplyAI.auth){
         showError("auth.js did not load. Ensure multipage/auth.js exists and is referenced as ./auth.js.");
         setBadge("authBadge","bad","Config error");
@@ -6436,13 +6726,19 @@ function openKwModal(keywordRaw){
       try{ updatePasteQuality(); }catch(_){}
 
       // Restore focus mode preference (Setup collapsed)
-      try{
-        const c = localStorage.getItem("cvstudio_setup_collapsed");
-        if(String(c||"") === "1") setSetupCollapsed(true, { persist:false, scroll:false });
-      }catch(_){ }
+      // In Step 1 gate we always keep Setup visible.
+      if(!gateActive){
+        try{
+          const c = localStorage.getItem("cvstudio_setup_collapsed");
+          if(String(c||"") === "1") setSetupCollapsed(true, { persist:false, scroll:false });
+        }catch(_){ }
+      }else{
+        setSetupCollapsed(false, { persist:false, scroll:false });
+      }
 
       // load queue
       await loadQueue();
+      try{ updateSourceChip(); }catch(_){}
 
       // initial output state
       renderKeywords();
@@ -6488,6 +6784,7 @@ $("genModal")?.addEventListener("click", (e) => { if(e.target && e.target.id ===
       el.addEventListener("input", () => {
         savePasteDraft();
         refreshModeUi();
+        try{ updateSourceChip(); }catch(_){}
       });
     });
 
@@ -6500,6 +6797,7 @@ $("genModal")?.addEventListener("click", (e) => { if(e.target && e.target.id ===
       savePasteDraft();
       updatePasteQuality();
       maybeAutoCollapseAfterPaste();
+      try{ updateSourceChip(); }catch(_){}
     });
 
     $("strengthRange").addEventListener("input", setStrengthUi);
@@ -6549,6 +6847,8 @@ $("genModal")?.addEventListener("click", (e) => { if(e.target && e.target.id ===
     $("btnGenerate").addEventListener("click", generate);
     $("btnGenerateAgain").addEventListener("click", generate);
 
+    $("sourceChipBtn")?.addEventListener("click", openGateForChange);
+
     
     // Studio mode buttons
     $("modeTailor")?.addEventListener("click", () => setStudioMode("tailor"));
@@ -6572,19 +6872,64 @@ $("genModal")?.addEventListener("click", (e) => { if(e.target && e.target.id ===
 
     // Zoom controls (Preview)
     let zoom = 1.0;
+    let zoomUserSet = false;
+    let hadSavedZoom = false;
+
     function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
-    function applyZoom(){
+
+    function computeFitZoom(){
+      const stage = document.querySelector(".pageStage");
+      const page = $("cvPreview");
+      if(!stage || !page) return 1.0;
+
+      const avail = Math.max(320, stage.clientWidth - 24);
+      const base = page.offsetWidth || page.getBoundingClientRect().width || 0;
+      if(!base) return 1.0;
+
+      const z = avail / base;
+      return clamp(z, 0.65, 1.35);
+    }
+
+    function applyZoom(persist = true){
       const z = $("pageZoom");
       if(z) z.style.transform = "scale(" + zoom.toFixed(2) + ")";
       const pct = $("zoomPct");
       if(pct) pct.textContent = Math.round(zoom * 100) + "%";
-      try { localStorage.setItem("jmj_cv_zoom", String(zoom)); } catch(_) {}
+      if(persist){
+        try { localStorage.setItem("jmj_cv_zoom", String(zoom)); } catch(_) {}
+      }
     }
+
     try{
       const saved = Number(localStorage.getItem("jmj_cv_zoom") || "");
-      if(saved && isFinite(saved)) zoom = clamp(saved, 0.6, 1.4);
+      if(saved && isFinite(saved)){
+        zoom = clamp(saved, 0.55, 1.65);
+        hadSavedZoom = true;
+      }
     }catch(_){}
-    $("zoomIn")?.addEventListener("click", () => { zoom = clamp(zoom + 0.1, 0.6, 1.4); applyZoom(); });
+
+    if(!hadSavedZoom){
+      zoom = computeFitZoom();
+    }
+
+    $("zoomIn")?.addEventListener("click", () => {
+      zoomUserSet = true;
+      zoom = clamp(zoom + 0.1, 0.55, 1.65);
+      applyZoom(true);
+    });
+    $("zoomOut")?.addEventListener("click", () => {
+      zoomUserSet = true;
+      zoom = clamp(zoom - 0.1, 0.55, 1.65);
+      applyZoom(true);
+    });
+
+    window.addEventListener("resize", () => {
+      if(hadSavedZoom || zoomUserSet) return;
+      zoom = computeFitZoom();
+      applyZoom(false);
+    });
+
+    applyZoom(hadSavedZoom);
     $("zoomOut")?.addEventListener("click", () => { zoom = clamp(zoom - 0.1, 0.6, 1.4); applyZoom(); });
     applyZoom();
 
