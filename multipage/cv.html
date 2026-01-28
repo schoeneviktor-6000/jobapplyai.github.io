@@ -27,10 +27,6 @@
     .studioRight{ grid-area:right; }
 
 /* Use more of the desktop width on CV Studio (other pages stay at shared max-width) */
-main.main{
-  max-width: min(1760px, 98vw);
-}
-
 /* Slightly roomier studio grid on very wide monitors */
 @media (min-width: 1500px){
   .studio{
@@ -53,7 +49,7 @@ main.main{
    - If user did NOT come from Jobs, we start with job selection/paste as the main screen.
    - After starting tailoring, we open the full studio (canvas + inspector).
    ============================================================ */
-body.cvGate .studioBar{ display:none; }
+body.cvGate .studioBar{ display:none !important; }
 body.cvGate .studio{
   grid-template-columns: 1fr !important;
   grid-template-areas: "left" !important;
@@ -80,57 +76,6 @@ body.cvGate.cvGateForm #gateBackRow{ display:flex !important; }
 
 .gateChooser{
   margin-top: 12px;
-}
-.gateCards{
-  display:grid;
-  grid-template-columns: 1fr;
-  gap:12px;
-  margin-top: 12px;
-}
-@media (min-width: 860px){
-  .gateCards{ grid-template-columns: 1fr 1fr; }
-}
-.gateCard{
-  appearance:none;
-  width:100%;
-  text-align:left;
-  padding:14px 14px;
-  border-radius:18px;
-  border:1px solid rgba(17,19,24,.12);
-  background:rgba(255,255,255,.74);
-  box-shadow: 0 12px 34px rgba(17,19,24,.10);
-  cursor:pointer;
-  transition:.15s ease;
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  min-height: 118px;
-}
-.gateCard:hover{
-  transform: translateY(-2px);
-  background: rgba(255,255,255,.86);
-}
-.gateCardTop{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:10px;
-}
-.gateCardTitle{
-  font-weight:980;
-  font-size:15px;
-  letter-spacing:-.2px;
-}
-.gateCardDesc{
-  color: rgba(17,19,24,.62);
-  font-weight:650;
-  line-height:1.45;
-  font-size:13px;
-}
-.gateCardHint{
-  color: rgba(17,19,24,.52);
-  font-weight:750;
-  font-size:12px;
 }
 .gateBackRow{
   display:flex;
@@ -347,7 +292,7 @@ body.cvGate.cvGateForm #jobSourceHint{
     }
 
     /* Preview rendering (HTML) */
-    .cvPreview{
+    .cvPreview:not(.paperA4){
       background: rgba(255,255,255,.72);
       border: 1px solid rgba(17,19,24,.10);
       border-radius: 14px;
@@ -1125,49 +1070,6 @@ body.cvGate.cvGateForm #jobSourceHint{
        Resume.io-inspired Studio Bar + Modes (page-only)
        ============================================================ */
 
-    .studioBar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      flex-wrap:wrap;
-      margin: 10px 0 14px;
-      padding: 10px 10px;
-      border:1px solid rgba(17,19,24,.10);
-      border-radius:16px;
-      background: rgba(255,255,255,.72);
-      backdrop-filter: saturate(1.2) blur(10px);
-    }
-    .studioTabsTop{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
-    .modeTab{
-      border:1px solid rgba(17,19,24,.12);
-      background:rgba(255,255,255,.66);
-      border-radius:999px;
-      padding:10px 14px;
-      font-weight:900;
-      color:rgba(17,19,24,.78);
-      cursor:pointer;
-      transition:.15s ease;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-    }
-    .modeTab:hover{ transform:translateY(-1px); background:rgba(255,255,255,.82); }
-    .modeTab.active{
-      background: rgba(34,197,94,.14);
-      border-color: rgba(34,197,94,.50);
-      color:#0a3d1f;
-    }
-    .modeTab[disabled]{
-      opacity:.55;
-      cursor:not-allowed;
-      transform:none;
-    }
     .modeTag{
       font-size:11px;
       font-weight:950;
@@ -1210,46 +1112,7 @@ body.cvGate.cvGateForm #jobSourceHint{
       .sourceChipPill{ max-width: 92vw; }
     }
 
-/* “Download” dropdown */
-    .studioDrop{
-      position:relative;
-    }
-    .studioDrop > summary{
-      list-style:none;
-      cursor:pointer;
-      user-select:none;
-    }
-    .studioDrop > summary::-webkit-details-marker{ display:none; }
-    .studioMenu{
-      position:absolute;
-      right:0;
-      top: calc(100% + 10px);
-      min-width: 220px;
-      z-index: 50;
-      border:1px solid rgba(17,19,24,.12);
-      background: rgba(255,255,255,.92);
-      border-radius:14px;
-      padding:10px;
-      box-shadow: 0 18px 60px rgba(17,19,24,.16);
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-    }
-    .studioMenu .menuLabel{
-      font-size:11px;
-      font-weight:950;
-      letter-spacing:.04em;
-      text-transform:uppercase;
-      color: rgba(17,19,24,.55);
-      padding:4px 8px 2px;
-    }
-    .studioMenu .menuSep{
-      height:1px;
-      background: rgba(17,19,24,.10);
-      margin:6px 0;
-    }
-
-    /* Mode-based “show/hide” – keeps the interface calmer */
+/* Mode-based “show/hide” – keeps the interface calmer */
     #studioRoot[data-mode="tailor"] #canvasTabs{ display:none; }
     #studioRoot[data-mode="tailor"] #cvTextWrap,
     #studioRoot[data-mode="tailor"] #cvChangesWrap{ display:none !important; }
@@ -1268,42 +1131,6 @@ body.cvGate.cvGateForm #jobSourceHint{
     #studioRoot[data-mode="customize"] #inspectorReview{ display:none !important; }
 
     /* Resume-like “page preview” feel + zoom HUD */
-    .pageStage{
-      padding: 10px 8px 0;
-      display:flex;
-      justify-content:center;
-      overflow:auto;
-    }
-    .pageZoom{
-      transform-origin: top center;
-    }
-    .cvPreview.page{
-      background:#fff;
-      border-color: rgba(17,19,24,.10);
-      border-radius: 10px;
-      box-shadow: 0 18px 60px rgba(17,19,24,.14);
-      width: 210mm;
-      min-height: 297mm;
-      box-sizing: border-box;
-      margin: 0 auto;
-      padding: 16mm 14mm;
-    }
-    .zoomHud{
-      position: sticky;
-      bottom: 10px;
-      z-index: 5;
-      margin: 12px auto 0;
-      width: fit-content;
-      display:flex;
-      align-items:center;
-      gap:10px;
-      padding:8px 10px;
-      background: rgba(255,255,255,.88);
-      border:1px solid rgba(17,19,24,.12);
-      border-radius: 999px;
-      box-shadow: 0 16px 50px rgba(17,19,24,.14);
-      backdrop-filter: saturate(1.2) blur(10px);
-    }
     .iconBtn{
       width:34px;
       height:34px;
@@ -1368,11 +1195,12 @@ body.cvGate.cvGateForm #jobSourceHint{
   .topbar, .studioBar, .studioLeft, .studioRight, .zoomHud{ display:none !important; }
   .studio{ display:block !important; }
   .studioCanvas{ border:none !important; box-shadow:none !important; padding:0 !important; }
-  .pageStage{ padding:0 !important; overflow:visible !important; }
+  .paperWrap{ padding:0 !important; overflow:visible !important; }
   #pageZoom{ transform:none !important; }
-  .cvPreview.page{ box-shadow:none !important; border:none !important; margin:0 !important; }
+  .paperA4{ box-shadow:none !important; border:none !important; margin:0 !important; width:210mm !important; min-height:297mm !important; }
 }
 
+.modeTab[disabled]{opacity:.55;cursor:not-allowed;transform:none;}
 </style>
 </head>
 
@@ -1415,7 +1243,7 @@ body.cvGate.cvGateForm #jobSourceHint{
     </nav>
   </header>
 
-  <main class="main">
+  <main class="main mainWide">
     <h1 class="h1">CV Studio</h1>
     <p class="sub" id="subTitle">Tailor your CV per role with ATS-safe formatting. Job search + CV tailoring stay free.</p>
 
@@ -1654,9 +1482,9 @@ body.cvGate.cvGateForm #jobSourceHint{
 
         <div class="cvBox" id="cvBox">
           <div id="cvPreviewWrap" style="display:block;">
-            <div class="pageStage">
-              <div class="pageZoom" id="pageZoom">
-                <div id="cvPreview" class="cvPreview page">
+            <div class="pageStage paperWrap">
+              <div class="pageZoom paperZoom" id="pageZoom">
+                <div id="cvPreview" class="cvPreview page paperA4">
               <div class="hint">No CV generated yet.</div>
             </div>
               </div>
