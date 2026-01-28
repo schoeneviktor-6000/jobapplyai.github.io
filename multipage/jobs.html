@@ -63,7 +63,29 @@
     /* -------------------------
        Queue list (left)
        ------------------------- */
-    .jobList{ display:flex; flex-direction:column; gap:10px; }
+    .jobList{ display:flex; flex-direction:column; gap:14px; }
+
+/* Sectioned list (Priority pinned like LinkedIn "Saved") */
+.jobSection{ display:flex; flex-direction:column; gap:8px; }
+.jobSectionHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding: 2px 6px 0;
+  color: rgba(17,19,24,.58);
+  font-weight: 950;
+  font-size: 12px;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+.jobSectionList{ display:flex; flex-direction:column; gap:10px; }
+.jobSectionDivider{
+  height:1px;
+  background: rgba(17,19,24,.10);
+  margin: 4px 0 2px;
+  border-radius: 999px;
+}
 
     .jobRow{
       border:1px solid rgba(17,19,24,.12);
@@ -709,11 +731,23 @@
       return days < 0 ? 0 : days;
     }
 
-    function goToCvStudio(jobId){
-      try{ localStorage.setItem("cvstudio_job_source", "queue"); }catch(_){ }
-      try{ localStorage.setItem("cvstudio_selected_job_id", String(jobId)); }catch(_){ }
-      H.go("./cv.html?job_id=" + encodeURIComponent(jobId));
-    }
+    function rememberCvStudioSelection(jobId){
+  const id = String(jobId || "");
+  if(!id) return;
+  try{ localStorage.setItem("cvstudio_job_source", "queue"); }catch(_){ }
+  try{ localStorage.setItem("cvstudio_selected_job_id", id); }catch(_){ }
+}
+
+function goToCvStudio(jobId){
+  const id = String(jobId || "");
+  if(!id) return;
+  rememberCvStudioSelection(id);
+
+  // Direct navigation (most reliable). We still apply the tiny "leaving" hint if available.
+  try{ document.body.classList.add("leaving"); }catch(_){}
+  window.location.href = "./cv.html?job_id=" + encodeURIComponent(id);
+}
+
 
     function renderQueueCards(queue){
       const items = Array.isArray(queue?.data) ? queue.data : (Array.isArray(queue?.jobs) ? queue.jobs : []);
@@ -801,58 +835,84 @@
         setTimeout(() => { selectJob(selectedJobId, { keepDetailScroll: true, fromRender: true }).catch(()=>{}); }, 0);
       }
 
-      const html = viewItems.map((j) => {
-        const jobId = j.id ? String(j.id) : "";
-        const title = String(j.title || "Untitled");
-        const company = String(j.company_name || "—");
-        const loc = [j.city || "", j.region || ""].filter(Boolean).join(", ") || "—";
-        const posted = j.posted_at ? String(j.posted_at).slice(0, 10) : "—";
+const prioItems = viewItems.filter(j => !!(j && j._application && j._application.priority));
+const otherItems = viewItems.filter(j => !(j && j._application && j._application.priority));
+const hasPrio = prioItems.length > 0;
 
-        const prio = !!(j._application && j._application.priority);
-        const prioBadge = prio ? "<span class='badge prio'>♥ prio</span>" : "<span class='badge'>new</span>";
+const renderRow = (j) => {
+  const jobId = j.id ? String(j.id) : "";
+  const title = String(j.title || "Untitled");
+  const company = String(j.company_name || "—");
+  const loc = [j.city || "", j.region || ""].filter(Boolean).join(", ") || "—";
+  const posted = j.posted_at ? String(j.posted_at).slice(0, 10) : "—";
 
-        const tSum = tailorSummaryMap.get(String(jobId));
-        let atsBadge = "";
-        if(tSum){
-          const pct = computeAtsMatchPercent(tSum.ats_keywords_used, tSum.ats_keywords_missing);
-          if(pct !== null){
-            const cls = (pct >= 80) ? "good" : (pct >= 60 ? "warn" : "bad");
-            atsBadge = "<span class='badge " + H.escapeHtml(cls) + "'>ATS " + H.escapeHtml(pct) + "%</span>";
-          }else{
-            atsBadge = "<span class='badge'>tailored</span>";
-          }
-        }
+  const prio = !!(j._application && j._application.priority);
+  const prioBadge = prio ? "<span class='badge prio'>♥ prio</span>" : "<span class='badge'>new</span>";
 
-        const badge = "<div class='badgeGroup'>" + prioBadge + atsBadge + "</div>";
+  const tSum = tailorSummaryMap.get(String(jobId));
+  let atsBadge = "";
+  if(tSum){
+    const pct = computeAtsMatchPercent(tSum.ats_keywords_used, tSum.ats_keywords_missing);
+    if(pct !== null){
+      const cls = (pct >= 80) ? "good" : (pct >= 60 ? "warn" : "bad");
+      atsBadge = "<span class='badge " + H.escapeHtml(cls) + "'>ATS " + H.escapeHtml(pct) + "%</span>";
+    }else{
+      atsBadge = "<span class='badge'>tailored</span>";
+    }
+  }
 
-        const updatedDays = daysAgo(j.source_modified_at);
-        const updatedLabel = (updatedDays === null)
-          ? "Updated —"
-          : (updatedDays === 0 ? "Updated today" : ("Updated " + updatedDays + "d ago"));
+  const badge = "<div class='badgeGroup'>" + prioBadge + atsBadge + "</div>";
 
-        const heartBtn = prio
-          ? "<button class='iconBtn heartBtn on' type='button' data-unprio='" + H.escapeHtml(jobId) + "' aria-label='Remove priority' aria-pressed='true' title='Unprioritize'><span aria-hidden='true'>♥</span></button>"
-          : "<button class='iconBtn heartBtn' type='button' data-prio='" + H.escapeHtml(jobId) + "' aria-label='Mark as priority' aria-pressed='false' title='Prioritize'><span aria-hidden='true'>♡</span></button>";
+  const updatedDays = daysAgo(j.source_modified_at);
+  const updatedLabel = (updatedDays === null)
+    ? "Updated —"
+    : (updatedDays === 0 ? "Updated today" : ("Updated " + updatedDays + "d ago"));
 
-        const selectedCls = (String(jobId) === String(selectedJobId)) ? " selected" : "";
+  const heartBtn = prio
+    ? "<button class='iconBtn heartBtn on' type='button' data-unprio='" + H.escapeHtml(jobId) + "' aria-label='Remove priority' aria-pressed='true' title='Unprioritize'><span aria-hidden='true'>♥</span></button>"
+    : "<button class='iconBtn heartBtn' type='button' data-prio='" + H.escapeHtml(jobId) + "' aria-label='Mark as priority' aria-pressed='false' title='Prioritize'><span aria-hidden='true'>♡</span></button>";
 
-        return (
-          '<div class="jobRow' + selectedCls + '" data-select="' + H.escapeHtml(jobId) + '" role="button" tabindex="0" aria-label="Select job">'
-            + '<div class="jobRowTop">'
-              + '<div class="jobRowTitle">' + H.escapeHtml(title) + '</div>'
-              + '<div class="jobRowRight">' + badge + heartBtn + '</div>'
-            + '</div>'
-            + '<div class="jobRowMeta">'
-              + '<span>' + H.escapeHtml(company) + '</span><span>•</span>'
-              + '<span>' + H.escapeHtml(loc) + '</span><span>•</span>'
-              + '<span>Posted ' + H.escapeHtml(posted) + '</span>'
-              + (updatedLabel ? ('<span>•</span><span>' + H.escapeHtml(updatedLabel) + '</span>') : '')
-            + '</div>'
-          + '</div>'
-        );
-      }).join("");
+  const selectedCls = (String(jobId) === String(selectedJobId)) ? " selected" : "";
 
-      return '<div class="jobList">' + html + '</div>';
+  return (
+    '<div class="jobRow' + selectedCls + '" data-select="' + H.escapeHtml(jobId) + '" role="button" tabindex="0" aria-label="Select job">'
+      + '<div class="jobRowTop">'
+        + '<div class="jobRowTitle">' + H.escapeHtml(title) + '</div>'
+        + '<div class="jobRowRight">' + badge + heartBtn + '</div>'
+      + '</div>'
+      + '<div class="jobRowMeta">'
+        + '<span>' + H.escapeHtml(company) + '</span><span>•</span>'
+        + '<span>' + H.escapeHtml(loc) + '</span><span>•</span>'
+        + '<span>Posted ' + H.escapeHtml(posted) + '</span>'
+        + (updatedLabel ? ('<span>•</span><span>' + H.escapeHtml(updatedLabel) + '</span>') : '')
+      + '</div>'
+    + '</div>'
+  );
+};
+
+const prioHtml = prioItems.map(renderRow).join("");
+const otherHtml = otherItems.map(renderRow).join("");
+
+// Always render both containers (for smooth DOM moves); hide the Priority section if empty.
+return (
+  '<div class="jobList">'
+    + '<div class="jobSection" id="prioSection"' + (hasPrio ? '' : ' style="display:none"') + '>'
+      + '<div class="jobSectionHeader">'
+        + '<div>Priority</div>'
+        + '<span class="badge prio" id="prioCount">' + H.escapeHtml(String(prioItems.length)) + '</span>'
+      + '</div>'
+      + '<div class="jobSectionList" id="prioList">' + prioHtml + '</div>'
+    + '</div>'
+    + '<div class="jobSectionDivider" id="prioDivider"' + (hasPrio ? '' : ' style="display:none"') + '></div>'
+    + '<div class="jobSection" id="allSection">'
+      + '<div class="jobSectionHeader">'
+        + '<div id="allLabel">' + (hasPrio ? 'Other jobs' : 'Jobs') + '</div>'
+        + '<span class="badge" id="allCount">' + H.escapeHtml(String(otherItems.length)) + '</span>'
+      + '</div>'
+      + '<div class="jobSectionList" id="jobList">' + otherHtml + '</div>'
+    + '</div>'
+  + '</div>'
+);
     }
 
     function wireQueueClicks(){
@@ -1058,50 +1118,68 @@ const row = e.target && e.target.closest ? e.target.closest(".jobRow[data-select
       if(heart) updateHeartButtonEl(heart, makePrio, jobId);
     }
 
-    function moveRowDom(jobId, makePrio, rowEl){
-      const row = rowEl || null;
-      if(!row) return;
-      const list = row.closest(".jobList");
-      if(!list) return;
+    
+function updateSectionVisibility(){
+  const prioSection = document.getElementById("prioSection");
+  const prioDivider = document.getElementById("prioDivider");
+  const prioList = document.getElementById("prioList");
+  const allList = document.getElementById("jobList");
 
-      const first = row.getBoundingClientRect();
+  const prioCount = prioList ? prioList.querySelectorAll(".jobRow[data-select]").length : 0;
+  const allCount = allList ? allList.querySelectorAll(".jobRow[data-select]").length : 0;
 
-      if(makePrio){
-        // Move to top
-        list.insertBefore(row, list.firstChild);
-      }else{
-        // Move below all prio rows (top of non-prio block)
-        const rows = Array.from(list.querySelectorAll(".jobRow[data-select]")).filter(r => r !== row);
-        let insertBeforeEl = null;
-        for(const r of rows){
-          const id = r.getAttribute("data-select") || "";
-          const jb = findJobBase(id);
-          const pr = !!(jb && jb._application && jb._application.priority);
-          if(!pr){ insertBeforeEl = r; break; }
-        }
-        if(insertBeforeEl) list.insertBefore(row, insertBeforeEl);
-        else list.appendChild(row);
-      }
+  const prioCountEl = document.getElementById("prioCount");
+  const allCountEl = document.getElementById("allCount");
+  const allLabelEl = document.getElementById("allLabel");
 
-      const last = row.getBoundingClientRect();
-      const dx = first.left - last.left;
-      const dy = first.top - last.top;
+  if(prioCountEl) prioCountEl.textContent = String(prioCount);
+  if(allCountEl) allCountEl.textContent = String(allCount);
+  if(allLabelEl) allLabelEl.textContent = prioCount > 0 ? "Other jobs" : "Jobs";
 
-      if((Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) && row.animate){
-        row.animate(
-          [
-            { transform: `translate(${dx}px, ${dy}px)` },
-            { transform: "translate(0, 0)" }
-          ],
-          { duration: 220, easing: "ease-out" }
-        );
-      }
+  const showPrio = prioCount > 0;
+  if(prioSection) prioSection.style.display = showPrio ? "" : "none";
+  if(prioDivider) prioDivider.style.display = showPrio ? "" : "none";
+}
 
-      // Optional: keep it visible (feels like it “moved up”)
-      if(makePrio){
-        try{ row.scrollIntoView({ behavior:"smooth", block:"nearest" }); }catch(_){}
-      }
-    }
+function moveRowDom(jobId, makePrio, rowEl){
+  const row = rowEl || null;
+  if(!row) return;
+
+  const prioList = document.getElementById("prioList");
+  const allList = document.getElementById("jobList");
+  if(!prioList || !allList) return;
+
+  const first = row.getBoundingClientRect();
+
+  if(makePrio){
+    // Move into Priority section (pinned)
+    prioList.insertBefore(row, prioList.firstChild);
+  }else{
+    // Move into normal list (top of “Other jobs”)
+    allList.insertBefore(row, allList.firstChild);
+  }
+
+  updateSectionVisibility();
+
+  const last = row.getBoundingClientRect();
+  const dx = first.left - last.left;
+  const dy = first.top - last.top;
+
+  if((Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) && row.animate){
+    row.animate(
+      [
+        { transform: `translate(${dx}px, ${dy}px)` },
+        { transform: "translate(0, 0)" }
+      ],
+      { duration: 220, easing: "ease-out" }
+    );
+  }
+
+  // Keep it visible (feels like it “pinned”)
+  if(makePrio){
+    try{ row.scrollIntoView({ behavior:"smooth", block:"nearest" }); }catch(_){}
+  }
+}
 
     function restorePrioritySnapshot(jobId, snap){
       const id = String(jobId || "");
@@ -1281,7 +1359,7 @@ function renderDetailLoading(baseJob){
           + '</div>'
 
           + '<div class="detailActions">'
-            + '<button class="btn primary" type="button" data-tailor="' + H.escapeHtml(String(jobId)) + '">Tailor in CV Studio</button>'
+            + '<a class="btn primary" href="' + H.escapeHtml("./cv.html?job_id=" + encodeURIComponent(jobId)) + '" data-tailor="' + H.escapeHtml(String(jobId)) + '">Tailor in CV Studio</a>'
             + (hasDesc ? '<button class="btn ghost" type="button" data-copydesc="1">Copy description</button>' : '<button class="btn ghost" type="button" disabled title="No description available">Copy description</button>')
             + openOriginalBtn
             + '<button class="btn danger" type="button" data-skip="' + H.escapeHtml(String(jobId)) + '">Skip</button>'
@@ -1370,10 +1448,12 @@ function renderDetailLoading(baseJob){
           return;
         }
 
-        const tl = e.target.closest("button[data-tailor]");
+        const tl = e.target.closest("a[data-tailor], button[data-tailor]");
         if(tl){
           const id = tl.getAttribute("data-tailor") || selectedJobId;
-          if(id) goToCvStudio(id);
+          if(id) rememberCvStudioSelection(id);
+          // If it is a real link, let the browser navigate (no preventDefault). If it's a button, navigate here.
+          if(id && tl.tagName !== "A") goToCvStudio(id);
           return;
         }
 
