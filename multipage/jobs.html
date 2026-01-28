@@ -330,7 +330,7 @@
           <div class="row" style="justify-content:space-between">
             <div style="min-width:220px">
               <div style="font-weight:950">Your queue</div>
-              <div class="small" id="queueHint">We show up to 16 jobs here. Use “Tailor in CV Studio” to continue.</div>
+              <div class="small" id="queueHint">Browse your queue on the left. Click a job to see details on the right.</div>
             </div>
 
             <div class="row" style="justify-content:flex-end">
@@ -346,6 +346,12 @@
 
         <div class="sectionBody" id="queueScroll">
           <div class="small" id="fetchJobsStatus"></div>
+
+          <div class="field" style="margin-top:10px">
+            <input id="queueSearch" class="textInput" type="text" placeholder="Search title, company, location…" autocomplete="off"/>
+          </div>
+          <div class="small" id="queueShowing" style="margin-top:8px"></div>
+
 
           <details class="advanced" id="fetchAdvanced">
             <summary>Fetch options</summary>
@@ -711,7 +717,34 @@
 
     function renderQueueCards(queue){
       const items = Array.isArray(queue?.data) ? queue.data : (Array.isArray(queue?.jobs) ? queue.jobs : []);
-      currentQueueItems = items.slice(0, 16);
+      currentQueueItems = items;
+
+      // Filter (client-side): title / company / location
+      const q = (document.getElementById("queueSearch")?.value || "").trim().toLowerCase();
+      const viewItems = q ? items.filter((j) => {
+        const hay = [
+          j?.title || "",
+          j?.company_name || "",
+          j?.city || "",
+          j?.region || ""
+        ].join(" ").toLowerCase();
+        return hay.includes(q);
+      }) : items;
+
+      // Queue "showing" line
+      try{
+        const el = $("queueShowing");
+        if(el){
+          if(q){
+            el.textContent = "Showing " + viewItems.length + " of " + items.length + " (filtered)";
+          }else{
+            const total = (typeof currentQueueCount === "number" && currentQueueCount) ? currentQueueCount : items.length;
+            el.textContent = (items.length === total)
+              ? ("Showing " + items.length + " jobs")
+              : ("Showing " + items.length + " of " + total + " jobs");
+          }
+        }
+      }catch(_){}
 
       if(!items.length){
         // Clear selection + details when empty
@@ -736,6 +769,23 @@
         );
       }
 
+      if(q && !viewItems.length){
+        return (
+          '<div class="jobList">'
+            + '<div class="jobRow" style="cursor:default">'
+              + '<div class="jobRowTop">'
+                + '<div class="jobRowTitle">No matching jobs</div>'
+                + '<div class="badgeGroup"><span class="badge warn">0 results</span></div>'
+              + '</div>'
+              + '<div class="jobRowMeta"><span>Try a different search, or clear it.</span></div>'
+              + '<div class="detailActions" style="margin-top:12px">'
+                + '<button class="btn" type="button" data-clear-search="1">Clear search</button>'
+              + '</div>'
+            + '</div>'
+          + '</div>'
+        );
+      }
+
       // Restore last selected job (or default to first)
       const stored = (() => { try{ return localStorage.getItem("jobs_selected_job_id") || ""; }catch(_){ return ""; } })();
       if(!selectedJobId && stored) selectedJobId = stored;
@@ -748,11 +798,10 @@
 
       // Ensure right pane shows the selected job (best-effort; no await here)
       if(selectedJobId){
-        // defer so DOM exists
         setTimeout(() => { selectJob(selectedJobId, { keepDetailScroll: true, fromRender: true }).catch(()=>{}); }, 0);
       }
 
-      const html = items.slice(0, 16).map((j) => {
+      const html = viewItems.map((j) => {
         const jobId = j.id ? String(j.id) : "";
         const title = String(j.title || "Untitled");
         const company = String(j.company_name || "—");
@@ -816,6 +865,14 @@
         if(inlineFetch){
           const b = $("btnFetchJobsNow");
           if(b) b.click();
+          return;
+        }
+
+        const clearSearch = e.target && e.target.closest ? e.target.closest('[data-clear-search="1"]') : null;
+        if(clearSearch){
+          const qs = $("queueSearch");
+          if(qs) qs.value = "";
+          if(lastQueueResponse) setHtml("queueWrap", renderQueueCards(lastQueueResponse));
           return;
         }
 
@@ -949,15 +1006,28 @@
       const source = j?.description_full_source ? String(j.description_full_source) : "";
       const fetchedAt = j?.description_full_fetched_at ? String(j.description_full_fetched_at) : "";
 
-      let descText = "";
-      if(j && j.description_full){
-        descText = String(j.description_full);
-      }else if(j && j.description_full_error){
-        descText = "No description yet.\nLast error: " + String(j.description_full_error);
-      }else{
-        descText = "No description found.";
+      function stripHtml(html){
+        const div = document.createElement("div");
+        div.innerHTML = String(html || "");
+        return (div.textContent || div.innerText || "").replace(/\s+\n/g,"\n").replace(/[ \t]+\n/g,"\n").replace(/\n{3,}/g,"\n\n").trim();
       }
-      currentDescText = descText;
+
+      // Prefer stored full text, then fallbacks (some sources store different fields)
+      const rawText =
+        (j && (j.description_full || j.description_text || j.description || j.description_raw || "")) || "";
+
+      let descText = String(rawText || "").trim();
+
+      if(!descText && j && j.description_html){
+        descText = stripHtml(j.description_html);
+      }
+
+      const hasDesc = !!descText && descText.replace(/\s+/g," ").length >= 80;
+
+      // If backend reported an error fetching full description, keep it in debug but don't pretend it's a JD.
+      const fetchError = (j && j.description_full_error) ? String(j.description_full_error) : "";
+
+      currentDescText = hasDesc ? descText : "";
 
       setText("detailHint", "Selected job");
       H.setBadge("detailBadge", prio ? "prio" : "", prio ? "Priority" : "Ready");
@@ -984,7 +1054,7 @@
 
           + '<div class="detailActions">'
             + '<button class="btn primary" type="button" data-tailor="' + H.escapeHtml(String(jobId)) + '">Tailor in CV Studio</button>'
-            + '<button class="btn ghost" type="button" data-copydesc="1">Copy description</button>'
+            + (hasDesc ? '<button class="btn ghost" type="button" data-copydesc="1">Copy description</button>' : '<button class="btn ghost" type="button" disabled title="No description available">Copy description</button>')
             + openOriginalBtn
             + '<button class="btn danger" type="button" data-skip="' + H.escapeHtml(String(jobId)) + '">Skip</button>'
           + '</div>'
@@ -993,7 +1063,13 @@
 
           + '<div class="hr"></div>'
           + '<div class="small" style="font-weight:950;color:rgba(17,19,24,.70)">About the job</div>'
-          + '<div class="descBox" id="detailDesc">' + H.escapeHtml(descText) + '</div>'
+          + (hasDesc
+              ? ('<div class="descBox" id="detailDesc">' + H.escapeHtml(descText) + '</div>')
+              : ('<div class="descBox" id="detailDesc">'
+                    + '<div style="font-weight:950">No description available</div>'
+                    + '<div class="small" style="margin-top:6px">Some job sources do not provide a full description. Click “Open original ↗” and paste it into CV Studio.</div>'
+                    + (fetchError ? ('<div class="small" style="margin-top:8px">Last fetch error: <span class="mono">' + H.escapeHtml(fetchError) + '</span></div>') : '')
+                 + '</div>'))
         + '</div>'
       ));
     }
@@ -1167,13 +1243,32 @@
     }
 
     async function copyDesc(){
+      const t = String(currentDescText || "").trim();
+      if(!t){
+        // If there is no description, copying should not mislead the user.
+        try{
+          if(H && typeof H.showTopError === "function"){
+            H.showTopError("errorTop", "No description to copy for this job. Open the original posting and paste the description into CV Studio.");
+            setTimeout(() => { try{ H.showTopError("errorTop",""); }catch(_){ } }, 3500);
+          }else{
+            alert("No description to copy. Open original and paste into CV Studio.");
+          }
+        }catch(_){ }
+        return;
+      }
+
       try{
-        const t = currentDescText || "";
-        if(!t){ alert("Nothing to copy yet."); return; }
+        if(S && typeof S.copyToClipboard === "function"){
+          const ok = await S.copyToClipboard(t);
+          if(ok && S.toast) S.toast("Description copied.", { kind:"good", ms: 1800 });
+          else alert("Description copied.");
+          return;
+        }
+
         await navigator.clipboard.writeText(t);
         alert("Description copied.");
       }catch(_){
-        window.prompt("Copy description:", currentDescText || "");
+        window.prompt("Copy description:", t);
       }
     }
 
@@ -1396,7 +1491,25 @@
       setHtml("queueError", "");
       setHtml("queueWrap", '<div class="skeleton block"></div>');
 
-      const queue = await apiGet("/me/jobs/queue", lastSessionToken);
+      // Try to fetch a bigger chunk so the list can show your full queue (e.g. 200)
+      let queue = null;
+      try{
+        queue = await apiGet("/me/jobs/queue?limit=250", lastSessionToken);
+      }catch(_){
+        queue = await apiGet("/me/jobs/queue", lastSessionToken);
+      }
+
+      // If API reports more than it returned, try once more with the exact count (best-effort)
+      try{
+        const got = Array.isArray(queue?.data) ? queue.data.length : 0;
+        const cnt = (typeof queue?.count === "number") ? queue.count : 0;
+        if(cnt && got && got < cnt && cnt <= 600){
+          const bigger = await apiGet("/me/jobs/queue?limit=" + encodeURIComponent(String(cnt)), lastSessionToken);
+          const got2 = Array.isArray(bigger?.data) ? bigger.data.length : 0;
+          if(got2 > got) queue = bigger;
+        }
+      }catch(_){ }
+
       lastQueueResponse = queue;
 
       const qCount = (typeof queue.count === "number") ? queue.count : (Array.isArray(queue.data) ? queue.data.length : 0);
@@ -1661,6 +1774,20 @@
     $("btnRefresh")?.addEventListener("click", () => {
       refreshQueue().catch((e) => showError(e?.message || String(e)));
     });
+
+    $("queueSearch")?.addEventListener("input", () => {
+      if(!lastQueueResponse) return;
+      setHtml("queueWrap", renderQueueCards(lastQueueResponse));
+    });
+
+    $("queueSearch")?.addEventListener("keydown", (e) => {
+      if(e.key === "Escape"){
+        const qs = $("queueSearch");
+        if(qs) qs.value = "";
+        if(lastQueueResponse) setHtml("queueWrap", renderQueueCards(lastQueueResponse));
+      }
+    });
+
 
     $("btnFetchJobsNow")?.addEventListener("click", () => {
       manualFetchJobs().catch((e) => showError(e?.message || String(e)));
