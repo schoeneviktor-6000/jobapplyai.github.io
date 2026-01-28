@@ -68,6 +68,88 @@ body.cvGate #btnCollapseSetup{ display:none !important; }
 body.cvGate #gateIntro{ display:block !important; }
 body.cvGate #btnGenerateAgain{ display:none !important; }
 
+/* Gate chooser (Step 1): pick how you want to tailor */
+body.cvGate #gateChooser{ display:block; }
+body.cvGate #gateFormWrap{ display:none; }
+
+/* When user picked a path, we switch to gate "form" view (JS toggles .cvGateForm) */
+body.cvGate.cvGateForm #gateChooser{ display:none; }
+body.cvGate.cvGateForm #gateFormWrap{ display:block; }
+body.cvGate.cvGateForm #gateBackRow{ display:flex !important; }
+
+
+.gateChooser{
+  margin-top: 12px;
+}
+.gateCards{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap:12px;
+  margin-top: 12px;
+}
+@media (min-width: 860px){
+  .gateCards{ grid-template-columns: 1fr 1fr; }
+}
+.gateCard{
+  appearance:none;
+  width:100%;
+  text-align:left;
+  padding:14px 14px;
+  border-radius:18px;
+  border:1px solid rgba(17,19,24,.12);
+  background:rgba(255,255,255,.74);
+  box-shadow: 0 12px 34px rgba(17,19,24,.10);
+  cursor:pointer;
+  transition:.15s ease;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  min-height: 118px;
+}
+.gateCard:hover{
+  transform: translateY(-2px);
+  background: rgba(255,255,255,.86);
+}
+.gateCardTop{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+.gateCardTitle{
+  font-weight:980;
+  font-size:15px;
+  letter-spacing:-.2px;
+}
+.gateCardDesc{
+  color: rgba(17,19,24,.62);
+  font-weight:650;
+  line-height:1.45;
+  font-size:13px;
+}
+.gateCardHint{
+  color: rgba(17,19,24,.52);
+  font-weight:750;
+  font-size:12px;
+}
+.gateBackRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-top: 8px;
+  margin-bottom: 10px;
+}
+
+/* In gate form view, hide the redundant "Job source" pills (we already chose a path) */
+body.cvGate.cvGateForm #jobSourceLbl,
+body.cvGate.cvGateForm #sourcePills,
+body.cvGate.cvGateForm #jobSourceHint{
+  display:none !important;
+}
+
+
+
 /* Compact “How it works” button (opens progress/steps modal) */
 .infoButton{
   width:100%;
@@ -1105,16 +1187,17 @@ body.cvGate #btnGenerateAgain{ display:none !important; }
     }
 
 
-    /* Source chip (top bar): Using: <job> · Change */
-    .sourceChipBtn{
-      max-width: min(520px, 58vw);
+    /* Source pill (top bar): Using: <job> */
+    .sourceChipPill{
+      max-width: min(560px, 62vw);
       overflow:hidden;
+      cursor: default;
     }
-    .sourceChipBtn .sourceChipLabel{
+    .sourceChipPill .sourceChipLabel{
       color: rgba(17,19,24,.56);
       font-weight:950;
     }
-    .sourceChipBtn .sourceChipValue{
+    .sourceChipPill .sourceChipValue{
       min-width:0;
       overflow:hidden;
       text-overflow:ellipsis;
@@ -1122,24 +1205,12 @@ body.cvGate #btnGenerateAgain{ display:none !important; }
       font-weight:950;
       color: rgba(17,19,24,.82);
     }
-    .sourceChipBtn .sourceChipSep{
-      opacity:.55;
-      font-weight:900;
-    }
-    .sourceChipBtn .sourceChipAction{
-      opacity:.85;
-      text-decoration: underline;
-      text-underline-offset: 2px;
-      font-weight:950;
-    }
 
     @media (max-width: 620px){
-      .sourceChipBtn{ max-width: 92vw; }
-      .sourceChipBtn .sourceChipAction{ display:none; }
-      .sourceChipBtn .sourceChipSep{ display:none; }
+      .sourceChipPill{ max-width: 92vw; }
     }
 
-    /* “Download” dropdown */
+/* “Download” dropdown */
     .studioDrop{
       position:relative;
     }
@@ -1361,12 +1432,12 @@ body.cvGate #btnGenerateAgain{ display:none !important; }
       <div class="studioActionsTop">
         <span class="badge warn" id="authBadgeTop">Checking…</span>
 
-        <button class="pill mini sourceChipBtn" id="sourceChipBtn" type="button" style="display:none" title="Change job / description">
+        <button class="btn small ghost" id="btnNewCv" type="button" title="Start a new CV tailoring flow">New CV</button>
+
+        <div class="pill mini sourceChipPill" id="sourceChipPill" style="display:none" title="Current job context" aria-label="Current job context">
           <span class="sourceChipLabel" id="sourceChipLabel">Using:</span>
           <span class="sourceChipValue" id="sourceChipValue">—</span>
-          <span class="sourceChipSep">·</span>
-          <span class="sourceChipAction" id="sourceChipAction">Change</span>
-        </button>
+        </div>
 
         <details class="studioDrop" id="studioDownloadDrop">
           <summary class="btn primary" id="studioDownloadSummary" aria-label="Download menu">Download ▾</summary>
@@ -1408,7 +1479,39 @@ body.cvGate #btnGenerateAgain{ display:none !important; }
 </div>
         </div>
 
-        <div class="label" id="jobSourceLbl">Job source</div>
+        <div class="gateChooser" id="gateChooser" style="display:none">
+          <div class="gateCards">
+            <button class="gateCard" id="gatePickQueue" type="button">
+              <div class="gateCardTop">
+                <div>
+                  <div class="gateCardTitle" id="gatePickQueueTitle">From my Jobs</div>
+                  <div class="gateCardDesc" id="gatePickQueueDesc">Choose one of your matched jobs from the Jobs page / your queue.</div>
+                </div>
+                <span class="badge prio" id="gatePickQueueTag">Recommended</span>
+              </div>
+              <div class="gateCardHint" id="gatePickQueueHint">Best if you already saved jobs you want to apply to.</div>
+            </button>
+
+            <button class="gateCard" id="gatePickPaste" type="button">
+              <div class="gateCardTop">
+                <div>
+                  <div class="gateCardTitle" id="gatePickPasteTitle">Paste job description</div>
+                  <div class="gateCardDesc" id="gatePickPasteDesc">Paste any job description from LinkedIn or a company website.</div>
+                </div>
+                <span class="badge warn" id="gatePickPasteTag">Fast</span>
+              </div>
+              <div class="gateCardHint" id="gatePickPasteHint">Tip: include Responsibilities + Requirements + Tech stack.</div>
+            </button>
+          </div>
+        </div>
+
+        <div id="gateFormWrap">
+          <div class="gateBackRow" id="gateBackRow" style="display:none">
+            <button class="btn small ghost" id="gateBackBtn" type="button">← Back</button>
+            <span class="badge prio" id="gateBackBadge">Step 2 of 2</span>
+          </div>
+
+          <div class="label" id="jobSourceLbl">Job source</div>
         <div class="strengthPills" id="sourcePills">
           <span class="miniPill active" data-src="queue" id="srcQueue">From my Jobs</span>
           <span class="miniPill" data-src="paste" id="srcPaste">Paste description</span>
@@ -1523,7 +1626,8 @@ body.cvGate #btnGenerateAgain{ display:none !important; }
           </summary>
           <div class="monoSmall" id="pipeBox">Generate a CV to see pipeline details.</div>
         </details>
-      </aside>
+              </div><!-- /gateFormWrap -->
+</aside>
 
       <!-- CENTER: Document canvas -->
       <section class="card studioCanvas" aria-label="CV canvas">
@@ -2419,6 +2523,36 @@ let genStepsState = "idle";
       $("subTitle").textContent = t("subTitle");
       $("setupTitle").textContent = t("setupTitle");
 
+      // CV Studio: top actions
+      try{
+        const newLbl = (uiLang==="de") ? "Neuer CV" : "New CV";
+        $("btnNewCv") && ($("btnNewCv").textContent = newLbl);
+        $("btnNewCv") && ($("btnNewCv").title = (uiLang==="de") ? "Neuen Tailoring-Flow starten" : "Start a new tailoring flow");
+      }catch(_){}
+
+      // Step 1 chooser cards (Gate)
+      try{
+        if(uiLang==="de"){
+          $("gatePickQueueTitle") && ($("gatePickQueueTitle").textContent = "Aus Jobs");
+          $("gatePickQueueDesc") && ($("gatePickQueueDesc").textContent = "Wähle einen passenden Job aus deiner Jobs-Liste / Queue.");
+          $("gatePickQueueHint") && ($("gatePickQueueHint").textContent = "Empfohlen, wenn du schon Jobs gespeichert hast.");
+          $("gatePickQueueTag") && ($("gatePickQueueTag").textContent = "Empfohlen");
+
+          $("gatePickPasteTitle") && ($("gatePickPasteTitle").textContent = "Beschreibung einfügen");
+          $("gatePickPasteDesc") && ($("gatePickPasteDesc").textContent = "Füge eine beliebige Stellenbeschreibung (z.B. LinkedIn oder Website) ein.");
+          $("gatePickPasteHint") && ($("gatePickPasteHint").textContent = "Tipp: Aufgaben + Anforderungen + Tech-Stack einfügen.");
+          $("gatePickPasteTag") && ($("gatePickPasteTag").textContent = "Schnell");
+        }
+      }catch(_){}
+
+      // Gate back button (visible in Step 2 of the gate)
+      try{
+        const backLbl = (uiLang==="de") ? "← Zurück" : "← Back";
+        $("gateBackBtn") && ($("gateBackBtn").textContent = backLbl);
+      }catch(_){}
+
+
+
       // Job source (queue vs paste)
       $("jobSourceLbl").textContent = t("jobSourceLbl");
       $("srcQueue").textContent = t("sourceJobs");
@@ -2634,6 +2768,68 @@ function closeGenModal(){
    ------------------------- */
 let gateActive = false;
 
+let gateView = "choose"; // "choose" | "form"
+
+function setGateView(view){
+  gateView = (view === "form") ? "form" : "choose";
+
+  // Helper class so CSS can handle most visibility rules
+  document.body.classList.toggle("cvGateForm", gateActive && gateView === "form");
+
+  // Explicit toggles (safe if elements are missing)
+  const chooser = $("gateChooser");
+  const formWrap = $("gateFormWrap");
+  const backRow = $("gateBackRow");
+  const backBadge = $("gateBackBadge");
+
+  if(chooser) chooser.style.display = (gateActive && gateView === "choose") ? "" : "none";
+  if(formWrap) formWrap.style.display = (!gateActive || gateView === "form") ? "" : "none";
+  if(backRow) backRow.style.display = (gateActive && gateView === "form") ? "flex" : "none";
+
+  // Update step header copy (keeps the flow obvious)
+  const st = $("setupTitle");
+  const title = $("gateStepTitle");
+  const hint = $("gateStepHint");
+  const badge = $("gateStepBadge");
+
+  if(!gateActive){
+    if(st) st.textContent = t("setupTitle") || "Setup";
+    return;
+  }
+
+  if(gateView === "choose"){
+    if(st) st.textContent = (uiLang==="de") ? "Schritt 1" : "Step 1";
+    if(title) title.textContent = (uiLang==="de")
+      ? "Schritt 1 — Job-Quelle wählen"
+      : "Step 1 — Choose your job source";
+    if(hint) hint.textContent = (uiLang==="de")
+      ? "Wähle eine Option. Danach ergänzt du die Details und startest das Tailoring."
+      : "Choose one option. Next you’ll add the details and start tailoring.";
+    if(badge) badge.textContent = (uiLang==="de") ? "Schritt 1 von 2" : "Step 1 of 2";
+    return;
+  }
+
+  // gateView === "form"
+  if(st) st.textContent = (uiLang==="de") ? "Schritt 2" : "Step 2";
+  if(title) title.textContent = (uiLang==="de")
+    ? "Schritt 2 — Job-Details hinzufügen"
+    : "Step 2 — Add job details";
+  if(badge) badge.textContent = (uiLang==="de") ? "Schritt 2 von 2" : "Step 2 of 2";
+  if(backBadge) backBadge.textContent = (uiLang==="de") ? "Schritt 2 von 2" : "Step 2 of 2";
+
+  if(hint){
+    hint.textContent = (jobSource === "paste")
+      ? ((uiLang==="de")
+          ? "Füge die Stellenbeschreibung ein (am besten das komplette Posting) und starte dann das Tailoring."
+          : "Paste the job description (full posting is best), then start tailoring.")
+      : ((uiLang==="de")
+          ? "Wähle einen Job aus deiner Queue und starte dann das Tailoring."
+          : "Pick a job from your queue, then start tailoring.");
+  }
+}
+
+
+
 function cameFromJobsPage(){
   const urlJobId = String(qs("job_id") || "").trim();
   if(urlJobId) return true;
@@ -2658,6 +2854,10 @@ function setGateActive(on){
   gateActive = !!on;
 
   document.body.classList.toggle("cvGate", gateActive);
+  if(!gateActive){
+    document.body.classList.remove("cvGateForm");
+  }
+
   try{ $("gateIntro").style.display = gateActive ? "" : "none"; }catch(_){}
 
   // Make sure Setup is visible in Step 1
@@ -2672,14 +2872,12 @@ function setGateActive(on){
     genBtn.textContent = gateActive ? "Start tailoring →" : "Generate tailored CV";
   }
 
-  // Title clarity
-  const st = $("setupTitle");
-  if(st){
-    st.textContent = gateActive ? "Step 1" : (t("setupTitle") || "Setup");
-  }
-
   // Keep second button hidden to reduce confusion
   try{ $("btnGenerateAgain").style.display = "none"; }catch(_){}
+
+  // Default gate view when entering
+  if(gateActive) setGateView("choose");
+  else setGateView("form");
 }
 
 function exitGate(){
@@ -2729,12 +2927,12 @@ function getPasteDesc(){
     }
 
     function updateSourceChip(){
-      const btn = $("sourceChipBtn");
-      if(!btn) return;
+      const pill = $("sourceChipPill");
+      if(!pill) return;
 
       // In Step 1 gate the studio bar is hidden anyway
       if(gateActive){
-        btn.style.display = "none";
+        pill.style.display = "none";
         return;
       }
 
@@ -2749,7 +2947,7 @@ function getPasteDesc(){
       if(jobSource === "paste"){
         const d = getPasteDesc();
         if(d.length < 40 && !title){
-          btn.style.display = "none";
+          pill.style.display = "none";
           return;
         }
       }
@@ -2761,36 +2959,61 @@ function getPasteDesc(){
 
       if(company) full = full + " · " + company;
 
-      // Update texts (EN/DE)
       const lbl = $("sourceChipLabel");
-      const act = $("sourceChipAction");
       if(lbl) lbl.textContent = (uiLang==="de" ? "Aktiv:" : "Using:");
-      if(act) act.textContent = (uiLang==="de" ? "Ändern" : "Change");
 
       const val = $("sourceChipValue");
       if(val){
-        val.textContent = shortText(full, 56);
+        val.textContent = shortText(full, 64);
         val.title = full;
       }
 
-      btn.style.display = "";
+      pill.style.display = "";
     }
 
-    function openGateForChange(){
-      // Return user to Step 1 without reloading (like resume.io "Change" link)
+function openGateForNewCv(){
+      // Opens the Step 1 chooser (clean start)
       try{
-        // Make the gate persistent if they reload while changing
+        // If they reload while here, keep them in Step 1
+        sessionStorage.removeItem("cvstudio_started");
+      }catch(_){}
+
+      // Clear job_id from URL (no reload) so “New CV” is a clean start
+      try{
+        const u = new URL(window.location.href);
+        if(u.searchParams.has("job_id")){
+          u.searchParams.delete("job_id");
+          history.replaceState({}, "", u.toString());
+        }
+      }catch(_){}
+
+      try{
+        setGateActive(true);
+        setGateView("choose");
+      }catch(_){
+        try{ document.body.classList.add("cvGate"); }catch(__){}
+      }
+
+      try{
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }catch(_){
+        try{ window.scrollTo(0,0); }catch(__){}
+      }
+    }
+
+    // Optional: a "change" entrypoint that skips the chooser and jumps straight to Step 2
+    function openGateForChange(){
+      try{
         sessionStorage.removeItem("cvstudio_started");
       }catch(_){}
 
       try{
         setGateActive(true);
-        setStudioMode("tailor");
+        setGateView("form");
       }catch(_){
         try{ document.body.classList.add("cvGate"); }catch(__){}
       }
 
-      // Focus the relevant input
       setTimeout(() => {
         try{
           if(jobSource === "paste") $("pasteDesc")?.focus();
@@ -2805,8 +3028,7 @@ function getPasteDesc(){
       }
     }
 
-
-    function loadJobSource(){
+function loadJobSource(){
       try{
         const v = String(localStorage.getItem("cvstudio_job_source") || "").trim();
         jobSource = (v === "paste") ? "paste" : "queue";
@@ -6847,7 +7069,28 @@ $("genModal")?.addEventListener("click", (e) => { if(e.target && e.target.id ===
     $("btnGenerate").addEventListener("click", generate);
     $("btnGenerateAgain").addEventListener("click", generate);
 
-    $("sourceChipBtn")?.addEventListener("click", openGateForChange);
+    // “New CV” returns to Step 1 (chooser)
+    $("btnNewCv")?.addEventListener("click", openGateForNewCv);
+
+    // Step 1 chooser cards
+    $("gatePickQueue")?.addEventListener("click", () => {
+      try{ setJobSource("queue"); }catch(_){}
+      setGateView("form");
+      setTimeout(() => { try{ $("jobSelect")?.focus(); }catch(_){ } }, 60);
+    });
+
+    $("gatePickPaste")?.addEventListener("click", () => {
+      try{ setJobSource("paste"); }catch(_){}
+      setGateView("form");
+      setTimeout(() => { try{ $("pasteDesc")?.focus(); }catch(_){ } }, 60);
+    });
+
+    // Back to the two-option chooser
+    $("gateBackBtn")?.addEventListener("click", () => {
+      setGateView("choose");
+      setTimeout(() => { try{ $("gatePickQueue")?.focus(); }catch(_){ } }, 40);
+    });
+
 
     
     // Studio mode buttons
