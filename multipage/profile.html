@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>jobmejob • Profile</title>
-  <meta name="description" content="Upload your CV, run OCR, and set job preferences."/>
+  <meta name="description" content="Upload your CV to unlock CV tailoring and matched jobs. AI job titles run automatically in the background."/>
 
   <!-- Shared styles -->
   <link rel="stylesheet" href="./shared.css"/>
@@ -257,6 +257,45 @@ Activity log modal (Account dropdown)
   cursor:pointer;
 }
 
+
+
+/* ============================================================
+CV upload dropzone + tiny spinner
+============================================================ */
+.dropzone{
+  border:2px dashed rgba(17,19,24,.18);
+  background:rgba(255,255,255,.62);
+  border-radius:18px;
+  padding:14px;
+  cursor:pointer;
+  transition:transform .12s ease, box-shadow .12s ease, background .12s ease, border-color .12s ease;
+}
+.dropzone:hover{
+  transform:translateY(-1px);
+  background:rgba(255,255,255,.78);
+  border-color:rgba(17,19,24,.28);
+}
+.dropzone.dragOver{
+  border-color:rgba(34,197,94,.60);
+  background:rgba(34,197,94,.08);
+  box-shadow:0 0 0 4px rgba(34,197,94,.14);
+}
+.dzTop{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.dzTitle{ font-size:14px; font-weight:950; letter-spacing:-.15px; }
+.dzSub{ margin-top:4px; font-size:13px; font-weight:750; color:rgba(17,19,24,.60); line-height:1.35; }
+.dzMeta{ margin-top:10px; font-size:12px; font-weight:650; color:rgba(17,19,24,.56); line-height:1.45; }
+
+.spin{
+  display:inline-block;
+  width:14px;
+  height:14px;
+  border-radius:999px;
+  border:2px solid rgba(17,19,24,.16);
+  border-top-color:rgba(34,197,94,.85);
+  animation:spin 1s linear infinite;
+  vertical-align:-2px;
+}
+@keyframes spin{ to{ transform:rotate(360deg); } }
 </style>
 </head>
 
@@ -310,13 +349,21 @@ Activity log modal (Account dropdown)
 <h2>Step 1: Upload your CV</h2>
 <span class="badge" id="cvStatusBadge">Loading</span>
 </div>
-<p class="small">Select a file and we will upload it and run OCR automatically (PDF). Then you can generate job title suggestions.</p>
+<p class="small">Upload your CV to unlock tailoring. We’ll extract text (OCR for PDF) and generate job title suggestions automatically in the background (used for matched jobs + Auto‑Apply later).</p>
 </div>
 <div class="sectionBody">
-<div class="field">
-<label for="cvFile">CV file (PDF/DOC/DOCX)</label>
-<input accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" id="cvFile" type="file"/>
+<div class="dropzone" id="cvDropzone" tabindex="0" role="button" aria-label="Upload CV">
+  <div class="dzTop">
+    <div style="min-width:0">
+      <div class="dzTitle">Drop your CV here</div>
+      <div class="dzSub">PDF recommended for best results (OCR + AI).</div>
+    </div>
+    <button class="btn primary" id="browseCvBtn" type="button">Choose file</button>
+  </div>
+  <div class="dzMeta">Supported: PDF/DOC/DOCX · Max 9MB · Stored securely for tailoring + job matching.</div>
 </div>
+<input accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" id="cvFile" type="file" style="display:none"/>
+
 <div class="progressWrap" id="cvProgressWrap" style="display:none">
 <div class="small" id="cvProgressText">Preparing…</div>
 <div aria-label="Upload progress" class="progressBar">
@@ -335,15 +382,15 @@ Activity log modal (Account dropdown)
 <div class="helpBox aiCard aiGlow" id="aiBox">
 <div class="stepTitle">
 <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-<h2 style="margin:0;font-size:16px">AI job title suggestions</h2>
+<h2 style="margin:0;font-size:16px">AI job title suggestions (auto)</h2>
 <button class="linkBtn" id="aiRegenerateLink" style="display:none" type="button">Regenerate</button>
 </div>
 <span class="badge" id="aiStatusBadge">Locked</span>
 </div>
-<div class="small" id="aiHint" style="margin-top:6px">Upload your CV first. When OCR is done, you can generate suggestions.</div>
+<div class="small" id="aiHint" style="margin-top:6px">We generate suggestions automatically once your CV text is ready (and save them to your account for job matching). You can regenerate anytime.</div>
 <div class="actions" style="margin-top:12px">
-<button class="btn cta" disabled="" id="aiGenerateBtn" type="button">Generate suggestions</button>
-<button class="btn" disabled="" id="aiApplyBtn" type="button">Apply selected titles</button>
+<button class="btn cta" disabled="" id="aiGenerateBtn" type="button">Generate now</button>
+<button class="btn" disabled="" id="aiApplyBtn" type="button">Update job titles below</button>
 </div>
 <div id="aiTitlesWrap" style="margin-top:12px;display:none"></div>
 <div class="hr"></div>
@@ -399,7 +446,7 @@ Activity log modal (Account dropdown)
 </div>
 <div class="hr"></div>
 <div class="actions">
-<a class="btn primary" data-nav="1" href="./cv.html">Open CV Studio</a>
+<button class="btn primary" id="openCvBtn" type="button">Open CV Studio</button>
 <a class="btn" data-nav="1" href="./jobs.html">Open Jobs</a>
 </div>
 
@@ -415,10 +462,10 @@ Activity log modal (Account dropdown)
 <section class="card cardNoPad" id="prefsCard" style="grid-column:1/-1">
 <div class="sectionHeader">
 <div class="stepTitle">
-<h2>Step 2: Confirm your preferences</h2>
+<h2>Step 2 (recommended): Enable matched jobs</h2>
 <span class="badge" id="saveStatusBadge">Not saved</span>
 </div>
-<p class="small">AI titles will be placed at the top of your job titles. Then you can add any missing details.</p>
+<p class="small">We already store your AI job titles in the background. Add your location and save preferences so we can fetch matched jobs automatically (Jobs feed + Auto‑Apply later).</p>
 </div>
 <div class="sectionBody">
 <div class="field">
@@ -537,6 +584,9 @@ let aiAppliedTitles=[];
 let jobTitlesTouched=false;
 
 let lastCvMeta=null;
+
+let backendAiTitles=[];
+let aiAutoStarted=false;
 
 function $(id){return document.getElementById(id);}
 function setText(id,t){const el=$(id);if(el) el.textContent=t;}
@@ -742,6 +792,191 @@ function parseCsv(s,limit){
 return String(s||"").split(",").map(x=>x.trim()).filter(Boolean).slice(0,limit||30);
 }
 
+
+function lsSafeGet(k){
+  try{ return localStorage.getItem(k); }catch(_){ return null; }
+}
+function lsSafeSet(k, v){
+  try{ localStorage.setItem(k, String(v)); }catch(_){}
+}
+
+function toast(kind, title, message){
+  try{
+    if(S && typeof S.toast === "function"){
+      S.toast(String(message || ""), { kind: kind || "good", title: title || "" });
+    }
+  }catch(_){}
+}
+
+function maybeAutofillJobTitlesFromAi(titles){
+  try{
+    if(jobTitlesTouched) return false;
+    const el = $("jobTitles");
+    if(!el) return false;
+
+    const current = parseCsv(el.value, 30);
+    if(current.length) return false;
+
+    const clean = Array.isArray(titles) ? titles.map(t=>String(t||"").trim()).filter(Boolean) : [];
+    const pick = clean.slice(0, 6);
+    if(!pick.length) return false;
+
+    el.value = pick.join(", ");
+
+    aiAppliedOnce = true;
+    aiAppliedTitles = pick.slice(0, 12);
+    renderAiAppliedChips(aiAppliedTitles);
+
+    setBadge("saveStatusBadge","warn","Not saved");
+    return true;
+  }catch(_){
+    return false;
+  }
+}
+
+async function maybePrefetchJobs(aiTitles, reason){
+  try{
+    const titles = Array.isArray(aiTitles) ? aiTitles.map(t=>String(t||"").trim()).filter(Boolean) : [];
+    if(!titles.length) return;
+
+    // Rate limit (avoid spamming the worker)
+    const now = Date.now();
+    const last = Number(lsSafeGet("jm_jobs_prefetch_ts") || "0");
+    const minMs = 6 * 60 * 60 * 1000; // 6h
+    if(last && (now - last) < minMs) return;
+    lsSafeSet("jm_jobs_prefetch_ts", String(now));
+
+    if(!session || !session.access_token) return;
+
+    const fetch_mode = (state && state.profile_complete) ? "profile" : "ai_only";
+
+    const resp = await apiPostJson("/me/jobs/fetch", {
+      include_ai_titles: true,
+      ai_titles: titles.slice(0, 12),
+      fetch_mode,
+      reason: String(reason || "profile_autofetch")
+    });
+
+    const added = (resp && typeof resp.jobs_added === "number") ? resp.jobs_added : null;
+    if(added && added > 0){
+      toast("good", "Jobs ready", "Fetched " + added + " matched jobs in the background.");
+    }
+  }catch(_){
+    // silent by default (do not block onboarding)
+  }
+}
+
+function wireCvDropzone(){
+  const dz = $("cvDropzone");
+  const input = $("cvFile");
+  const browse = $("browseCvBtn");
+
+  if(browse && input){
+    browse.addEventListener("click", (e)=>{
+      e.preventDefault();
+      try{ input.click(); }catch(_){}
+    });
+  }
+
+  if(!dz) return;
+
+  const openPicker = (e)=>{
+    try{
+      if(e && e.target && e.target.closest && e.target.closest("button")) return;
+    }catch(_){}
+    if(input){ try{ input.click(); }catch(_){ } }
+  };
+
+  dz.addEventListener("click", openPicker);
+  dz.addEventListener("keydown", (e)=>{
+    if(e.key === "Enter" || e.key === " "){
+      e.preventDefault();
+      openPicker(e);
+    }
+  });
+
+  dz.addEventListener("dragover", (e)=>{
+    e.preventDefault();
+    dz.classList.add("dragOver");
+  });
+  dz.addEventListener("dragleave", ()=>{
+    dz.classList.remove("dragOver");
+  });
+  dz.addEventListener("drop", async (e)=>{
+    e.preventDefault();
+    dz.classList.remove("dragOver");
+    const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0] ? e.dataTransfer.files[0] : null;
+    if(!file) return;
+
+    try{
+      jobTitlesTouched=false;
+      aiAppliedTitles=[];
+      renderAiAppliedChips(aiAppliedTitles);
+      await uploadCvThenAutoOcr(file);
+    }catch(err){
+      setBadge("cvStatusBadge","bad","Upload failed");
+      setProgress(false, 0, "", "");
+      showTopError(err?.message || String(err));
+    }
+  });
+}
+
+async function maybeAutoGenerateAiTitles(reason){
+  try{
+    if(aiAutoStarted) return;
+    if(!lastCvMeta) return;
+
+    // If suggestions already exist in UI, just prefetch jobs and stop.
+    if(aiGeneratedOnce && aiResult && Array.isArray(aiResult.titles) && aiResult.titles.length){
+      aiAutoStarted = true;
+      try{ await maybePrefetchJobs(aiResult.titles, reason || "already"); }catch(_){ }
+      return;
+    }
+
+    // Try cache first (fast)
+    if(tryLoadCachedAiSuggestions()){
+      aiAutoStarted = true;
+      const t = (aiResult && Array.isArray(aiResult.titles)) ? aiResult.titles : [];
+      if(t.length) await maybePrefetchJobs(t, reason || "cache");
+      return;
+    }
+
+    // Cooldown per CV (avoid regenerating on every refresh)
+    const key = cvMetaKey(lastCvMeta);
+    const lastKey = lsSafeGet("jm_ai_autogen_cvkey") || "";
+    const lastAt = Number(lsSafeGet("jm_ai_autogen_at") || "0");
+    const minMs = 24 * 60 * 60 * 1000; // 24h
+
+    if(lastKey === key && lastAt && (Date.now() - lastAt) < minMs){
+      // Already tried recently; allow manual button.
+      return;
+    }
+
+    lsSafeSet("jm_ai_autogen_cvkey", key);
+    lsSafeSet("jm_ai_autogen_at", String(Date.now()));
+
+    aiAutoStarted = true;
+
+    setBadge("aiStatusBadge","warn","Auto…");
+    setText("aiHint","Generating suggestions automatically…");
+
+    const titles = await handleAiGenerate({ force:false, background:true });
+    const t = Array.isArray(titles) ? titles : ((aiResult && Array.isArray(aiResult.titles)) ? aiResult.titles : []);
+
+    if(t.length){
+      await maybePrefetchJobs(t, reason || "autogen");
+    }else{
+      // allow manual retry
+      aiAutoStarted = false;
+      setBadge("aiStatusBadge","warn","Manual");
+      setText("aiHint","Automatic generation didn’t work this time. Click “Generate now” to try again.");
+    }
+  }catch(_){
+    aiAutoStarted = false;
+  }
+}
+
+
 function isPdfFile(file){
 const name=String(file?.name||"").toLowerCase();
 const type=String(file?.type||"").toLowerCase();
@@ -779,7 +1014,7 @@ function unlockAiWhileOcrRunning(){
   $("aiGenerateBtn").disabled=false;
   $("aiApplyBtn").disabled=true;
   $("aiRegenerateLink").style.display="none";
-  setText("aiHint","OCR is still running. You can try generating suggestions now; if it fails, wait a bit and retry.");
+  setText("aiHint","OCR is still running. We’ll auto-generate titles once it’s done (you can also try now).");
 }
 
 function unlockAiFallback(msg){
@@ -837,6 +1072,7 @@ function startOcrPolling(opts){
         lastCvMeta=cvMetaFromCv(cv);
         unlockAiReady();
         tryLoadCachedAiSuggestions();
+        maybeAutoGenerateAiTitles("ocr_done");
         return;
       }
 
@@ -925,7 +1161,7 @@ setBadge("aiStatusBadge","good","Ready");
 $("aiGenerateBtn").disabled=false;
 $("aiApplyBtn").disabled=true;
 $("aiRegenerateLink").style.display="none";
-setText("aiHint","Your CV text is ready. Generate suggestions and add them to your job titles.");
+setText("aiHint","Your CV text is ready. We’ll generate job title suggestions automatically (and save them to your account).");
 aiGeneratedOnce=false;
 aiAppliedOnce=false;
 }
@@ -1009,15 +1245,24 @@ $("kOcr").className="kpiVal warn";
 const cvOk2 = !!(st && st.cv_uploaded);
 const profOk2 = !!(st && st.profile_complete);
 
+// Keep "Open CV Studio" gated behind CV upload (tailoring needs a base CV).
+try{
+  const openBtn = $("openCvBtn");
+  if(openBtn){
+    openBtn.disabled = !cvOk2;
+    openBtn.textContent = cvOk2 ? "Open CV Studio" : "Upload CV first";
+  }
+}catch(_){}
+
 if(!cvOk2){
-setText("continueBtn","Go to CV upload");
-setText("continueHint","Upload your CV first to unlock AI suggestions and tailoring.");
+setText("continueBtn","Upload CV to start");
+setText("continueHint","Upload your CV to unlock tailoring. (PDF recommended)");
 }else if(!profOk2){
-setText("continueBtn","Finish preferences");
-setText("continueHint","Save your preferences to complete setup.");
+setText("continueBtn","Open CV Studio");
+setText("continueHint","You can tailor your CV now. To also get matched jobs, add a location and save preferences below (recommended).");
 }else{
-setText("continueBtn","Continue to CV Studio");
-setText("continueHint","Next step: tailor your CV (ATS-safe).");
+setText("continueBtn","Open CV Studio");
+setText("continueHint","You're all set. Next: tailor your CV (ATS-safe).");
 }
 }
 
@@ -1093,23 +1338,37 @@ meta.cv_text_status
 }
 
 function applyAiUiFromTitles(titles){
-const clean=Array.isArray(titles) ? titles.map(x=>String(x).trim()).filter(Boolean).slice(0,30) : [];
-if(!clean.length) return false;
+  const clean = Array.isArray(titles)
+    ? titles.map(x=>String(x).trim()).filter(Boolean).slice(0,30)
+    : [];
+  if(!clean.length) return false;
 
-aiResult={ titles: clean };
-aiSelectedTitles=new Set(clean);
-aiGeneratedOnce=true;
+  aiResult = { titles: clean };
 
-setBadge("aiStatusBadge","good","Suggestions ready");
-setText("aiHint","Suggestions are ready (cached). Select titles and apply them.");
-setHtml("aiTitlesWrap","<div class='small'><strong>Suggested titles</strong> (click to select/deselect)</div>");
-renderChips("aiTitlesWrap", clean, aiSelectedTitles);
+  // Default selection: top 6 (less overwhelming)
+  const defaultPick = clean.slice(0, 6);
+  aiSelectedTitles = new Set(defaultPick.length ? defaultPick : clean.slice(0, 3));
+  aiGeneratedOnce = true;
 
-$("aiApplyBtn").disabled = aiSelectedTitles.size===0;
-$("aiGenerateBtn").disabled=true;
-$("aiRegenerateLink").style.display="inline";
+  // Persist for other pages (Jobs toggle: "AI titles only")
+  try{
+    localStorage.setItem("jm_ai_titles_server", JSON.stringify(clean));
+    localStorage.setItem("ja_ai_titles_server", localStorage.getItem("jm_ai_titles_server"));
+  }catch(_){}
 
-return true;
+  setBadge("aiStatusBadge","good","Ready");
+  setText("aiHint","Generated automatically and saved to your account. (Optional) Adjust selection, then update your job titles below.");
+  setHtml("aiTitlesWrap","<div class='small'><strong>Suggested titles</strong> (click to select)</div>");
+  renderChips("aiTitlesWrap", clean, aiSelectedTitles);
+
+  $("aiApplyBtn").disabled = aiSelectedTitles.size===0;
+  $("aiGenerateBtn").disabled = true;
+  $("aiRegenerateLink").style.display = "inline";
+
+  // Best practice: prefill job titles if the user hasn't typed anything yet.
+  maybeAutofillJobTitlesFromAi(clean);
+
+  return true;
 }
 
 function tryLoadCachedAiSuggestions(){
@@ -1145,6 +1404,7 @@ async function loadCvStatusAndUpdateUx(){
         setProgress(false, 100, "", "");
         unlockAiReady();
         tryLoadCachedAiSuggestions();
+        maybeAutoGenerateAiTitles("ocr_done");
         return;
       }
 
@@ -1223,6 +1483,12 @@ async function uploadCvThenAutoOcr(file){
   showRetryOcr(false);
   lockAi("Working on your CV…");
   clearAiCache();
+
+  // New CV = new titles. Reset background pipeline + cached AI titles.
+  aiAutoStarted = false;
+  backendAiTitles = [];
+  try{ localStorage.removeItem("jm_ai_titles_server"); }catch(_){ }
+  try{ localStorage.removeItem("ja_ai_titles_server"); }catch(_){ }
 
   // Basic size guard (many edge runtimes reject large uploads)
   const maxSizeMb = 9;
@@ -1324,138 +1590,162 @@ async function handleRetryOcr(){
 }
 
 
-async function handleAiGenerate({ force=false } = {}){
-clearTopError();
+async function handleAiGenerate({ force=false, background=false } = {}){
+  if(!background) clearTopError();
 
-if(!force && aiGeneratedOnce) return;
-if(!force && tryLoadCachedAiSuggestions()) return;
-
-$("aiGenerateBtn").disabled=true;
-$("aiApplyBtn").disabled=true;
-$("aiRegenerateLink").style.display="none";
-aiSelectedTitles=new Set();
-aiResult=null;
-$("aiTitlesWrap").style.display="none";
-$("aiAltWrap").style.display="none";
-$("aiAltChips").innerHTML="";
-$("aiSkillsWrap").style.display="none";
-$("aiSkillsChips").innerHTML="";
-
-setBadge("aiStatusBadge","warn","Generating…");
-setText("aiHint","Reading your CV and generating job title suggestions…");
-
-try{
-// Best-effort: if OCR has not finished yet, trigger it once before the AI call
-try{
-  const cvRes = await apiGet("/me/cv");
-  const cv = cvRes && cvRes.cv ? cvRes.cv : null;
-  const fileLabel = cv && (cv.cv_filename || cv.cv_path) ? (cv.cv_filename || cv.cv_path) : "";
-  const isPdf = String(fileLabel||"").toLowerCase().endsWith(".pdf");
-  const sOcr = String(cv?.cv_ocr_status||"").toLowerCase();
-  if(isPdf && sOcr !== "done"){
-    try{ await apiPostJson("/me/cv/ocr",{}); }catch(_){}
+  // If we already have suggestions, return them.
+  if(!force && aiGeneratedOnce){
+    const t = (aiResult && Array.isArray(aiResult.titles)) ? aiResult.titles : null;
+    return t;
   }
-}catch(_){}
+  if(!force && tryLoadCachedAiSuggestions()){
+    const t = (aiResult && Array.isArray(aiResult.titles)) ? aiResult.titles : null;
+    return t;
+  }
 
-const res=await apiPostJson("/me/ai/profile-from-cv",{});
-const r=res && res.result ? res.result : null;
-if(!r) throw new Error("AI returned no result");
-const titles=Array.isArray(r.job_titles) ? r.job_titles.map(x=>String(x).trim()).filter(Boolean) : [];
-if(!titles.length){
-setBadge("aiStatusBadge","warn","No titles");
-setText("aiHint","No title suggestions returned. Try a PDF CV and OCR first.");
-$("aiGenerateBtn").disabled=false;
-return;
-}
-const coreSkills = (r.skills && Array.isArray(r.skills.core)) ? r.skills.core.map(x=>String(x).trim()).filter(Boolean) : [];
-const toolSkills = (r.skills && Array.isArray(r.skills.tools)) ? r.skills.tools.map(x=>String(x).trim()).filter(Boolean) : [];
-const supportingSkills = (r.skills && Array.isArray(r.skills.supporting)) ? r.skills.supporting.map(x=>String(x).trim()).filter(Boolean) : [];
-const primaryTitles = Array.isArray(r.primary_job_titles) ? r.primary_job_titles : [];
-const summaryText = String(r.summary||"").trim();
-const seniority = String(r.seniority||"unknown").trim();
+  $("aiGenerateBtn").disabled = true;
+  $("aiApplyBtn").disabled = true;
+  $("aiRegenerateLink").style.display = "none";
+  aiSelectedTitles = new Set();
+  aiResult = null;
 
-applyAiUiFromTitles(titles);
+  $("aiTitlesWrap").style.display = "none";
+  $("aiAltWrap").style.display = "none";
+  $("aiAltChips").innerHTML = "";
+  $("aiSkillsWrap").style.display = "none";
+  $("aiSkillsChips").innerHTML = "";
 
-// Persist the exact titles shown above into backend (source of truth for Dashboard toggle)
-const saved = await saveAiTitlesToBackend(titles);
-if(saved && saved.ok){
-  setText("aiHint","Suggestions are ready (cached). Select titles and apply them. Saved to your account.");
-}
+  setBadge("aiStatusBadge","warn","Generating…");
+  setText("aiHint","Reading your CV and generating job title suggestions…");
 
-try{
-localStorage.setItem("jm_ai_profile", JSON.stringify({
-created_at: new Date().toISOString(),
-job_titles: titles.slice(0,15),
-primary_job_titles: primaryTitles.slice(0,7),
-summary: summaryText,
-seniority: seniority,
-skills: {
-core: coreSkills.slice(0,12),
-supporting: supportingSkills.slice(0,10),
-tools: toolSkills.slice(0,10)
-}
-}));
-localStorage.setItem("ja_ai_profile", localStorage.getItem("jm_ai_profile"));
-}catch{}
+  try{
+    // Best-effort: if OCR has not finished yet, trigger it once before the AI call
+    try{
+      const cvRes = await apiGet("/me/cv");
+      const cv = cvRes && cvRes.cv ? cvRes.cv : null;
+      const fileLabel = cv && (cv.cv_filename || cv.cv_path) ? (cv.cv_filename || cv.cv_path) : "";
+      const isPdf = String(fileLabel||"").toLowerCase().endsWith(".pdf");
+      const sOcr = String(cv?.cv_ocr_status||"").toLowerCase();
+      if(isPdf && sOcr !== "done"){
+        try{ await apiPostJson("/me/cv/ocr",{}); }catch(_){}
+      }
+    }catch(_){}
 
-{
-const chips=[];
-for(const s of coreSkills.slice(0,10)) chips.push(s);
-for(const s of toolSkills.slice(0,8)) chips.push(s);
-const uniq=[];
-const seen=new Set();
-for(const s of chips){
-const k=String(s).toLowerCase();
-if(!k || seen.has(k)) continue;
-seen.add(k);
-uniq.push(s);
-}
-if(uniq.length){
-$("aiSkillsWrap").style.display="block";
-$("aiSkillsChips").innerHTML = uniq.map(s=>'<span class="pill mini">'+escapeHtml(s)+'</span>').join("");
-}
-}
+    const res = await apiPostJson("/me/ai/profile-from-cv",{});
+    const r = res && res.result ? res.result : null;
+    if(!r) throw new Error("AI returned no result");
 
-try{
-const cs=await apiPostJson("/me/ai/cluster-suggestion",{});
-const cm=cs && cs.cluster_match ? cs.cluster_match : null;
-const altRaw = cm && Array.isArray(cm.alternative_titles)
-? cm.alternative_titles.map(x=>String(x.title||"").trim()).filter(Boolean)
-: [];
-const titleSet = new Set(titles.map(t=>t.toLowerCase()));
-const altUniq=[];
-const seenAlt=new Set();
-for(const t of altRaw){
-const k=t.toLowerCase();
-if(!k || seenAlt.has(k)) continue;
-if(titleSet.has(k)) continue;
-seenAlt.add(k);
-altUniq.push(t);
-}
-if(altUniq.length){
-$("aiAltWrap").style.display="block";
-$("aiAltChips").innerHTML = altUniq.slice(0,6).map(t=>'<span class="pill mini">'+escapeHtml(t)+'</span>').join("");
-}
-try{
-localStorage.setItem("jm_ai_clusters", JSON.stringify({
-created_at: new Date().toISOString(),
-clusters: (cm && Array.isArray(cm.clusters)) ? cm.clusters.slice(0,3) : [],
-alternative_titles: altUniq.slice(0,10)
-}));
-localStorage.setItem("ja_ai_clusters", localStorage.getItem("jm_ai_clusters"));
-}catch{}
-}catch{}
+    const titles = Array.isArray(r.job_titles)
+      ? r.job_titles.map(x=>String(x).trim()).filter(Boolean)
+      : [];
 
-if(lastCvMeta){
-setAiCache({ cvMetaKey: cvMetaKey(lastCvMeta), titles: titles.slice(0,30), created_at: new Date().toISOString() });
-}
+    if(!titles.length){
+      setBadge("aiStatusBadge","warn","No titles");
+      setText("aiHint","No title suggestions returned. Try a PDF CV and OCR first.");
+      $("aiGenerateBtn").disabled = false;
+      return null;
+    }
 
-}catch(e){
-setBadge("aiStatusBadge","bad","Failed");
-setText("aiHint","AI generation failed. You can still fill preferences manually.");
-showTopError(e.message||String(e));
-$("aiGenerateBtn").disabled=false;
-}
+    const coreSkills = (r.skills && Array.isArray(r.skills.core)) ? r.skills.core.map(x=>String(x).trim()).filter(Boolean) : [];
+    const toolSkills = (r.skills && Array.isArray(r.skills.tools)) ? r.skills.tools.map(x=>String(x).trim()).filter(Boolean) : [];
+    const supportingSkills = (r.skills && Array.isArray(r.skills.supporting)) ? r.skills.supporting.map(x=>String(x).trim()).filter(Boolean) : [];
+    const primaryTitles = Array.isArray(r.primary_job_titles) ? r.primary_job_titles : [];
+    const summaryText = String(r.summary||"").trim();
+    const seniority = String(r.seniority||"unknown").trim();
+
+    applyAiUiFromTitles(titles);
+
+    // Persist the exact titles into backend (source of truth for Jobs/Dashboard)
+    const saved = await saveAiTitlesToBackend(titles);
+    if(saved && saved.ok){
+      setText("aiHint","Generated automatically and saved to your account. (Optional) Adjust selection, then update job titles below.");
+    }
+
+    try{
+      localStorage.setItem("jm_ai_profile", JSON.stringify({
+        created_at: new Date().toISOString(),
+        job_titles: titles.slice(0,15),
+        primary_job_titles: primaryTitles.slice(0,7),
+        summary: summaryText,
+        seniority: seniority,
+        skills: {
+          core: coreSkills.slice(0,12),
+          supporting: supportingSkills.slice(0,10),
+          tools: toolSkills.slice(0,10)
+        }
+      }));
+      localStorage.setItem("ja_ai_profile", localStorage.getItem("jm_ai_profile"));
+    }catch(_){}
+
+    {
+      const chips=[];
+      for(const s of coreSkills.slice(0,10)) chips.push(s);
+      for(const s of toolSkills.slice(0,8)) chips.push(s);
+      const uniq=[];
+      const seen=new Set();
+      for(const s of chips){
+        const k=String(s).toLowerCase();
+        if(!k || seen.has(k)) continue;
+        seen.add(k);
+        uniq.push(s);
+      }
+      if(uniq.length){
+        $("aiSkillsWrap").style.display="block";
+        $("aiSkillsChips").innerHTML = uniq.map(s=>'<span class="pill mini">'+escapeHtml(s)+'</span>').join("");
+      }
+    }
+
+    try{
+      const cs=await apiPostJson("/me/ai/cluster-suggestion",{});
+      const cm=cs && cs.cluster_match ? cs.cluster_match : null;
+      const altRaw = cm && Array.isArray(cm.alternative_titles)
+        ? cm.alternative_titles.map(x=>String(x.title||"").trim()).filter(Boolean)
+        : [];
+      const titleSet = new Set(titles.map(t=>t.toLowerCase()));
+      const altUniq=[];
+      const seenAlt=new Set();
+      for(const t of altRaw){
+        const k=t.toLowerCase();
+        if(!k || seenAlt.has(k)) continue;
+        if(titleSet.has(k)) continue;
+        seenAlt.add(k);
+        altUniq.push(t);
+      }
+      if(altUniq.length){
+        $("aiAltWrap").style.display="block";
+        $("aiAltChips").innerHTML = altUniq.slice(0,6).map(t=>'<span class="pill mini">'+escapeHtml(t)+'</span>').join("");
+      }
+      try{
+        localStorage.setItem("jm_ai_clusters", JSON.stringify({
+          created_at: new Date().toISOString(),
+          clusters: (cm && Array.isArray(cm.clusters)) ? cm.clusters.slice(0,3) : [],
+          alternative_titles: altUniq.slice(0,10)
+        }));
+        localStorage.setItem("ja_ai_clusters", localStorage.getItem("jm_ai_clusters"));
+      }catch(_){}
+    }catch(_){}
+
+    if(lastCvMeta){
+      setAiCache({ cvMetaKey: cvMetaKey(lastCvMeta), titles: titles.slice(0,30), created_at: new Date().toISOString() });
+    }
+
+    // Background job prefetch (best-effort)
+    try{ await maybePrefetchJobs(titles, "ai_generate"); }catch(_){}
+
+    return titles;
+  }catch(e){
+    setBadge("aiStatusBadge","bad","Failed");
+    setText("aiHint","AI generation failed. You can still tailor your CV and fill preferences manually.");
+
+    if(background){
+      toast("warn","AI titles", e?.message || "Automatic generation failed. Tap Generate now to retry.");
+    }else{
+      showTopError(e.message||String(e));
+    }
+
+    $("aiGenerateBtn").disabled = false;
+    return null;
+  }
 }
 
 function handleAiRegenerate(){
@@ -1483,7 +1773,7 @@ renderAiAppliedChips(aiAppliedTitles);
 
 setBadge("saveStatusBadge","warn","Not saved");
 setBadge("aiStatusBadge","good","Applied");
-setText("aiHint","Titles added. Now confirm your preferences below and save.");
+setText("aiHint","Job titles updated. Save preferences below to enable job matching.");
 
 markStep1DoneVisual(true);
 
@@ -1747,14 +2037,24 @@ try{
   const prof2 = await apiGet("/me/profile");
   const p2 = prof2 && prof2.profile ? prof2.profile : null;
   const backendAi = p2 && Array.isArray(p2.ai_titles) ? p2.ai_titles : [];
-  if(backendAi.length && !tryLoadCachedAiSuggestions()){
-    // Show persisted AI titles as suggestions (read-only)
-    applyAiUiFromTitles(backendAi);
+  if(Array.isArray(backendAi) && backendAi.length){
+    backendAiTitles = backendAi.slice(0,30);
+
+    // Prefer per-CV cache if available; otherwise show persisted titles
+    if(!tryLoadCachedAiSuggestions()){
+      applyAiUiFromTitles(backendAiTitles);
+    }
+
+    // Best-effort background prefetch (non-blocking)
+    try{ maybePrefetchJobs(backendAiTitles, "boot_ai_titles"); }catch(_){}
   }
 }catch(_){}
 
 
 $("cvFile").addEventListener("change",handleCvFileSelected);
+
+// Drag & drop + nice picker UI
+wireCvDropzone();
 $("retryOcrBtn").addEventListener("click",handleRetryOcr);
 
 $("aiGenerateBtn").addEventListener("click",()=>handleAiGenerate({ force:false }));
@@ -1769,18 +2069,29 @@ renderAiAppliedChips(aiAppliedTitles);
 $("saveProfileBtn").addEventListener("click",handleSaveProfile);
 $("continueBtn").addEventListener("click",()=>{
   const cvOk = !!(state && state.cv_uploaded);
-  const profOk = !!(state && state.profile_complete);
 
   if(!cvOk){
     $("step1Card")?.scrollIntoView({ behavior:"smooth", block:"start" });
-    return;
-  }
-  if(!profOk){
-    $("prefsCard")?.scrollIntoView({ behavior:"smooth", block:"start" });
+    toast("warn","Upload CV","Please upload your CV first.");
     return;
   }
   go("./cv.html");
 });
+
+{
+  const b = $("openCvBtn");
+  if(b){
+    b.addEventListener("click", ()=>{
+      const cvOk = !!(state && state.cv_uploaded);
+      if(!cvOk){
+        $("step1Card")?.scrollIntoView({ behavior:"smooth", block:"start" });
+        toast("warn","Upload CV","Please upload your CV first.");
+        return;
+      }
+      go("./cv.html");
+    });
+  }
+}
 // Account dropdown actions
 $("navActivity")?.addEventListener("click", openActivityModal);
 $("activityCloseX")?.addEventListener("click", closeActivityModal);
