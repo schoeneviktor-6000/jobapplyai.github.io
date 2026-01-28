@@ -296,6 +296,24 @@ CV upload dropzone + tiny spinner
   vertical-align:-2px;
 }
 @keyframes spin{ to{ transform:rotate(360deg); } }
+
+/* Tiny spinner (used for background job prefetch status) */
+.spinner{
+  width:14px;height:14px;
+  border-radius:999px;
+  border:2px solid rgba(17,19,24,.18);
+  border-top-color: rgba(34,197,94,.92);
+  animation: spin .9s linear infinite;
+}
+@keyframes spin{ to { transform: rotate(360deg); } }
+
+/* Make quick-choice chips feel like controls */
+.chip.quick{
+  font-size:12px;
+  padding:7px 10px;
+  font-weight:900;
+}
+
 </style>
 </head>
 
@@ -463,9 +481,16 @@ CV upload dropzone + tiny spinner
 <div class="sectionHeader">
 <div class="stepTitle">
 <h2>Step 2 (recommended): Enable matched jobs</h2>
+<div class="row" style="gap:8px">
+<span class="badge" id="jobsPrefetchBadge" style="display:none">Fetching jobs…</span>
 <span class="badge" id="saveStatusBadge">Not saved</span>
 </div>
+</div>
 <p class="small">We already store your AI job titles in the background. Add your location and save preferences so we can fetch matched jobs automatically (Jobs feed + Auto‑Apply later).</p>
+<div class="row" id="jobsPrefetchRow" style="display:none; gap:10px; margin-top:10px">
+  <div class="spinner" aria-hidden="true"></div>
+  <div class="small" id="jobsPrefetchText">Fetching matched jobs in the background…</div>
+</div>
 </div>
 <div class="sectionBody">
 <div class="field">
@@ -490,12 +515,29 @@ CV upload dropzone + tiny spinner
 </select>
 </div>
 <div class="field">
-<label for="locations">Main location(s) (comma separated)</label>
+<div class="row" style="justify-content:space-between; align-items:flex-end">
+  <label for="locations" style="margin:0">Main location(s) (comma separated)</label>
+  <button class="btn small" id="useCvLocationBtn" type="button" style="display:none">Use CV location</button>
+</div>
 <input id="locations" placeholder="Berlin, Potsdam"/>
+<div id="locSuggestWrap" style="display:none;margin-top:10px">
+  <div class="small"><strong>Suggested from your CV</strong> (click to apply)</div>
+  <div id="locSuggestChips"></div>
+</div>
+<div id="locQuickWrap" style="margin-top:10px">
+  <div class="small"><strong>Popular in Germany</strong></div>
+  <div id="locQuickChips"></div>
+</div>
 </div>
 <div class="field">
 <label for="radiusKm">Radius (km)</label>
 <input id="radiusKm" inputmode="numeric" placeholder="20"/>
+<div class="row" id="radiusQuick" style="gap:8px;margin-top:8px;flex-wrap:wrap">
+  <div class="chip quick" data-radius="10">10 km</div>
+  <div class="chip quick" data-radius="20">20 km</div>
+  <div class="chip quick" data-radius="50">50 km</div>
+  <div class="chip quick" data-radius="100">100 km</div>
+</div>
 </div>
 <div class="actions" style="margin-top:12px">
 <button class="btn primary" id="saveProfileBtn" type="button">Save preferences</button>
@@ -582,6 +624,10 @@ let aiGeneratedOnce=false;
 let aiAppliedOnce=false;
 let aiAppliedTitles=[];
 let jobTitlesTouched=false;
+let locationsTouched=false;
+let jobsPrefetchInFlight=false;
+let cvLocationHint=[];
+
 
 let lastCvMeta=null;
 
@@ -834,19 +880,249 @@ function maybeAutofillJobTitlesFromAi(titles){
   }
 }
 
-async function maybePrefetchJobs(aiTitles, reason){
-  try{
-    const titles = Array.isArray(aiTitles) ? aiTitles.map(t=>String(t||"").trim()).filter(Boolean) : [];
-    if(!titles.length) return;
 
+function setJobsPrefetchUI(state, info){
+  const badge=$("jobsPrefetchBadge");
+  const row=$("jobsPrefetchRow");
+  const textEl=$("jobsPrefetchText");
+  if(!badge || !row || !textEl) return;
+
+  const s=String(state||"").toLowerCase();
+
+  if(s==="running"){
+    badge.style.display="inline-flex";
+    badge.className="badge warn";
+    badge.textContent="Fetching jobs…";
+    row.style.display="flex";
+    textEl.textContent = (info && info.text) ? String(info.text) : "Fetching matched jobs in the background…";
+    return;
+  }
+
+  if(s==="ready"){
+    const n = info && Number.isFinite(info.count) ? Number(info.count) : null;
+    if(n !== null && n > 0){
+      badge.style.display="inline-flex";
+      badge.className="badge good";
+      badge.textContent = n + " jobs ready";
+    }else{
+      // No new jobs added → don't clutter UI
+      badge.style.display="none";
+    }
+    row.style.display="none";
+    return;
+  }
+
+  if(s==="pending"){
+    badge.style.display="inline-flex";
+    badge.className="badge warn";
+    badge.textContent="Jobs pending";
+    row.style.display="none";
+    return;
+  }
+
+  // idle
+  badge.style.display="none";
+  row.style.display="none";
+}
+
+function renderClickChips(hostId, items, onClick){
+  const host=$(hostId);
+  if(!host) return;
+  host.innerHTML="";
+  const clean = Array.isArray(items) ? items.map(x=>String(x||"").trim()).filter(Boolean) : [];
+  if(!clean.length) return;
+
+  const wrap=document.createElement("div");
+  wrap.className="chips";
+  clean.forEach((label, idx)=>{
+    const chip=document.createElement("div");
+    chip.className="chip quick";
+    chip.style.animationDelay = (idx * 35) + "ms";
+    chip.textContent=label;
+    chip.addEventListener("click", ()=>{
+      try{ onClick && onClick(label); }catch(_){}
+    });
+    wrap.appendChild(chip);
+  });
+  host.appendChild(wrap);
+}
+
+const CITY_ALIASES = [
+  { name:"Berlin", aliases:["berlin"] },
+  { name:"Hamburg", aliases:["hamburg"] },
+  { name:"München", aliases:["münchen","munchen","munich"] },
+  { name:"Köln", aliases:["köln","koeln","cologne"] },
+  { name:"Frankfurt", aliases:["frankfurt","frankfurt am main"] },
+  { name:"Stuttgart", aliases:["stuttgart"] },
+  { name:"Düsseldorf", aliases:["düsseldorf","dusseldorf"] },
+  { name:"Leipzig", aliases:["leipzig"] },
+  { name:"Dresden", aliases:["dresden"] },
+  { name:"Nürnberg", aliases:["nürnberg","nurnberg","nuernberg","nuremberg"] },
+  { name:"Hannover", aliases:["hannover"] },
+  { name:"Bremen", aliases:["bremen"] },
+  { name:"Dortmund", aliases:["dortmund"] },
+  { name:"Essen", aliases:["essen"] },
+  { name:"Bonn", aliases:["bonn"] },
+  { name:"Mannheim", aliases:["mannheim"] },
+  { name:"Karlsruhe", aliases:["karlsruhe"] },
+  { name:"Freiburg", aliases:["freiburg"] },
+  { name:"Heidelberg", aliases:["heidelberg"] }
+];
+
+function normalizeLocationString(s){
+  let v = String(s||"").trim();
+  if(!v) return "";
+  v = v.replace(/\s+/g," ");
+  v = v.split("|")[0].trim();
+  v = v.split("·")[0].trim();
+  // Remove trailing country tokens
+  v = v.replace(/,\s*(germany|deutschland|de)\s*$/i, "");
+  // Keep first segment (city)
+  const first = v.split(",")[0].trim();
+  return first;
+}
+
+function findCitiesInText(s){
+  const t = String(s||"").toLowerCase();
+  const out = [];
+  for(const c of CITY_ALIASES){
+    if(out.includes(c.name)) continue;
+    for(const a of c.aliases){
+      if(t.includes(a)){
+        out.push(c.name);
+        break;
+      }
+    }
+  }
+  return out;
+}
+
+function deriveLocationHintsFromAiResult(r){
+  const out = [];
+
+  try{
+    const rawCandidates = [];
+
+    // Common keys (best-effort, backend may change)
+    if(r){
+      if(Array.isArray(r.locations)) rawCandidates.push(...r.locations);
+      if(typeof r.location === "string") rawCandidates.push(r.location);
+      if(typeof r.city === "string") rawCandidates.push(r.city);
+      if(typeof r.current_location === "string") rawCandidates.push(r.current_location);
+      if(typeof r.base_location === "string") rawCandidates.push(r.base_location);
+
+      if(r.contact){
+        if(typeof r.contact.location === "string") rawCandidates.push(r.contact.location);
+        if(typeof r.contact.city === "string") rawCandidates.push(r.contact.city);
+      }
+      if(r.profile){
+        if(typeof r.profile.location === "string") rawCandidates.push(r.profile.location);
+        if(typeof r.profile.city === "string") rawCandidates.push(r.profile.city);
+      }
+
+      if(typeof r.summary === "string") rawCandidates.push(r.summary);
+    }
+
+    // Normalize location-like strings and scan for cities
+    for(const cand of rawCandidates){
+      const norm = normalizeLocationString(cand);
+      const cities = findCitiesInText(norm);
+      if(cities.length){
+        out.push(...cities);
+        continue;
+      }
+
+      // If norm looks like a city (single word, capitalized), use it cautiously
+      if(norm && norm.length <= 32 && /^[A-Za-zÀ-ž\-\s]+$/.test(norm)){
+        out.push(norm);
+      }
+    }
+
+    // De-dup, keep first 3
+    const uniq = [];
+    for(const x of out){
+      const v = String(x||"").trim();
+      if(!v) continue;
+      if(uniq.map(z=>z.toLowerCase()).includes(v.toLowerCase())) continue;
+      uniq.push(v);
+      if(uniq.length >= 3) break;
+    }
+    return uniq;
+  }catch(_){
+    return [];
+  }
+}
+
+function setLocationSuggestionUI(list){
+  const wrap=$("locSuggestWrap");
+  const btn=$("useCvLocationBtn");
+  if(!wrap) return;
+
+  const cities = Array.isArray(list) ? list.map(x=>String(x||"").trim()).filter(Boolean) : [];
+  cvLocationHint = cities.slice(0,3);
+
+  if(!cities.length){
+    wrap.style.display="none";
+    if(btn) btn.style.display="none";
+    return;
+  }
+
+  wrap.style.display="block";
+  renderClickChips("locSuggestChips", cities, (label)=>{
+    applyLocation(label, { source:"cv", append:false });
+  });
+
+  if(btn){
+    btn.style.display="inline-flex";
+    btn.onclick = (e)=>{
+      e.preventDefault();
+      applyLocation(cities[0], { source:"cv", append:false });
+    };
+  }
+}
+
+function applyLocation(label, opts){
+  opts = opts || {};
+  const el=$("locations");
+  if(!el) return;
+
+  const val = String(label||"").trim();
+  if(!val) return;
+
+  const current = parseCsv(el.value, 20);
+
+  let next = [];
+  if(opts.append){
+    next = [...new Set([...current, val])].slice(0, 20);
+  }else{
+    next = [val, ...current.filter(x=>x.toLowerCase() !== val.toLowerCase())].slice(0, 20);
+  }
+
+  el.value = next.join(", ");
+  locationsTouched = true;
+
+  try{ if(opts && opts.source === "cv"){ const b=$("useCvLocationBtn"); if(b) b.style.display = "none"; } }catch(_){ }
+
+  setBadge("saveStatusBadge","warn","Not saved");
+}
+
+async function maybePrefetchJobs(aiTitles, reason){
+  const titles = Array.isArray(aiTitles) ? aiTitles.map(t=>String(t||"").trim()).filter(Boolean) : [];
+  if(!titles.length) return;
+
+  if(jobsPrefetchInFlight) return;
+  jobsPrefetchInFlight = true;
+
+  try{
     // Rate limit (avoid spamming the worker)
     const now = Date.now();
     const last = Number(lsSafeGet("jm_jobs_prefetch_ts") || "0");
     const minMs = 6 * 60 * 60 * 1000; // 6h
     if(last && (now - last) < minMs) return;
-    lsSafeSet("jm_jobs_prefetch_ts", String(now));
 
     if(!session || !session.access_token) return;
+
+    setJobsPrefetchUI("running", { text: "Fetching matched jobs based on your CV… (background)" });
 
     const fetch_mode = (state && state.profile_complete) ? "profile" : "ai_only";
 
@@ -857,14 +1133,24 @@ async function maybePrefetchJobs(aiTitles, reason){
       reason: String(reason || "profile_autofetch")
     });
 
-    const added = (resp && typeof resp.jobs_added === "number") ? resp.jobs_added : null;
-    if(added && added > 0){
+    // Only set the rate-limit timestamp when the request actually happened
+    lsSafeSet("jm_jobs_prefetch_ts", String(now));
+
+    const added = (resp && typeof resp.jobs_added === "number") ? resp.jobs_added : 0;
+
+    setJobsPrefetchUI("ready", { count: Number(added) });
+
+    if(added > 0){
       toast("good", "Jobs ready", "Fetched " + added + " matched jobs in the background.");
     }
   }catch(_){
-    // silent by default (do not block onboarding)
+    // keep UI calm (do not scare the user)
+    setJobsPrefetchUI("pending");
+  }finally{
+    jobsPrefetchInFlight = false;
   }
 }
+
 
 function wireCvDropzone(){
   const dz = $("cvDropzone");
@@ -1284,6 +1570,9 @@ const radius=p.radius_km;
 $("jobTitles").value=desired.join(", ");
 $("industries").value=industries.join(", ");
 $("locations").value=locations.join(", ");
+locationsTouched = locations.length ? true : false;
+try{ if(locations.length){ setLocationSuggestionUI([]); } }catch(_){}
+
 if(countries[0]) $("country").value=String(countries[0]);
 if(radius!==null && radius!==undefined) $("radiusKm").value=String(radius);
 setBadge("saveStatusBadge","good","Loaded");
@@ -1634,6 +1923,19 @@ async function handleAiGenerate({ force=false, background=false } = {}){
     const res = await apiPostJson("/me/ai/profile-from-cv",{});
     const r = res && res.result ? res.result : null;
     if(!r) throw new Error("AI returned no result");
+
+    // Best-effort: prefill location from CV (if available)
+    try{
+      const hints = deriveLocationHintsFromAiResult(r);
+      setLocationSuggestionUI(hints);
+
+      const locEl = $("locations");
+      const cur = locEl ? parseCsv(locEl.value, 20) : [];
+      if(!locationsTouched && (!cur || !cur.length) && Array.isArray(hints) && hints.length){
+        // Prefill the first (most likely) city; user can edit anytime
+        applyLocation(hints[0], { source:"cv", append:false });
+      }
+    }catch(_){}
 
     const titles = Array.isArray(r.job_titles)
       ? r.job_titles.map(x=>String(x).trim()).filter(Boolean)
@@ -2065,6 +2367,31 @@ $("jobTitles").addEventListener("input",()=>{
 jobTitlesTouched=true;
 renderAiAppliedChips(aiAppliedTitles);
 });
+
+$("locations").addEventListener("input",()=>{
+  locationsTouched=true;
+});
+
+try{
+  // Popular city quick picks (makes Step 2 fast)
+  const popular = ["Berlin","Hamburg","München","Frankfurt","Köln","Stuttgart","Düsseldorf","Leipzig"];
+  renderClickChips("locQuickChips", popular, (label)=>{
+    applyLocation(label, { append:false });
+  });
+}catch(_){}
+
+try{
+  // Radius quick picks
+  document.querySelectorAll("#radiusQuick .chip[data-radius]").forEach((chip)=>{
+    chip.addEventListener("click", ()=>{
+      const v = Number(chip.getAttribute("data-radius") || "");
+      if(Number.isFinite(v)){
+        $("radiusKm").value = String(v);
+        setBadge("saveStatusBadge","warn","Not saved");
+      }
+    });
+  });
+}catch(_){}
 
 $("saveProfileBtn").addEventListener("click",handleSaveProfile);
 $("continueBtn").addEventListener("click",()=>{
