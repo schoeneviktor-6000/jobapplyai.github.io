@@ -876,33 +876,18 @@
           return;
         }
 
-        const pr = e.target.closest("button[data-prio]");
-        if(pr){
-          const jobId = pr.getAttribute("data-prio") || "";
+        const prBtn = e.target && e.target.closest ? e.target.closest("button[data-prio], button[data-unprio]") : null;
+        if(prBtn){
+          const makePrio = prBtn.hasAttribute("data-prio");
+          const jobId = makePrio ? (prBtn.getAttribute("data-prio") || "") : (prBtn.getAttribute("data-unprio") || "");
           if(!jobId) return;
-          try{
-            await apiPost("/me/applications/prioritize", lastSessionToken, { job_id: jobId });
-            await refreshQueue();
-          }catch(err){
-            showError(err?.message || String(err));
-          }
+
+          // Smooth: optimistic UI + reorder (no skeleton refresh)
+          await onTogglePriority(jobId, makePrio, prBtn);
           return;
         }
 
-        const un = e.target.closest("button[data-unprio]");
-        if(un){
-          const jobId = un.getAttribute("data-unprio") || "";
-          if(!jobId) return;
-          try{
-            await apiPost("/me/applications/unprioritize", lastSessionToken, { job_id: jobId });
-            await refreshQueue();
-          }catch(err){
-            showError(err?.message || String(err));
-          }
-        }
-
-
-        const row = e.target && e.target.closest ? e.target.closest(".jobRow[data-select]") : null;
+const row = e.target && e.target.closest ? e.target.closest(".jobRow[data-select]") : null;
         if(row){
           const jobId = row.getAttribute("data-select") || "";
           if(jobId){
@@ -957,7 +942,250 @@
       });
     }
 
-    function renderDetailLoading(baseJob){
+    
+    /* -------------------------
+       Priority (heart) — optimistic UI
+       ------------------------- */
+
+    function snapshotPriorityState(jobId){
+      const id = String(jobId || "");
+      const arr = Array.isArray(lastQueueResponse?.data) ? lastQueueResponse.data : currentQueueItems;
+      const idx = Array.isArray(arr) ? arr.findIndex(j => String(j?.id || "") === id) : -1;
+      const j = (idx >= 0 && Array.isArray(arr)) ? arr[idx] : findJobBase(id);
+      const wasPrio = !!(j && j._application && j._application.priority);
+      return { idx, wasPrio };
+    }
+
+    function setPriorityLocal(jobId, makePrio){
+      const id = String(jobId || "");
+      if(!id) return;
+
+      // Update the in-memory job object (shared refs between currentQueueItems and lastQueueResponse.data)
+      const j = findJobBase(id);
+      if(j){
+        j._application = j._application || {};
+        j._application.priority = !!makePrio;
+      }
+
+      // Also ensure cached detail copy (if exists) matches, so the right pane doesn't drift
+      try{
+        const cached = detailCache.get(id);
+        if(cached){
+          cached._application = cached._application || {};
+          cached._application.priority = !!makePrio;
+        }
+      }catch(_){}
+    }
+
+    function moveJobInData(jobId, makePrio){
+      const id = String(jobId || "");
+      const arr = Array.isArray(lastQueueResponse?.data) ? lastQueueResponse.data : null;
+      if(!id || !Array.isArray(arr)) return;
+
+      const idx = arr.findIndex(j => String(j?.id || "") === id);
+      if(idx < 0) return;
+
+      const [item] = arr.splice(idx, 1);
+
+      if(makePrio){
+        arr.unshift(item);
+      }else{
+        // Insert after all priority items (first non-prio index)
+        let insertAt = arr.findIndex(j => !(j && j._application && j._application.priority));
+        if(insertAt < 0) insertAt = arr.length;
+        arr.splice(insertAt, 0, item);
+      }
+
+      currentQueueItems = arr;
+    }
+
+    function updateHeartButtonEl(btnEl, makePrio, jobId){
+      if(!btnEl) return;
+
+      // Always keep the base class
+      btnEl.classList.toggle("on", !!makePrio);
+
+      // Swap attributes so event delegation keeps working
+      if(makePrio){
+        btnEl.removeAttribute("data-prio");
+        btnEl.setAttribute("data-unprio", String(jobId));
+        btnEl.setAttribute("aria-label", "Remove priority");
+        btnEl.setAttribute("aria-pressed", "true");
+        btnEl.setAttribute("title", "Unprioritize");
+        btnEl.innerHTML = "<span aria-hidden='true'>♥</span>";
+      }else{
+        btnEl.removeAttribute("data-unprio");
+        btnEl.setAttribute("data-prio", String(jobId));
+        btnEl.setAttribute("aria-label", "Mark as priority");
+        btnEl.setAttribute("aria-pressed", "false");
+        btnEl.setAttribute("title", "Prioritize");
+        btnEl.innerHTML = "<span aria-hidden='true'>♡</span>";
+      }
+    }
+
+    function updateRowPrioUI(jobId, makePrio, rowEl, btnEl){
+      const row = rowEl || null;
+      if(!row) return;
+
+      // Badge group: first badge is always the prio/new badge
+      try{
+        const bg = row.querySelector(".badgeGroup");
+        const first = bg ? bg.querySelector(".badge") : null;
+        if(first){
+          if(makePrio){
+            first.className = "badge prio";
+            first.textContent = "♥ prio";
+          }else{
+            first.className = "badge";
+            first.textContent = "new";
+          }
+        }
+      }catch(_){}
+
+      // Heart button (use provided btnEl if possible)
+      const heart = btnEl || row.querySelector("button.heartBtn");
+      if(heart) updateHeartButtonEl(heart, makePrio, jobId);
+    }
+
+    function updateDetailPrioUI(jobId, makePrio, btnEl){
+      if(String(selectedJobId) !== String(jobId)) return;
+
+      try{
+        H.setBadge("detailBadge", makePrio ? "prio" : "", makePrio ? "Priority" : "Ready");
+      }catch(_){}
+
+      const heart = btnEl || document.querySelector("#detailWrap button.heartBtn");
+      if(heart) updateHeartButtonEl(heart, makePrio, jobId);
+    }
+
+    function moveRowDom(jobId, makePrio, rowEl){
+      const row = rowEl || null;
+      if(!row) return;
+      const list = row.closest(".jobList");
+      if(!list) return;
+
+      const first = row.getBoundingClientRect();
+
+      if(makePrio){
+        // Move to top
+        list.insertBefore(row, list.firstChild);
+      }else{
+        // Move below all prio rows (top of non-prio block)
+        const rows = Array.from(list.querySelectorAll(".jobRow[data-select]")).filter(r => r !== row);
+        let insertBeforeEl = null;
+        for(const r of rows){
+          const id = r.getAttribute("data-select") || "";
+          const jb = findJobBase(id);
+          const pr = !!(jb && jb._application && jb._application.priority);
+          if(!pr){ insertBeforeEl = r; break; }
+        }
+        if(insertBeforeEl) list.insertBefore(row, insertBeforeEl);
+        else list.appendChild(row);
+      }
+
+      const last = row.getBoundingClientRect();
+      const dx = first.left - last.left;
+      const dy = first.top - last.top;
+
+      if((Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) && row.animate){
+        row.animate(
+          [
+            { transform: `translate(${dx}px, ${dy}px)` },
+            { transform: "translate(0, 0)" }
+          ],
+          { duration: 220, easing: "ease-out" }
+        );
+      }
+
+      // Optional: keep it visible (feels like it “moved up”)
+      if(makePrio){
+        try{ row.scrollIntoView({ behavior:"smooth", block:"nearest" }); }catch(_){}
+      }
+    }
+
+    function restorePrioritySnapshot(jobId, snap){
+      const id = String(jobId || "");
+      if(!id) return;
+
+      // Restore flag
+      setPriorityLocal(id, snap?.wasPrio);
+
+      // Restore array order by index (best-effort)
+      try{
+        const arr = Array.isArray(lastQueueResponse?.data) ? lastQueueResponse.data : null;
+        if(Array.isArray(arr) && typeof snap?.idx === "number" && snap.idx >= 0){
+          const curIdx = arr.findIndex(j => String(j?.id || "") === id);
+          if(curIdx >= 0 && curIdx !== snap.idx){
+            const [item] = arr.splice(curIdx, 1);
+            const target = Math.min(Math.max(0, snap.idx), arr.length);
+            arr.splice(target, 0, item);
+          }
+          currentQueueItems = arr;
+        }
+      }catch(_){}
+
+      // Re-render list (no network, no skeleton) to ensure badges/hearts match
+      try{
+        if(lastQueueResponse){
+          setHtml("queueWrap", renderQueueCards(lastQueueResponse));
+          highlightSelectedJob();
+        }
+      }catch(_){}
+
+      // Update detail badge/heart
+      try{ updateDetailPrioUI(id, !!(snap && snap.wasPrio)); }catch(_){}
+    }
+
+    async function onTogglePriority(jobId, makePrio, btnEl){
+      const id = String(jobId || "");
+      if(!id) return;
+
+      showError("");
+
+      const snap = snapshotPriorityState(id);
+
+      // Identify the row in the list (even if click happened in the right pane)
+      let rowEl = null;
+      try{
+        rowEl = btnEl && btnEl.closest ? btnEl.closest(".jobRow[data-select]") : null;
+        if(!rowEl){
+          // Best-effort: find row by job id
+          rowEl = document.querySelector('.jobRow[data-select="' + CSS.escape(id) + '"]');
+        }
+      }catch(_){
+        try{ rowEl = document.querySelector('.jobRow[data-select="' + id.replace(/"/g, "") + '"]'); }catch(__){}
+      }
+
+      // Optimistic UI (instant)
+      try{
+        setPriorityLocal(id, makePrio);
+        moveJobInData(id, makePrio);
+
+        // Update list row UI + move it
+        if(rowEl){
+          updateRowPrioUI(id, makePrio, rowEl, (btnEl && btnEl.closest && btnEl.closest("#queueWrap")) ? btnEl : null);
+          moveRowDom(id, makePrio, rowEl);
+        }
+
+        // Update right pane badge + heart (if selected)
+        updateDetailPrioUI(id, makePrio, (btnEl && btnEl.closest && btnEl.closest("#detailWrap")) ? btnEl : null);
+      }catch(_){}
+
+      // Persist to backend (no full refresh)
+      try{
+        const endpoint = makePrio ? "/me/applications/prioritize" : "/me/applications/unprioritize";
+        await apiPost(endpoint, lastSessionToken, { job_id: id });
+      }catch(err){
+        // Revert locally (still no network)
+        restorePrioritySnapshot(id, snap);
+
+        // Error UX
+        H.toast?.("Could not save priority. Please try again.", { kind:"bad", title:"Error" });
+        showError(err?.message || String(err));
+      }
+    }
+
+function renderDetailLoading(baseJob){
       const title = baseJob?.title ? String(baseJob.title) : "Loading…";
       const company = baseJob?.company_name ? String(baseJob.company_name) : "—";
       const loc = [baseJob?.city || "", baseJob?.region || ""].filter(Boolean).join(", ") || "—";
@@ -1169,32 +1397,16 @@
           return;
         }
 
-        const pr = e.target.closest("button[data-prio]");
-        if(pr){
-          const id = pr.getAttribute("data-prio") || "";
-          if(!id) return;
-          try{
-            await apiPost("/me/applications/prioritize", lastSessionToken, { job_id: id });
-            await refreshQueue();
-            await selectJob(id, { keepDetailScroll:true });
-          }catch(err){
-            showError(err?.message || String(err));
-          }
+        const prBtn = e.target && e.target.closest ? e.target.closest("button[data-prio], button[data-unprio]") : null;
+        if(prBtn){
+          const makePrio = prBtn.hasAttribute("data-prio");
+          const jobId = makePrio ? (prBtn.getAttribute("data-prio") || "") : (prBtn.getAttribute("data-unprio") || "");
+          if(!jobId) return;
+
+          await onTogglePriority(jobId, makePrio, prBtn);
           return;
         }
 
-        const un = e.target.closest("button[data-unprio]");
-        if(un){
-          const id = un.getAttribute("data-unprio") || "";
-          if(!id) return;
-          try{
-            await apiPost("/me/applications/unprioritize", lastSessionToken, { job_id: id });
-            await refreshQueue();
-            await selectJob(id, { keepDetailScroll:true });
-          }catch(err){
-            showError(err?.message || String(err));
-          }
-        }
       });
     }
 
