@@ -486,7 +486,7 @@ CV upload dropzone + tiny spinner
 <span class="badge" id="saveStatusBadge">Not saved</span>
 </div>
 </div>
-<p class="small">We already store your AI job titles in the background. Add your location and save preferences so we can fetch matched jobs automatically (Jobs feed + Auto‑Apply later).</p>
+<p class="small">We already store your AI job titles in the background. Add your location — preferences auto‑save as you type — so we can fetch matched jobs automatically (Jobs feed + Auto‑Apply later).</p>
 <div class="row" id="jobsPrefetchRow" style="display:none; gap:10px; margin-top:10px">
   <div class="spinner" aria-hidden="true"></div>
   <div class="small" id="jobsPrefetchText">Fetching matched jobs in the background…</div>
@@ -540,9 +540,9 @@ CV upload dropzone + tiny spinner
 </div>
 </div>
 <div class="actions" style="margin-top:12px">
-<button class="btn primary" id="saveProfileBtn" type="button">Save preferences</button>
-<button class="btn good" id="continueBtn" type="button">Continue</button>
+<button class="btn primary" id="continueBtn" type="button">Open CV Studio</button>
 </div>
+<div class="small" id="autosaveHint" style="margin-top:10px">Auto‑save is on. Preferences are saved as you type (and when you open CV Studio).</div>
 <div class="small" id="continueHint" style="margin-top:10px"></div>
 </div>
 </section>
@@ -873,7 +873,8 @@ function maybeAutofillJobTitlesFromAi(titles){
     aiAppliedTitles = pick.slice(0, 12);
     renderAiAppliedChips(aiAppliedTitles);
 
-    setBadge("saveStatusBadge","warn","Not saved");
+    markPrefsDirty();
+scheduleAutoSave();
     return true;
   }catch(_){
     return false;
@@ -1103,7 +1104,8 @@ function applyLocation(label, opts){
 
   try{ if(opts && opts.source === "cv"){ const b=$("useCvLocationBtn"); if(b) b.style.display = "none"; } }catch(_){ }
 
-  setBadge("saveStatusBadge","warn","Not saved");
+  markPrefsDirty();
+scheduleAutoSave();
 }
 
 async function maybePrefetchJobs(aiTitles, reason){
@@ -2073,9 +2075,10 @@ aiAppliedOnce=true;
 aiAppliedTitles=picked.slice(0,12);
 renderAiAppliedChips(aiAppliedTitles);
 
-setBadge("saveStatusBadge","warn","Not saved");
+markPrefsDirty();
+scheduleAutoSave();
 setBadge("aiStatusBadge","good","Applied");
-setText("aiHint","Job titles updated. Save preferences below to enable job matching.");
+setText("aiHint","Job titles updated. Add your location — preferences auto-save — to enable matched jobs.");
 
 markStep1DoneVisual(true);
 
@@ -2085,31 +2088,204 @@ prefs.scrollIntoView({ behavior:"smooth", block:"start" });
 }
 }
 
-async function handleSaveProfile(){
-clearTopError();
-$("saveProfileBtn").disabled=true;
-setBadge("saveStatusBadge","warn","Saving…");
-try{
-const userTitles=parseCsv($("jobTitles").value,30);
-const aiTop=(aiAppliedTitles || []).map(x=>String(x||"").trim()).filter(Boolean);
-const desired_titles=[...new Set([...aiTop, ...userTitles])].slice(0,30);
-const industries=parseCsv($("industries").value,30);
-const locations=parseCsv($("locations").value,20);
-const countries_allowed=[String($("country").value||"DE").trim()].filter(Boolean);
-let radius_km=$("radiusKm").value ? Number($("radiusKm").value) : null;
-if(!Number.isFinite(radius_km)) radius_km=null;
-if(!desired_titles.length) throw new Error("Please enter at least 1 desired job title.");
-if(!locations.length) throw new Error("Please enter at least 1 location.");
-await apiPostJson("/me/profile",{desired_titles,industries,locations,countries_allowed,radius_km});
-await refreshState();
-setBadge("saveStatusBadge","good","Saved");
-lsSetAll(LS.profileDone, "true");
-}catch(e){
-showTopError(e.message||String(e));
-setBadge("saveStatusBadge","bad","Save failed");
-}finally{
-$("saveProfileBtn").disabled=false;
+
+/* -------------------------
+   Preferences autosave
+   - Step 2 is recommended. We store a local draft while the form is incomplete.
+   - We only POST /me/profile when it has at least 1 desired title + 1 location.
+   ------------------------- */
+
+const PREFS_SIG_KEY = "jm_profile_pref_sig_v1";
+const PREFS_DRAFT_KEY = "jm_profile_draft_v1";
+
+let prefsDirty = false;
+let prefsSaving = false;
+let prefsSaveQueued = false;
+let prefsAutoTimer = null;
+let lastPrefsSig = "";
+
+function readPrefsDraft(){
+  try{
+    const raw = lsSafeGet(PREFS_DRAFT_KEY);
+    if(!raw) return null;
+    const obj = JSON.parse(raw);
+    if(!obj || typeof obj !== "object") return null;
+    return obj;
+  }catch(_){
+    return null;
+  }
 }
+function writePrefsDraft(obj){
+  try{ lsSafeSet(PREFS_DRAFT_KEY, JSON.stringify(obj || {})); }catch(_){}
+}
+function clearPrefsDraft(){
+  try{ localStorage.removeItem(PREFS_DRAFT_KEY); }catch(_){}
+}
+function prefsSignature(prefs){
+  // Stable signature for "did anything change?"
+  try{
+    return JSON.stringify({
+      desired_titles: prefs.desired_titles || [],
+      industries: prefs.industries || [],
+      locations: prefs.locations || [],
+      countries_allowed: prefs.countries_allowed || [],
+      radius_km: (prefs.radius_km === undefined ? null : prefs.radius_km)
+    });
+  }catch(_){
+    return String(Date.now());
+  }
+}
+
+function collectPrefsFromForm(){
+  const userTitles = parseCsv($("jobTitles").value, 30);
+  const aiTop = (aiAppliedTitles || []).map(x=>String(x||"").trim()).filter(Boolean);
+  const desired_titles = [...new Set([...aiTop, ...userTitles])].slice(0, 30);
+
+  const industries = parseCsv($("industries").value, 30);
+  const locations = parseCsv($("locations").value, 20);
+
+  const countries_allowed = [String($("country").value || "DE").trim()].filter(Boolean);
+
+  let radius_km = $("radiusKm").value ? Number($("radiusKm").value) : null;
+  if(!Number.isFinite(radius_km)) radius_km = null;
+
+  return { desired_titles, industries, locations, countries_allowed, radius_km };
+}
+
+function collectDraftFromForm(){
+  // Draft stores exactly what the user typed (even if incomplete).
+  return {
+    jobTitles: String($("jobTitles").value || ""),
+    industries: String($("industries").value || ""),
+    locations: String($("locations").value || ""),
+    country: String($("country").value || "DE"),
+    radiusKm: String($("radiusKm").value || "")
+  };
+}
+
+function restoreDraftIfHelpful(){
+  const d = readPrefsDraft();
+  if(!d) return;
+
+  // Only apply to empty fields (never overwrite backend-loaded values)
+  try{
+    if($("jobTitles") && !String($("jobTitles").value||"").trim() && d.jobTitles) $("jobTitles").value = d.jobTitles;
+    if($("industries") && !String($("industries").value||"").trim() && d.industries) $("industries").value = d.industries;
+    if($("locations") && !String($("locations").value||"").trim() && d.locations) $("locations").value = d.locations;
+    if($("country") && d.country) $("country").value = d.country;
+    if($("radiusKm") && !String($("radiusKm").value||"").trim() && d.radiusKm) $("radiusKm").value = d.radiusKm;
+  }catch(_){}
+}
+
+function markPrefsDirty(){
+  prefsDirty = true;
+  markPrefsDirty();
+scheduleAutoSave();
+}
+
+function scheduleAutoSave(){
+  // Only autosave when we have a session
+  if(!session || !session.access_token) return;
+
+  if(prefsAutoTimer) clearTimeout(prefsAutoTimer);
+  prefsAutoTimer = setTimeout(() => {
+    savePreferences({ silent:true, allowDraft:true }).catch(()=>{});
+  }, 850);
+}
+
+async function savePreferences(opts = {}){
+  const silent = !!opts.silent;
+  const allowDraft = (opts.allowDraft !== false);
+
+  // If user hasn't changed anything, do nothing.
+  if(!prefsDirty && !opts.force) return { ok:true, skipped:true };
+
+  // Store a local draft immediately (so we never lose typed info)
+  writePrefsDraft(collectDraftFromForm());
+
+  const prefs = collectPrefsFromForm();
+  const complete = !!(prefs.desired_titles.length && prefs.locations.length);
+
+  if(!complete){
+    if(!allowDraft){
+      throw new Error("Please enter at least 1 desired job title and 1 location.");
+    }
+    // Step 2 is recommended, not blocking. Keep a calm status.
+    setBadge("saveStatusBadge","warn","Draft");
+    prefsDirty = false;
+    return { ok:false, draft:true, complete:false };
+  }
+
+  if(!lastPrefsSig){
+    lastPrefsSig = String(lsSafeGet(PREFS_SIG_KEY) || "");
+  }
+  const sig = prefsSignature(prefs);
+
+  // Avoid duplicate saves if nothing changed
+  if(sig === lastPrefsSig && !opts.force){
+    setBadge("saveStatusBadge","good","Saved");
+    prefsDirty = false;
+    return { ok:true, skipped:true };
+  }
+
+  if(prefsSaving){
+    prefsSaveQueued = true;
+    return { ok:false, queued:true };
+  }
+
+  prefsSaving = true;
+  setBadge("saveStatusBadge","warn","Saving…");
+
+  const saveBtn = $("saveProfileBtn");
+  if(saveBtn) saveBtn.disabled = true;
+
+  try{
+    await apiPostJson("/me/profile", prefs);
+    await refreshState();
+
+    lastPrefsSig = sig;
+    lsSafeSet(PREFS_SIG_KEY, sig);
+
+    // Saved server-side → clear draft
+    clearPrefsDraft();
+
+    setBadge("saveStatusBadge","good","Saved");
+    lsSetAll(LS.profileDone, "true");
+    prefsDirty = false;
+
+    // Best-effort: once profile is saved, background fetch can be more accurate
+    try{ maybePrefetchJobs(aiAppliedTitles, "profile_saved"); }catch(_){}
+
+    return { ok:true };
+  }catch(e){
+    setBadge("saveStatusBadge","bad","Save failed");
+    if(!silent) showTopError(e.message || String(e));
+    else toast("warn","Save failed","We couldn't save preferences right now. We kept a draft and you can still continue.");
+    prefsDirty = true; // keep dirty so we can retry
+    return { ok:false, error: e };
+  }finally{
+    prefsSaving = false;
+    if(saveBtn) saveBtn.disabled = false;
+
+    if(prefsSaveQueued){
+      prefsSaveQueued = false;
+      setTimeout(() => { savePreferences({ silent:true, allowDraft:true, force:true }).catch(()=>{}); }, 80);
+    }
+  }
+}
+
+async function flushAutoSave(){
+  if(prefsAutoTimer){ clearTimeout(prefsAutoTimer); prefsAutoTimer = null; }
+  return savePreferences({ silent:true, allowDraft:true }).catch(()=>({ ok:false }));
+}
+
+async function handleSaveProfile(){
+  clearTopError();
+  try{
+    await savePreferences({ silent:false, allowDraft:false, force:true });
+  }catch(e){
+    showTopError(e && e.message ? e.message : String(e));
+  }
 }
 
 
@@ -2334,6 +2510,17 @@ await ensureCustomer(email);
 await refreshState();
 await loadCvStatusAndUpdateUx();
 await loadProfileIntoForm();
+// Restore any local draft (only fills empty fields)
+try{
+  restoreDraftIfHelpful();
+  const b = $("saveStatusBadge");
+  const t = b ? String(b.textContent||"") : "";
+  if(t !== "Loaded" && t !== "Saved"){
+    const hasAny = !!(String($("jobTitles")?.value||"").trim() || String($("locations")?.value||"").trim());
+    if(hasAny) setBadge("saveStatusBadge","warn","Draft");
+  }
+}catch(_){ }
+
 // If backend already has AI titles (persisted), show them without forcing regeneration
 try{
   const prof2 = await apiGet("/me/profile");
@@ -2364,13 +2551,25 @@ $("aiRegenerateLink").addEventListener("click",handleAiRegenerate);
 $("aiApplyBtn").addEventListener("click",handleAiApplyTitles);
 
 $("jobTitles").addEventListener("input",()=>{
-jobTitlesTouched=true;
-renderAiAppliedChips(aiAppliedTitles);
+  jobTitlesTouched=true;
+  renderAiAppliedChips(aiAppliedTitles);
+  markPrefsDirty();
+  scheduleAutoSave();
 });
 
 $("locations").addEventListener("input",()=>{
   locationsTouched=true;
+  markPrefsDirty();
+  scheduleAutoSave();
 });
+
+// Autosave: other preference fields
+try{
+  $("industries")?.addEventListener("input", ()=>{ markPrefsDirty(); scheduleAutoSave(); });
+  $("country")?.addEventListener("change", ()=>{ markPrefsDirty(); scheduleAutoSave(); });
+  $("radiusKm")?.addEventListener("input", ()=>{ markPrefsDirty(); scheduleAutoSave(); });
+}catch(_){}
+
 
 try{
   // Popular city quick picks (makes Step 2 fast)
@@ -2387,14 +2586,16 @@ try{
       const v = Number(chip.getAttribute("data-radius") || "");
       if(Number.isFinite(v)){
         $("radiusKm").value = String(v);
-        setBadge("saveStatusBadge","warn","Not saved");
+        markPrefsDirty();
+scheduleAutoSave();
       }
     });
   });
 }catch(_){}
 
-$("saveProfileBtn").addEventListener("click",handleSaveProfile);
-$("continueBtn").addEventListener("click",()=>{
+const _saveBtn = $("saveProfileBtn");
+if(_saveBtn){ _saveBtn.addEventListener("click", handleSaveProfile); }
+$("continueBtn").addEventListener("click", async ()=>{
   const cvOk = !!(state && state.cv_uploaded);
 
   if(!cvOk){
@@ -2402,19 +2603,31 @@ $("continueBtn").addEventListener("click",()=>{
     toast("warn","Upload CV","Please upload your CV first.");
     return;
   }
+
+  const btn = $("continueBtn");
+  const old = btn ? btn.textContent : "";
+  try{
+    if(btn){ btn.disabled = true; btn.textContent = "Saving…"; }
+    await flushAutoSave();
+  }catch(_){
+    // keep calm; draft is still stored
+  }finally{
+    if(btn){ btn.textContent = old || "Open CV Studio"; btn.disabled = false; }
+  }
+
   go("./cv.html");
 });
-
 {
   const b = $("openCvBtn");
   if(b){
-    b.addEventListener("click", ()=>{
+    b.addEventListener("click", async ()=>{
       const cvOk = !!(state && state.cv_uploaded);
       if(!cvOk){
         $("step1Card")?.scrollIntoView({ behavior:"smooth", block:"start" });
         toast("warn","Upload CV","Please upload your CV first.");
         return;
       }
+      try{ await flushAutoSave(); }catch(_){}
       go("./cv.html");
     });
   }
