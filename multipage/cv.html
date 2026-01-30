@@ -74,6 +74,60 @@ body.cvGate.cvGateForm #gateFormWrap{ display:block; }
 body.cvGate.cvGateForm #gateBackRow{ display:flex !important; }
 body.cvGate.cvGateForm #gateBackBadge{ display:none !important; }
 
+/* Gate stepper (1 → 2 → Studio) */
+.stepper{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:10px;
+  padding-top:8px;
+  border-top:1px solid rgba(17,19,24,.08);
+}
+.stepperItem{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:900;
+  font-size:12px;
+  color:rgba(17,19,24,.52);
+  white-space:nowrap;
+}
+.stepperDot{
+  width:22px;height:22px;
+  border-radius:999px;
+  border:1px solid rgba(17,19,24,.14);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(17,19,24,.03);
+  font-weight:950;
+  color:rgba(17,19,24,.58);
+}
+.stepperLine{
+  flex:1;
+  height:2px;
+  border-radius:999px;
+  background:rgba(17,19,24,.10);
+}
+.stepperItem.active{ color:rgba(17,19,24,.80); }
+.stepperItem.active .stepperDot{
+  border-color:rgba(34,197,94,.55);
+  background:rgba(34,197,94,.16);
+  color:#0a5a2a;
+  box-shadow: 0 0 0 4px rgba(34,197,94,.14);
+}
+.stepperItem.done{ color:rgba(17,19,24,.74); }
+.stepperItem.done .stepperDot{
+  border-color:rgba(34,197,94,.42);
+  background:rgba(34,197,94,.18);
+  color:#0a5a2a;
+}
+.stepperLine.done{ background:rgba(34,197,94,.38); }
+@media (max-width: 520px){
+  .stepperLabel{ display:none; }
+  .stepper{ gap:8px; }
+}
+
 
 .gateChooser{
   margin-top: 12px;
@@ -1364,6 +1418,22 @@ body.fromJobsLink #settingsDetails{
             <div>
               <div style="font-weight:980; font-size:14px; letter-spacing:-.1px" id="gateStepTitle">Step 1 — Choose job context</div>
               <div class="hint" id="gateStepHint">Pick a job from your queue or paste a job description. Next, we open the studio and generate an A4 tailored CV.</div>
+              <div class="stepper" id="gateStepper" aria-label="Progress">
+                <div class="stepperItem" id="stepper1">
+                  <div class="stepperDot" aria-hidden="true">1</div>
+                  <div class="stepperLabel" id="stepperLbl1">Source</div>
+                </div>
+                <div class="stepperLine" id="stepLine12" aria-hidden="true"></div>
+                <div class="stepperItem" id="stepper2">
+                  <div class="stepperDot" aria-hidden="true">2</div>
+                  <div class="stepperLabel" id="stepperLbl2">Details</div>
+                </div>
+                <div class="stepperLine" id="stepLine23" aria-hidden="true"></div>
+                <div class="stepperItem" id="stepper3">
+                  <div class="stepperDot" aria-hidden="true">3</div>
+                  <div class="stepperLabel" id="stepperLbl3">Studio</div>
+                </div>
+              </div>
             </div>
             <span class="badge prio" id="gateStepBadge">Step 1 of 2</span>
           </div>
@@ -1516,6 +1586,7 @@ body.fromJobsLink #settingsDetails{
           <button class="btn primary" id="btnGenerate" type="button" disabled>Generate tailored CV</button>
           <button class="btn" id="btnGenerateAgain" type="button" disabled style="display:none">Generate again</button>
         </div>
+        <div class="hint" id="ctaHint" style="display:none; margin-top:8px"></div>
         <div class="hint" id="genHint">
           Same settings reuse a cached result (fast). To create a different version, change the tailoring strength.
         </div>
@@ -2825,6 +2896,7 @@ function setGateView(view){
       ? "Wähle eine Option. Danach ergänzt du die Details und startest das Tailoring."
       : "Choose one option. Next you’ll add the details and start tailoring.";
     if(badge) badge.textContent = (uiLang==="de") ? "Schritt 1 von 2" : "Step 1 of 2";
+    try{ renderGateStepper(1); }catch(_){ }
     return;
   }
 
@@ -2848,7 +2920,51 @@ function setGateView(view){
           ? "Wähle einen Job aus deiner Queue und starte dann das Tailoring."
           : "Pick a job from your queue, then start tailoring.");
   }
+  try{ renderGateStepper(2); }catch(_){ }
+  try{ updateCtaHint(); }catch(_){ }
 }
+
+  function renderGateStepper(step){
+    const wrap = $("gateStepper");
+    if(!wrap) return;
+
+    const l1 = $("stepperLbl1");
+    const l2 = $("stepperLbl2");
+    const l3 = $("stepperLbl3");
+    if(l1) l1.textContent = (uiLang==="de") ? "Quelle" : "Source";
+    if(l2) l2.textContent = (uiLang==="de") ? "Details" : "Details";
+    if(l3) l3.textContent = (uiLang==="de") ? "Studio" : "Studio";
+
+    const s1 = $("stepper1");
+    const s2 = $("stepper2");
+    const s3 = $("stepper3");
+    const l12 = $("stepLine12");
+    const l23 = $("stepLine23");
+
+    const clear = (el) => { if(el){ el.classList.remove("active"); el.classList.remove("done"); } };
+    const clearLine = (el) => { if(el){ el.classList.remove("done"); } };
+    clear(s1); clear(s2); clear(s3);
+    clearLine(l12); clearLine(l23);
+
+    const st = Number(step) || 1;
+    if(st <= 1){
+      if(s1) s1.classList.add("active");
+      return;
+    }
+    if(st === 2){
+      if(s1) s1.classList.add("done");
+      if(l12) l12.classList.add("done");
+      if(s2) s2.classList.add("active");
+      return;
+    }
+    // step 3
+    if(s1) s1.classList.add("done");
+    if(l12) l12.classList.add("done");
+    if(s2) s2.classList.add("done");
+    if(l23) l23.classList.add("done");
+    if(s3) s3.classList.add("active");
+  }
+
 
 
 
@@ -3137,6 +3253,7 @@ function loadJobSource(){
         $("btnGenerateAgain").disabled = !ok;
         $("btnViewDesc").disabled = !ok;
         $("btnCopyDesc").disabled = !ok;
+        try{ updateCtaHint(); }catch(_){ }
         return;
       }
 
@@ -3153,9 +3270,62 @@ function loadJobSource(){
       const hasAny = len > 0;
       $("btnViewDesc").disabled = !hasAny;
       $("btnCopyDesc").disabled = !hasAny;
+      try{ updateCtaHint(); }catch(_){ }
     }
 
-    function updatePasteQuality(){
+    function updateCtaHint(){
+      const cta = $("ctaHint");
+      if(!cta) return;
+
+      // Only show this helper in the guided Step 2 screen
+      if(!gateActive || gateView !== "form"){
+        cta.style.display = "none";
+        cta.textContent = "";
+        return;
+      }
+
+      cta.style.display = "block";
+
+      if(jobSource === "queue"){
+        if(!selectedJob){
+          if(jobs && jobs.length === 0){
+            cta.textContent = (uiLang==="de")
+              ? "Deine Job-Queue ist leer. Öffne die Jobs-Seite und lade zuerst passende Jobs."
+              : "Your job queue is empty. Open the Jobs page and fetch jobs first.";
+          }else{
+            cta.textContent = (uiLang==="de")
+              ? "Wähle zuerst einen Job aus, um „Start tailoring“ zu aktivieren."
+              : "Choose a job to enable Start tailoring.";
+          }
+          return;
+        }
+        cta.textContent = (uiLang==="de")
+          ? "Bereit — wähle Template & Stärke (optional) und klicke dann „Start tailoring“."
+          : "Ready — review template & strength (optional), then click Start tailoring.";
+        return;
+      }
+
+      // paste
+      const desc = getPasteDesc();
+      const len = desc.length;
+      if(len < 120){
+        cta.textContent = (uiLang==="de")
+          ? "Füge mindestens ca. 120 Zeichen ein, um „Start tailoring“ zu aktivieren."
+          : "Paste at least ~120 characters to enable Start tailoring.";
+        return;
+      }
+      if(len < 200){
+        cta.textContent = (uiLang==="de")
+          ? "Du kannst starten. Für bessere Resultate: mehr Kontext (Aufgaben + Anforderungen)."
+          : "You can start. For best results, include Responsibilities + Requirements.";
+        return;
+      }
+      cta.textContent = (uiLang==="de")
+        ? "Bereit — wähle Template & Stärke (optional) und klicke dann „Start tailoring“."
+        : "Ready — review template & strength (optional), then click Start tailoring.";
+    }
+
+function updatePasteQuality(){
       const desc = getPasteDesc();
       const pill = $("pasteQualityPill");
       const label = $("pasteQuality");
