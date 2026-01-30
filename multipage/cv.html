@@ -72,6 +72,7 @@ body.cvGate #gateFormWrap{ display:none; }
 body.cvGate.cvGateForm #gateChooser{ display:none; }
 body.cvGate.cvGateForm #gateFormWrap{ display:block; }
 body.cvGate.cvGateForm #gateBackRow{ display:flex !important; }
+body.cvGate.cvGateForm #gateBackBadge{ display:none !important; }
 
 
 .gateChooser{
@@ -1473,7 +1474,7 @@ body.fromJobsLink #settingsDetails{
           </div>
         </div>
 
-<details class="info" id="settingsDetails" style="margin-top:2px">
+<details class="info" id="settingsDetails" open style="margin-top:2px">
           <summary id="settingsSummary">Settings (optional)</summary>
           <div style="margin-top:10px">
         <div class="label">
@@ -2835,6 +2836,9 @@ function setGateView(view){
   if(badge) badge.textContent = (uiLang==="de") ? "Schritt 2 von 2" : "Step 2 of 2";
   if(backBadge) backBadge.textContent = (uiLang==="de") ? "Schritt 2 von 2" : "Step 2 of 2";
 
+  // Keep "Settings (optional)" open by default in Step 2 (both sources)
+  try{ $("settingsDetails").open = true; }catch(_){ }
+
   if(hint){
     hint.textContent = (jobSource === "paste")
       ? ((uiLang==="de")
@@ -3120,6 +3124,9 @@ function loadJobSource(){
       }
 
       try{ updateSourceChip(); }catch(_){}
+
+      // In the guided Step 2 flow, keep Settings visible (it is a key feature)
+      try{ if(document.body.classList.contains("cvGateForm")) $("settingsDetails").open = true; }catch(_){ }
 
     }
 
