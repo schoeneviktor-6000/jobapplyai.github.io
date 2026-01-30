@@ -3246,6 +3246,42 @@ function loadJobSource(){
 
     }
 
+
+    // ------------------------------------------------------------
+    // Guided attention: highlight the required field when CTA is disabled
+    // (Best practice: helps users immediately see what to do next.)
+    // Only active in Step 2 (gate form).
+    // ------------------------------------------------------------
+    function clearAttention(){
+      try{ $("jobSelect") && $("jobSelect").classList.remove("needAttention"); }catch(_){}
+      try{ $("openJobsBtn") && $("openJobsBtn").classList.remove("needAttention"); }catch(_){}
+      try{ $("pasteDesc") && $("pasteDesc").classList.remove("needAttention"); }catch(_){}
+    }
+
+    function updateAttention(){
+      clearAttention();
+
+      // Only show this helper in the guided Step 2 screen
+      if(!gateActive || gateView !== "form") return;
+
+      if(jobSource === "queue"){
+        if(!selectedJob){
+          if(jobs && jobs.length === 0){
+            try{ $("openJobsBtn").classList.add("needAttention"); }catch(_){}
+          }else{
+            try{ $("jobSelect").classList.add("needAttention"); }catch(_){}
+          }
+        }
+        return;
+      }
+
+      // paste
+      const len = getPasteDesc().length;
+      if(len < 120){
+        try{ $("pasteDesc").classList.add("needAttention"); }catch(_){}
+      }
+    }
+
     function refreshModeUi(){
       if(jobSource === "queue"){
         const ok = !!selectedJob;
@@ -3254,6 +3290,7 @@ function loadJobSource(){
         $("btnViewDesc").disabled = !ok;
         $("btnCopyDesc").disabled = !ok;
         try{ updateCtaHint(); }catch(_){ }
+        try{ updateAttention(); }catch(_){ }
         return;
       }
 
@@ -3271,6 +3308,7 @@ function loadJobSource(){
       $("btnViewDesc").disabled = !hasAny;
       $("btnCopyDesc").disabled = !hasAny;
       try{ updateCtaHint(); }catch(_){ }
+      try{ updateAttention(); }catch(_){ }
     }
 
     function updateCtaHint(){
