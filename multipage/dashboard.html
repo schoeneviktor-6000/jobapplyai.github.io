@@ -391,12 +391,12 @@ box-shadow: none;
 
 <div class="card" id="quickActionsCard">
   <h2>Quick actions</h2>
-  <div class="small">Free: job search + CV tailoring. Paid: auto-apply.</div>
+  <div class="small">Free: job search + CV tailoring. Upgrade for auto-apply.</div>
   <div class="hr"></div>
 
   <div class="actionsStack">
     <button class="btn primary" id="qaFetchJobs" type="button">Search jobs (fetch)</button>
-    <button class="btn" id="qaViewQueue" type="button">View job queue</button>
+    <button class="btn" id="qaViewQueue" type="button">Open Jobs</button>
     <button class="btn" id="qaTailorTop" type="button">Tailor CV (top job)</button>
 
     <a class="btn ghost" id="qaSettings" href="./profile.html">Settings</a>
@@ -410,8 +410,8 @@ box-shadow: none;
 <div class="grid">
 <section class="card cardNoPad">
 <div class="sectionHeader">
-<h2>Queue preview</h2>
-<p class="small" id="queueHint">Use Skip to remove jobs you don’t want. Use Prio to apply to these first.</p>
+<h2>Job pipeline</h2>
+<p class="small" id="queueHint">A quick overview of your supply. Manage individual jobs in the Jobs tab.</p>
 <div class="actions">
 <button class="btn primary" id="btnRefresh" type="button">Refresh</button>
 <button class="btn" id="btnFetchJobsNow" type="button">Fetch new jobs</button>
@@ -430,7 +430,6 @@ box-shadow: none;
 <span class="small" id="fetchJobsStatus" style="margin-left:auto;opacity:.85"></span>
 </div>
 <div class="hr"></div>
-<div class="small" id="skipGuardrail" style="display:none"></div>
 </div>
 
 <div class="sectionBody">
@@ -452,6 +451,10 @@ box-shadow: none;
 <button class="chip" type="button" data-etype="skipped">Skipped</button>
 </div>
 </div>
+
+<div class="hr"></div>
+
+<div id="activitySnapshot"><div class="skeleton block" style="height:110px"></div></div>
 
 <div class="hr"></div>
 
@@ -1465,68 +1468,95 @@ function daysAgo(ts){
 
 function renderQueueCards(queue){
   const items=Array.isArray(queue?.data)?queue.data:[];
-  if(items.length===0) return '<span class="badge warn">No jobs in queue</span>';
+  const qCount=(typeof queue?.count==="number") ? queue.count : items.length;
+
+  // Dashboard intentionally does NOT list jobs here (job titles are shown on the Jobs page).
+  if(qCount<=0){
+    return [
+      '<div class="item">',
+        '<div class="itemTitle">Your queue is empty</div>',
+        '<div class="itemMeta"><span>Fetch jobs to get started, or broaden your titles/radius in Profile.</span></div>',
+        '<div class="itemActions">',
+          '<a class="btn small" href="./profile.html" data-nav="1">Improve search settings</a>',
+          '<a class="btn small ghost" href="./jobs.html" data-nav="1">Open Jobs</a>',
+        '</div>',
+      '</div>'
+    ].join("");
+  }
+
+  const prioCount = items.filter(j => j && j._application && j._application.priority).length;
+
+  const dOf = (j)=>daysAgo((j && (j.source_modified_at || j.posted_at)) || null);
+  const freshCount = items.filter(j=>{ const d=dOf(j); return d!==null && d<=2; }).length;
+  const staleCount = items.filter(j=>{ const d=dOf(j); return d!==null && d>=10; }).length;
+
+  // Top locations (aggregated, no titles)
+  const locMap=new Map();
+  for(const j of items){
+    const city=j && j.city ? String(j.city) : "";
+    const region=j && j.region ? String(j.region) : "";
+    const loc=[city, region].map(s=>String(s||"").trim()).filter(Boolean).join(", ").trim();
+    if(!loc) continue;
+    const k=loc.toLowerCase();
+    const prev=locMap.get(k);
+    locMap.set(k, { label: loc, n: (prev?prev.n:0)+1 });
+  }
+  const topLoc=[...locMap.values()].sort((a,b)=>b.n-a.n).slice(0,3);
+  const locLine = topLoc.length ? topLoc.map(x=>`${escapeHtml(x.label)} (${x.n})`).join(" · ") : "—";
+
+  const supply = computeSupply(qCount, currentPlanDaily || 0);
+  const planTxt = currentPlanDaily ? (String(currentPlanDaily)+"/day") : "no plan";
+  const estDays = (currentPlanDaily && currentPlanDaily>0) ? Math.floor(qCount / currentPlanDaily) : null;
+  const cover = (estDays===null) ? "—" : (estDays===0 ? "today" : (String(estDays)+" day"+(estDays===1?"":"s")));
+
   const wrapClass=isSingleColumn() ? "list" : "listGrid";
 
-  const cards=items.slice(0,16).map(j=>{
-    const title=j.title||"Untitled";
-    const company=j.company_name||"—";
-    const loc=[j.city||"", j.region||""].filter(Boolean).join(", ") || "—";
-    const posted=j.posted_at?String(j.posted_at).slice(0,10):"—";
-    const link=j.apply_url?String(j.apply_url):"";
-    const jobId=j.id||"";
-    const prio=!!(j._application && j._application.priority);
+  return `
+    <div class="${wrapClass}">
+      <div class="item">
+        <div class="itemTop">
+          <div class="itemTitle">Supply overview</div>
+          <div class="badgeGroup"><span class="badge ${escapeHtml(supply.badgeType||"")}">${escapeHtml(supply.healthLabel||"")}</span></div>
+        </div>
+        <div class="itemMeta">
+          <span><b>${qCount}</b> jobs ready</span><span>•</span>
+          <span>Plan: ${escapeHtml(planTxt)}</span><span>•</span>
+          <span>Coverage: ${escapeHtml(cover)}</span>
+        </div>
+        <div class="tagRow">
+          <span class="tag ok">Fresh ≤2d: <b>${freshCount}</b></span>
+          <span class="tag ${prioCount? "ok":"warn"}">Prioritized: <b>${prioCount}</b></span>
+          <span class="tag ${staleCount? "warn":"ok"}">Stale ≥10d: <b>${staleCount}</b></span>
+        </div>
+        <div class="hr"></div>
+        <div class="mono">${escapeHtml(supply.note || "")}</div>
+      </div>
 
-    const titleHtml=link
-      ? ('<a href="'+escapeHtml(link)+'" target="_blank" rel="noopener">'+escapeHtml(title)+'</a>')
-      : escapeHtml(title);
+      <div class="item">
+        <div class="itemTitle">Next steps</div>
+        <div class="itemMeta"><span>Use Jobs for job-level actions (prio, skip, apply).</span></div>
+        <div class="itemActions">
+          <a class="btn small" href="./jobs.html" data-nav="1">Open Jobs</a>
+          <a class="btn small ghost" href="./profile.html" data-nav="1">Adjust titles & radius</a>
+          <a class="btn small ghost" href="./plan.html" data-nav="1">Auto-apply (upgrade)</a>
+        </div>
+      </div>
 
-    // Badges on the top-right (compact)
-    const prioBadge=prio ? "<span class='badge prio'>prio</span>" : "<span class='badge'>new</span>";
-    const tSum=tailorSummaryMap.get(String(jobId));
-    let atsBadge="";
-    if(tSum){
-      const pct=computeAtsMatchPercent(tSum.ats_keywords_used, tSum.ats_keywords_missing);
-      if(pct!==null){
-        const cls=(pct>=80)?"good":(pct>=60)?"warn":"bad";
-        atsBadge="<span class='badge "+cls+"'>ATS "+pct+"%</span>";
-      }else{
-        atsBadge="<span class='badge'>tailored</span>";
-      }
-    }
+      <div class="item">
+        <div class="itemTitle">Top locations</div>
+        <div class="mono" style="margin-top:8px">${locLine}</div>
+        <div class="small" style="margin-top:10px">Based on your current queue (no job titles shown).</div>
+      </div>
 
-    const badge="<div class='badgeGroup'>"+prioBadge+atsBadge+"</div>";
-
-    const updatedDays=daysAgo(j.source_modified_at);
-    const updatedLabel=(updatedDays===null)
-      ? "Updated —"
-      : (updatedDays===0 ? "Updated today" : ("Updated " + updatedDays + "d ago"));
-
-    const prioBtn=prio
-      ? "<button class='btn small ghost' type='button' data-unprio='"+escapeHtml(jobId)+"'>Unprio</button>"
-      : "<button class='btn small' type='button' data-prio='"+escapeHtml(jobId)+"'>Prio</button>";
-
-    const descBtn = "<button class='btn small ghost' type='button' data-desc='"+escapeHtml(jobId)+"'>Description</button>";
-    const tailorBtn = "<button class='btn small' type='button' data-tailor='"+escapeHtml(jobId)+"'>Tailor CV</button>";
-
-    return '<div class="item">'
-      + '<div class="itemTop"><div class="itemTitle">'+titleHtml+'</div>'+badge+'</div>'
-      + '<div class="itemMeta">'
-        + '<span>'+escapeHtml(company)+'</span><span>•</span><span>'+escapeHtml(loc)+'</span><span>•</span>'
-        + '<span>Posted '+escapeHtml(posted)+'</span>'
-        + (updatedLabel ? ('<span>•</span><span>'+escapeHtml(updatedLabel)+'</span>') : '')
-      + '</div>'
-      + '<div class="itemActions">'
-      + prioBtn
-      + '<button class="btn small danger" type="button" data-skip="'+escapeHtml(jobId)+'">Skip</button>'
-      + descBtn
-      + tailorBtn
-      + '</div>'
-      + '</div>';
-  }).join("");
-
-  return '<div class="'+wrapClass+'">'+cards+'</div>';
+      <div class="item">
+        <div class="itemTitle">Fetch cadence</div>
+        <div class="mono" style="margin-top:8px">Manual fetch is rate-limited to prevent spam. Use “AI titles only” for exploration when available.</div>
+        <div class="small" style="margin-top:10px">Tip: Generate AI suggestions in Profile to unlock AI titles.</div>
+      </div>
+    </div>
+  `;
 }
+
 
 function wireQueueClicks(){
 const wrap=document.getElementById("queueWrap");
@@ -1754,15 +1784,94 @@ return '<div class="tableWrap"><table class="table">'
 + '<tbody>'+rows+'</tbody></table></div>';
 }
 
+
+function safeMs(ts){
+  if(!ts) return null;
+  try{
+    const d=new Date(ts);
+    const t=d.getTime();
+    return isNaN(t) ? null : t;
+  }catch{
+    return null;
+  }
+}
+
+function countTypeSince(items, type, sinceMs){
+  const arr=Array.isArray(items)?items:[];
+  const t=String(type||"").toLowerCase();
+  let n=0;
+  for(const it of arr){
+    const kind=String((it && (it.event_type || it.status)) || "").toLowerCase();
+    if(kind !== t) continue;
+    const ms=safeMs(it.created_at || it.updated_at);
+    if(ms===null || ms < sinceMs) continue;
+    n++;
+  }
+  return n;
+}
+
+function renderActivitySnapshot(items){
+  const arr=Array.isArray(items)?items:[];
+  if(arr.length===0) return '<span class="badge warn">No activity yet</span>';
+
+  const sinceMs=Date.now() - (7 * 86400000);
+  const totalRecent = arr.filter(it=>{
+    const ms=safeMs(it.created_at || it.updated_at);
+    return ms!==null && ms>=sinceMs;
+  }).length;
+
+  const applied=countTypeSince(arr,"applied",sinceMs);
+  const sent=countTypeSince(arr,"sent",sinceMs);
+  const rejected=countTypeSince(arr,"rejected",sinceMs);
+  const skipped=countTypeSince(arr,"skipped",sinceMs);
+  const prioritized=countTypeSince(arr,"prioritized",sinceMs);
+
+  const wrapClass=isSingleColumn() ? "list" : "listGrid";
+
+  const tile=(title, value, badgeCls, hint)=>(
+    '<div class="item">'
+      + '<div class="itemTop">'
+        + '<div class="itemTitle">'+escapeHtml(title)+'</div>'
+        + '<div class="badgeGroup"><span class="badge '+escapeHtml(badgeCls||"")+'">'+escapeHtml(String(value))+'</span></div>'
+      + '</div>'
+      + '<div style="margin-top:8px;font-weight:950;font-size:30px;letter-spacing:-.02em">'+escapeHtml(String(value))+'</div>'
+      + '<div class="small" style="margin-top:6px">'+escapeHtml(hint||"")+'</div>'
+    + '</div>'
+  );
+
+  const tiles=[
+    tile("Applied", applied, applied? "good":"", "last 7 days"),
+    tile("Sent", sent, sent? "good":"", "emails/messages"),
+    tile("Rejected", rejected, rejected? "bad":"", "last 7 days"),
+    tile("Skipped", skipped, skipped? "warn":"", "last 7 days"),
+  ].join("");
+
+  const meta = '<div class="small" style="margin:8px 0 10px;color:rgba(17,19,24,.72)">'
+    + 'Recent activity: <b>'+escapeHtml(String(totalRecent))+'</b> events in the last 7 days'
+    + (prioritized ? (' · Prioritized: <b>'+escapeHtml(String(prioritized))+'</b>') : '')
+    + '</div>';
+
+  return meta + '<div class="'+wrapClass+'">'+tiles+'</div>';
+}
+
+function renderSnapshotSkeleton(){
+  const wrapClass=isSingleColumn() ? "list" : "listGrid";
+  const tile = '<div class="item"><div class="skeleton" style="height:14px;width:40%"></div><div style="height:10px"></div><div class="skeleton" style="height:26px;width:55%"></div><div style="height:10px"></div><div class="skeleton" style="height:12px;width:70%"></div></div>';
+  return '<div class="'+wrapClass+'">'+tile+tile+tile+tile+'</div>';
+}
+
+
 async function loadActivity(accessToken){
 setHtml("activityError","");
 setHtml("activityWrap",renderSkeleton());
+setHtml("activitySnapshot", renderSnapshotSkeleton());
 
 if(useEventsEndpoint){
-let path="/me/application-events?limit=30";
+let path="/me/application-events?limit=120";
 if(activityEventType) path += "&event_type=" + encodeURIComponent(activityEventType);
 try{
 const resp=await apiGet(path,accessToken);
+setHtml("activitySnapshot", renderActivitySnapshot(resp && Array.isArray(resp.data) ? resp.data : []));
 setHtml("activityWrap",renderEventsTable(resp));
 return;
 }catch(e){
@@ -1771,15 +1880,17 @@ setHtml("activityError",'<div class="error">Timeline endpoint failed. Fallback t
 }
 }
 
-let path="/me/applications?limit=30";
+let path="/me/applications?limit=120";
 const map={ queued:"new", applied:"applied", rejected:"rejected", skipped:"skipped", prioritized:"new" };
 if(activityEventType && map[activityEventType]) path += "&status=" + encodeURIComponent(map[activityEventType]);
 
 try{
 const resp=await apiGet(path,accessToken);
+setHtml("activitySnapshot", renderActivitySnapshot(resp && Array.isArray(resp.data) ? resp.data : []));
 setHtml("activityWrap",renderApplicationsFallback(resp));
 }catch(e){
 setHtml("activityWrap",'<span class="badge bad">Activity failed</span>');
+setHtml("activitySnapshot", '<span class="badge bad">Snapshot failed</span>');
 setHtml("activityError",'<div class="error">'+escapeHtml(e.message)+'</div>');
 }
 }
@@ -1962,7 +2073,6 @@ const queue=await apiGet("/me/jobs/queue", lastSessionToken);
 lastQueueResponse=queue;
 const qCount=(typeof queue.count==="number")?queue.count:(Array.isArray(queue.data)?queue.data.length:0);
 currentQueueCount=qCount;
-await loadTailorSummariesForJobs((Array.isArray(queue.data)?queue.data.map(j=>j.id):[]));
 setHtml("queueWrap",renderQueueCards(queue));
 await loadActivity(lastSessionToken);
 }
@@ -2063,6 +2173,7 @@ setHtml("queueWrap",renderSkeleton());
 setHtml("appsBreakdown",renderSkeleton());
 setHtml("onboardingChecks",renderSkeleton());
 setHtml("activityWrap",renderSkeleton());
+setHtml("activitySnapshot", renderSnapshotSkeleton());
 setHtml("activityError","");
 
 const session=await requireSession();
@@ -2115,13 +2226,13 @@ if(state){ setHtml("onboardingChecks",renderOnboardingChecks(state)); }
 
 try{
 const queue=await apiGet("/me/jobs/queue",session.access_token);
+lastQueueResponse=queue;
 const qCount=(typeof queue.count==="number")?queue.count:(Array.isArray(queue.data)?queue.data.length:0);
 currentQueueCount=qCount;
 
 animateNumber(document.getElementById("kpiQueue"),qCount);
 setBadge("badgeQueue",qCount>0?"good":"warn",qCount>0?"OK":"Empty");
 
-await loadTailorSummariesForJobs((Array.isArray(queue.data)?queue.data.map(j=>j.id):[]));
 setHtml("queueWrap",renderQueueCards(queue));
 renderHealth(qCount,plan);
 }catch(e){
@@ -2168,7 +2279,9 @@ if(lastSessionToken) await loadActivity(lastSessionToken);
 
 function wireEvents(){
 document.getElementById("btnRefresh").addEventListener("click",async()=>{
-try{ await loadDashboard(); }catch(e){ showTopError(e.message); setText("errorBox",e.message); }
+try{ await loadDashboard();
+updateFetchButtonCooldownUI();
+updateFetchMetaUI(); }catch(e){ showTopError(e.message); setText("errorBox",e.message); }
 });
 document.getElementById("btnFetchJobsNow").addEventListener("click",async()=>{
 await manualFetchJobs();
@@ -2188,10 +2301,7 @@ if(qaFetch){
 const qaView=document.getElementById("qaViewQueue");
 if(qaView){
   qaView.addEventListener("click",()=>{
-    const anchor=document.getElementById("btnRefresh") || document.getElementById("queueWrap");
-    if(anchor && anchor.scrollIntoView){
-      anchor.scrollIntoView({behavior:"smooth", block:"start"});
-    }
+    go("./jobs.html");
   });
 }
 
@@ -2339,6 +2449,8 @@ if(!window.supabase) throw new Error("Supabase library did not load. Check adblo
 supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 wireEvents();
 await loadDashboard();
+updateFetchButtonCooldownUI();
+updateFetchMetaUI();
 }catch(e){
 showTopError(e.message);
 setText("errorBox",e.message);
