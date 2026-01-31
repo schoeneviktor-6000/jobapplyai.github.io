@@ -585,6 +585,19 @@ body.cvGate.cvGateForm #jobSourceHint{
       background: rgba(34,197,94,.14);
       color:#0a3d1f;
     }
+    .infoBox{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(17,19,24,.12);
+      background: rgba(17,19,24,.03);
+      color:rgba(17,19,24,.80);
+      font-weight:850;
+      font-size:12.5px;
+      line-height:1.45;
+    }
+    .infoBox .tinyNote{ margin-top:4px; }
+
 
     .warnBox{
       margin-top:10px;
@@ -1981,26 +1994,30 @@ body.fromJobsLink #settingsDetails{
             <span class="chip warn" id="kwChip">—</span>
           </div>
 
-          <div class="checkLine" style="margin-top:10px">
-            <input type="checkbox" id="kwTruth"/>
-            <div>
-              <div id="kwTruthLbl">I confirm this keyword is true for me.</div>
-              <div class="tinyNote" id="kwTruthNote">We never invent experience. If it's not true, don’t add it.</div>
-            </div>
+          <div class="infoBox" style="margin-top:10px" id="kwTruthBox">
+            <div id="kwTruthLbl">Only add what’s true.</div>
+            <div class="tinyNote" id="kwTruthNote">We never invent experience. If it’s not true, don’t add it.</div>
           </div>
         </div>
 
-        <div class="formRow" style="margin-top:12px">
-          <div class="field">
-            <div class="fieldLabel" id="kwWhereLbl">Where should it appear?</div>
-            <select id="kwTarget">
-              <option value="skills">Skills (recommended)</option>
-              <option value="experience">Experience</option>
-            </select>
-            <div class="tinyNote" id="kwWhereNote">Skills is usually the safest option for ATS without adding new claims.</div>
+        <div class="field" style="margin-top:12px">
+          <div class="fieldLabel" id="kwWhereLbl">Placement</div>
+          <div class="pillToggle" id="kwTargetToggle">
+            <button type="button" data-target="skills" class="active" id="kwTargetSkillsBtn">Skills</button>
+            <button type="button" data-target="experience" id="kwTargetExpBtn">Experience bullet</button>
           </div>
+          <div class="tinyNote" id="kwWhereNote">If you’re unsure, add to Skills (safest). Use Experience only if it’s already true in your history.</div>
 
-          <div class="field">
+          <!-- Keep the original select for compatibility (hidden) -->
+          <select id="kwTarget" style="display:none">
+            <option value="skills">Skills</option>
+            <option value="experience">Experience</option>
+          </select>
+        </div>
+
+        <details class="info" style="margin-top:12px" id="kwAdvanced">
+          <summary id="kwAdvancedSummary">Options</summary>
+          <div class="field" style="margin-top:12px">
             <div class="fieldLabel" id="kwLangLbl">Language</div>
             <select id="kwLang">
               <option value="auto">Auto (match CV)</option>
@@ -2009,7 +2026,7 @@ body.fromJobsLink #settingsDetails{
             </select>
             <div class="tinyNote" id="kwLangNote">Auto matches your CV language. Choose German if your CV is in German.</div>
           </div>
-        </div>
+
 
         <div class="field" style="margin-top:12px">
           <div class="fieldLabel" id="kwModeLbl">Insertion mode</div>
@@ -2030,6 +2047,8 @@ body.fromJobsLink #settingsDetails{
           <div class="tinyNote" id="kwAiRecoNote">Recommendation is based on your existing CV text. It never invents experience.</div>
         </div>
 
+
+        </details>
 
         <!-- Skills target -->
         <div id="kwSkillsBox" style="margin-top:12px">
@@ -2233,10 +2252,7 @@ body.fromJobsLink #settingsDetails{
 
     const $ = (id) => document.getElementById(id);
 
-    const API_BASE = (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE
-      ? String(window.JobApplyAI.config.API_BASE)
-      : H.resolveApiBase("https://jobmejob.schoene-viktor.workers.dev")
-    ).replace(/\/+$/, "");
+    const API_BASE = H.resolveApiBase("https://jobmejob.schoene-viktor.workers.dev").replace(/\/+$/, "");
 
     let session = null;
     let jobs = [];
@@ -2354,18 +2370,18 @@ let genStepsState = "idle";
 
         // Keyword modal
         kwH: "Add keyword",
-        kwSub: "Add missing keywords — only if it's truly accurate for you.",
+        kwSub: "Add a missing keyword — we’ll suggest the cleanest place to put it.",
         close: "Schließen",
-        kwTruthLbl: "I confirm this keyword is true for me.",
-        kwTruthNote: "We never invent experience. If it's not true, don’t add it.",
-        kwWhereLbl: "Where should it appear?",
-        kwWhereNote: "Skills is usually the safest option for ATS without adding new claims.",
+        kwTruthLbl: "Only add what’s true.",
+        kwTruthNote: "We never invent experience. If it’s not true, don’t add it.",
+        kwWhereLbl: "Placement",
+        kwWhereNote: "If you’re unsure, add to Skills (safest). Use Experience only if it’s already true in your history.",
         kwLangLbl: "Language",
         kwLangNote: "Auto passt zur Sprache deines CV. Wähle Deutsch, wenn dein CV auf Deutsch ist.",
-        kwModeLbl: "Insertion mode",
-        kwModeAi: "AI rewrite",
-        kwModeQuick: "Quick (no AI)",
-        kwModeNote: "KI integriert das Keyword natürlich. Falls dein Backend keinen KI-Endpunkt hat, nutzen wir automatisch Smart-Templates.",
+        kwModeLbl: "Insertion style",
+        kwModeAi: "Smart rewrite",
+        kwModeQuick: "Quick insert",
+        kwModeNote: "Smart rewrite integrates the keyword naturally into an existing bullet. If AI isn’t available, we fall back to a clean template.",
         kwSkillsGroupLbl: "Which skill area?",
         kwSkillsGroupNote: "We add the keyword with clean casing and consistent style.",
         kwExpRoleLbl: "Which role?",
@@ -2454,18 +2470,18 @@ let genStepsState = "idle";
         debugTitle: "Debug details",
 
         kwH: "Add keyword",
-        kwSub: "Add missing keywords — only if they are truly accurate.",
+        kwSub: "Add a missing keyword — we’ll suggest the cleanest place to put it.",
         close: "Close",
-        kwTruthLbl: "I confirm this keyword is true for me.",
-        kwTruthNote: "We don’t invent experience. If it’s not true, don’t add it.",
-        kwWhereLbl: "Where should it appear?",
-        kwWhereNote: "Skills is usually the safest ATS option without creating new claims.",
+        kwTruthLbl: "Only add what’s true.",
+        kwTruthNote: "We never invent experience. If it’s not true, don’t add it.",
+        kwWhereLbl: "Placement",
+        kwWhereNote: "If you’re unsure, add to Skills (safest). Use Experience only if it’s already true in your history.",
         kwLangLbl: "Language",
         kwLangNote: "Auto matches your CV language. Choose German if your CV is in German.",
-        kwModeLbl: "Insert mode",
-        kwModeAi: "AI wording",
-        kwModeQuick: "Quick (no AI)",
-        kwModeNote: "AI tries to integrate the keyword naturally. If your backend has no AI endpoint, we automatically fall back to smart templates.",
+        kwModeLbl: "Insertion style",
+        kwModeAi: "Smart rewrite",
+        kwModeQuick: "Quick insert",
+        kwModeNote: "Smart rewrite integrates the keyword naturally into an existing bullet. If AI isn’t available, we fall back to a clean template.",
         kwSkillsGroupLbl: "Which skill area?",
         kwSkillsGroupNote: "We add the keyword in consistent casing and style.",
         kwExpRoleLbl: "Which role?",
@@ -3651,89 +3667,25 @@ function updatePasteQuality(){
        ------------------------- */
 
     const FETCH_TIMEOUT_MS = 45000;
-
-    // Long-running AI endpoints can exceed 45s on slower devices/connections.
-    // Keep a default timeout for normal calls, but allow longer timeouts for tailor/review.
-    const TAILOR_TIMEOUT_MS  = 180000; // 3 min
-    const REVIEW_TIMEOUT_MS  = 150000; // 2.5 min
-    const KEYWORD_TIMEOUT_MS = 120000; // 2 min
-    const JOB_CREATE_TIMEOUT_MS = 60000; // 60s
-
     const TOKEN_REFRESH_SKEW_SEC = 90;
 
-    function timeoutForPath(path){
-      const p = String(path || "");
-      if(p.includes("/me/cv/tailor")) return TAILOR_TIMEOUT_MS;
-      if(p.includes("/me/cv/review")) return REVIEW_TIMEOUT_MS;
-      if(p.includes("/me/cv/keyword")) return KEYWORD_TIMEOUT_MS;
-      if(p.includes("/me/jobs/create") || p.includes("/me/jobs/import") || p.includes("/me/jobs/create_from")) return JOB_CREATE_TIMEOUT_MS;
-      return FETCH_TIMEOUT_MS;
-    }
-
     function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS){
-      // AbortController is not supported on some older browsers/webviews.
-      // In that case, fall back to a plain fetch (no client-side timeout).
-      if(typeof AbortController !== "function" || !timeoutMs || timeoutMs <= 0){
-        return fetch(url, options);
-      }
       const controller = new AbortController();
-      const t = setTimeout(() => { try{ controller.abort(); }catch(_){ } }, timeoutMs);
+      const t = setTimeout(() => controller.abort(), timeoutMs);
       return fetch(url, { ...options, signal: controller.signal })
         .finally(() => clearTimeout(t));
     }
 
-    function isAbortError(e){
-      if(!e) return false;
-      if(e.name === "AbortError") return true;
-      const msg = String(e.message || e || "");
-      return /abort/i.test(msg);
-    }
-
-    function isNetworkishError(e){
-      const msg = String(e?.message || e || "");
-      const low = msg.toLowerCase();
-      return (
-        low.includes("failed to fetch") ||
-        low.includes("network") ||
-        low.includes("load failed") ||
-        low.includes("connection") ||
-        low.includes("canceled") ||
-        low.includes("cancelled") ||
-        isAbortError(e)
-      );
-    }
-
-    function toNetworkError(path, e, timeoutMs){
+    function toNetworkError(path, e){
       const msg = (e && e.message) ? String(e.message) : String(e||"");
-
-      if(isAbortError(e)){
-        const sec = timeoutMs ? Math.round(Number(timeoutMs)/1000) : 0;
-        const err = new Error(
-          path + " failed: request timed out" + (sec ? (" after " + sec + "s") : "") + ". " +
-          "Please retry. If this keeps happening: check your connection, disable VPN/ad blockers, and verify API_BASE / CORS."
-        );
-        err.kind = "timeout";
-        err.timeoutMs = timeoutMs || null;
-        err.causeMsg = msg;
-        return err;
-      }
-
-      if(isNetworkishError(e)){
-        const err = new Error(
+      const low = msg.toLowerCase();
+      if(low.includes("failed to fetch") || low.includes("network") || low.includes("abort")){
+        return new Error(
           path + " failed: network error. " +
           "If this keeps happening: check CORS on your Worker, disable VPN/ad blockers, and verify API_BASE."
         );
-        err.kind = "network";
-        err.timeoutMs = timeoutMs || null;
-        err.causeMsg = msg;
-        return err;
       }
-
-      const err = new Error(path + " failed: " + msg);
-      err.kind = "other";
-      err.timeoutMs = timeoutMs || null;
-      err.causeMsg = msg;
-      return err;
+      return new Error(path + " failed: " + msg);
     }
 
     async function getSessionFresh(forceRefresh = false){
@@ -3771,11 +3723,6 @@ function updatePasteQuality(){
       const p = String(path || "");
       const url = API_BASE + p;
 
-      // Support longer timeouts for AI-heavy endpoints (tailor/review/etc).
-      // Caller can override with options.timeoutMs.
-      const timeoutMs = Number(options.timeoutMs || timeoutForPath(p) || FETCH_TIMEOUT_MS);
-      const { timeoutMs: _timeoutMs, ...opt } = options;
-
       const s1 = await getSessionFresh(false);
       const token1 = s1 && s1.access_token ? String(s1.access_token) : "";
 
@@ -3783,14 +3730,14 @@ function updatePasteQuality(){
         throw new Error(uiLang==="de" ? "Bitte anmelden." : "Please sign in.");
       }
 
-      const headers1 = new Headers(opt.headers || {});
+      const headers1 = new Headers(options.headers || {});
       headers1.set("Authorization", "Bearer " + token1);
 
       let res;
       try{
-        res = await fetchWithTimeout(url, { ...opt, headers: headers1 }, timeoutMs);
+        res = await fetchWithTimeout(url, { ...options, headers: headers1 }, FETCH_TIMEOUT_MS);
       }catch(e){
-        throw toNetworkError(p, e, timeoutMs);
+        throw toNetworkError(p, e);
       }
 
       // Retry once on 401 (token refresh)
@@ -3798,12 +3745,12 @@ function updatePasteQuality(){
         const s2 = await getSessionFresh(true);
         const token2 = s2 && s2.access_token ? String(s2.access_token) : "";
         if(token2 && token2 !== token1){
-          const headers2 = new Headers(opt.headers || {});
+          const headers2 = new Headers(options.headers || {});
           headers2.set("Authorization", "Bearer " + token2);
           try{
-            res = await fetchWithTimeout(url, { ...opt, headers: headers2 }, timeoutMs);
+            res = await fetchWithTimeout(url, { ...options, headers: headers2 }, FETCH_TIMEOUT_MS);
           }catch(e){
-            throw toNetworkError(p, e, timeoutMs);
+            throw toNetworkError(p, e);
           }
         }
       }
@@ -3811,8 +3758,8 @@ function updatePasteQuality(){
       return res;
     }
 
-    async function apiGet(path, options = {}){
-      const res = await authFetch(path, { ...(options||{}), method:"GET" });
+    async function apiGet(path){
+      const res = await authFetch(path, { method:"GET" });
       const txt = await res.text().catch(()=> "");
       let json = null;
       try{ json = txt ? JSON.parse(txt) : null; }catch{ json = { raw: txt }; }
@@ -3826,13 +3773,10 @@ function updatePasteQuality(){
       return json;
     }
 
-    async function apiPostJson(path, body, options = {}){
-      const headers = new Headers(options.headers || {});
-      headers.set("content-type","application/json");
+    async function apiPostJson(path, body){
       const res = await authFetch(path, {
-        ...((options||{})),
         method:"POST",
-        headers,
+        headers:{ "content-type":"application/json" },
         body: JSON.stringify(body || {})
       });
       const txt = await res.text().catch(()=> "");
@@ -5277,12 +5221,6 @@ ${bodyHtml}
 
       try{
         const payload = buildTailorPayload();
-
-        // Prime job-description cache (reduces first-run delays when coming from Jobs)
-        try{
-          await apiGet("/me/jobs/description?job_id=" + encodeURIComponent(String(payload.job_id)), { timeoutMs: 90000 });
-        }catch(_){ /* best effort */ }
-
         const res = await apiPostJson("/me/cv/tailor", payload);
 
         if(!res || res.ok !== true){
@@ -5362,23 +5300,8 @@ ${bodyHtml}
         setBadge("outStatus","bad", uiLang==="de" ? "Fehler" : "Failed");
         setBadge("pipeBadge","bad", uiLang==="de" ? "Fehler" : "Failed");
         showError(e?.message || String(e));
-        $("debugBox").textContent = JSON.stringify({ ok:false, kind: e?.kind || null, timeoutMs: e?.timeoutMs || null, error: e?.message || String(e) }, null, 2);
-
-        let hint = uiLang==="de"
-          ? "Generierung fehlgeschlagen. Prüfe CV Upload und Jobbeschreibung."
-          : "Failed to generate. Check your CV upload and job description availability.";
-
-        if(e && e.kind === "timeout"){
-          hint = uiLang==="de"
-            ? "Zeitüberschreitung. Die Generierung läuft möglicherweise noch - klicke \"Generate again\", um das Ergebnis (cached) abzurufen."
-            : "Timed out. The server may still be finishing - click \"Generate again\" to fetch the cached result.";
-        }else if(e && e.kind === "network"){
-          hint = uiLang==="de"
-            ? "Netzwerkfehler. Prüfe deine Verbindung (VPN/Ad-Blocker) und versuche es erneut."
-            : "Network error. Check your connection (VPN/ad blockers) and try again.";
-        }
-
-        setText("outHint", hint);
+        $("debugBox").textContent = JSON.stringify({ ok:false, error: e?.message || String(e) }, null, 2);
+        setText("outHint", uiLang==="de" ? "Generierung fehlgeschlagen. Prüfe CV Upload und Jobbeschreibung." : "Failed to generate. Check your CV upload and job description availability.");
       }finally{
         $("btnGenerate").disabled = false;
         $("btnGenerateAgain").disabled = false;
@@ -6500,8 +6423,7 @@ function openKwModal(keywordRaw){
       activeKeywordRaw = String(keywordRaw || "").trim();
       activeKeywordDisplay = prettyKeyword(activeKeywordRaw, lastLang);
       $("kwChip").textContent = activeKeywordDisplay || "—";
-      $("kwTruth").checked = false;
-
+      
       // Reset AI recommendation for this keyword
       try{ clearKwAiReco(); }catch(_){ }
 
@@ -6577,20 +6499,33 @@ function openKwModal(keywordRaw){
       try{ updateKwRewriteUi(); }catch(_){ }
     }
 
-    function updateKwTargetUi(){
-      const target = String($("kwTarget").value || "skills");
+    function syncKwTargetToggle(){
       const hasDoc = !!lastCvDoc;
+      const target = String($("kwTarget")?.value || "skills");
+      const bSkills = $("kwTargetSkillsBtn");
+      const bExp = $("kwTargetExpBtn");
 
-      $("kwSkillsBox").style.display = (target === "skills") ? "" : "none";
-      $("kwExpBox").style.display = (target === "experience" && hasDoc) ? "" : "none";
+      if(bSkills) bSkills.classList.toggle("active", target === "skills");
+      if(bExp) bExp.classList.toggle("active", target === "experience");
+
+      // Experience inserts need the structured preview (cv_doc)
+      if(bExp) bExp.disabled = !hasDoc;
+    }
+
+    function updateKwTargetUi(){
+      const hasDoc = !!lastCvDoc;
+      let target = String($("kwTarget").value || "skills");
 
       if(target === "experience" && !hasDoc){
         // can't do experience insert without doc
         $("kwTarget").value = "skills";
-        $("kwSkillsBox").style.display = "";
-        $("kwExpBox").style.display = "none";
+        target = "skills";
       }
 
+      $("kwSkillsBox").style.display = (target === "skills") ? "" : "none";
+      $("kwExpBox").style.display = (target === "experience" && hasDoc) ? "" : "none";
+
+      syncKwTargetToggle();
       updateKwExpHowUi();
     }
 
@@ -6969,13 +6904,7 @@ function openKwModal(keywordRaw){
       if(!activeKeywordRaw){
         closeKwModal();
         return;
-      }
-      if(!$("kwTruth").checked){
-        showError(t("truthRequired"));
-        return;
-      }
-
-      const target = String($("kwTarget").value || "skills");
+      }      const target = String($("kwTarget").value || "skills");
       const lang = chosenKwLang();
       const kwRaw = activeKeywordRaw;
       const kwDisp = prettyKeyword(kwRaw, lang);
@@ -7625,6 +7554,20 @@ $("tabPreview").addEventListener("click", () => setTabs("preview"));
     $("kwModal").addEventListener("click", (e) => { if(e.target && e.target.id === "kwModal") closeKwModal(); });
 
     $("kwTarget").addEventListener("change", () => { updateKwTargetUi(); try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ } updateKwPreview(); });
+
+    // Placement toggle (Skills / Experience) for a cleaner UX
+    const kwToggle = $("kwTargetToggle");
+    if(kwToggle){
+      kwToggle.addEventListener("click", (e) => {
+        const b = e.target.closest("button[data-target]");
+        if(!b || b.disabled) return;
+        const t = String(b.getAttribute("data-target") || "skills").toLowerCase();
+        $("kwTarget").value = (t === "experience") ? "experience" : "skills";
+        updateKwTargetUi();
+        try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ }
+        updateKwPreview();
+      });
+    }
     $("kwLang").addEventListener("change", () => {
       try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ }
       updateKwPreview();
