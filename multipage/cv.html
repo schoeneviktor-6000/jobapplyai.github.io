@@ -2233,7 +2233,10 @@ body.fromJobsLink #settingsDetails{
 
     const $ = (id) => document.getElementById(id);
 
-    const API_BASE = H.resolveApiBase("https://jobmejob.schoene-viktor.workers.dev").replace(/\/+$/, "");
+    const API_BASE = (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE
+      ? String(window.JobApplyAI.config.API_BASE)
+      : H.resolveApiBase("https://jobmejob.schoene-viktor.workers.dev")
+    ).replace(/\/+$/, "");
 
     let session = null;
     let jobs = [];
@@ -3648,25 +3651,89 @@ function updatePasteQuality(){
        ------------------------- */
 
     const FETCH_TIMEOUT_MS = 45000;
+
+    // Long-running AI endpoints can exceed 45s on slower devices/connections.
+    // Keep a default timeout for normal calls, but allow longer timeouts for tailor/review.
+    const TAILOR_TIMEOUT_MS  = 180000; // 3 min
+    const REVIEW_TIMEOUT_MS  = 150000; // 2.5 min
+    const KEYWORD_TIMEOUT_MS = 120000; // 2 min
+    const JOB_CREATE_TIMEOUT_MS = 60000; // 60s
+
     const TOKEN_REFRESH_SKEW_SEC = 90;
 
+    function timeoutForPath(path){
+      const p = String(path || "");
+      if(p.includes("/me/cv/tailor")) return TAILOR_TIMEOUT_MS;
+      if(p.includes("/me/cv/review")) return REVIEW_TIMEOUT_MS;
+      if(p.includes("/me/cv/keyword")) return KEYWORD_TIMEOUT_MS;
+      if(p.includes("/me/jobs/create") || p.includes("/me/jobs/import") || p.includes("/me/jobs/create_from")) return JOB_CREATE_TIMEOUT_MS;
+      return FETCH_TIMEOUT_MS;
+    }
+
     function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS){
+      // AbortController is not supported on some older browsers/webviews.
+      // In that case, fall back to a plain fetch (no client-side timeout).
+      if(typeof AbortController !== "function" || !timeoutMs || timeoutMs <= 0){
+        return fetch(url, options);
+      }
       const controller = new AbortController();
-      const t = setTimeout(() => controller.abort(), timeoutMs);
+      const t = setTimeout(() => { try{ controller.abort(); }catch(_){ } }, timeoutMs);
       return fetch(url, { ...options, signal: controller.signal })
         .finally(() => clearTimeout(t));
     }
 
-    function toNetworkError(path, e){
-      const msg = (e && e.message) ? String(e.message) : String(e||"");
+    function isAbortError(e){
+      if(!e) return false;
+      if(e.name === "AbortError") return true;
+      const msg = String(e.message || e || "");
+      return /abort/i.test(msg);
+    }
+
+    function isNetworkishError(e){
+      const msg = String(e?.message || e || "");
       const low = msg.toLowerCase();
-      if(low.includes("failed to fetch") || low.includes("network") || low.includes("abort")){
-        return new Error(
+      return (
+        low.includes("failed to fetch") ||
+        low.includes("network") ||
+        low.includes("load failed") ||
+        low.includes("connection") ||
+        low.includes("canceled") ||
+        low.includes("cancelled") ||
+        isAbortError(e)
+      );
+    }
+
+    function toNetworkError(path, e, timeoutMs){
+      const msg = (e && e.message) ? String(e.message) : String(e||"");
+
+      if(isAbortError(e)){
+        const sec = timeoutMs ? Math.round(Number(timeoutMs)/1000) : 0;
+        const err = new Error(
+          path + " failed: request timed out" + (sec ? (" after " + sec + "s") : "") + ". " +
+          "Please retry. If this keeps happening: check your connection, disable VPN/ad blockers, and verify API_BASE / CORS."
+        );
+        err.kind = "timeout";
+        err.timeoutMs = timeoutMs || null;
+        err.causeMsg = msg;
+        return err;
+      }
+
+      if(isNetworkishError(e)){
+        const err = new Error(
           path + " failed: network error. " +
           "If this keeps happening: check CORS on your Worker, disable VPN/ad blockers, and verify API_BASE."
         );
+        err.kind = "network";
+        err.timeoutMs = timeoutMs || null;
+        err.causeMsg = msg;
+        return err;
       }
-      return new Error(path + " failed: " + msg);
+
+      const err = new Error(path + " failed: " + msg);
+      err.kind = "other";
+      err.timeoutMs = timeoutMs || null;
+      err.causeMsg = msg;
+      return err;
     }
 
     async function getSessionFresh(forceRefresh = false){
@@ -3704,6 +3771,11 @@ function updatePasteQuality(){
       const p = String(path || "");
       const url = API_BASE + p;
 
+      // Support longer timeouts for AI-heavy endpoints (tailor/review/etc).
+      // Caller can override with options.timeoutMs.
+      const timeoutMs = Number(options.timeoutMs || timeoutForPath(p) || FETCH_TIMEOUT_MS);
+      const { timeoutMs: _timeoutMs, ...opt } = options;
+
       const s1 = await getSessionFresh(false);
       const token1 = s1 && s1.access_token ? String(s1.access_token) : "";
 
@@ -3711,14 +3783,14 @@ function updatePasteQuality(){
         throw new Error(uiLang==="de" ? "Bitte anmelden." : "Please sign in.");
       }
 
-      const headers1 = new Headers(options.headers || {});
+      const headers1 = new Headers(opt.headers || {});
       headers1.set("Authorization", "Bearer " + token1);
 
       let res;
       try{
-        res = await fetchWithTimeout(url, { ...options, headers: headers1 }, FETCH_TIMEOUT_MS);
+        res = await fetchWithTimeout(url, { ...opt, headers: headers1 }, timeoutMs);
       }catch(e){
-        throw toNetworkError(p, e);
+        throw toNetworkError(p, e, timeoutMs);
       }
 
       // Retry once on 401 (token refresh)
@@ -3726,12 +3798,12 @@ function updatePasteQuality(){
         const s2 = await getSessionFresh(true);
         const token2 = s2 && s2.access_token ? String(s2.access_token) : "";
         if(token2 && token2 !== token1){
-          const headers2 = new Headers(options.headers || {});
+          const headers2 = new Headers(opt.headers || {});
           headers2.set("Authorization", "Bearer " + token2);
           try{
-            res = await fetchWithTimeout(url, { ...options, headers: headers2 }, FETCH_TIMEOUT_MS);
+            res = await fetchWithTimeout(url, { ...opt, headers: headers2 }, timeoutMs);
           }catch(e){
-            throw toNetworkError(p, e);
+            throw toNetworkError(p, e, timeoutMs);
           }
         }
       }
@@ -3739,8 +3811,8 @@ function updatePasteQuality(){
       return res;
     }
 
-    async function apiGet(path){
-      const res = await authFetch(path, { method:"GET" });
+    async function apiGet(path, options = {}){
+      const res = await authFetch(path, { ...(options||{}), method:"GET" });
       const txt = await res.text().catch(()=> "");
       let json = null;
       try{ json = txt ? JSON.parse(txt) : null; }catch{ json = { raw: txt }; }
@@ -3754,10 +3826,13 @@ function updatePasteQuality(){
       return json;
     }
 
-    async function apiPostJson(path, body){
+    async function apiPostJson(path, body, options = {}){
+      const headers = new Headers(options.headers || {});
+      headers.set("content-type","application/json");
       const res = await authFetch(path, {
+        ...((options||{})),
         method:"POST",
-        headers:{ "content-type":"application/json" },
+        headers,
         body: JSON.stringify(body || {})
       });
       const txt = await res.text().catch(()=> "");
@@ -5202,6 +5277,12 @@ ${bodyHtml}
 
       try{
         const payload = buildTailorPayload();
+
+        // Prime job-description cache (reduces first-run delays when coming from Jobs)
+        try{
+          await apiGet("/me/jobs/description?job_id=" + encodeURIComponent(String(payload.job_id)), { timeoutMs: 90000 });
+        }catch(_){ /* best effort */ }
+
         const res = await apiPostJson("/me/cv/tailor", payload);
 
         if(!res || res.ok !== true){
@@ -5281,8 +5362,23 @@ ${bodyHtml}
         setBadge("outStatus","bad", uiLang==="de" ? "Fehler" : "Failed");
         setBadge("pipeBadge","bad", uiLang==="de" ? "Fehler" : "Failed");
         showError(e?.message || String(e));
-        $("debugBox").textContent = JSON.stringify({ ok:false, error: e?.message || String(e) }, null, 2);
-        setText("outHint", uiLang==="de" ? "Generierung fehlgeschlagen. Prüfe CV Upload und Jobbeschreibung." : "Failed to generate. Check your CV upload and job description availability.");
+        $("debugBox").textContent = JSON.stringify({ ok:false, kind: e?.kind || null, timeoutMs: e?.timeoutMs || null, error: e?.message || String(e) }, null, 2);
+
+        let hint = uiLang==="de"
+          ? "Generierung fehlgeschlagen. Prüfe CV Upload und Jobbeschreibung."
+          : "Failed to generate. Check your CV upload and job description availability.";
+
+        if(e && e.kind === "timeout"){
+          hint = uiLang==="de"
+            ? "Zeitüberschreitung. Die Generierung läuft möglicherweise noch - klicke \"Generate again\", um das Ergebnis (cached) abzurufen."
+            : "Timed out. The server may still be finishing - click \"Generate again\" to fetch the cached result.";
+        }else if(e && e.kind === "network"){
+          hint = uiLang==="de"
+            ? "Netzwerkfehler. Prüfe deine Verbindung (VPN/Ad-Blocker) und versuche es erneut."
+            : "Network error. Check your connection (VPN/ad blockers) and try again.";
+        }
+
+        setText("outHint", hint);
       }finally{
         $("btnGenerate").disabled = false;
         $("btnGenerateAgain").disabled = false;
