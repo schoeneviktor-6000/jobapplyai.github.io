@@ -1257,6 +1257,62 @@ body.cvGate.cvGateForm #jobSourceHint{
     }
 
   
+
+    /* Inspector: Honest fit notes (warnings from DB) */
+    .fitCard{
+      border:1px solid rgba(17,19,24,.10);
+      border-radius:16px;
+      padding:12px;
+      background: rgba(255,255,255,.72);
+      margin-top:12px;
+    }
+    .fitTitle{
+      font-weight:980;
+      font-size:14px;
+      letter-spacing:-.1px;
+      margin:0;
+    }
+    .fitMeta{
+      margin-top:8px;
+      color: rgba(17,19,24,.70);
+      font-weight:700;
+      font-size:13px;
+      line-height:1.45;
+    }
+    .fitList{
+      margin:10px 0 0 18px;
+      color: rgba(17,19,24,.74);
+      font-weight:750;
+      line-height:1.5;
+      font-size:13px;
+    }
+    .fitList li{ margin:0 0 6px 0; }
+    .fitFoot{
+      margin-top:10px;
+      font-size:12px;
+      color: rgba(17,19,24,.62);
+      font-weight:750;
+      line-height:1.45;
+    }
+
+    /* Icon-only buttons (compact secondary actions) */
+    .btn.iconOnly{
+      width:34px;
+      height:34px;
+      padding:0;
+      justify-content:center;
+      gap:0;
+      font-size:0; /* hide label visually; keep for a11y */
+    }
+    .btn.small.iconOnly{ width:32px; height:32px; }
+    .btn.iconOnly::before{
+      content: attr(data-icon);
+      font-size:16px;
+      line-height:1;
+      color: currentColor;
+    }
+
+
 /* Print: export the A4 page cleanly */
 @media print{
   body{ background:#fff !important; }
@@ -1673,9 +1729,9 @@ body.fromJobsLink #settingsDetails{
               </div>
 
               <div class="row" style="flex:0 0 auto; justify-content:flex-end;">
-                <button class="btn small" id="btnUndoFromChanges" type="button" disabled>Undo</button>
-                <button class="btn small" id="btnResetFromChanges" type="button" disabled>Reset</button>
-                <button class="btn small" id="btnCopyChangeSummary" type="button" disabled>Copy summary</button>
+                <button class="btn small iconOnly" data-icon="↶" id="btnUndoFromChanges" type="button" disabled>Undo</button>
+                <button class="btn small iconOnly" data-icon="⟲" id="btnResetFromChanges" type="button" disabled>Reset</button>
+                <button class="btn small iconOnly" data-icon="⧉" id="btnCopyChangeSummary" type="button" disabled>Copy summary</button>
                 <button class="btn small" id="btnSyncTextToDoc" type="button" style="display:none;">Sync text to preview</button>
               </div>
             </div>
@@ -1693,7 +1749,7 @@ body.fromJobsLink #settingsDetails{
               <summary>Text diff (advanced)</summary>
               <div class="monoSmall" id="diffBox">—</div>
               <div class="row" style="margin-top:10px">
-                <button class="btn small" id="btnCopyDiff" type="button">Copy diff</button>
+                <button class="btn small iconOnly" data-icon="⧉" id="btnCopyDiff" type="button">Copy diff</button>
               </div>
               <div class="miniNote">Tip: If you manually edited the Text tab, changes may appear here even if Preview did not change.</div>
             </details>
@@ -1722,6 +1778,25 @@ body.fromJobsLink #settingsDetails{
         </div>
 
         <div id="inspectorKeywords">
+
+
+        <div class="fitCard" id="fitCard" style="display:none">
+          <div class="reviewRow" style="margin-top:0">
+            <h3 class="fitTitle" id="fitTitle">Honest fit notes</h3>
+            <span class="badge" id="fitBadge">—</span>
+          </div>
+
+          <div class="fitMeta" id="fitHint">
+            A quick estimate based on your CV and this job. Not a hiring guarantee — use it to decide what to emphasize.
+          </div>
+
+          <ul class="fitList" id="fitList"></ul>
+
+          <div class="fitFoot" id="fitFoot">
+            Tip: If you want to raise the match, add relevant skills you truly have (Skills is usually the safest ATS section).
+          </div>
+        </div>
+
 
         <details class="info" style="margin-top:12px">
           <summary id="inspectorFutureTitle">More tools (coming soon)</summary>
@@ -1762,9 +1837,9 @@ body.fromJobsLink #settingsDetails{
         <div class="sectionTitle" style="margin-bottom:6px">
           <h2 id="atsKwTitle">ATS keywords</h2>
           <div class="row" style="justify-content:flex-end; flex:0 0 auto">
-            <button class="btn small" id="btnUndoEdit" type="button" disabled>Undo</button>
-            <button class="btn small" id="btnResetEdits" type="button" disabled>Reset</button>
-            <button class="btn small" id="btnCopyMissing" type="button" disabled>Copy missing</button>
+            <button class="btn small iconOnly" data-icon="↶" id="btnUndoEdit" type="button" disabled>Undo</button>
+            <button class="btn small iconOnly" data-icon="⟲" id="btnResetEdits" type="button" disabled>Reset</button>
+            <button class="btn small iconOnly" data-icon="⧉" id="btnCopyMissing" type="button" disabled>Copy missing</button>
           </div>
         </div>
 
@@ -2285,6 +2360,9 @@ let genStepsState = "idle";
     let lastMissing = [];
     let lastDebug = {};
 
+    let lastWarnings = [];
+    let lastConfidence = null;
+
     // Edits
     let baseSnapshot = null;
     let historyStack = [];
@@ -2616,6 +2694,9 @@ let genStepsState = "idle";
       $("usedLbl").textContent = t("usedLbl");
       $("missingLbl").textContent = t("missingLbl");
       $("debugTitle").textContent = t("debugTitle");
+
+      try{ syncIconOnlyButtons(); }catch(_){}
+
 
       // Keyword modal
       $("kwH").textContent = t("kwH");
@@ -4012,7 +4093,156 @@ function markSteps(state){
       }
     }
 
-    function recomputeCoverageFromCurrentText(){
+    
+    /* -------------------------
+       Fit notes (warnings) + confidence
+       ------------------------- */
+    function parseWarnings(raw){
+      // Accept array, JSON string, or plain string.
+      if(Array.isArray(raw)) return raw;
+      const s = String(raw || "").trim();
+      if(!s) return [];
+      try{
+        const arr = JSON.parse(s);
+        if(Array.isArray(arr)) return arr;
+      }catch(_){}
+      // Fall back to newline-separated string
+      return s.split(/\n+/).map(x=>String(x||"").trim()).filter(Boolean);
+    }
+
+    function friendlyWarning(w){
+      const s = String(w || "").trim();
+      if(!s) return "";
+      if(s === "cv_clean_model_error"){
+        return uiLang==="de"
+          ? "Dein CV konnte nicht perfekt ausgelesen werden. Wenn das Ergebnis komisch aussieht, lade eine textbasierte PDF oder DOCX hoch."
+          : "We couldn’t read your CV perfectly. If the output looks odd, upload a text-based PDF or DOCX.";
+      }
+      if(s === "cv_structured_model_error"){
+        return uiLang==="de"
+          ? "Dein CV konnte nicht zuverlässig in Sektionen eingeteilt werden. Die Vorschau kann eingeschränkt sein."
+          : "We couldn’t structure your CV into sections reliably. Preview may be limited.";
+      }
+      // If it looks like an internal code, make it readable.
+      if(/^[a-z0-9_]{8,}$/.test(s) && s.includes("_")){
+        return s.replace(/_/g, " ");
+      }
+      return s;
+    }
+
+    function normalizeWarnings(raw){
+      const arr = parseWarnings(raw).map(friendlyWarning).map(x=>String(x||"").trim()).filter(Boolean);
+      const seen = new Set();
+      const out = [];
+      for(const w of arr){
+        const k = w.toLowerCase();
+        if(seen.has(k)) continue;
+        seen.add(k);
+        out.push(w);
+        if(out.length >= 12) break;
+      }
+      return out;
+    }
+
+    function classifyConfidence(conf){
+      const n = (typeof conf === "number" && Number.isFinite(conf)) ? conf : null;
+      if(n == null){
+        return {
+          cls: "",
+          badge: uiLang==="de" ? "Notizen" : "Notes",
+          hint: uiLang==="de"
+            ? "Hier findest du Hinweise aus dem Tailoring (z.B. Transfer-Fit, fehlende Details)."
+            : "Here are a few notes from the tailoring (e.g., transfer fit, missing detail)."
+        };
+      }
+      const pct = Math.max(0, Math.min(100, Math.round(n * 100)));
+      if(pct >= 85){
+        return {
+          cls: "good",
+          badge: (uiLang==="de" ? "Schätzung: " : "Estimate: ") + pct + "%",
+          hint: uiLang==="de"
+            ? "Hohe Zuversicht, dass dein CV gut zum Job-Text passt. Kein Hiring-Versprechen — nur ein Signal."
+            : "High confidence your CV aligns well with this job description. Not a hiring guarantee — just a signal."
+        };
+      }
+      if(pct >= 70){
+        return {
+          cls: "warn",
+          badge: (uiLang==="de" ? "Schätzung: " : "Estimate: ") + pct + "%",
+          hint: uiLang==="de"
+            ? "Solide Basis. Mit ein paar ehrlichen Schwerpunkten (Skills/Bullets) kannst du das weiter verbessern."
+            : "Solid baseline. You can improve it by emphasizing the most relevant skills and bullets (truthfully)."
+        };
+      }
+      return {
+        cls: "warn",
+        badge: (uiLang==="de" ? "Schätzung: " : "Estimate: ") + pct + "%",
+        hint: uiLang==="de"
+          ? "Eher Transfer-Fit. Fokus: relevante Projekte/Erfolge klar herausarbeiten (ohne neue Claims)."
+          : "More of a transferable fit. Focus on making your most relevant projects/impact obvious (without new claims)."
+      };
+    }
+
+    function renderFitNotes(){
+      const card = $("fitCard");
+      if(!card) return;
+
+      const confInfo = classifyConfidence(lastConfidence);
+
+      const warnings = normalizeWarnings(lastWarnings);
+
+      // Hide if we have nothing to show yet (fresh page)
+      const hasAny = warnings.length || (typeof lastConfidence === "number" && Number.isFinite(lastConfidence));
+      if(!hasAny){
+        card.style.display = "none";
+        return;
+      }
+
+      card.style.display = "";
+
+      // Badge
+      const b = $("fitBadge");
+      if(b){
+        b.className = "badge " + (confInfo.cls || "");
+        b.textContent = confInfo.badge || "—";
+      }
+
+      const hint = $("fitHint");
+      if(hint) hint.textContent = confInfo.hint || "";
+
+      const list = $("fitList");
+      if(list){
+        if(warnings.length){
+          list.innerHTML = warnings.slice(0, 6).map(w => `<li>${H.escapeHtml(w)}</li>`).join("");
+        }else{
+          list.innerHTML = `<li>${H.escapeHtml(uiLang==="de" ? "Keine zusätzlichen Hinweise für diese Version." : "No extra notes for this version.")}</li>`;
+        }
+      }
+
+      const foot = $("fitFoot");
+      if(foot){
+        // Only show the tip when there are actionable notes or medium/low confidence.
+        const showTip = warnings.length || (typeof lastConfidence === "number" && lastConfidence < 0.85);
+        foot.style.display = showTip ? "" : "none";
+      }
+    }
+
+    function syncIconOnlyButtons(){
+      const btns = document.querySelectorAll("button.iconOnly[data-icon]");
+      btns.forEach(btn => {
+        const label = String(btn.getAttribute("aria-label") || btn.textContent || "").trim();
+        if(label){
+          if(!btn.getAttribute("aria-label")) btn.setAttribute("aria-label", label);
+          if(!btn.getAttribute("title")) btn.setAttribute("title", label);
+        }else{
+          if(!btn.getAttribute("aria-label")) btn.setAttribute("aria-label", "Action");
+        }
+      });
+    }
+
+
+
+function recomputeCoverageFromCurrentText(){
       const text = $("cvText").value || "";
       const all = Array.isArray(atsKeywordsAll) && atsKeywordsAll.length
         ? atsKeywordsAll
@@ -5157,6 +5387,11 @@ ${bodyHtml}
 
             renderKeywords();
 
+            lastWarnings = normalizeWarnings(obj.warnings);
+            lastConfidence = (typeof obj.confidence === "number" && Number.isFinite(obj.confidence)) ? obj.confidence : null;
+            renderFitNotes();
+
+
             setCvOutput({ text: obj.cv_text || "", doc: obj.cv_doc || null, lang: obj.lang || obj.language || "en" });
             setBadge("outStatus","good", uiLang==="de" ? "Bereit (lokal)" : "Ready (local)");
             setText("outModel","Model: —");
@@ -5236,11 +5471,17 @@ ${bodyHtml}
         lastMissing = Array.isArray(r.ats_keywords_missing) ? r.ats_keywords_missing : [];
         atsKeywordsAll = Array.from(new Set([...(lastUsed||[]), ...(lastMissing||[])].map(x=>String(x||"").trim()).filter(Boolean)));
 
+        lastWarnings = normalizeWarnings(r.warnings);
+        lastConfidence = (typeof r.confidence === "number" && Number.isFinite(r.confidence)) ? r.confidence : null;
+
+
         lastDebug = {
           cached: !!res.cached,
           cache_age_seconds: res.cache_age_seconds ?? null,
           model: r.model || null,
           prompt_version: r.prompt_version || null,
+          confidence: lastConfidence,
+          warnings_count: Array.isArray(lastWarnings) ? lastWarnings.length : 0,
           language: lang || null,
           desc_cache_status: r.desc_cache_status || null,
           cv_clean_status: r.cv_clean_status || null,
@@ -5251,6 +5492,8 @@ ${bodyHtml}
 
         renderKeywords();
         setCvOutput({ text, doc, lang });
+
+        renderFitNotes();
 
         // Reset edit history on each new generation
         baseSnapshot = snapshotCurrent();
@@ -5292,6 +5535,8 @@ ${bodyHtml}
             used: lastUsed,
             missing: lastMissing,
             all: atsKeywordsAll,
+            warnings: lastWarnings,
+            confidence: lastConfidence,
             debug: lastDebug
           }));
         }catch(_){}
@@ -5441,6 +5686,10 @@ ${bodyHtml}
         lastMissing = Array.isArray(r.ats_keywords_missing) ? r.ats_keywords_missing : [];
         atsKeywordsAll = Array.from(new Set([...(lastUsed||[]), ...(lastMissing||[])].map(x=>String(x||"").trim()).filter(Boolean)));
 
+        lastWarnings = normalizeWarnings(r.warnings);
+        lastConfidence = (typeof r.confidence === "number" && Number.isFinite(r.confidence)) ? r.confidence : null;
+
+
         lastDebug = {
           cached: !!res.cached,
           cache_age_seconds: res.cache_age_seconds ?? null,
@@ -5458,6 +5707,8 @@ ${bodyHtml}
 
         renderKeywords();
         setCvOutput({ text, doc, lang });
+
+        renderFitNotes();
 
         // Reset edit history on each new generation
         baseSnapshot = snapshotCurrent();
@@ -5500,6 +5751,8 @@ ${bodyHtml}
             used: lastUsed,
             missing: lastMissing,
             all: atsKeywordsAll,
+            warnings: lastWarnings,
+            confidence: lastConfidence,
             debug: lastDebug
           }));
         }catch(_){}
