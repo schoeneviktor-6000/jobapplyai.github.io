@@ -290,7 +290,7 @@ box-shadow: none;
 
 
 /* AI switch gated hint + fetch meta */
-.switchHint{display:inline-flex;align-items:center;gap:8px;margin-left:10px;padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.06)}
+.switchHint{display:inline-flex;align-items:center;gap:8px;padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.06)}
 .switchHint .lock{font-size:14px;opacity:.8}
 .switchHint a{color:var(--accent2);text-decoration:none;font-weight:700}
 .switchHint a:hover{text-decoration:underline}
@@ -310,6 +310,7 @@ box-shadow: none;
 <a class="brand" href="./dashboard.html" data-nav="1"><span class="logo" aria-hidden="true"></span><span>jobmejob</span></a>
 <div class="navlinks">
 <a class="pill active" href="./dashboard.html" data-nav="1">Dashboard</a>
+<a class="pill" href="./cv.html" data-nav="1">CV Studio</a>
 <a class="pill" href="./profile.html" data-nav="1">Profile</a>
 <a class="pill" href="./plan.html" data-nav="1">Plan</a>
 <a class="pill" href="./jobs.html" data-nav="1">Jobs</a>
@@ -397,6 +398,7 @@ box-shadow: none;
   <div class="actionsStack">
     <button class="btn primary" id="qaFetchJobs" type="button">Search jobs (fetch)</button>
     <button class="btn" id="qaViewQueue" type="button">Open Jobs</button>
+    <a class="btn" id="qaOpenCvStudio" href="./cv.html" data-nav="1">CV Studio</a>
     <button class="btn" id="qaTailorTop" type="button">Tailor CV (top job)</button>
 
     <a class="btn ghost" id="qaSettings" href="./profile.html">Settings</a>
@@ -410,8 +412,8 @@ box-shadow: none;
 <div class="grid">
 <section class="card cardNoPad">
 <div class="sectionHeader">
-<h2>Job pipeline</h2>
-<p class="small" id="queueHint">A quick overview of your supply. Manage individual jobs in the Jobs tab.</p>
+<h2>Queue preview</h2>
+<p class="small" id="queueHint">A snapshot of jobs ready to apply. Manage everything in the Jobs tab.</p>
 <div class="actions">
 <button class="btn primary" id="btnRefresh" type="button">Refresh</button>
 <button class="btn" id="btnFetchJobsNow" type="button">Fetch new jobs</button>
@@ -423,8 +425,9 @@ box-shadow: none;
 </label>
 <div class="switchHint" id="aiSwitchHint" style="display:none">
 <span class="lock">🔒</span>
-<a href="./profile.html">Generate AI suggestions to unlock</a>
-<span class="small" id="fetchMeta" style="margin-left:auto;opacity:.85"></span></div>
+<a href="./profile.html" data-nav="1">Generate AI suggestions to unlock</a>
+</div>
+<span class="small" id="fetchMeta" style="margin-left:auto;opacity:.85"></span>
 </div>
 <button class="btn" id="btnCopyToken" type="button">Copy access token</button>
 <span class="small" id="fetchJobsStatus" style="margin-left:auto;opacity:.85"></span>
