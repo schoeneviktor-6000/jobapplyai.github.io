@@ -1295,7 +1295,7 @@ body.cvGate.cvGateForm #jobSourceHint{
       line-height:1.45;
     }
 
-    /* Icon-only buttons (compact secondary actions) */
+    /* Icon buttons (high-quality SVG; consistent across devices) */
     .btn.iconOnly{
       width:34px;
       height:34px;
@@ -1305,12 +1305,40 @@ body.cvGate.cvGateForm #jobSourceHint{
       font-size:0; /* hide label visually; keep for a11y */
     }
     .btn.small.iconOnly{ width:32px; height:32px; }
+
+    /* SVG masks: crisp + inherits currentColor (no emoji/unicode glyph variance) */
     .btn.iconOnly::before{
-      content: attr(data-icon);
-      font-size:16px;
-      line-height:1;
-      color: currentColor;
+      content:"";
+      width:18px;
+      height:18px;
+      display:block;
+      background: currentColor;
+      -webkit-mask: var(--icon) no-repeat center / contain;
+      mask: var(--icon) no-repeat center / contain;
     }
+    .btn.iconOnly[data-icon="undo"]{ --icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%2014l-4%20-4l4%20-4%22%2F%3E%3Cpath%20d%3D%22M5%2010h11a4%204%200%201%201%200%208h-1%22%2F%3E%3C%2Fsvg%3E"); }
+    .btn.iconOnly[data-icon="reset"]{ --icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4.05%2011a8%208%200%201%201%20.5%204m-.5%205v-5h5%22%2F%3E%3C%2Fsvg%3E"); }
+    .btn.iconOnly[data-icon="copy"]{ --icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%209.667a2.667%202.667%200%200%201%202.667%20-2.667h8.666a2.667%202.667%200%200%201%202.667%202.667v8.666a2.667%202.667%200%200%201%20-2.667%202.667h-8.666a2.667%202.667%200%200%201%20-2.667%20-2.667l0%20-8.666%22%2F%3E%3Cpath%20d%3D%22M4.012%2016.737a2.005%202.005%200%200%201%20-1.012%20-1.737v-10c0%20-1.1%20.9%20-2%202%20-2h10c.75%200%201.158%20.385%201.5%201%22%2F%3E%3C%2Fsvg%3E"); }
+
+    /* Mode tabs: swap emojis for the same icon set */
+    .modeTab[data-icon]{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .modeTab[data-icon]::before{
+      content:"";
+      width:16px;
+      height:16px;
+      display:block;
+      background: currentColor;
+      opacity:.92;
+      -webkit-mask: var(--tabIcon) no-repeat center / contain;
+      mask: var(--tabIcon) no-repeat center / contain;
+    }
+    .modeTab[data-icon="sparkles"]{ --tabIcon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M16%2018a2%202%200%200%201%202%202a2%202%200%200%201%202%20-2a2%202%200%200%201%20-2%20-2a2%202%200%200%201%20-2%202m0%20-12a2%202%200%200%201%202%202a2%202%200%200%201%202%20-2a2%202%200%200%201%20-2%20-2a2%202%200%200%201%20-2%202m-7%2012a6%206%200%200%201%206%20-6a6%206%200%200%201%20-6%20-6a6%206%200%200%201%20-6%206a6%206%200%200%201%206%206%22%2F%3E%3C%2Fsvg%3E"); }
+    .modeTab[data-icon="pencil"]{ --tabIcon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2020h4l10.5%20-10.5a2.828%202.828%200%201%200%20-4%20-4l-10.5%2010.5v4%22%2F%3E%3Cpath%20d%3D%22M13.5%206.5l4%204%22%2F%3E%3C%2Fsvg%3E"); }
+    .modeTab[data-icon="checklist"]{ --tabIcon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9.615%2020h-2.615a2%202%200%200%201%20-2%20-2v-12a2%202%200%200%201%202%20-2h8a2%202%200%200%201%202%202v8%22%2F%3E%3Cpath%20d%3D%22M14%2019l2%202l4%20-4%22%2F%3E%3Cpath%20d%3D%22M9%208h4%22%2F%3E%3Cpath%20d%3D%22M9%2012h2%22%2F%3E%3C%2Fsvg%3E"); }
 
 
 /* Print: export the A4 page cleanly */
@@ -1439,9 +1467,9 @@ body.fromJobsLink #settingsDetails{
 
     <div class="studioBar" aria-label="CV Studio modes">
       <div class="studioTabsTop" role="tablist" aria-label="Studio modes">
-        <button class="modeTab active" id="modeTailor" type="button" role="tab" aria-selected="true" title="AI tailoring + ATS keywords">Tailor ✨</button>
-        <button class="modeTab" id="modeEdit" type="button" role="tab" aria-selected="false" title="Manually edit the generated CV (Text view)">Edit text ✍️</button>
-        <button class="modeTab" id="modeReview" type="button" role="tab" aria-selected="false" title="Quality check + suggestions">AI Review</button>
+        <button class="modeTab active" data-icon="sparkles" id="modeTailor" type="button" role="tab" aria-selected="true" title="AI tailoring + ATS keywords">Tailor</button>
+        <button class="modeTab" data-icon="pencil" id="modeEdit" type="button" role="tab" aria-selected="false" title="Manually edit the generated CV (Text view)">Edit text</button>
+        <button class="modeTab" data-icon="checklist" id="modeReview" type="button" role="tab" aria-selected="false" title="Quality check + suggestions">AI Review</button>
         <button class="modeTab" id="modeCustomize" type="button" role="tab" aria-selected="false" disabled>Customize <span class="modeTag">Soon</span></button>
       </div>
 
@@ -1729,9 +1757,9 @@ body.fromJobsLink #settingsDetails{
               </div>
 
               <div class="row" style="flex:0 0 auto; justify-content:flex-end;">
-                <button class="btn small iconOnly" data-icon="↶" id="btnUndoFromChanges" type="button" disabled>Undo</button>
-                <button class="btn small iconOnly" data-icon="⟲" id="btnResetFromChanges" type="button" disabled>Reset</button>
-                <button class="btn small iconOnly" data-icon="⧉" id="btnCopyChangeSummary" type="button" disabled>Copy summary</button>
+                <button class="btn small iconOnly" data-icon="undo" id="btnUndoFromChanges" type="button" disabled>Undo</button>
+                <button class="btn small iconOnly" data-icon="reset" id="btnResetFromChanges" type="button" disabled>Reset</button>
+                <button class="btn small iconOnly" data-icon="copy" id="btnCopyChangeSummary" type="button" disabled>Copy summary</button>
                 <button class="btn small" id="btnSyncTextToDoc" type="button" style="display:none;">Sync text to preview</button>
               </div>
             </div>
@@ -1749,7 +1777,7 @@ body.fromJobsLink #settingsDetails{
               <summary>Text diff (advanced)</summary>
               <div class="monoSmall" id="diffBox">—</div>
               <div class="row" style="margin-top:10px">
-                <button class="btn small iconOnly" data-icon="⧉" id="btnCopyDiff" type="button">Copy diff</button>
+                <button class="btn small iconOnly" data-icon="copy" id="btnCopyDiff" type="button">Copy diff</button>
               </div>
               <div class="miniNote">Tip: If you manually edited the Text tab, changes may appear here even if Preview did not change.</div>
             </details>
@@ -1837,9 +1865,9 @@ body.fromJobsLink #settingsDetails{
         <div class="sectionTitle" style="margin-bottom:6px">
           <h2 id="atsKwTitle">ATS keywords</h2>
           <div class="row" style="justify-content:flex-end; flex:0 0 auto">
-            <button class="btn small iconOnly" data-icon="↶" id="btnUndoEdit" type="button" disabled>Undo</button>
-            <button class="btn small iconOnly" data-icon="⟲" id="btnResetEdits" type="button" disabled>Reset</button>
-            <button class="btn small iconOnly" data-icon="⧉" id="btnCopyMissing" type="button" disabled>Copy missing</button>
+            <button class="btn small iconOnly" data-icon="undo" id="btnUndoEdit" type="button" disabled>Undo</button>
+            <button class="btn small iconOnly" data-icon="reset" id="btnResetEdits" type="button" disabled>Reset</button>
+            <button class="btn small iconOnly" data-icon="copy" id="btnCopyMissing" type="button" disabled>Copy missing</button>
           </div>
         </div>
 
