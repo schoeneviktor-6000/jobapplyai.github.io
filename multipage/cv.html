@@ -585,19 +585,6 @@ body.cvGate.cvGateForm #jobSourceHint{
       background: rgba(34,197,94,.14);
       color:#0a3d1f;
     }
-    .infoBox{
-      margin-top:10px;
-      padding:10px 12px;
-      border-radius:14px;
-      border:1px solid rgba(17,19,24,.12);
-      background: rgba(17,19,24,.03);
-      color:rgba(17,19,24,.80);
-      font-weight:850;
-      font-size:12.5px;
-      line-height:1.45;
-    }
-    .infoBox .tinyNote{ margin-top:4px; }
-
 
     .warnBox{
       margin-top:10px;
@@ -1257,90 +1244,6 @@ body.cvGate.cvGateForm #jobSourceHint{
     }
 
   
-
-    /* Inspector: Honest fit notes (warnings from DB) */
-    .fitCard{
-      border:1px solid rgba(17,19,24,.10);
-      border-radius:16px;
-      padding:12px;
-      background: rgba(255,255,255,.72);
-      margin-top:12px;
-    }
-    .fitTitle{
-      font-weight:980;
-      font-size:14px;
-      letter-spacing:-.1px;
-      margin:0;
-    }
-    .fitMeta{
-      margin-top:8px;
-      color: rgba(17,19,24,.70);
-      font-weight:700;
-      font-size:13px;
-      line-height:1.45;
-    }
-    .fitList{
-      margin:10px 0 0 18px;
-      color: rgba(17,19,24,.74);
-      font-weight:750;
-      line-height:1.5;
-      font-size:13px;
-    }
-    .fitList li{ margin:0 0 6px 0; }
-    .fitFoot{
-      margin-top:10px;
-      font-size:12px;
-      color: rgba(17,19,24,.62);
-      font-weight:750;
-      line-height:1.45;
-    }
-
-    /* Icon buttons (high-quality SVG; consistent across devices) */
-    .btn.iconOnly{
-      width:34px;
-      height:34px;
-      padding:0;
-      justify-content:center;
-      gap:0;
-      font-size:0; /* hide label visually; keep for a11y */
-    }
-    .btn.small.iconOnly{ width:32px; height:32px; }
-
-    /* SVG masks: crisp + inherits currentColor (no emoji/unicode glyph variance) */
-    .btn.iconOnly::before{
-      content:"";
-      width:18px;
-      height:18px;
-      display:block;
-      background: currentColor;
-      -webkit-mask: var(--icon) no-repeat center / contain;
-      mask: var(--icon) no-repeat center / contain;
-    }
-    .btn.iconOnly[data-icon="undo"]{ --icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%2014l-4%20-4l4%20-4%22%2F%3E%3Cpath%20d%3D%22M5%2010h11a4%204%200%201%201%200%208h-1%22%2F%3E%3C%2Fsvg%3E"); }
-    .btn.iconOnly[data-icon="reset"]{ --icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4.05%2011a8%208%200%201%201%20.5%204m-.5%205v-5h5%22%2F%3E%3C%2Fsvg%3E"); }
-    .btn.iconOnly[data-icon="copy"]{ --icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%209.667a2.667%202.667%200%200%201%202.667%20-2.667h8.666a2.667%202.667%200%200%201%202.667%202.667v8.666a2.667%202.667%200%200%201%20-2.667%202.667h-8.666a2.667%202.667%200%200%201%20-2.667%20-2.667l0%20-8.666%22%2F%3E%3Cpath%20d%3D%22M4.012%2016.737a2.005%202.005%200%200%201%20-1.012%20-1.737v-10c0%20-1.1%20.9%20-2%202%20-2h10c.75%200%201.158%20.385%201.5%201%22%2F%3E%3C%2Fsvg%3E"); }
-
-    /* Mode tabs: swap emojis for the same icon set */
-    .modeTab[data-icon]{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-    }
-    .modeTab[data-icon]::before{
-      content:"";
-      width:16px;
-      height:16px;
-      display:block;
-      background: currentColor;
-      opacity:.92;
-      -webkit-mask: var(--tabIcon) no-repeat center / contain;
-      mask: var(--tabIcon) no-repeat center / contain;
-    }
-    .modeTab[data-icon="sparkles"]{ --tabIcon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M16%2018a2%202%200%200%201%202%202a2%202%200%200%201%202%20-2a2%202%200%200%201%20-2%20-2a2%202%200%200%201%20-2%202m0%20-12a2%202%200%200%201%202%202a2%202%200%200%201%202%20-2a2%202%200%200%201%20-2%20-2a2%202%200%200%201%20-2%202m-7%2012a6%206%200%200%201%206%20-6a6%206%200%200%201%20-6%20-6a6%206%200%200%201%20-6%206a6%206%200%200%201%206%206%22%2F%3E%3C%2Fsvg%3E"); }
-    .modeTab[data-icon="pencil"]{ --tabIcon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2020h4l10.5%20-10.5a2.828%202.828%200%201%200%20-4%20-4l-10.5%2010.5v4%22%2F%3E%3Cpath%20d%3D%22M13.5%206.5l4%204%22%2F%3E%3C%2Fsvg%3E"); }
-    .modeTab[data-icon="checklist"]{ --tabIcon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9.615%2020h-2.615a2%202%200%200%201%20-2%20-2v-12a2%202%200%200%201%202%20-2h8a2%202%200%200%201%202%202v8%22%2F%3E%3Cpath%20d%3D%22M14%2019l2%202l4%20-4%22%2F%3E%3Cpath%20d%3D%22M9%208h4%22%2F%3E%3Cpath%20d%3D%22M9%2012h2%22%2F%3E%3C%2Fsvg%3E"); }
-
-
 /* Print: export the A4 page cleanly */
 @media print{
   body{ background:#fff !important; }
@@ -1467,9 +1370,9 @@ body.fromJobsLink #settingsDetails{
 
     <div class="studioBar" aria-label="CV Studio modes">
       <div class="studioTabsTop" role="tablist" aria-label="Studio modes">
-        <button class="modeTab active" data-icon="sparkles" id="modeTailor" type="button" role="tab" aria-selected="true" title="AI tailoring + ATS keywords">Tailor</button>
-        <button class="modeTab" data-icon="pencil" id="modeEdit" type="button" role="tab" aria-selected="false" title="Manually edit the generated CV (Text view)">Edit text</button>
-        <button class="modeTab" data-icon="checklist" id="modeReview" type="button" role="tab" aria-selected="false" title="Quality check + suggestions">AI Review</button>
+        <button class="modeTab active" id="modeTailor" type="button" role="tab" aria-selected="true" title="AI tailoring + ATS keywords">Tailor ✨</button>
+        <button class="modeTab" id="modeEdit" type="button" role="tab" aria-selected="false" title="Manually edit the generated CV (Text view)">Edit text ✍️</button>
+        <button class="modeTab" id="modeReview" type="button" role="tab" aria-selected="false" title="Quality check + suggestions">AI Review</button>
         <button class="modeTab" id="modeCustomize" type="button" role="tab" aria-selected="false" disabled>Customize <span class="modeTag">Soon</span></button>
       </div>
 
@@ -1680,7 +1583,7 @@ body.fromJobsLink #settingsDetails{
         <div class="hr"></div>
 
         <div class="row">
-          <button class="btn primary" id="btnGenerate" type="button" disabled>Generate tailored CV</button>
+          <button class="btn primary cta" id="btnGenerate" type="button" disabled>Generate tailored CV</button>
           <button class="btn" id="btnGenerateAgain" type="button" disabled style="display:none">Generate again</button>
         </div>
         <div class="hint" id="ctaHint" style="display:none; margin-top:8px"></div>
@@ -1757,9 +1660,9 @@ body.fromJobsLink #settingsDetails{
               </div>
 
               <div class="row" style="flex:0 0 auto; justify-content:flex-end;">
-                <button class="btn small iconOnly" data-icon="undo" id="btnUndoFromChanges" type="button" disabled>Undo</button>
-                <button class="btn small iconOnly" data-icon="reset" id="btnResetFromChanges" type="button" disabled>Reset</button>
-                <button class="btn small iconOnly" data-icon="copy" id="btnCopyChangeSummary" type="button" disabled>Copy summary</button>
+                <button class="btn small" id="btnUndoFromChanges" type="button" disabled>Undo</button>
+                <button class="btn small" id="btnResetFromChanges" type="button" disabled>Reset</button>
+                <button class="btn small" id="btnCopyChangeSummary" type="button" disabled>Copy summary</button>
                 <button class="btn small" id="btnSyncTextToDoc" type="button" style="display:none;">Sync text to preview</button>
               </div>
             </div>
@@ -1777,7 +1680,7 @@ body.fromJobsLink #settingsDetails{
               <summary>Text diff (advanced)</summary>
               <div class="monoSmall" id="diffBox">—</div>
               <div class="row" style="margin-top:10px">
-                <button class="btn small iconOnly" data-icon="copy" id="btnCopyDiff" type="button">Copy diff</button>
+                <button class="btn small" id="btnCopyDiff" type="button">Copy diff</button>
               </div>
               <div class="miniNote">Tip: If you manually edited the Text tab, changes may appear here even if Preview did not change.</div>
             </details>
@@ -1806,25 +1709,6 @@ body.fromJobsLink #settingsDetails{
         </div>
 
         <div id="inspectorKeywords">
-
-
-        <div class="fitCard" id="fitCard" style="display:none">
-          <div class="reviewRow" style="margin-top:0">
-            <h3 class="fitTitle" id="fitTitle">Honest fit notes</h3>
-            <span class="badge" id="fitBadge">—</span>
-          </div>
-
-          <div class="fitMeta" id="fitHint">
-            A quick estimate based on your CV and this job. Not a hiring guarantee — use it to decide what to emphasize.
-          </div>
-
-          <ul class="fitList" id="fitList"></ul>
-
-          <div class="fitFoot" id="fitFoot">
-            Tip: If you want to raise the match, add relevant skills you truly have (Skills is usually the safest ATS section).
-          </div>
-        </div>
-
 
         <details class="info" style="margin-top:12px">
           <summary id="inspectorFutureTitle">More tools (coming soon)</summary>
@@ -1865,9 +1749,9 @@ body.fromJobsLink #settingsDetails{
         <div class="sectionTitle" style="margin-bottom:6px">
           <h2 id="atsKwTitle">ATS keywords</h2>
           <div class="row" style="justify-content:flex-end; flex:0 0 auto">
-            <button class="btn small iconOnly" data-icon="undo" id="btnUndoEdit" type="button" disabled>Undo</button>
-            <button class="btn small iconOnly" data-icon="reset" id="btnResetEdits" type="button" disabled>Reset</button>
-            <button class="btn small iconOnly" data-icon="copy" id="btnCopyMissing" type="button" disabled>Copy missing</button>
+            <button class="btn small" id="btnUndoEdit" type="button" disabled>Undo</button>
+            <button class="btn small" id="btnResetEdits" type="button" disabled>Reset</button>
+            <button class="btn small" id="btnCopyMissing" type="button" disabled>Copy missing</button>
           </div>
         </div>
 
@@ -2097,30 +1981,26 @@ body.fromJobsLink #settingsDetails{
             <span class="chip warn" id="kwChip">—</span>
           </div>
 
-          <div class="infoBox" style="margin-top:10px" id="kwTruthBox">
-            <div id="kwTruthLbl">Only add what’s true.</div>
-            <div class="tinyNote" id="kwTruthNote">We never invent experience. If it’s not true, don’t add it.</div>
+          <div class="checkLine" style="margin-top:10px">
+            <input type="checkbox" id="kwTruth"/>
+            <div>
+              <div id="kwTruthLbl">I confirm this keyword is true for me.</div>
+              <div class="tinyNote" id="kwTruthNote">We never invent experience. If it's not true, don’t add it.</div>
+            </div>
           </div>
         </div>
 
-        <div class="field" style="margin-top:12px">
-          <div class="fieldLabel" id="kwWhereLbl">Placement</div>
-          <div class="pillToggle" id="kwTargetToggle">
-            <button type="button" data-target="skills" class="active" id="kwTargetSkillsBtn">Skills</button>
-            <button type="button" data-target="experience" id="kwTargetExpBtn">Experience bullet</button>
+        <div class="formRow" style="margin-top:12px">
+          <div class="field">
+            <div class="fieldLabel" id="kwWhereLbl">Where should it appear?</div>
+            <select id="kwTarget">
+              <option value="skills">Skills (recommended)</option>
+              <option value="experience">Experience</option>
+            </select>
+            <div class="tinyNote" id="kwWhereNote">Skills is usually the safest option for ATS without adding new claims.</div>
           </div>
-          <div class="tinyNote" id="kwWhereNote">If you’re unsure, add to Skills (safest). Use Experience only if it’s already true in your history.</div>
 
-          <!-- Keep the original select for compatibility (hidden) -->
-          <select id="kwTarget" style="display:none">
-            <option value="skills">Skills</option>
-            <option value="experience">Experience</option>
-          </select>
-        </div>
-
-        <details class="info" style="margin-top:12px" id="kwAdvanced">
-          <summary id="kwAdvancedSummary">Options</summary>
-          <div class="field" style="margin-top:12px">
+          <div class="field">
             <div class="fieldLabel" id="kwLangLbl">Language</div>
             <select id="kwLang">
               <option value="auto">Auto (match CV)</option>
@@ -2129,7 +2009,7 @@ body.fromJobsLink #settingsDetails{
             </select>
             <div class="tinyNote" id="kwLangNote">Auto matches your CV language. Choose German if your CV is in German.</div>
           </div>
-
+        </div>
 
         <div class="field" style="margin-top:12px">
           <div class="fieldLabel" id="kwModeLbl">Insertion mode</div>
@@ -2150,8 +2030,6 @@ body.fromJobsLink #settingsDetails{
           <div class="tinyNote" id="kwAiRecoNote">Recommendation is based on your existing CV text. It never invents experience.</div>
         </div>
 
-
-        </details>
 
         <!-- Skills target -->
         <div id="kwSkillsBox" style="margin-top:12px">
@@ -2355,7 +2233,10 @@ body.fromJobsLink #settingsDetails{
 
     const $ = (id) => document.getElementById(id);
 
-    const API_BASE = H.resolveApiBase("https://jobmejob.schoene-viktor.workers.dev").replace(/\/+$/, "");
+    const API_BASE = (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE
+      ? String(window.JobApplyAI.config.API_BASE)
+      : H.resolveApiBase("https://jobmejob.schoene-viktor.workers.dev")
+    ).replace(/\/+$/, "");
 
     let session = null;
     let jobs = [];
@@ -2387,9 +2268,6 @@ let genStepsState = "idle";
     let lastUsed = [];
     let lastMissing = [];
     let lastDebug = {};
-
-    let lastWarnings = [];
-    let lastConfidence = null;
 
     // Edits
     let baseSnapshot = null;
@@ -2476,18 +2354,18 @@ let genStepsState = "idle";
 
         // Keyword modal
         kwH: "Add keyword",
-        kwSub: "Add a missing keyword — we’ll suggest the cleanest place to put it.",
+        kwSub: "Add missing keywords — only if it's truly accurate for you.",
         close: "Schließen",
-        kwTruthLbl: "Only add what’s true.",
-        kwTruthNote: "We never invent experience. If it’s not true, don’t add it.",
-        kwWhereLbl: "Placement",
-        kwWhereNote: "If you’re unsure, add to Skills (safest). Use Experience only if it’s already true in your history.",
+        kwTruthLbl: "I confirm this keyword is true for me.",
+        kwTruthNote: "We never invent experience. If it's not true, don’t add it.",
+        kwWhereLbl: "Where should it appear?",
+        kwWhereNote: "Skills is usually the safest option for ATS without adding new claims.",
         kwLangLbl: "Language",
         kwLangNote: "Auto passt zur Sprache deines CV. Wähle Deutsch, wenn dein CV auf Deutsch ist.",
-        kwModeLbl: "Insertion style",
-        kwModeAi: "Smart rewrite",
-        kwModeQuick: "Quick insert",
-        kwModeNote: "Smart rewrite integrates the keyword naturally into an existing bullet. If AI isn’t available, we fall back to a clean template.",
+        kwModeLbl: "Insertion mode",
+        kwModeAi: "AI rewrite",
+        kwModeQuick: "Quick (no AI)",
+        kwModeNote: "KI integriert das Keyword natürlich. Falls dein Backend keinen KI-Endpunkt hat, nutzen wir automatisch Smart-Templates.",
         kwSkillsGroupLbl: "Which skill area?",
         kwSkillsGroupNote: "We add the keyword with clean casing and consistent style.",
         kwExpRoleLbl: "Which role?",
@@ -2576,18 +2454,18 @@ let genStepsState = "idle";
         debugTitle: "Debug details",
 
         kwH: "Add keyword",
-        kwSub: "Add a missing keyword — we’ll suggest the cleanest place to put it.",
+        kwSub: "Add missing keywords — only if they are truly accurate.",
         close: "Close",
-        kwTruthLbl: "Only add what’s true.",
-        kwTruthNote: "We never invent experience. If it’s not true, don’t add it.",
-        kwWhereLbl: "Placement",
-        kwWhereNote: "If you’re unsure, add to Skills (safest). Use Experience only if it’s already true in your history.",
+        kwTruthLbl: "I confirm this keyword is true for me.",
+        kwTruthNote: "We don’t invent experience. If it’s not true, don’t add it.",
+        kwWhereLbl: "Where should it appear?",
+        kwWhereNote: "Skills is usually the safest ATS option without creating new claims.",
         kwLangLbl: "Language",
         kwLangNote: "Auto matches your CV language. Choose German if your CV is in German.",
-        kwModeLbl: "Insertion style",
-        kwModeAi: "Smart rewrite",
-        kwModeQuick: "Quick insert",
-        kwModeNote: "Smart rewrite integrates the keyword naturally into an existing bullet. If AI isn’t available, we fall back to a clean template.",
+        kwModeLbl: "Insert mode",
+        kwModeAi: "AI wording",
+        kwModeQuick: "Quick (no AI)",
+        kwModeNote: "AI tries to integrate the keyword naturally. If your backend has no AI endpoint, we automatically fall back to smart templates.",
         kwSkillsGroupLbl: "Which skill area?",
         kwSkillsGroupNote: "We add the keyword in consistent casing and style.",
         kwExpRoleLbl: "Which role?",
@@ -2722,9 +2600,6 @@ let genStepsState = "idle";
       $("usedLbl").textContent = t("usedLbl");
       $("missingLbl").textContent = t("missingLbl");
       $("debugTitle").textContent = t("debugTitle");
-
-      try{ syncIconOnlyButtons(); }catch(_){}
-
 
       // Keyword modal
       $("kwH").textContent = t("kwH");
@@ -3776,25 +3651,89 @@ function updatePasteQuality(){
        ------------------------- */
 
     const FETCH_TIMEOUT_MS = 45000;
+
+    // Long-running AI endpoints can exceed 45s on slower devices/connections.
+    // Keep a default timeout for normal calls, but allow longer timeouts for tailor/review.
+    const TAILOR_TIMEOUT_MS  = 180000; // 3 min
+    const REVIEW_TIMEOUT_MS  = 150000; // 2.5 min
+    const KEYWORD_TIMEOUT_MS = 120000; // 2 min
+    const JOB_CREATE_TIMEOUT_MS = 60000; // 60s
+
     const TOKEN_REFRESH_SKEW_SEC = 90;
 
+    function timeoutForPath(path){
+      const p = String(path || "");
+      if(p.includes("/me/cv/tailor")) return TAILOR_TIMEOUT_MS;
+      if(p.includes("/me/cv/review")) return REVIEW_TIMEOUT_MS;
+      if(p.includes("/me/cv/keyword")) return KEYWORD_TIMEOUT_MS;
+      if(p.includes("/me/jobs/create") || p.includes("/me/jobs/import") || p.includes("/me/jobs/create_from")) return JOB_CREATE_TIMEOUT_MS;
+      return FETCH_TIMEOUT_MS;
+    }
+
     function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS){
+      // AbortController is not supported on some older browsers/webviews.
+      // In that case, fall back to a plain fetch (no client-side timeout).
+      if(typeof AbortController !== "function" || !timeoutMs || timeoutMs <= 0){
+        return fetch(url, options);
+      }
       const controller = new AbortController();
-      const t = setTimeout(() => controller.abort(), timeoutMs);
+      const t = setTimeout(() => { try{ controller.abort(); }catch(_){ } }, timeoutMs);
       return fetch(url, { ...options, signal: controller.signal })
         .finally(() => clearTimeout(t));
     }
 
-    function toNetworkError(path, e){
-      const msg = (e && e.message) ? String(e.message) : String(e||"");
+    function isAbortError(e){
+      if(!e) return false;
+      if(e.name === "AbortError") return true;
+      const msg = String(e.message || e || "");
+      return /abort/i.test(msg);
+    }
+
+    function isNetworkishError(e){
+      const msg = String(e?.message || e || "");
       const low = msg.toLowerCase();
-      if(low.includes("failed to fetch") || low.includes("network") || low.includes("abort")){
-        return new Error(
+      return (
+        low.includes("failed to fetch") ||
+        low.includes("network") ||
+        low.includes("load failed") ||
+        low.includes("connection") ||
+        low.includes("canceled") ||
+        low.includes("cancelled") ||
+        isAbortError(e)
+      );
+    }
+
+    function toNetworkError(path, e, timeoutMs){
+      const msg = (e && e.message) ? String(e.message) : String(e||"");
+
+      if(isAbortError(e)){
+        const sec = timeoutMs ? Math.round(Number(timeoutMs)/1000) : 0;
+        const err = new Error(
+          path + " failed: request timed out" + (sec ? (" after " + sec + "s") : "") + ". " +
+          "Please retry. If this keeps happening: check your connection, disable VPN/ad blockers, and verify API_BASE / CORS."
+        );
+        err.kind = "timeout";
+        err.timeoutMs = timeoutMs || null;
+        err.causeMsg = msg;
+        return err;
+      }
+
+      if(isNetworkishError(e)){
+        const err = new Error(
           path + " failed: network error. " +
           "If this keeps happening: check CORS on your Worker, disable VPN/ad blockers, and verify API_BASE."
         );
+        err.kind = "network";
+        err.timeoutMs = timeoutMs || null;
+        err.causeMsg = msg;
+        return err;
       }
-      return new Error(path + " failed: " + msg);
+
+      const err = new Error(path + " failed: " + msg);
+      err.kind = "other";
+      err.timeoutMs = timeoutMs || null;
+      err.causeMsg = msg;
+      return err;
     }
 
     async function getSessionFresh(forceRefresh = false){
@@ -3832,6 +3771,11 @@ function updatePasteQuality(){
       const p = String(path || "");
       const url = API_BASE + p;
 
+      // Support longer timeouts for AI-heavy endpoints (tailor/review/etc).
+      // Caller can override with options.timeoutMs.
+      const timeoutMs = Number(options.timeoutMs || timeoutForPath(p) || FETCH_TIMEOUT_MS);
+      const { timeoutMs: _timeoutMs, ...opt } = options;
+
       const s1 = await getSessionFresh(false);
       const token1 = s1 && s1.access_token ? String(s1.access_token) : "";
 
@@ -3839,14 +3783,14 @@ function updatePasteQuality(){
         throw new Error(uiLang==="de" ? "Bitte anmelden." : "Please sign in.");
       }
 
-      const headers1 = new Headers(options.headers || {});
+      const headers1 = new Headers(opt.headers || {});
       headers1.set("Authorization", "Bearer " + token1);
 
       let res;
       try{
-        res = await fetchWithTimeout(url, { ...options, headers: headers1 }, FETCH_TIMEOUT_MS);
+        res = await fetchWithTimeout(url, { ...opt, headers: headers1 }, timeoutMs);
       }catch(e){
-        throw toNetworkError(p, e);
+        throw toNetworkError(p, e, timeoutMs);
       }
 
       // Retry once on 401 (token refresh)
@@ -3854,12 +3798,12 @@ function updatePasteQuality(){
         const s2 = await getSessionFresh(true);
         const token2 = s2 && s2.access_token ? String(s2.access_token) : "";
         if(token2 && token2 !== token1){
-          const headers2 = new Headers(options.headers || {});
+          const headers2 = new Headers(opt.headers || {});
           headers2.set("Authorization", "Bearer " + token2);
           try{
-            res = await fetchWithTimeout(url, { ...options, headers: headers2 }, FETCH_TIMEOUT_MS);
+            res = await fetchWithTimeout(url, { ...opt, headers: headers2 }, timeoutMs);
           }catch(e){
-            throw toNetworkError(p, e);
+            throw toNetworkError(p, e, timeoutMs);
           }
         }
       }
@@ -3867,8 +3811,8 @@ function updatePasteQuality(){
       return res;
     }
 
-    async function apiGet(path){
-      const res = await authFetch(path, { method:"GET" });
+    async function apiGet(path, options = {}){
+      const res = await authFetch(path, { ...(options||{}), method:"GET" });
       const txt = await res.text().catch(()=> "");
       let json = null;
       try{ json = txt ? JSON.parse(txt) : null; }catch{ json = { raw: txt }; }
@@ -3882,10 +3826,13 @@ function updatePasteQuality(){
       return json;
     }
 
-    async function apiPostJson(path, body){
+    async function apiPostJson(path, body, options = {}){
+      const headers = new Headers(options.headers || {});
+      headers.set("content-type","application/json");
       const res = await authFetch(path, {
+        ...((options||{})),
         method:"POST",
-        headers:{ "content-type":"application/json" },
+        headers,
         body: JSON.stringify(body || {})
       });
       const txt = await res.text().catch(()=> "");
@@ -4121,156 +4068,7 @@ function markSteps(state){
       }
     }
 
-    
-    /* -------------------------
-       Fit notes (warnings) + confidence
-       ------------------------- */
-    function parseWarnings(raw){
-      // Accept array, JSON string, or plain string.
-      if(Array.isArray(raw)) return raw;
-      const s = String(raw || "").trim();
-      if(!s) return [];
-      try{
-        const arr = JSON.parse(s);
-        if(Array.isArray(arr)) return arr;
-      }catch(_){}
-      // Fall back to newline-separated string
-      return s.split(/\n+/).map(x=>String(x||"").trim()).filter(Boolean);
-    }
-
-    function friendlyWarning(w){
-      const s = String(w || "").trim();
-      if(!s) return "";
-      if(s === "cv_clean_model_error"){
-        return uiLang==="de"
-          ? "Dein CV konnte nicht perfekt ausgelesen werden. Wenn das Ergebnis komisch aussieht, lade eine textbasierte PDF oder DOCX hoch."
-          : "We couldn’t read your CV perfectly. If the output looks odd, upload a text-based PDF or DOCX.";
-      }
-      if(s === "cv_structured_model_error"){
-        return uiLang==="de"
-          ? "Dein CV konnte nicht zuverlässig in Sektionen eingeteilt werden. Die Vorschau kann eingeschränkt sein."
-          : "We couldn’t structure your CV into sections reliably. Preview may be limited.";
-      }
-      // If it looks like an internal code, make it readable.
-      if(/^[a-z0-9_]{8,}$/.test(s) && s.includes("_")){
-        return s.replace(/_/g, " ");
-      }
-      return s;
-    }
-
-    function normalizeWarnings(raw){
-      const arr = parseWarnings(raw).map(friendlyWarning).map(x=>String(x||"").trim()).filter(Boolean);
-      const seen = new Set();
-      const out = [];
-      for(const w of arr){
-        const k = w.toLowerCase();
-        if(seen.has(k)) continue;
-        seen.add(k);
-        out.push(w);
-        if(out.length >= 12) break;
-      }
-      return out;
-    }
-
-    function classifyConfidence(conf){
-      const n = (typeof conf === "number" && Number.isFinite(conf)) ? conf : null;
-      if(n == null){
-        return {
-          cls: "",
-          badge: uiLang==="de" ? "Notizen" : "Notes",
-          hint: uiLang==="de"
-            ? "Hier findest du Hinweise aus dem Tailoring (z.B. Transfer-Fit, fehlende Details)."
-            : "Here are a few notes from the tailoring (e.g., transfer fit, missing detail)."
-        };
-      }
-      const pct = Math.max(0, Math.min(100, Math.round(n * 100)));
-      if(pct >= 85){
-        return {
-          cls: "good",
-          badge: (uiLang==="de" ? "Schätzung: " : "Estimate: ") + pct + "%",
-          hint: uiLang==="de"
-            ? "Hohe Zuversicht, dass dein CV gut zum Job-Text passt. Kein Hiring-Versprechen — nur ein Signal."
-            : "High confidence your CV aligns well with this job description. Not a hiring guarantee — just a signal."
-        };
-      }
-      if(pct >= 70){
-        return {
-          cls: "warn",
-          badge: (uiLang==="de" ? "Schätzung: " : "Estimate: ") + pct + "%",
-          hint: uiLang==="de"
-            ? "Solide Basis. Mit ein paar ehrlichen Schwerpunkten (Skills/Bullets) kannst du das weiter verbessern."
-            : "Solid baseline. You can improve it by emphasizing the most relevant skills and bullets (truthfully)."
-        };
-      }
-      return {
-        cls: "warn",
-        badge: (uiLang==="de" ? "Schätzung: " : "Estimate: ") + pct + "%",
-        hint: uiLang==="de"
-          ? "Eher Transfer-Fit. Fokus: relevante Projekte/Erfolge klar herausarbeiten (ohne neue Claims)."
-          : "More of a transferable fit. Focus on making your most relevant projects/impact obvious (without new claims)."
-      };
-    }
-
-    function renderFitNotes(){
-      const card = $("fitCard");
-      if(!card) return;
-
-      const confInfo = classifyConfidence(lastConfidence);
-
-      const warnings = normalizeWarnings(lastWarnings);
-
-      // Hide if we have nothing to show yet (fresh page)
-      const hasAny = warnings.length || (typeof lastConfidence === "number" && Number.isFinite(lastConfidence));
-      if(!hasAny){
-        card.style.display = "none";
-        return;
-      }
-
-      card.style.display = "";
-
-      // Badge
-      const b = $("fitBadge");
-      if(b){
-        b.className = "badge " + (confInfo.cls || "");
-        b.textContent = confInfo.badge || "—";
-      }
-
-      const hint = $("fitHint");
-      if(hint) hint.textContent = confInfo.hint || "";
-
-      const list = $("fitList");
-      if(list){
-        if(warnings.length){
-          list.innerHTML = warnings.slice(0, 6).map(w => `<li>${H.escapeHtml(w)}</li>`).join("");
-        }else{
-          list.innerHTML = `<li>${H.escapeHtml(uiLang==="de" ? "Keine zusätzlichen Hinweise für diese Version." : "No extra notes for this version.")}</li>`;
-        }
-      }
-
-      const foot = $("fitFoot");
-      if(foot){
-        // Only show the tip when there are actionable notes or medium/low confidence.
-        const showTip = warnings.length || (typeof lastConfidence === "number" && lastConfidence < 0.85);
-        foot.style.display = showTip ? "" : "none";
-      }
-    }
-
-    function syncIconOnlyButtons(){
-      const btns = document.querySelectorAll("button.iconOnly[data-icon]");
-      btns.forEach(btn => {
-        const label = String(btn.getAttribute("aria-label") || btn.textContent || "").trim();
-        if(label){
-          if(!btn.getAttribute("aria-label")) btn.setAttribute("aria-label", label);
-          if(!btn.getAttribute("title")) btn.setAttribute("title", label);
-        }else{
-          if(!btn.getAttribute("aria-label")) btn.setAttribute("aria-label", "Action");
-        }
-      });
-    }
-
-
-
-function recomputeCoverageFromCurrentText(){
+    function recomputeCoverageFromCurrentText(){
       const text = $("cvText").value || "";
       const all = Array.isArray(atsKeywordsAll) && atsKeywordsAll.length
         ? atsKeywordsAll
@@ -5415,11 +5213,6 @@ ${bodyHtml}
 
             renderKeywords();
 
-            lastWarnings = normalizeWarnings(obj.warnings);
-            lastConfidence = (typeof obj.confidence === "number" && Number.isFinite(obj.confidence)) ? obj.confidence : null;
-            renderFitNotes();
-
-
             setCvOutput({ text: obj.cv_text || "", doc: obj.cv_doc || null, lang: obj.lang || obj.language || "en" });
             setBadge("outStatus","good", uiLang==="de" ? "Bereit (lokal)" : "Ready (local)");
             setText("outModel","Model: —");
@@ -5484,6 +5277,12 @@ ${bodyHtml}
 
       try{
         const payload = buildTailorPayload();
+
+        // Prime job-description cache (reduces first-run delays when coming from Jobs)
+        try{
+          await apiGet("/me/jobs/description?job_id=" + encodeURIComponent(String(payload.job_id)), { timeoutMs: 90000 });
+        }catch(_){ /* best effort */ }
+
         const res = await apiPostJson("/me/cv/tailor", payload);
 
         if(!res || res.ok !== true){
@@ -5499,17 +5298,11 @@ ${bodyHtml}
         lastMissing = Array.isArray(r.ats_keywords_missing) ? r.ats_keywords_missing : [];
         atsKeywordsAll = Array.from(new Set([...(lastUsed||[]), ...(lastMissing||[])].map(x=>String(x||"").trim()).filter(Boolean)));
 
-        lastWarnings = normalizeWarnings(r.warnings);
-        lastConfidence = (typeof r.confidence === "number" && Number.isFinite(r.confidence)) ? r.confidence : null;
-
-
         lastDebug = {
           cached: !!res.cached,
           cache_age_seconds: res.cache_age_seconds ?? null,
           model: r.model || null,
           prompt_version: r.prompt_version || null,
-          confidence: lastConfidence,
-          warnings_count: Array.isArray(lastWarnings) ? lastWarnings.length : 0,
           language: lang || null,
           desc_cache_status: r.desc_cache_status || null,
           cv_clean_status: r.cv_clean_status || null,
@@ -5520,8 +5313,6 @@ ${bodyHtml}
 
         renderKeywords();
         setCvOutput({ text, doc, lang });
-
-        renderFitNotes();
 
         // Reset edit history on each new generation
         baseSnapshot = snapshotCurrent();
@@ -5563,8 +5354,6 @@ ${bodyHtml}
             used: lastUsed,
             missing: lastMissing,
             all: atsKeywordsAll,
-            warnings: lastWarnings,
-            confidence: lastConfidence,
             debug: lastDebug
           }));
         }catch(_){}
@@ -5573,8 +5362,23 @@ ${bodyHtml}
         setBadge("outStatus","bad", uiLang==="de" ? "Fehler" : "Failed");
         setBadge("pipeBadge","bad", uiLang==="de" ? "Fehler" : "Failed");
         showError(e?.message || String(e));
-        $("debugBox").textContent = JSON.stringify({ ok:false, error: e?.message || String(e) }, null, 2);
-        setText("outHint", uiLang==="de" ? "Generierung fehlgeschlagen. Prüfe CV Upload und Jobbeschreibung." : "Failed to generate. Check your CV upload and job description availability.");
+        $("debugBox").textContent = JSON.stringify({ ok:false, kind: e?.kind || null, timeoutMs: e?.timeoutMs || null, error: e?.message || String(e) }, null, 2);
+
+        let hint = uiLang==="de"
+          ? "Generierung fehlgeschlagen. Prüfe CV Upload und Jobbeschreibung."
+          : "Failed to generate. Check your CV upload and job description availability.";
+
+        if(e && e.kind === "timeout"){
+          hint = uiLang==="de"
+            ? "Zeitüberschreitung. Die Generierung läuft möglicherweise noch - klicke \"Generate again\", um das Ergebnis (cached) abzurufen."
+            : "Timed out. The server may still be finishing - click \"Generate again\" to fetch the cached result.";
+        }else if(e && e.kind === "network"){
+          hint = uiLang==="de"
+            ? "Netzwerkfehler. Prüfe deine Verbindung (VPN/Ad-Blocker) und versuche es erneut."
+            : "Network error. Check your connection (VPN/ad blockers) and try again.";
+        }
+
+        setText("outHint", hint);
       }finally{
         $("btnGenerate").disabled = false;
         $("btnGenerateAgain").disabled = false;
@@ -5714,10 +5518,6 @@ ${bodyHtml}
         lastMissing = Array.isArray(r.ats_keywords_missing) ? r.ats_keywords_missing : [];
         atsKeywordsAll = Array.from(new Set([...(lastUsed||[]), ...(lastMissing||[])].map(x=>String(x||"").trim()).filter(Boolean)));
 
-        lastWarnings = normalizeWarnings(r.warnings);
-        lastConfidence = (typeof r.confidence === "number" && Number.isFinite(r.confidence)) ? r.confidence : null;
-
-
         lastDebug = {
           cached: !!res.cached,
           cache_age_seconds: res.cache_age_seconds ?? null,
@@ -5735,8 +5535,6 @@ ${bodyHtml}
 
         renderKeywords();
         setCvOutput({ text, doc, lang });
-
-        renderFitNotes();
 
         // Reset edit history on each new generation
         baseSnapshot = snapshotCurrent();
@@ -5779,8 +5577,6 @@ ${bodyHtml}
             used: lastUsed,
             missing: lastMissing,
             all: atsKeywordsAll,
-            warnings: lastWarnings,
-            confidence: lastConfidence,
             debug: lastDebug
           }));
         }catch(_){}
@@ -6704,7 +6500,8 @@ function openKwModal(keywordRaw){
       activeKeywordRaw = String(keywordRaw || "").trim();
       activeKeywordDisplay = prettyKeyword(activeKeywordRaw, lastLang);
       $("kwChip").textContent = activeKeywordDisplay || "—";
-      
+      $("kwTruth").checked = false;
+
       // Reset AI recommendation for this keyword
       try{ clearKwAiReco(); }catch(_){ }
 
@@ -6780,33 +6577,20 @@ function openKwModal(keywordRaw){
       try{ updateKwRewriteUi(); }catch(_){ }
     }
 
-    function syncKwTargetToggle(){
-      const hasDoc = !!lastCvDoc;
-      const target = String($("kwTarget")?.value || "skills");
-      const bSkills = $("kwTargetSkillsBtn");
-      const bExp = $("kwTargetExpBtn");
-
-      if(bSkills) bSkills.classList.toggle("active", target === "skills");
-      if(bExp) bExp.classList.toggle("active", target === "experience");
-
-      // Experience inserts need the structured preview (cv_doc)
-      if(bExp) bExp.disabled = !hasDoc;
-    }
-
     function updateKwTargetUi(){
+      const target = String($("kwTarget").value || "skills");
       const hasDoc = !!lastCvDoc;
-      let target = String($("kwTarget").value || "skills");
-
-      if(target === "experience" && !hasDoc){
-        // can't do experience insert without doc
-        $("kwTarget").value = "skills";
-        target = "skills";
-      }
 
       $("kwSkillsBox").style.display = (target === "skills") ? "" : "none";
       $("kwExpBox").style.display = (target === "experience" && hasDoc) ? "" : "none";
 
-      syncKwTargetToggle();
+      if(target === "experience" && !hasDoc){
+        // can't do experience insert without doc
+        $("kwTarget").value = "skills";
+        $("kwSkillsBox").style.display = "";
+        $("kwExpBox").style.display = "none";
+      }
+
       updateKwExpHowUi();
     }
 
@@ -7185,7 +6969,13 @@ function openKwModal(keywordRaw){
       if(!activeKeywordRaw){
         closeKwModal();
         return;
-      }      const target = String($("kwTarget").value || "skills");
+      }
+      if(!$("kwTruth").checked){
+        showError(t("truthRequired"));
+        return;
+      }
+
+      const target = String($("kwTarget").value || "skills");
       const lang = chosenKwLang();
       const kwRaw = activeKeywordRaw;
       const kwDisp = prettyKeyword(kwRaw, lang);
@@ -7835,20 +7625,6 @@ $("tabPreview").addEventListener("click", () => setTabs("preview"));
     $("kwModal").addEventListener("click", (e) => { if(e.target && e.target.id === "kwModal") closeKwModal(); });
 
     $("kwTarget").addEventListener("change", () => { updateKwTargetUi(); try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ } updateKwPreview(); });
-
-    // Placement toggle (Skills / Experience) for a cleaner UX
-    const kwToggle = $("kwTargetToggle");
-    if(kwToggle){
-      kwToggle.addEventListener("click", (e) => {
-        const b = e.target.closest("button[data-target]");
-        if(!b || b.disabled) return;
-        const t = String(b.getAttribute("data-target") || "skills").toLowerCase();
-        $("kwTarget").value = (t === "experience") ? "experience" : "skills";
-        updateKwTargetUi();
-        try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ }
-        updateKwPreview();
-      });
-    }
     $("kwLang").addEventListener("change", () => {
       try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ }
       updateKwPreview();
