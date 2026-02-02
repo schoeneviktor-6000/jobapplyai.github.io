@@ -703,3 +703,60 @@ CV Studio reusable components
   body{ background:#fff !important; }
   .paperA4{ box-shadow:none !important; border:none !important; width:210mm !important; min-height:297mm !important; }
 }
+/* ============================================================
+   CTA shine (animated sheen)
+   - Add class "cta" to any .btn to give it the subtle shiny sweep.
+   - Works for <button class="btn cta"> and <a class="btn cta">.
+   ============================================================ */
+
+.btn.cta{
+  position: relative;
+  overflow: hidden;
+  isolation: isolate; /* keep the sheen contained */
+}
+
+/* The moving sheen sits above the background but below the label/icon */
+.btn.cta::before{
+  content: "";
+  position: absolute;
+  top: -60%;
+  left: -45%;
+  width: 45%;
+  height: 220%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,var(--cta-shine-opacity, .55)) 50%,
+    rgba(255,255,255,0) 100%
+  );
+  transform: translateX(-180%) rotate(18deg);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+  filter: blur(.2px);
+  animation: jm_btn_shine var(--cta-shine-duration, 6.5s) ease-in-out infinite;
+}
+
+/* Make it feel more responsive on hover/focus */
+.btn.cta:hover::before,
+.btn.cta:focus-visible::before{
+  animation-duration: 2.8s;
+}
+
+.btn.cta:disabled::before,
+.btn.cta[aria-disabled="true"]::before{
+  animation: none;
+  opacity: 0;
+}
+
+@keyframes jm_btn_shine{
+  0%   { transform: translateX(-180%) rotate(18deg); opacity: 0; }
+  10%  { opacity: .35; }
+  20%  { transform: translateX(320%) rotate(18deg); opacity: 0; }
+  100% { transform: translateX(320%) rotate(18deg); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .btn.cta::before{ animation: none; opacity: 0; }
+}
