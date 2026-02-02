@@ -599,6 +599,290 @@ margin-top:2px;
 }
 .bulletIco svg{width:12px;height:12px}
 
+
+/* How it works: 3-step pipeline (job search → tailor → apply) */
+.pipeline{display:grid;gap:14px}
+
+.pipeRow{
+  display:grid;
+  grid-template-columns:1fr auto 1fr auto 1fr;
+  gap:12px;
+  align-items:stretch;
+}
+
+.pipeArrow{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:44px;
+  border-radius:16px;
+  border:1px solid rgba(215,218,220,.95);
+  background:rgba(246,247,248,.92);
+  color:rgba(0,0,0,.55);
+  box-shadow:0 10px 22px rgba(0,0,0,.05);
+}
+.pipeArrow svg{width:18px;height:18px;display:block}
+
+.pipeCard{
+  width:100%;
+  text-align:left;
+  padding:14px 14px 12px;
+  border-radius:18px;
+  border:1px solid rgba(215,218,220,.95);
+  background:#ffffff;
+  cursor:pointer;
+  transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease;
+  position:relative;
+  overflow:hidden;
+}
+.pipeCard:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:transparent;
+  pointer-events:none;
+}
+.pipeCard:hover{
+  transform:translateY(-2px);
+  box-shadow:var(--shadow2);
+  border-color:rgba(0,166,63,.22);
+}
+.pipeCard:hover:before{
+  background:linear-gradient(135deg, rgba(0,166,63,.06), rgba(0,0,0,.02));
+}
+
+.pipeCard[aria-current="step"]{
+  border-color:rgba(0,166,63,.45);
+  box-shadow:0 18px 44px rgba(0,166,63,.14);
+}
+.pipeCard[aria-current="step"]:before{
+  background:linear-gradient(135deg, rgba(0,166,63,.10), rgba(0,0,0,.02));
+}
+
+.pipeTop{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.pipeNum{
+  width:40px;
+  height:40px;
+  border-radius:999px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#ffffff;
+  border:1px solid rgba(215,218,220,.95);
+  font-weight:1000;
+  color:var(--ink2);
+  flex:0 0 auto;
+}
+.pipeCard[aria-current="step"] .pipeNum{
+  background:#e9f7ee;
+  border-color:rgba(0,166,63,.28);
+  color:#0a3a1c;
+}
+
+.pipeMeta{min-width:0}
+.pipeMeta strong{
+  display:block;
+  font-size:15px;
+  letter-spacing:-.2px;
+  font-weight:1000;
+}
+.pipeMeta span{
+  display:block;
+  margin-top:3px;
+  color:var(--muted2);
+  font-size:13px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:100%;
+}
+
+.pipeIco{
+  margin-left:auto;
+  width:44px;
+  height:44px;
+  border-radius:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#f4f4f4;
+  border:1px solid rgba(0,0,0,.10);
+  color:var(--ink2);
+  flex:0 0 auto;
+  transition:transform .12s ease, background .15s ease, border-color .15s ease;
+}
+.pipeIco svg{width:18px;height:18px}
+.pipeCard:hover .pipeIco{transform:rotate(-2deg) scale(1.02)}
+.pipeCard[aria-current="step"] .pipeIco{
+  background:#e9f7ee;
+  border-color:rgba(0,166,63,.28);
+  color:#0a3a1c;
+}
+
+.pipePills{
+  margin-top:10px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.pipePill{
+  padding:7px 10px;
+  border-radius:999px;
+  background:rgba(246,247,248,.92);
+  border:1px solid rgba(215,218,220,.9);
+  color:var(--muted);
+  font-size:12px;
+  font-weight:950;
+  white-space:nowrap;
+}
+.pipePill.lime{
+  background:#e9f7ee;
+  border-color:rgba(0,166,63,.28);
+  color:#0a3a1c;
+}
+
+/* Panel (re-uses stepPanel base) */
+.pipePanelTop{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  position:relative;
+}
+.pipeBadge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 12px;
+  border-radius:999px;
+  background:#e9f7ee;
+  border:1px solid rgba(0,166,63,.28);
+  color:#0a3a1c;
+  font-weight:1000;
+  font-size:12px;
+  white-space:nowrap;
+}
+
+.pipePreview{margin-top:14px; position:relative}
+.pipeBox{
+  border-radius:18px;
+  border:1px solid rgba(215,218,220,.9);
+  background:rgba(255,255,255,.92);
+  overflow:hidden;
+  box-shadow:0 12px 30px rgba(0,0,0,.06);
+}
+.pipeBoxTop{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px 12px;
+  background:rgba(246,247,248,.92);
+  border-bottom:1px solid rgba(215,218,220,.75);
+}
+.pipeBoxTitle{
+  font-size:12px;
+  letter-spacing:.2px;
+  text-transform:uppercase;
+  font-weight:1000;
+  color:var(--muted2);
+}
+.pipeBoxTag{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 10px;
+  border-radius:999px;
+  background:#ffffff;
+  border:1px solid rgba(215,218,220,.9);
+  font-size:12px;
+  font-weight:950;
+  color:var(--muted);
+}
+
+.pipeRows{display:grid}
+.pipeRowItem{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:10px;
+  padding:12px;
+  border-top:1px solid rgba(215,218,220,.75);
+  align-items:center;
+}
+.pipeRowItem:first-child{border-top:none}
+
+.pipeStatus{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:7px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:1000;
+  border:1px solid rgba(215,218,220,.9);
+  background:#f6f7f8;
+  color:var(--muted);
+  white-space:nowrap;
+}
+.pipeStatus.good{
+  background:#e9f7ee;
+  border-color:rgba(0,166,63,.26);
+  color:#0a3a1c;
+}
+
+.pipeRowMain{display:grid;gap:3px;min-width:0}
+.pipeRowTitle{font-weight:950;font-size:13px;color:var(--ink2)}
+.pipeRowMeta{font-size:12px;color:var(--muted2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.pipeMini{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:7px 10px;
+  border-radius:999px;
+  background:#ffffff;
+  border:1px solid rgba(215,218,220,.9);
+  font-size:12px;
+  font-weight:950;
+  color:var(--muted);
+  white-space:nowrap;
+}
+
+.pipeHint{
+  padding:10px 12px;
+  border-top:1px solid rgba(215,218,220,.75);
+  color:var(--muted2);
+  font-size:12px;
+  font-weight:850;
+  background:rgba(246,247,248,.55);
+}
+
+.pipeFine{
+  margin:12px 2px 0;
+  font-size:12px;
+  color:var(--muted2);
+  font-weight:850;
+}
+
+/* Mobile */
+@media (max-width:980px){
+  .pipeRow{grid-template-columns:1fr}
+  .pipeArrow{
+    width:100%;
+    height:44px;
+    border-radius:18px;
+  }
+  .pipeArrow svg{transform:rotate(90deg)}
+  .pipeMeta span{white-space:normal}
+  .pipeRowItem{grid-template-columns:1fr}
+  .pipeMini{justify-self:start}
+}
+
 /* ATS score */
 .atsBand{
   padding:58px 0;
@@ -1288,7 +1572,7 @@ color:var(--text);
 <path d="M21 21l-4.3-4.3"></path><circle cx="11" cy="11" r="7"></circle>
 </svg>
 </div>
-<div class="miniText"><strong>Research & shortlist</strong><span>We find roles that match your goals.</span></div>
+<div class="miniText"><strong>Job Search (Germany)</strong><span>Auto-fetch roles + shortlist daily.</span></div>
 </li>
 <li class="miniItem">
 <div class="miniIcon" aria-hidden="true">
@@ -1296,7 +1580,7 @@ color:var(--text);
 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path>
 </svg>
 </div>
-<div class="miniText"><strong>Tailor CV & letter</strong><span>Role-specific, ATS-ready, scored.</span></div>
+<div class="miniText"><strong>CV tailoring</strong><span>Paste a JD or tailor from fetched jobs.</span></div>
 </li>
 <li class="miniItem">
 <div class="miniIcon lime" aria-hidden="true">
@@ -1304,7 +1588,7 @@ color:var(--text);
 <path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"></path><path d="M21 8l-9 6-9-6"></path>
 </svg>
 </div>
-<div class="miniText"><strong>Send from Gmail</strong><span>Looks like you applied yourself.</span></div>
+<div class="miniText"><strong>Auto apply</strong><span>Prepared + sent from your Gmail (review-first).</span></div>
 </li>
 </ul>
 <div class="heroCardActions">
@@ -1321,81 +1605,133 @@ color:var(--text);
 <div class="container">
 <div class="sectionHead">
 <div class="kicker">How it works</div>
-<h2 class="sectionTitle">A simple process built for daily execution.</h2>
-<p class="sectionDesc">You set the direction once. We run the daily workflow and keep it consistent.</p>
+<h2 class="sectionTitle">Job search → tailored CV → applications sent.</h2>
+<p class="sectionDesc">A simple 3-step pipeline that turns your target into daily, high-quality outreach.</p>
 </div>
 
-<div class="stepper" aria-label="How it works stepper">
-<ol class="stepList" aria-label="Steps">
-<li>
-<button class="stepBtn" type="button" data-step="1" aria-current="step" aria-controls="how-panel" aria-expanded="true">
-<div class="stepDot">1</div>
-<div class="stepMeta">
-<strong>Connect your account</strong>
-<span>Login with Google so applications can be sent from your Gmail.</span>
+<div class="pipeline" id="pipeline" aria-label="JobMeJob automation pipeline">
+<div class="pipeRow" role="list" aria-label="Pipeline steps">
+<button class="pipeCard" role="listitem" type="button" data-step="0" aria-current="step" aria-controls="pipe-panel" aria-expanded="true">
+<div class="pipeTop">
+<div class="pipeNum">1</div>
+<div class="pipeMeta">
+<strong>Job Search</strong>
+<span>Auto-fetch matching roles</span>
 </div>
-<div class="stepIco" aria-hidden="true">
+<div class="pipeIco" aria-hidden="true">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-<path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Z"></path><path d="M3 22a9 9 0 0 1 18 0"></path>
+<path d="M21 21l-4.3-4.3"></path><circle cx="11" cy="11" r="7"></circle>
 </svg>
 </div>
-</button>
-</li>
-
-<li>
-<button class="stepBtn" type="button" data-step="2" aria-controls="how-panel" aria-expanded="false">
-<div class="stepDot">2</div>
-<div class="stepMeta">
-<strong>Set your preferences</strong>
-<span>Upload your CV and choose titles, industry, and location.</span>
 </div>
-<div class="stepIco" aria-hidden="true">
+<div class="pipePills" aria-hidden="true">
+<span class="pipePill lime">Germany only</span>
+<span class="pipePill">Shortlist</span>
+<span class="pipePill">Daily matches</span>
+</div>
+</button>
+
+<span class="pipeArrow" aria-hidden="true" title="Next">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M5 12h14"></path><path d="m13 5 7 7-7 7"></path>
+</svg>
+</span>
+
+<button class="pipeCard" role="listitem" type="button" data-step="1" aria-controls="pipe-panel" aria-expanded="false">
+<div class="pipeTop">
+<div class="pipeNum">2</div>
+<div class="pipeMeta">
+<strong>CV Tailoring</strong>
+<span>Paste JD or use fetched jobs</span>
+</div>
+<div class="pipeIco" aria-hidden="true">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path>
 </svg>
 </div>
-</button>
-</li>
-
-<li>
-<button class="stepBtn" type="button" data-step="3" aria-controls="how-panel" aria-expanded="false">
-<div class="stepDot">3</div>
-<div class="stepMeta">
-<strong>Pick a plan</strong>
-<span>Choose a daily quota that fits your urgency.</span>
 </div>
-<div class="stepIco" aria-hidden="true">
+<div class="pipePills" aria-hidden="true">
+<span class="pipePill">ATS-friendly</span>
+<span class="pipePill">Keyword gaps</span>
+<span class="pipePill">Same structure</span>
+</div>
+</button>
+
+<span class="pipeArrow" aria-hidden="true" title="Next">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-<path d="M12 1v22"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"></path>
+<path d="M5 12h14"></path><path d="m13 5 7 7-7 7"></path>
 </svg>
-</div>
-</button>
-</li>
+</span>
 
-<li>
-<button class="stepBtn" type="button" data-step="4" aria-controls="how-panel" aria-expanded="false">
-<div class="stepDot">4</div>
-<div class="stepMeta">
-<strong>We apply daily</strong>
-<span>We research, tailor, and send every day.</span>
+<button class="pipeCard" role="listitem" type="button" data-step="2" aria-controls="pipe-panel" aria-expanded="false">
+<div class="pipeTop">
+<div class="pipeNum">3</div>
+<div class="pipeMeta">
+<strong>Auto Apply</strong>
+<span>Prepared + sent from your email</span>
 </div>
-<div class="stepIco" aria-hidden="true">
+<div class="pipeIco" aria-hidden="true">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 <path d="M22 2 11 13"></path><path d="M22 2 15 22 11 13 2 9 22 2Z"></path>
 </svg>
 </div>
+</div>
+<div class="pipePills" aria-hidden="true">
+<span class="pipePill lime">Review-first</span>
+<span class="pipePill">Gmail</span>
+<span class="pipePill">Log tracked</span>
+</div>
 </button>
-</li>
-</ol>
+</div>
 
-<div class="stepPanel" id="how-panel" role="region" aria-label="Step details">
-<h3 class="panelTitle" id="panelTitle">Connect your account</h3>
-<p class="panelSub" id="panelSub">We use Google login so your applications can be sent from your own Gmail account, which makes outreach look natural and credible.</p>
-<ul class="panelBullets" id="panelBullets">
-<li><span class="bulletIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Login with Google and grant permission for sending emails.</li>
-<li><span class="bulletIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Your applications are sent from your email to keep trust high.</li>
-<li><span class="bulletIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>You can revoke access anytime.</li>
-</ul>
+<div class="stepPanel pipePanel" id="pipe-panel" role="region" aria-label="Pipeline preview">
+<div class="pipePanelTop">
+<h3 class="panelTitle" id="pipeTitle">Job Search</h3>
+<span class="pipeBadge" id="pipeBadge">Germany only</span>
+</div>
+<p class="panelSub" id="pipeSub">We fetch matching roles automatically and keep a shortlist — so you don’t waste evenings searching.</p>
+
+<div class="pipePreview" id="pipePreview" aria-label="Example output">
+<div class="pipeBox">
+<div class="pipeBoxTop">
+<strong class="pipeBoxTitle">Example: your job feed</strong>
+<span class="pipeBoxTag">New matches</span>
+</div>
+
+<div class="pipeRows" role="list">
+<div class="pipeRowItem" role="listitem">
+<span class="pipeStatus good">Match</span>
+<div class="pipeRowMain">
+<div class="pipeRowTitle">Product Manager</div>
+<div class="pipeRowMeta">Berlin · Hybrid · SaaS</div>
+</div>
+<span class="pipeMini">Score 84</span>
+</div>
+
+<div class="pipeRowItem" role="listitem">
+<span class="pipeStatus good">Match</span>
+<div class="pipeRowMain">
+<div class="pipeRowTitle">Data Analyst</div>
+<div class="pipeRowMeta">München · On-site · E‑commerce</div>
+</div>
+<span class="pipeMini">Score 79</span>
+</div>
+
+<div class="pipeRowItem" role="listitem">
+<span class="pipeStatus">New</span>
+<div class="pipeRowMain">
+<div class="pipeRowTitle">Software Engineer</div>
+<div class="pipeRowMeta">Hamburg · Remote · FinTech</div>
+</div>
+<span class="pipeMini">Score 76</span>
+</div>
+</div>
+
+<div class="pipeHint">Filters: title · location · remote · salary · seniority</div>
+</div>
+</div>
+
+<p class="pipeFine" id="pipeFine">Job fetching is optimized for the German market right now.</p>
 </div>
 </div>
 </div>
@@ -1872,50 +2208,260 @@ Last 7 days
 
 <script>
 (function(){
-var steps={
-1:{title:"Connect your account",sub:"We use Google login so your applications can be sent from your own Gmail account, which makes outreach look natural and credible.",bullets:["Login with Google and grant permission for sending emails.","Your applications are sent from your email to keep trust high.","You can revoke access anytime."]},
-2:{title:"Set your preferences",sub:"Tell us exactly what to apply for. We use your CV and preferences to focus daily outreach on roles you actually want.",bullets:["Upload your CV (PDF or DOC).","Choose job titles, industry, country, city, and radius.","We use these settings to filter and prioritize opportunities."]},
-3:{title:"Pick a plan",sub:"Select the daily application quota that matches your timeline. Higher plans increase coverage and reduce cost per application.",bullets:["Choose 1, 5, or 10 applications per day.","Change plans anytime as your search evolves.","Billing is monthly and transparent."]},
-4:{title:"We apply daily",sub:"Each day we research, tailor, and send applications. The goal is consistent volume with a quality-first approach.",bullets:["Research roles and identify the right contacts.","Tailor CV and cover letter per role and company.","Send applications from your Gmail and keep a simple log."]}
-};
+  // Year in footer
+  var yearEl = document.getElementById("year");
+  if(yearEl) yearEl.textContent = new Date().getFullYear();
 
-function setActive(step){
-var btns=document.querySelectorAll(".stepBtn");
-btns.forEach(function(b){
-var isActive=b.getAttribute("data-step")==String(step);
-if(isActive){b.setAttribute("aria-current","step");b.setAttribute("aria-expanded","true");}
-else{b.removeAttribute("aria-current");b.setAttribute("aria-expanded","false");}
-});
-document.getElementById("panelTitle").textContent=steps[step].title;
-document.getElementById("panelSub").textContent=steps[step].sub;
-var ul=document.getElementById("panelBullets");
-ul.innerHTML="";
-steps[step].bullets.forEach(function(text){
-var li=document.createElement("li");
-li.innerHTML='<span class="bulletIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>'+text;
-ul.appendChild(li);
-});
-}
+  // Pipeline (How it works)
+  var root = document.getElementById("pipeline");
+  if(!root) return;
 
-document.querySelectorAll(".stepBtn").forEach(function(btn){
-btn.addEventListener("click",function(){setActive(btn.getAttribute("data-step"));});
-btn.addEventListener("keydown",function(e){
-var keys=["ArrowDown","ArrowUp","ArrowLeft","ArrowRight","Home","End"];
-if(keys.indexOf(e.key)===-1)return;
-e.preventDefault();
-var all=[].slice.call(document.querySelectorAll(".stepBtn"));
-var idx=all.indexOf(btn);
-var next=idx;
-if(e.key==="ArrowDown"||e.key==="ArrowRight")next=Math.min(all.length-1,idx+1);
-if(e.key==="ArrowUp"||e.key==="ArrowLeft")next=Math.max(0,idx-1);
-if(e.key==="Home")next=0;
-if(e.key==="End")next=all.length-1;
-all[next].focus();
-setActive(all[next].getAttribute("data-step"));
-});
-});
+  var cards = [].slice.call(root.querySelectorAll(".pipeCard"));
+  var titleEl = document.getElementById("pipeTitle");
+  var subEl = document.getElementById("pipeSub");
+  var badgeEl = document.getElementById("pipeBadge");
+  var previewEl = document.getElementById("pipePreview");
+  var fineEl = document.getElementById("pipeFine");
 
-document.getElementById("year").textContent=new Date().getFullYear();
+  if(!cards.length || !titleEl || !subEl || !badgeEl || !previewEl) return;
+
+  function prefersReducedMotion(){
+    try{ return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
+    catch(_){ return false; }
+  }
+
+  var steps = {
+    0: {
+      title: "Job Search",
+      sub: "We fetch matching roles automatically and keep a shortlist — so you don’t waste evenings searching.",
+      badge: "Germany only",
+      fine: "Job fetching is optimized for the German market right now.",
+      preview: [
+        '<div class="pipeBox">',
+          '<div class="pipeBoxTop">',
+            '<strong class="pipeBoxTitle">Example: your job feed</strong>',
+            '<span class="pipeBoxTag">New matches</span>',
+          '</div>',
+          '<div class="pipeRows" role="list">',
+            '<div class="pipeRowItem" role="listitem">',
+              '<span class="pipeStatus good">Match</span>',
+              '<div class="pipeRowMain">',
+                '<div class="pipeRowTitle">Product Manager</div>',
+                '<div class="pipeRowMeta">Berlin · Hybrid · SaaS</div>',
+              '</div>',
+              '<span class="pipeMini">Score 84</span>',
+            '</div>',
+            '<div class="pipeRowItem" role="listitem">',
+              '<span class="pipeStatus good">Match</span>',
+              '<div class="pipeRowMain">',
+                '<div class="pipeRowTitle">Data Analyst</div>',
+                '<div class="pipeRowMeta">München · On-site · E‑commerce</div>',
+              '</div>',
+              '<span class="pipeMini">Score 79</span>',
+            '</div>',
+            '<div class="pipeRowItem" role="listitem">',
+              '<span class="pipeStatus">New</span>',
+              '<div class="pipeRowMain">',
+                '<div class="pipeRowTitle">Software Engineer</div>',
+                '<div class="pipeRowMeta">Hamburg · Remote · FinTech</div>',
+              '</div>',
+              '<span class="pipeMini">Score 76</span>',
+            '</div>',
+          '</div>',
+          '<div class="pipeHint">Filters: title · location · remote · salary · seniority</div>',
+        '</div>'
+      ].join("")
+    },
+
+    1: {
+      title: "CV Tailoring",
+      sub: "Paste a job description (JD) or pick a fetched job. We tailor your CV for relevance and ATS readability.",
+      badge: "Paste JD or pick a job",
+      fine: "We improve clarity and keyword coverage — without inventing experience.",
+      preview: [
+        '<div class="pipeBox">',
+          '<div class="pipeBoxTop">',
+            '<strong class="pipeBoxTitle">Example: tailored CV snapshot</strong>',
+            '<span class="pipeBoxTag">ATS-ready</span>',
+          '</div>',
+          '<div class="pipeRows" role="list">',
+            '<div class="pipeRowItem" role="listitem">',
+              '<span class="pipeStatus good">Added</span>',
+              '<div class="pipeRowMain">',
+                '<div class="pipeRowTitle">Keywords aligned</div>',
+                '<div class="pipeRowMeta">OKRs · roadmap · stakeholder mgmt · data quality</div>',
+              '</div>',
+              '<span class="pipeMini">+8</span>',
+            '</div>',
+            '<div class="pipeRowItem" role="listitem">',
+              '<span class="pipeStatus good">Reordered</span>',
+              '<div class="pipeRowMain">',
+                '<div class="pipeRowTitle">Most relevant bullets moved up</div>',
+                '<div class="pipeRowMeta">So the first 10 seconds land the story</div>',
+              '</div>',
+              '<span class="pipeMini">+5</span>',
+            '</div>',
+            '<div class="pipeRowItem" role="listitem">',
+              '<span class="pipeStatus">Gaps</span>',
+              '<div class="pipeRowMain">',
+                '<div class="pipeRowTitle">Missing terms flagged</div>',
+                '<div class="pipeRowMeta">Only recommended if they match your real background</div>',
+              '</div>',
+              '<span class="pipeMini">7</span>',
+            '</div>',
+          '</div>',
+          '<div class="pipeHint">Input: paste JD · or choose from fetched jobs</div>',
+        '</div>'
+      ].join("")
+    },
+
+    2: {
+      title: "Auto Apply",
+      sub: "We prepare applications, then send them from your Gmail — consistent formatting, tracked status, daily execution.",
+      badge: "Review-first",
+      fine: "The goal is scale without spam: quality-first outreach sent from your email.",
+      preview: [
+        '<div class="pipeBox">',
+          '<div class="pipeBoxTop">',
+            '<strong class="pipeBoxTitle">Example: application queue</strong>',
+            '<span class="pipeBoxTag">Daily execution</span>',
+          '</div>',
+          '<div class="pipeRows" role="list">',
+            '<div class="pipeRowItem" role="listitem">',
+              '<span class="pipeStatus good">Ready</span>',
+              '<div class="pipeRowMain">',
+                '<div class="pipeRowTitle">Ready to send</div>',
+                '<div class="pipeRowMeta">All info found · CV & letter prepared</div>',
+              '</div>',
+              '<span class="pipeMini">6</span>',
+            '</div>',
+            '<div class="pipeRowItem" role="listitem">',
+              '<span class="pipeStatus">Review</span>',
+              '<div class="pipeRowMain">',
+                '<div class="pipeRowTitle">Needs a quick check</div>',
+                '<div class="pipeRowMeta">Edge cases: unclear contact · missing data</div>',
+              '</div>',
+              '<span class="pipeMini">2</span>',
+            '</div>',
+            '<div class="pipeRowItem" role="listitem">',
+              '<span class="pipeStatus good">Sent</span>',
+              '<div class="pipeRowMain">',
+                '<div class="pipeRowTitle">Sent</div>',
+                '<div class="pipeRowMeta">Logged + timestamped for tracking</div>',
+              '</div>',
+              '<span class="pipeMini">4</span>',
+            '</div>',
+          '</div>',
+          '<div class="pipeHint">You stay credible: sent from your Gmail · tracked in your log</div>',
+        '</div>'
+      ].join("")
+    }
+  };
+
+  var active = 0;
+  var timer = null;
+  var hoverPause = false;
+  var userPauseUntil = 0;
+
+  function setActive(step, opts){
+    var s = Number(step);
+    if(!steps.hasOwnProperty(s)) s = 0;
+    active = s;
+
+    cards.forEach(function(btn){
+      var isOn = btn.getAttribute("data-step") === String(s);
+      if(isOn){
+        btn.setAttribute("aria-current","step");
+        btn.setAttribute("aria-expanded","true");
+      }else{
+        btn.removeAttribute("aria-current");
+        btn.setAttribute("aria-expanded","false");
+      }
+    });
+
+    titleEl.textContent = steps[s].title;
+    subEl.textContent = steps[s].sub;
+
+    var badge = String(steps[s].badge || "");
+    badgeEl.textContent = badge;
+    badgeEl.style.display = badge ? "inline-flex" : "none";
+
+    if(fineEl){
+      fineEl.textContent = String(steps[s].fine || "");
+      fineEl.style.display = steps[s].fine ? "block" : "none";
+    }
+
+    previewEl.innerHTML = steps[s].preview;
+
+    // If the user clicked, pause auto cycling for a bit
+    opts = opts || {};
+    if(opts.user){
+      userPauseUntil = Date.now() + 7000;
+    }
+  }
+
+  // Click wiring
+  cards.forEach(function(btn){
+    btn.addEventListener("click", function(){
+      setActive(btn.getAttribute("data-step"), { user: true });
+    });
+
+    btn.addEventListener("keydown", function(e){
+      var keys = ["ArrowRight","ArrowLeft","ArrowDown","ArrowUp","Home","End"];
+      if(keys.indexOf(e.key) === -1) return;
+      e.preventDefault();
+
+      var all = cards;
+      var idx = all.indexOf(btn);
+      var next = idx;
+
+      if(e.key === "ArrowRight" || e.key === "ArrowDown") next = Math.min(all.length - 1, idx + 1);
+      if(e.key === "ArrowLeft" || e.key === "ArrowUp") next = Math.max(0, idx - 1);
+      if(e.key === "Home") next = 0;
+      if(e.key === "End") next = all.length - 1;
+
+      all[next].focus();
+      setActive(all[next].getAttribute("data-step"), { user: true });
+    });
+  });
+
+  // Hover pause
+  root.addEventListener("mouseenter", function(){ hoverPause = true; });
+  root.addEventListener("mouseleave", function(){ hoverPause = false; });
+
+  function startAuto(){
+    if(prefersReducedMotion()) return;
+    if(timer) return;
+
+    timer = window.setInterval(function(){
+      if(hoverPause) return;
+      if(Date.now() < userPauseUntil) return;
+      setActive((active + 1) % cards.length, { user: false });
+    }, 4200);
+  }
+
+  function stopAuto(){
+    if(!timer) return;
+    window.clearInterval(timer);
+    timer = null;
+  }
+
+  // Only run when visible
+  if(!prefersReducedMotion() && "IntersectionObserver" in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting) startAuto();
+        else stopAuto();
+      });
+    }, { threshold: 0.35 });
+
+    io.observe(root);
+  }else{
+    startAuto();
+  }
+
+  // Init
+  setActive(0);
 })();
 </script>
 </footer>
