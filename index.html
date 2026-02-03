@@ -1497,6 +1497,486 @@ color:var(--text);
   border-top:1px solid rgba(215,218,220,.75);
   background:rgba(246,247,248,.55);
 }
+
+
+/* =========================================================
+   How it works — v2 (more visual + less uniform)
+   - Sticky “live preview” on the left
+   - Asymmetric, varied step card shapes + multi-accent palette
+   ========================================================= */
+
+.howBand{
+  padding:64px 0;
+  background:
+    radial-gradient(900px 520px at 10% 0%, rgba(0,166,63,.14), transparent 62%),
+    radial-gradient(900px 520px at 90% 18%, rgba(124,58,237,.12), transparent 62%),
+    radial-gradient(900px 520px at 52% 120%, rgba(249,115,22,.10), transparent 62%),
+    linear-gradient(180deg, var(--surface), var(--bg));
+  border-bottom:1px solid rgba(215,218,220,.85);
+}
+
+/* Root accent (changes as you move through steps) */
+#howFlow{
+  --howAccent: #00a63f;
+  --howAccentSoft: rgba(0,166,63,.14);
+  --howAccentStroke: rgba(0,166,63,.30);
+  --howAccentInk: #0a3a1c;
+
+  border-radius:28px;
+  background:rgba(255,255,255,.92);
+  border:1px solid rgba(215,218,220,.95);
+  box-shadow:0 22px 60px rgba(0,0,0,.10);
+  overflow:hidden;
+}
+
+#howFlow[data-active="1"]{
+  --howAccent: #7c3aed;
+  --howAccentSoft: rgba(124,58,237,.14);
+  --howAccentStroke: rgba(124,58,237,.30);
+  --howAccentInk: #2b155c;
+}
+#howFlow[data-active="2"]{
+  --howAccent: #f97316;
+  --howAccentSoft: rgba(249,115,22,.14);
+  --howAccentStroke: rgba(249,115,22,.30);
+  --howAccentInk: #6a2a00;
+}
+
+.howStory{
+  display:grid;
+  grid-template-columns:.95fr 1.05fr;
+  align-items:stretch;
+}
+
+/* Left: sticky preview */
+.howSticky{
+  padding:18px;
+  background:
+    radial-gradient(520px 240px at 35% 0%, var(--howAccentSoft), transparent 70%),
+    linear-gradient(180deg, rgba(246,247,248,.92), rgba(255,255,255,.86));
+  border-right:1px solid rgba(215,218,220,.85);
+}
+.howStickyInner{
+  position:sticky;
+  top:92px;
+  display:grid;
+  gap:12px;
+}
+
+.howPreview{
+  border-radius:26px;
+  border:1px solid rgba(215,218,220,.95);
+  background:#ffffff;
+  box-shadow:0 22px 58px rgba(0,0,0,.12);
+  overflow:hidden;
+}
+
+.howPreviewTop{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 14px;
+  background:linear-gradient(180deg, rgba(246,247,248,.96), rgba(255,255,255,.96));
+  border-bottom:1px solid rgba(215,218,220,.9);
+}
+
+.howDots{display:flex;gap:7px;align-items:center}
+.howDots span{width:10px;height:10px;border-radius:999px;background:rgba(0,0,0,.16)}
+.howDots span:nth-child(2){background:rgba(0,0,0,.12)}
+.howDots span:nth-child(3){background:rgba(0,0,0,.08)}
+
+.howPreviewTitle{
+  font-weight:1000;
+  color:var(--ink2);
+  font-size:13px;
+  letter-spacing:-.2px;
+  text-align:center;
+  flex:1;
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.howProgress{display:flex;gap:6px;align-items:center}
+.howPip{
+  width:9px;height:9px;border-radius:999px;
+  background:rgba(0,0,0,.10);
+  transition:transform .15s ease, background .15s ease;
+}
+.howPip.is-on{background:var(--howAccent);transform:scale(1.18)}
+
+.howPreviewBody{
+  padding:14px;
+  background:
+    radial-gradient(520px 240px at 70% 0%, var(--howAccentSoft), transparent 65%),
+    #ffffff;
+}
+.howPreviewBody.is-anim{animation:howSwap .35s ease}
+@keyframes howSwap{
+  from{opacity:0;transform:translateY(6px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+.howPreviewFine{
+  padding:10px 14px 12px;
+  border-top:1px solid rgba(215,218,220,.82);
+  background:rgba(246,247,248,.70);
+  color:var(--muted2);
+  font-size:12px;
+  font-weight:850;
+}
+
+.howStickyActions{display:flex;gap:10px;flex-wrap:wrap}
+.howStickyNote{display:flex;gap:8px;flex-wrap:wrap}
+.howMiniBadge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 10px;
+  border-radius:999px;
+  background:rgba(255,255,255,.78);
+  border:1px solid rgba(215,218,220,.95);
+  color:var(--muted);
+  font-size:12px;
+  font-weight:950;
+}
+.howMiniBadge .dot{
+  width:8px;height:8px;border-radius:999px;
+  background:var(--howAccent);
+  box-shadow:0 0 0 6px var(--howAccentSoft);
+}
+
+/* Right: steps */
+.howSteps{
+  padding:18px;
+  background:
+    radial-gradient(520px 240px at 10% 0%, rgba(0,0,0,.035), transparent 70%),
+    linear-gradient(180deg, rgba(255,255,255,.88), rgba(246,247,248,.62));
+  display:grid;
+  gap:14px;
+}
+
+.howStep{
+  --accent: #00a63f;
+  --accentSoft: rgba(0,166,63,.14);
+  --accentStroke: rgba(0,166,63,.30);
+  --accentInk: #0a3a1c;
+}
+.howStep[data-step="1"]{
+  --accent:#7c3aed;
+  --accentSoft:rgba(124,58,237,.14);
+  --accentStroke:rgba(124,58,237,.30);
+  --accentInk:#2b155c;
+}
+.howStep[data-step="2"]{
+  --accent:#f97316;
+  --accentSoft:rgba(249,115,22,.14);
+  --accentStroke:rgba(249,115,22,.30);
+  --accentInk:#6a2a00;
+}
+
+.howStepCard{
+  width:100%;
+  text-align:left;
+  padding:16px 16px 14px;
+  border-radius:24px;
+  border:1px solid rgba(215,218,220,.95);
+  background:rgba(255,255,255,.94);
+  cursor:pointer;
+  transition:transform .12s ease, box-shadow .20s ease, border-color .15s ease;
+  position:relative;
+  overflow:hidden;
+}
+
+/* Accent wash layer */
+.howStepCard .ticketNotch{display:none} /* enabled only for ticket */
+.howStepCard:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg, var(--accentSoft), rgba(0,0,0,.02));
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .20s ease;
+}
+.howStepCard > *{position:relative}
+
+.howStepCard:hover{
+  transform:translateY(-2px);
+  box-shadow:0 24px 64px rgba(0,0,0,.14);
+  border-color:rgba(0,0,0,.10);
+}
+.howStepCard:hover:before{opacity:1}
+
+.howStep.is-active .howStepCard{
+  border-color:var(--accentStroke);
+  box-shadow:0 26px 72px rgba(0,0,0,.14), 0 0 0 4px var(--accentSoft);
+  transform:translateY(-1px);
+}
+.howStep.is-active .howStepCard:before{opacity:1}
+
+.howStepHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+}
+
+.howStepNo{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 10px;
+  border-radius:999px;
+  background:rgba(246,247,248,.85);
+  border:1px solid rgba(215,218,220,.95);
+  font-weight:950;
+  color:var(--ink2);
+}
+.howStepNo .n{
+  width:28px;height:28px;border-radius:999px;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--accentSoft);
+  border:1px solid var(--accentStroke);
+  color:var(--accentInk);
+  font-weight:1000;
+}
+.howStepNo .t{font-size:12px;letter-spacing:.2px;text-transform:uppercase}
+
+.howStepIcon{
+  width:44px;height:44px;border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.055);
+  border:1px solid rgba(0,0,0,.10);
+  color:var(--ink2);
+  transition:transform .12s ease, background .15s ease, border-color .15s ease, color .15s ease;
+}
+.howStepIcon svg{width:18px;height:18px}
+.howStepCard:hover .howStepIcon{transform:rotate(-2deg) scale(1.03)}
+.howStep.is-active .howStepIcon{
+  background:var(--accentSoft);
+  border-color:var(--accentStroke);
+  color:var(--accentInk);
+}
+
+.howStepTitle{
+  margin:0 0 6px;
+  font-size:18px;
+  letter-spacing:-.2px;
+  font-weight:1000;
+}
+.howStepDesc{
+  margin:0;
+  color:var(--muted);
+  font-size:14px;
+  max-width:70ch;
+}
+
+.howIO{
+  margin-top:12px;
+  display:grid;
+  gap:8px;
+}
+.howIOItem{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px 12px;
+  border-radius:16px;
+  background:rgba(246,247,248,.75);
+  border:1px solid rgba(215,218,220,.9);
+}
+.howIOItem span{
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.22px;
+  font-weight:950;
+  color:var(--muted2);
+}
+.howIOItem strong{
+  font-size:13px;
+  font-weight:1000;
+  color:var(--ink2);
+  text-align:right;
+}
+
+.howChips{
+  margin-top:12px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.howChip{
+  padding:7px 10px;
+  border-radius:14px; /* not a pill — breaks the uniformity */
+  background:rgba(255,255,255,.86);
+  border:1px solid rgba(215,218,220,.9);
+  color:var(--muted);
+  font-size:12px;
+  font-weight:950;
+  white-space:nowrap;
+}
+.howChip.hot{
+  background:var(--accentSoft);
+  border-color:var(--accentStroke);
+  color:var(--accentInk);
+}
+
+/* Shape variety */
+.howStep.shape-round .howStepCard{border-radius:26px}
+.howStep.shape-cut .howStepCard{border-radius:22px;transform:rotate(-.15deg)}
+@supports (clip-path: polygon(0 0)){
+  .howStep.shape-cut .howStepCard{
+    clip-path:polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+  }
+}
+
+.howStep.shape-ticket .howStepCard{border-radius:24px}
+.howStep.shape-ticket .howStepCard .ticketNotch{
+  display:block;
+  position:absolute;
+  top:52%;
+  width:18px;height:18px;border-radius:999px;
+  background:rgba(246,247,248,.62); /* matches .howSteps background */
+  border:1px solid rgba(215,218,220,.75);
+  transform:translateY(-50%);
+  pointer-events:none;
+}
+.howStep.shape-ticket .howStepCard .ticketNotch.left{left:-9px}
+.howStep.shape-ticket .howStepCard .ticketNotch.right{right:-9px}
+
+/* Bottom card inside the steps column */
+.howBottomCard{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px 14px;
+  border-radius:22px;
+  border:1px solid rgba(215,218,220,.95);
+  background:rgba(255,255,255,.92);
+  box-shadow:0 14px 44px rgba(0,0,0,.08);
+}
+.howBottomLeft{display:flex;align-items:center;gap:12px;min-width:0}
+.howSeal{
+  width:44px;height:44px;border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--howAccentSoft);
+  border:1px solid var(--howAccentStroke);
+  color:var(--howAccentInk);
+  flex:0 0 auto;
+}
+.howSeal svg{width:20px;height:20px}
+.howBottomText{display:grid;gap:4px;min-width:0}
+.howBottomText strong{font-weight:1000;color:var(--ink2);letter-spacing:-.2px}
+.howBottomText span{color:var(--muted);font-size:13px}
+
+/* Preview components */
+.howMock{
+  border-radius:20px;
+  border:1px solid rgba(215,218,220,.92);
+  background:rgba(255,255,255,.94);
+  overflow:hidden;
+  box-shadow:0 12px 30px rgba(0,0,0,.08);
+}
+.howMockTop{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px 12px;
+  background:rgba(246,247,248,.92);
+  border-bottom:1px solid rgba(215,218,220,.78);
+}
+.howMockTop strong{
+  font-size:12px;
+  letter-spacing:.2px;
+  text-transform:uppercase;
+  font-weight:1000;
+  color:var(--muted2);
+}
+.howMockPill{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 10px;
+  border-radius:999px;
+  background:#ffffff;
+  border:1px solid rgba(215,218,220,.9);
+  font-size:12px;
+  font-weight:950;
+  color:var(--muted);
+  white-space:nowrap;
+}
+
+.howMockRows{display:grid}
+.howRow{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:10px;
+  padding:12px;
+  border-top:1px solid rgba(215,218,220,.75);
+  align-items:center;
+}
+.howRow:first-child{border-top:none}
+.howState{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:7px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:1000;
+  border:1px solid rgba(215,218,220,.9);
+  background:#f6f7f8;
+  color:var(--muted);
+  white-space:nowrap;
+}
+.howState.good{
+  background:var(--howAccentSoft);
+  border-color:var(--howAccentStroke);
+  color:var(--howAccentInk);
+}
+
+.howRowMain{display:grid;gap:3px;min-width:0}
+.howRowTitle{font-weight:950;font-size:13px;color:var(--ink2)}
+.howRowMeta{font-size:12px;color:var(--muted2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.howScore{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:7px 10px;
+  border-radius:999px;
+  background:#ffffff;
+  border:1px solid rgba(215,218,220,.9);
+  font-size:12px;
+  font-weight:950;
+  color:var(--muted);
+  white-space:nowrap;
+}
+
+.howMockHint{
+  padding:10px 12px;
+  border-top:1px solid rgba(215,218,220,.78);
+  color:var(--muted2);
+  font-size:12px;
+  font-weight:850;
+  background:rgba(246,247,248,.58);
+}
+
+/* Responsive */
+@media (max-width:980px){
+  .howStory{grid-template-columns:1fr}
+  .howSticky{border-right:none;border-bottom:1px solid rgba(215,218,220,.85)}
+  .howStickyInner{position:relative;top:auto}
+  .howRow{grid-template-columns:1fr}
+  .howScore{justify-self:start}
+  .howPreviewTitle{text-align:left}
+}
 </style>
 </head>
 <body>
@@ -1601,140 +2081,187 @@ color:var(--text);
 </div>
 </section>
 
-<section id="how" class="anchor">
-<div class="container">
-<div class="sectionHead">
-<div class="kicker">How it works</div>
-<h2 class="sectionTitle">Job search → tailored CV → applications sent.</h2>
-<p class="sectionDesc">A simple 3-step pipeline that turns your target into daily, high-quality outreach.</p>
-</div>
+<section id="how" class="howBand anchor">
+  <div class="container">
+    <div class="sectionHead">
+      <div class="kicker">How it works</div>
+      <h2 class="sectionTitle">Job search → tailored CV → applications sent.</h2>
+      <p class="sectionDesc">Set your target once. jobmejob runs the daily workflow — matching, tailoring, sending, and tracking.</p>
+    </div>
 
-<div class="pipeline" id="pipeline" aria-label="JobMeJob automation pipeline">
-<div class="pipeRow" role="list" aria-label="Pipeline steps">
-<button class="pipeCard" role="listitem" type="button" data-step="0" aria-current="step" aria-controls="pipe-panel" aria-expanded="true">
-<div class="pipeTop">
-<div class="pipeNum">1</div>
-<div class="pipeMeta">
-<strong>Job Search</strong>
-<span>Auto-fetch matching roles</span>
-</div>
-<div class="pipeIco" aria-hidden="true">
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-<path d="M21 21l-4.3-4.3"></path><circle cx="11" cy="11" r="7"></circle>
-</svg>
-</div>
-</div>
-<div class="pipePills" aria-hidden="true">
-<span class="pipePill lime">Germany only</span>
-<span class="pipePill">Shortlist</span>
-<span class="pipePill">Daily matches</span>
-</div>
-</button>
+    <div class="howFrame" id="howFlow" data-active="0" aria-label="How it works workflow">
+      <div class="howStory">
+        <!-- Sticky preview -->
+        <div class="howSticky">
+          <div class="howStickyInner">
+            <div class="howPreview" id="howPreview" role="region" aria-label="Workflow preview">
+              <div class="howPreviewTop">
+                <div class="howDots" aria-hidden="true"><span></span><span></span><span></span></div>
+                <div class="howPreviewTitle" id="howPreviewTitle" aria-live="polite">Job Search</div>
+                <div class="howProgress" aria-label="Step progress">
+                  <span class="howPip is-on" aria-hidden="true"></span>
+                  <span class="howPip" aria-hidden="true"></span>
+                  <span class="howPip" aria-hidden="true"></span>
+                </div>
+              </div>
 
-<span class="pipeArrow" aria-hidden="true" title="Next">
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-<path d="M5 12h14"></path><path d="m13 5 7 7-7 7"></path>
-</svg>
-</span>
+              <div class="howPreviewBody is-anim" id="howPreviewBody">
+                <div class="howMock">
+                  <div class="howMockTop">
+                    <strong>Example: your job feed</strong>
+                    <span class="howMockPill">New matches</span>
+                  </div>
 
-<button class="pipeCard" role="listitem" type="button" data-step="1" aria-controls="pipe-panel" aria-expanded="false">
-<div class="pipeTop">
-<div class="pipeNum">2</div>
-<div class="pipeMeta">
-<strong>CV Tailoring</strong>
-<span>Paste JD or use fetched jobs</span>
-</div>
-<div class="pipeIco" aria-hidden="true">
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path>
-</svg>
-</div>
-</div>
-<div class="pipePills" aria-hidden="true">
-<span class="pipePill">ATS-friendly</span>
-<span class="pipePill">Keyword gaps</span>
-<span class="pipePill">Same structure</span>
-</div>
-</button>
+                  <div class="howMockRows" role="list">
+                    <div class="howRow" role="listitem">
+                      <span class="howState good">Match</span>
+                      <div class="howRowMain">
+                        <div class="howRowTitle">Product Manager</div>
+                        <div class="howRowMeta">Berlin · Hybrid · SaaS</div>
+                      </div>
+                      <span class="howScore">84</span>
+                    </div>
 
-<span class="pipeArrow" aria-hidden="true" title="Next">
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-<path d="M5 12h14"></path><path d="m13 5 7 7-7 7"></path>
-</svg>
-</span>
+                    <div class="howRow" role="listitem">
+                      <span class="howState good">Match</span>
+                      <div class="howRowMain">
+                        <div class="howRowTitle">Data Analyst</div>
+                        <div class="howRowMeta">München · On‑site · E‑commerce</div>
+                      </div>
+                      <span class="howScore">79</span>
+                    </div>
 
-<button class="pipeCard" role="listitem" type="button" data-step="2" aria-controls="pipe-panel" aria-expanded="false">
-<div class="pipeTop">
-<div class="pipeNum">3</div>
-<div class="pipeMeta">
-<strong>Auto Apply</strong>
-<span>Prepared + sent from your email</span>
-</div>
-<div class="pipeIco" aria-hidden="true">
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-<path d="M22 2 11 13"></path><path d="M22 2 15 22 11 13 2 9 22 2Z"></path>
-</svg>
-</div>
-</div>
-<div class="pipePills" aria-hidden="true">
-<span class="pipePill lime">Review-first</span>
-<span class="pipePill">Gmail</span>
-<span class="pipePill">Log tracked</span>
-</div>
-</button>
-</div>
+                    <div class="howRow" role="listitem">
+                      <span class="howState">New</span>
+                      <div class="howRowMain">
+                        <div class="howRowTitle">Software Engineer</div>
+                        <div class="howRowMeta">Hamburg · Remote · FinTech</div>
+                      </div>
+                      <span class="howScore">76</span>
+                    </div>
+                  </div>
 
-<div class="stepPanel pipePanel" id="pipe-panel" role="region" aria-label="Pipeline preview">
-<div class="pipePanelTop">
-<h3 class="panelTitle" id="pipeTitle">Job Search</h3>
-<span class="pipeBadge" id="pipeBadge">Germany only</span>
-</div>
-<p class="panelSub" id="pipeSub">We fetch matching roles automatically and keep a shortlist — so you don’t waste evenings searching.</p>
+                  <div class="howMockHint">Filters: title · location · remote · salary · seniority</div>
+                </div>
+              </div>
 
-<div class="pipePreview" id="pipePreview" aria-label="Example output">
-<div class="pipeBox">
-<div class="pipeBoxTop">
-<strong class="pipeBoxTitle">Example: your job feed</strong>
-<span class="pipeBoxTag">New matches</span>
-</div>
+              <div class="howPreviewFine" id="howPreviewFine">Job fetching is optimized for the German market right now.</div>
+            </div>
 
-<div class="pipeRows" role="list">
-<div class="pipeRowItem" role="listitem">
-<span class="pipeStatus good">Match</span>
-<div class="pipeRowMain">
-<div class="pipeRowTitle">Product Manager</div>
-<div class="pipeRowMeta">Berlin · Hybrid · SaaS</div>
-</div>
-<span class="pipeMini">Score 84</span>
-</div>
+            <div class="howStickyActions">
+              <a class="btn lime small" href="signup.html"><span class="btnLabel">Get started</span></a>
+              <a class="btn small" href="#pricing"><span class="btnLabel">View plans</span></a>
+            </div>
 
-<div class="pipeRowItem" role="listitem">
-<span class="pipeStatus good">Match</span>
-<div class="pipeRowMain">
-<div class="pipeRowTitle">Data Analyst</div>
-<div class="pipeRowMeta">München · On-site · E‑commerce</div>
-</div>
-<span class="pipeMini">Score 79</span>
-</div>
+            <div class="howStickyNote" aria-label="Principles">
+              <span class="howMiniBadge"><span class="dot" aria-hidden="true"></span>Review-first</span>
+              <span class="howMiniBadge"><span class="dot" aria-hidden="true"></span>Sent from Gmail</span>
+              <span class="howMiniBadge"><span class="dot" aria-hidden="true"></span>Logged</span>
+            </div>
+          </div>
+        </div>
 
-<div class="pipeRowItem" role="listitem">
-<span class="pipeStatus">New</span>
-<div class="pipeRowMain">
-<div class="pipeRowTitle">Software Engineer</div>
-<div class="pipeRowMeta">Hamburg · Remote · FinTech</div>
-</div>
-<span class="pipeMini">Score 76</span>
-</div>
-</div>
+        <!-- Steps -->
+        <div class="howSteps" role="list" aria-label="Workflow steps">
+          <div class="howStep shape-round is-active" data-step="0" role="listitem">
+            <button class="howStepCard" type="button" aria-current="step" aria-controls="howPreview" aria-expanded="true">
+              <div class="howStepHead">
+                <div class="howStepNo"><span class="n">1</span><span class="t">Search</span></div>
+                <div class="howStepIcon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 21l-4.3-4.3"></path><circle cx="11" cy="11" r="7"></circle>
+                  </svg>
+                </div>
+              </div>
+              <h3 class="howStepTitle">Job Search</h3>
+              <p class="howStepDesc">We fetch matching roles automatically and keep a shortlist — so you don’t waste evenings searching.</p>
 
-<div class="pipeHint">Filters: title · location · remote · salary · seniority</div>
-</div>
-</div>
+              <div class="howIO" aria-label="Input and output">
+                <div class="howIOItem"><span>Input</span><strong>titles · location · seniority</strong></div>
+                <div class="howIOItem"><span>Output</span><strong>shortlist + match score</strong></div>
+              </div>
 
-<p class="pipeFine" id="pipeFine">Job fetching is optimized for the German market right now.</p>
-</div>
-</div>
-</div>
+              <div class="howChips" aria-hidden="true">
+                <span class="howChip hot">Germany market</span>
+                <span class="howChip">Daily matches</span>
+                <span class="howChip">Shortlist</span>
+              </div>
+            </button>
+          </div>
+
+          <div class="howStep shape-cut" data-step="1" role="listitem">
+            <button class="howStepCard" type="button" aria-controls="howPreview" aria-expanded="false">
+              <div class="howStepHead">
+                <div class="howStepNo"><span class="n">2</span><span class="t">Tailor</span></div>
+                <div class="howStepIcon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path>
+                  </svg>
+                </div>
+              </div>
+              <h3 class="howStepTitle">CV Tailoring</h3>
+              <p class="howStepDesc">Paste a job description (JD) or pick a fetched job. We tailor your CV + cover letter for relevance and ATS readability.</p>
+
+              <div class="howIO" aria-label="Input and output">
+                <div class="howIOItem"><span>Input</span><strong>your base CV + job post</strong></div>
+                <div class="howIOItem"><span>Output</span><strong>tailored CV + ATS score</strong></div>
+              </div>
+
+              <div class="howChips" aria-hidden="true">
+                <span class="howChip">ATS‑friendly</span>
+                <span class="howChip">Keyword gaps</span>
+                <span class="howChip">Same structure</span>
+              </div>
+            </button>
+          </div>
+
+          <div class="howStep shape-ticket" data-step="2" role="listitem">
+            <button class="howStepCard" type="button" aria-controls="howPreview" aria-expanded="false">
+              <span class="ticketNotch left" aria-hidden="true"></span>
+              <span class="ticketNotch right" aria-hidden="true"></span>
+              <div class="howStepHead">
+                <div class="howStepNo"><span class="n">3</span><span class="t">Send</span></div>
+                <div class="howStepIcon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 2 11 13"></path><path d="M22 2 15 22 11 13 2 9 22 2Z"></path>
+                  </svg>
+                </div>
+              </div>
+              <h3 class="howStepTitle">Auto Apply</h3>
+              <p class="howStepDesc">We prepare applications, then send them from your Gmail. You get a clear log so you always know what went out.</p>
+
+              <div class="howIO" aria-label="Input and output">
+                <div class="howIOItem"><span>Input</span><strong>Gmail connection</strong></div>
+                <div class="howIOItem"><span>Output</span><strong>sent email + tracked log</strong></div>
+              </div>
+
+              <div class="howChips" aria-hidden="true">
+                <span class="howChip hot">Review‑first</span>
+                <span class="howChip">Gmail</span>
+                <span class="howChip">Log tracked</span>
+              </div>
+            </button>
+          </div>
+
+          <div class="howBottomCard" aria-label="Quality principle">
+            <div class="howBottomLeft">
+              <div class="howSeal" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 7l-8 10L4 11"></path>
+                </svg>
+              </div>
+              <div class="howBottomText">
+                <strong>Quality-first workflow</strong>
+                <span>Not spam: tailored per role, human-reviewed, sent from your email.</span>
+              </div>
+            </div>
+            <a class="btn primary small" href="#pricing"><span class="btnLabel">Pick a plan</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </section>
 
 <section id="ats" class="atsBand anchor">
@@ -2211,165 +2738,167 @@ Last 7 days
   // Year in footer
   var yearEl = document.getElementById("year");
   if(yearEl) yearEl.textContent = new Date().getFullYear();
+})();
 
-  // Pipeline (How it works)
-  var root = document.getElementById("pipeline");
+(function(){
+  // How it works (v2)
+  var root = document.getElementById("howFlow");
   if(!root) return;
 
-  var cards = [].slice.call(root.querySelectorAll(".pipeCard"));
-  var titleEl = document.getElementById("pipeTitle");
-  var subEl = document.getElementById("pipeSub");
-  var badgeEl = document.getElementById("pipeBadge");
-  var previewEl = document.getElementById("pipePreview");
-  var fineEl = document.getElementById("pipeFine");
+  var previewBody = document.getElementById("howPreviewBody");
+  var previewTitle = document.getElementById("howPreviewTitle");
+  var previewFine = document.getElementById("howPreviewFine");
 
-  if(!cards.length || !titleEl || !subEl || !badgeEl || !previewEl) return;
+  var steps = [].slice.call(root.querySelectorAll(".howStep"));
+  var pips = [].slice.call(root.querySelectorAll(".howPip"));
+
+  if(!previewBody || !previewTitle || !previewFine || !steps.length) return;
 
   function prefersReducedMotion(){
     try{ return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
     catch(_){ return false; }
   }
 
-  var steps = {
+  var data = {
     0: {
       title: "Job Search",
-      sub: "We fetch matching roles automatically and keep a shortlist — so you don’t waste evenings searching.",
-      badge: "Germany only",
       fine: "Job fetching is optimized for the German market right now.",
       preview: [
-        '<div class="pipeBox">',
-          '<div class="pipeBoxTop">',
-            '<strong class="pipeBoxTitle">Example: your job feed</strong>',
-            '<span class="pipeBoxTag">New matches</span>',
+        '<div class="howMock">',
+          '<div class="howMockTop">',
+            '<strong>Example: your job feed</strong>',
+            '<span class="howMockPill">New matches</span>',
           '</div>',
-          '<div class="pipeRows" role="list">',
-            '<div class="pipeRowItem" role="listitem">',
-              '<span class="pipeStatus good">Match</span>',
-              '<div class="pipeRowMain">',
-                '<div class="pipeRowTitle">Product Manager</div>',
-                '<div class="pipeRowMeta">Berlin · Hybrid · SaaS</div>',
+          '<div class="howMockRows" role="list">',
+            '<div class="howRow" role="listitem">',
+              '<span class="howState good">Match</span>',
+              '<div class="howRowMain">',
+                '<div class="howRowTitle">Product Manager</div>',
+                '<div class="howRowMeta">Berlin · Hybrid · SaaS</div>',
               '</div>',
-              '<span class="pipeMini">Score 84</span>',
+              '<span class="howScore">84</span>',
             '</div>',
-            '<div class="pipeRowItem" role="listitem">',
-              '<span class="pipeStatus good">Match</span>',
-              '<div class="pipeRowMain">',
-                '<div class="pipeRowTitle">Data Analyst</div>',
-                '<div class="pipeRowMeta">München · On-site · E‑commerce</div>',
+            '<div class="howRow" role="listitem">',
+              '<span class="howState good">Match</span>',
+              '<div class="howRowMain">',
+                '<div class="howRowTitle">Data Analyst</div>',
+                '<div class="howRowMeta">München · On‑site · E‑commerce</div>',
               '</div>',
-              '<span class="pipeMini">Score 79</span>',
+              '<span class="howScore">79</span>',
             '</div>',
-            '<div class="pipeRowItem" role="listitem">',
-              '<span class="pipeStatus">New</span>',
-              '<div class="pipeRowMain">',
-                '<div class="pipeRowTitle">Software Engineer</div>',
-                '<div class="pipeRowMeta">Hamburg · Remote · FinTech</div>',
+            '<div class="howRow" role="listitem">',
+              '<span class="howState">New</span>',
+              '<div class="howRowMain">',
+                '<div class="howRowTitle">Software Engineer</div>',
+                '<div class="howRowMeta">Hamburg · Remote · FinTech</div>',
               '</div>',
-              '<span class="pipeMini">Score 76</span>',
+              '<span class="howScore">76</span>',
             '</div>',
           '</div>',
-          '<div class="pipeHint">Filters: title · location · remote · salary · seniority</div>',
+          '<div class="howMockHint">Filters: title · location · remote · salary · seniority</div>',
         '</div>'
       ].join("")
     },
 
     1: {
       title: "CV Tailoring",
-      sub: "Paste a job description (JD) or pick a fetched job. We tailor your CV for relevance and ATS readability.",
-      badge: "Paste JD or pick a job",
       fine: "We improve clarity and keyword coverage — without inventing experience.",
       preview: [
-        '<div class="pipeBox">',
-          '<div class="pipeBoxTop">',
-            '<strong class="pipeBoxTitle">Example: tailored CV snapshot</strong>',
-            '<span class="pipeBoxTag">ATS-ready</span>',
+        '<div class="howMock">',
+          '<div class="howMockTop">',
+            '<strong>Example: tailored CV snapshot</strong>',
+            '<span class="howMockPill">ATS score 82</span>',
           '</div>',
-          '<div class="pipeRows" role="list">',
-            '<div class="pipeRowItem" role="listitem">',
-              '<span class="pipeStatus good">Added</span>',
-              '<div class="pipeRowMain">',
-                '<div class="pipeRowTitle">Keywords aligned</div>',
-                '<div class="pipeRowMeta">OKRs · roadmap · stakeholder mgmt · data quality</div>',
+          '<div class="howMockRows" role="list">',
+            '<div class="howRow" role="listitem">',
+              '<span class="howState good">Added</span>',
+              '<div class="howRowMain">',
+                '<div class="howRowTitle">Keywords aligned</div>',
+                '<div class="howRowMeta">OKRs · roadmap · stakeholder mgmt · data quality</div>',
               '</div>',
-              '<span class="pipeMini">+8</span>',
+              '<span class="howScore">+8</span>',
             '</div>',
-            '<div class="pipeRowItem" role="listitem">',
-              '<span class="pipeStatus good">Reordered</span>',
-              '<div class="pipeRowMain">',
-                '<div class="pipeRowTitle">Most relevant bullets moved up</div>',
-                '<div class="pipeRowMeta">So the first 10 seconds land the story</div>',
+            '<div class="howRow" role="listitem">',
+              '<span class="howState good">Reordered</span>',
+              '<div class="howRowMain">',
+                '<div class="howRowTitle">Most relevant bullets first</div>',
+                '<div class="howRowMeta">So the story lands in the first 10 seconds</div>',
               '</div>',
-              '<span class="pipeMini">+5</span>',
+              '<span class="howScore">+5</span>',
             '</div>',
-            '<div class="pipeRowItem" role="listitem">',
-              '<span class="pipeStatus">Gaps</span>',
-              '<div class="pipeRowMain">',
-                '<div class="pipeRowTitle">Missing terms flagged</div>',
-                '<div class="pipeRowMeta">Only recommended if they match your real background</div>',
+            '<div class="howRow" role="listitem">',
+              '<span class="howState">Gaps</span>',
+              '<div class="howRowMain">',
+                '<div class="howRowTitle">Missing terms flagged</div>',
+                '<div class="howRowMeta">Only recommended if they match your real background</div>',
               '</div>',
-              '<span class="pipeMini">7</span>',
+              '<span class="howScore">7</span>',
             '</div>',
           '</div>',
-          '<div class="pipeHint">Input: paste JD · or choose from fetched jobs</div>',
+          '<div class="howMockHint">Output: tailored CV + cover letter + keyword gap list</div>',
         '</div>'
       ].join("")
     },
 
     2: {
       title: "Auto Apply",
-      sub: "We prepare applications, then send them from your Gmail — consistent formatting, tracked status, daily execution.",
-      badge: "Review-first",
-      fine: "The goal is scale without spam: quality-first outreach sent from your email.",
+      fine: "Review-first: sent from your Gmail and logged for tracking.",
       preview: [
-        '<div class="pipeBox">',
-          '<div class="pipeBoxTop">',
-            '<strong class="pipeBoxTitle">Example: application queue</strong>',
-            '<span class="pipeBoxTag">Daily execution</span>',
+        '<div class="howMock">',
+          '<div class="howMockTop">',
+            '<strong>Example: application queue</strong>',
+            '<span class="howMockPill">Sent from Gmail</span>',
           '</div>',
-          '<div class="pipeRows" role="list">',
-            '<div class="pipeRowItem" role="listitem">',
-              '<span class="pipeStatus good">Ready</span>',
-              '<div class="pipeRowMain">',
-                '<div class="pipeRowTitle">Ready to send</div>',
-                '<div class="pipeRowMeta">All info found · CV & letter prepared</div>',
+          '<div class="howMockRows" role="list">',
+            '<div class="howRow" role="listitem">',
+              '<span class="howState good">Ready</span>',
+              '<div class="howRowMain">',
+                '<div class="howRowTitle">Ready to send</div>',
+                '<div class="howRowMeta">All info found · CV & letter attached</div>',
               '</div>',
-              '<span class="pipeMini">6</span>',
+              '<span class="howScore">6</span>',
             '</div>',
-            '<div class="pipeRowItem" role="listitem">',
-              '<span class="pipeStatus">Review</span>',
-              '<div class="pipeRowMain">',
-                '<div class="pipeRowTitle">Needs a quick check</div>',
-                '<div class="pipeRowMeta">Edge cases: unclear contact · missing data</div>',
+            '<div class="howRow" role="listitem">',
+              '<span class="howState">Review</span>',
+              '<div class="howRowMain">',
+                '<div class="howRowTitle">Needs a quick check</div>',
+                '<div class="howRowMeta">Edge cases: unclear contact · missing data</div>',
               '</div>',
-              '<span class="pipeMini">2</span>',
+              '<span class="howScore">2</span>',
             '</div>',
-            '<div class="pipeRowItem" role="listitem">',
-              '<span class="pipeStatus good">Sent</span>',
-              '<div class="pipeRowMain">',
-                '<div class="pipeRowTitle">Sent</div>',
-                '<div class="pipeRowMeta">Logged + timestamped for tracking</div>',
+            '<div class="howRow" role="listitem">',
+              '<span class="howState good">Sent</span>',
+              '<div class="howRowMain">',
+                '<div class="howRowTitle">Sent</div>',
+                '<div class="howRowMeta">Logged + timestamped for tracking</div>',
               '</div>',
-              '<span class="pipeMini">4</span>',
+              '<span class="howScore">4</span>',
             '</div>',
           '</div>',
-          '<div class="pipeHint">You stay credible: sent from your Gmail · tracked in your log</div>',
+          '<div class="howMockHint">Quality-first outreach: review-first · tracked in your dashboard</div>',
         '</div>'
       ].join("")
     }
   };
 
   var active = 0;
-  var timer = null;
-  var hoverPause = false;
   var userPauseUntil = 0;
 
   function setActive(step, opts){
     var s = Number(step);
-    if(!steps.hasOwnProperty(s)) s = 0;
+    if(!data.hasOwnProperty(s)) s = 0;
     active = s;
 
-    cards.forEach(function(btn){
-      var isOn = btn.getAttribute("data-step") === String(s);
+    root.setAttribute("data-active", String(s));
+
+    // Update steps
+    steps.forEach(function(stepEl){
+      var isOn = stepEl.getAttribute("data-step") === String(s);
+      stepEl.classList.toggle("is-active", isOn);
+
+      var btn = stepEl.querySelector(".howStepCard");
+      if(!btn) return;
+
       if(isOn){
         btn.setAttribute("aria-current","step");
         btn.setAttribute("aria-expanded","true");
@@ -2379,85 +2908,77 @@ Last 7 days
       }
     });
 
-    titleEl.textContent = steps[s].title;
-    subEl.textContent = steps[s].sub;
+    // Progress pips
+    pips.forEach(function(pip, idx){
+      pip.classList.toggle("is-on", idx === s);
+    });
 
-    var badge = String(steps[s].badge || "");
-    badgeEl.textContent = badge;
-    badgeEl.style.display = badge ? "inline-flex" : "none";
+    // Preview swap
+    previewTitle.textContent = data[s].title;
 
-    if(fineEl){
-      fineEl.textContent = String(steps[s].fine || "");
-      fineEl.style.display = steps[s].fine ? "block" : "none";
-    }
+    previewBody.classList.remove("is-anim");
+    void previewBody.offsetWidth;
+    previewBody.innerHTML = data[s].preview;
+    previewBody.classList.add("is-anim");
 
-    previewEl.innerHTML = steps[s].preview;
+    previewFine.textContent = String(data[s].fine || "");
+    previewFine.style.display = data[s].fine ? "block" : "none";
 
-    // If the user clicked, pause auto cycling for a bit
     opts = opts || {};
     if(opts.user){
-      userPauseUntil = Date.now() + 7000;
+      userPauseUntil = Date.now() + 6000;
     }
   }
 
-  // Click wiring
-  cards.forEach(function(btn){
+  // Click + keyboard
+  steps.forEach(function(stepEl){
+    var btn = stepEl.querySelector(".howStepCard");
+    if(!btn) return;
+
     btn.addEventListener("click", function(){
-      setActive(btn.getAttribute("data-step"), { user: true });
+      setActive(stepEl.getAttribute("data-step"), { user: true });
+
+      // On desktop, help keep context by centering the active step.
+      try{
+        if(window.matchMedia && window.matchMedia("(min-width: 981px)").matches){
+          stepEl.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "center" });
+        }
+      }catch(_){}
     });
 
     btn.addEventListener("keydown", function(e){
-      var keys = ["ArrowRight","ArrowLeft","ArrowDown","ArrowUp","Home","End"];
+      var keys = ["ArrowDown","ArrowUp","ArrowRight","ArrowLeft","Home","End"];
       if(keys.indexOf(e.key) === -1) return;
-      e.preventDefault();
 
-      var all = cards;
-      var idx = all.indexOf(btn);
+      var idx = steps.indexOf(stepEl);
       var next = idx;
 
-      if(e.key === "ArrowRight" || e.key === "ArrowDown") next = Math.min(all.length - 1, idx + 1);
-      if(e.key === "ArrowLeft" || e.key === "ArrowUp") next = Math.max(0, idx - 1);
+      if(e.key === "ArrowDown" || e.key === "ArrowRight") next = Math.min(steps.length - 1, idx + 1);
+      if(e.key === "ArrowUp" || e.key === "ArrowLeft") next = Math.max(0, idx - 1);
       if(e.key === "Home") next = 0;
-      if(e.key === "End") next = all.length - 1;
+      if(e.key === "End") next = steps.length - 1;
 
-      all[next].focus();
-      setActive(all[next].getAttribute("data-step"), { user: true });
+      e.preventDefault();
+
+      var nextBtn = steps[next].querySelector(".howStepCard");
+      if(nextBtn) nextBtn.focus();
+
+      setActive(steps[next].getAttribute("data-step"), { user: true });
     });
   });
 
-  // Hover pause
-  root.addEventListener("mouseenter", function(){ hoverPause = true; });
-  root.addEventListener("mouseleave", function(){ hoverPause = false; });
-
-  function startAuto(){
-    if(prefersReducedMotion()) return;
-    if(timer) return;
-
-    timer = window.setInterval(function(){
-      if(hoverPause) return;
-      if(Date.now() < userPauseUntil) return;
-      setActive((active + 1) % cards.length, { user: false });
-    }, 4200);
-  }
-
-  function stopAuto(){
-    if(!timer) return;
-    window.clearInterval(timer);
-    timer = null;
-  }
-
-  // Only run when visible
-  if(!prefersReducedMotion() && "IntersectionObserver" in window){
+  // Scroll-driven activation
+  if("IntersectionObserver" in window){
     var io = new IntersectionObserver(function(entries){
       entries.forEach(function(entry){
-        if(entry.isIntersecting) startAuto();
-        else stopAuto();
+        if(!entry.isIntersecting) return;
+        if(Date.now() < userPauseUntil) return;
+        var el = entry.target;
+        setActive(el.getAttribute("data-step"), { user: false });
       });
-    }, { threshold: 0.35 });
+    }, { threshold: 0.55 });
 
-    io.observe(root);
-  }else{
-    startAuto();
+    steps.forEach(function(stepEl){ io.observe(stepEl); });
   }
 
   // Init
