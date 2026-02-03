@@ -1,0 +1,2469 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>jobmejob — Daily job applications, done for you</title>
+<meta name="description" content="jobmejob applies for jobs for you — continuously, professionally, and at scale. AI-supported, human-reviewed, sent from your own email.">
+<style>
+:root{
+--bg:#ffffff;
+--surface:#f6f7f8;
+--surface2:#f0f2f3;
+--text:#0b0b0b;
+--muted:#3f3f3f;
+--muted2:#6a6a6a;
+--border:#d7dadc;
+--shadow:0 12px 30px rgba(0,0,0,.08);
+--shadow2:0 18px 48px rgba(0,0,0,.12);
+--radius:18px;
+--max:1160px;
+
+--brand:#00a63f;
+--brand2:#66ff8a;
+--ink:#111111;
+--ink2:#1a1a1a;
+
+--grad:linear-gradient(135deg, rgba(0,166,63,.95), rgba(102,255,138,.9));
+--gradBtn:linear-gradient(135deg, #00a63f, #66ff8a, #00a63f);
+--ring:0 0 0 4px rgba(0,166,63,.18);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+margin:0;
+font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,"Helvetica Neue",Helvetica,sans-serif;
+color:var(--text);
+background:var(--bg);
+line-height:1.45;
+}
+
+a{color:inherit;text-decoration:none}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
+outline:3px solid rgba(0,166,63,.28);
+outline-offset:2px;
+border-radius:12px;
+}
+
+.container{max-width:var(--max);margin:0 auto;padding:0 20px}
+.anchor{scroll-margin-top:84px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+@media (prefers-reduced-motion: reduce){
+*{animation:none !important;transition:none !important;scroll-behavior:auto !important}
+}
+
+@keyframes riseFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shimmer{0%{transform:translateX(-120%)}100%{transform:translateX(140%)}}
+@keyframes floatSlow{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes gradMove{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+/* Header */
+header{
+position:sticky;
+top:0;
+z-index:50;
+background:rgba(255,255,255,.92);
+backdrop-filter:blur(10px);
+border-bottom:1px solid rgba(215,218,220,.85);
+}
+.nav{
+height:70px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:14px;
+}
+.brand{
+display:flex;
+align-items:center;
+gap:10px;
+font-weight:950;
+letter-spacing:.2px;
+}
+.logo{
+width:34px;
+height:34px;
+border-radius:12px;
+background:var(--grad);
+box-shadow:0 12px 24px rgba(0,166,63,.18);
+position:relative;
+overflow:hidden;
+}
+.logo:after{
+content:"";
+position:absolute;
+inset:0;
+background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);
+transform:translateX(-120%);
+animation:shimmer 3.6s ease-in-out infinite;
+opacity:.85;
+}
+.navlinks{
+display:flex;
+align-items:center;
+gap:18px;
+color:var(--muted);
+font-weight:850;
+font-size:14px;
+}
+.navlinks a{
+padding:10px 10px;
+border-radius:12px;
+}
+.navlinks a:hover{
+background:rgba(240,242,243,.95);
+color:var(--text);
+}
+.navcta{
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+/* Buttons */
+.btn{
+display:inline-flex;
+align-items:center;
+justify-content:center;
+gap:10px;
+padding:12px 14px;
+border-radius:999px;
+border:1px solid var(--border);
+background:var(--bg);
+color:var(--text);
+font-weight:950;
+font-size:14px;
+cursor:pointer;
+transition:transform .10s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease, filter .15s ease;
+user-select:none;
+white-space:nowrap;
+position:relative;
+overflow:hidden;
+text-align:center;
+line-height:1;
+}
+.btn > span{display:inline-flex;align-items:center;justify-content:center}
+.btn:hover{
+background:rgba(240,242,243,.95);
+border-color:#c9cdcf;
+}
+.btn:active{transform:translateY(1px)}
+.btn.primary{
+background:var(--ink);
+border-color:var(--ink);
+color:#fff;
+box-shadow:0 12px 26px rgba(0,0,0,.14);
+}
+.btn.primary:hover{
+transform:translateY(-1px);
+box-shadow:0 16px 38px rgba(0,0,0,.18);
+}
+.btn.primary:active{transform:translateY(0)}
+.btn.lime{
+background:linear-gradient(135deg, #00a63f, #66ff8a, #00a63f);
+background-size:220% 220%;
+animation:gradMove 5.5s ease-in-out infinite;
+border-color:rgba(0,166,63,.55);
+color:#061208;
+box-shadow:0 12px 28px rgba(0,166,63,.20);
+}
+.btn.lime:hover{
+transform:translateY(-1px);
+box-shadow:0 16px 44px rgba(0,166,63,.26);
+filter:saturate(1.05);
+}
+.btn.lime:active{transform:translateY(0)}
+.btn.small{padding:10px 12px;font-size:13px}
+
+/* Fix 1: ensure icon + text are centered as one unit */
+.btn .btnLabel{
+display:inline-flex;
+align-items:center;
+justify-content:center;
+gap:10px;
+width:100%;
+}
+
+/* Hero */
+.hero{
+padding:66px 0 44px;
+background:
+radial-gradient(900px 520px at 15% -10%, rgba(0,166,63,.14), transparent 60%),
+radial-gradient(900px 520px at 85% 10%, rgba(0,0,0,.08), transparent 62%),
+linear-gradient(180deg, var(--surface), transparent 55%);
+border-bottom:1px solid rgba(215,218,220,.85);
+position:relative;
+overflow:hidden;
+}
+.hero:before{
+content:"";
+position:absolute;
+right:-180px;
+top:-160px;
+width:520px;
+height:520px;
+border-radius:999px;
+background:radial-gradient(circle at 30% 30%, rgba(0,166,63,.20), transparent 62%);
+filter:blur(10px);
+animation:floatSlow 7.2s ease-in-out infinite;
+opacity:.75;
+}
+.heroGrid{
+display:grid;
+grid-template-columns:1.15fr .85fr;
+gap:18px;
+align-items:stretch;
+position:relative;
+}
+.eyebrow{
+display:inline-flex;
+align-items:center;
+gap:10px;
+padding:10px 12px;
+border-radius:999px;
+background:rgba(255,255,255,.92);
+border:1px solid rgba(215,218,220,.95);
+color:var(--muted);
+font-weight:900;
+font-size:12px;
+letter-spacing:.25px;
+width:fit-content;
+animation:riseFade .55s ease both;
+}
+.badgeDot{
+width:10px;
+height:10px;
+border-radius:999px;
+background:var(--brand);
+box-shadow:0 0 0 7px rgba(0,166,63,.14);
+}
+h1{
+margin:14px 0 10px;
+font-size:clamp(34px,4.1vw,56px);
+line-height:1.02;
+letter-spacing:-1px;
+font-weight:1000;
+animation:riseFade .65s ease both;
+}
+.subtitle{
+margin:0 0 20px;
+color:var(--muted);
+font-size:16px;
+max-width:64ch;
+animation:riseFade .72s ease both;
+}
+.hero-actions{
+display:flex;
+flex-wrap:wrap;
+gap:12px;
+margin-bottom:10px;
+animation:riseFade .80s ease both;
+}
+.proofLine{
+display:flex;
+align-items:center;
+gap:10px;
+flex-wrap:wrap;
+color:var(--muted2);
+font-size:13px;
+font-weight:850;
+padding-top:2px;
+animation:riseFade .88s ease both;
+}
+.proofDot{
+width:7px;
+height:7px;
+border-radius:999px;
+background:rgba(0,0,0,.18);
+}
+.proofItem{
+display:inline-flex;
+align-items:center;
+gap:8px;
+}
+.proofCheck{
+width:16px;
+height:16px;
+border-radius:6px;
+display:inline-flex;
+align-items:center;
+justify-content:center;
+background:#e9f7ee;
+border:1px solid rgba(0,166,63,.28);
+color:#0a3a1c;
+}
+.proofCheck svg{width:11px;height:11px}
+
+.heroCard{
+background:rgba(255,255,255,.94);
+border:1px solid rgba(215,218,220,.95);
+border-radius:var(--radius);
+box-shadow:var(--shadow);
+padding:18px;
+position:relative;
+overflow:hidden;
+animation:riseFade .85s ease both;
+}
+.heroCard:before{
+content:"";
+position:absolute;
+inset:-2px;
+background:linear-gradient(135deg, rgba(0,166,63,.10), rgba(0,0,0,.04));
+opacity:.75;
+pointer-events:none;
+}
+.heroCard > *{position:relative}
+.heroCard h3{
+margin:0 0 6px;
+font-size:15px;
+letter-spacing:-.2px;
+font-weight:950;
+}
+.heroCard p{
+margin:0 0 12px;
+color:var(--muted);
+font-size:14px;
+}
+.miniList{
+margin:0;
+padding:0;
+list-style:none;
+display:grid;
+gap:10px;
+}
+.miniItem{
+display:flex;
+gap:10px;
+padding:12px;
+border-radius:16px;
+background:rgba(246,247,248,.92);
+border:1px solid rgba(215,218,220,.9);
+transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease;
+}
+.miniItem:hover{
+transform:translateY(-2px);
+box-shadow:var(--shadow2);
+border-color:rgba(0,166,63,.22);
+}
+.miniIcon{
+width:40px;
+height:40px;
+border-radius:16px;
+display:flex;
+align-items:center;
+justify-content:center;
+background:rgba(0,0,0,.06);
+border:1px solid rgba(0,0,0,.10);
+color:var(--ink2);
+flex:0 0 auto;
+}
+.miniIcon.lime{
+background:#e9f7ee;
+border-color:rgba(0,166,63,.28);
+color:#0a3a1c;
+}
+.miniIcon svg{width:18px;height:18px}
+.miniText strong{display:block;font-size:13px;font-weight:950;margin-bottom:2px}
+.miniText span{display:block;font-size:13px;color:var(--muted2)}
+.heroCardActions{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+margin-top:14px;
+}
+
+/* Sections */
+section{padding:58px 0}
+.sectionHead{
+display:flex;
+flex-direction:column;
+gap:10px;
+margin-bottom:22px;
+}
+.kicker{
+font-weight:950;
+font-size:12px;
+letter-spacing:.24px;
+text-transform:uppercase;
+color:var(--muted2);
+}
+.sectionTitle{
+margin:0;
+font-size:clamp(22px,2.5vw,32px);
+letter-spacing:-.5px;
+line-height:1.15;
+font-weight:1000;
+}
+.sectionDesc{
+margin:0;
+color:var(--muted);
+font-size:15px;
+max-width:74ch;
+}
+
+/* Cards */
+.card{
+background:#fff;
+border:1px solid rgba(215,218,220,.95);
+border-radius:var(--radius);
+box-shadow:0 10px 22px rgba(0,0,0,.05);
+padding:18px;
+transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease;
+}
+.card:hover{
+transform:translateY(-2px);
+box-shadow:var(--shadow2);
+border-color:rgba(0,166,63,.22);
+}
+
+/* How it works: stepper */
+.stepper{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:14px;
+align-items:stretch;
+}
+.stepList{
+margin:0;
+padding:0;
+list-style:none;
+display:grid;
+gap:10px;
+position:relative;
+}
+.stepList:before{
+content:"";
+position:absolute;
+left:20px;
+top:20px;
+bottom:20px;
+width:2px;
+border-radius:99px;
+background:linear-gradient(180deg, rgba(0,166,63,.55), rgba(0,0,0,.18));
+opacity:.55;
+}
+.stepBtn{
+width:100%;
+display:grid;
+grid-template-columns:52px 1fr auto;
+gap:12px;
+align-items:center;
+text-align:left;
+padding:14px 14px 14px 10px;
+border-radius:18px;
+border:1px solid rgba(215,218,220,.95);
+background:#ffffff;
+cursor:pointer;
+transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease;
+position:relative;
+overflow:hidden;
+}
+.stepBtn:before{
+content:"";
+position:absolute;
+inset:0;
+border-radius:inherit;
+background:transparent;
+pointer-events:none;
+}
+.stepBtn:hover{
+transform:translateY(-2px);
+box-shadow:var(--shadow2);
+border-color:rgba(0,166,63,.22);
+}
+.stepBtn:hover:before{
+background:linear-gradient(135deg, rgba(0,166,63,.06), rgba(0,0,0,.02));
+}
+.stepBtn[aria-current="step"]{
+border-color:rgba(0,166,63,.40);
+box-shadow:0 18px 44px rgba(0,166,63,.14);
+}
+.stepBtn[aria-current="step"]:before{
+background:linear-gradient(135deg, rgba(0,166,63,.10), rgba(0,0,0,.02));
+}
+.stepBtn > *{position:relative}
+
+.stepDot{
+width:40px;
+height:40px;
+border-radius:999px;
+display:flex;
+align-items:center;
+justify-content:center;
+background:#ffffff;
+border:1px solid rgba(215,218,220,.95);
+font-weight:1000;
+color:var(--ink2);
+position:relative;
+z-index:2;
+}
+.stepBtn[aria-current="step"] .stepDot{
+background:#e9f7ee;
+border-color:rgba(0,166,63,.28);
+color:#0a3a1c;
+}
+.stepMeta strong{
+display:block;
+font-size:15px;
+letter-spacing:-.2px;
+font-weight:1000;
+}
+.stepMeta span{
+display:block;
+margin-top:3px;
+color:var(--muted2);
+font-size:13px;
+}
+.stepIco{
+width:44px;
+height:44px;
+border-radius:16px;
+display:flex;
+align-items:center;
+justify-content:center;
+background:#f4f4f4;
+border:1px solid rgba(0,0,0,.10);
+color:var(--ink2);
+transition:transform .12s ease, background .15s ease, border-color .15s ease;
+}
+.stepBtn:hover .stepIco{transform:rotate(-2deg) scale(1.02)}
+.stepBtn[aria-current="step"] .stepIco{
+background:#e9f7ee;
+border-color:rgba(0,166,63,.28);
+color:#0a3a1c;
+}
+.stepIco svg{width:18px;height:18px}
+
+.stepPanel{
+border:1px solid rgba(215,218,220,.95);
+background:#ffffff;
+border-radius:calc(var(--radius) + 4px);
+box-shadow:var(--shadow);
+padding:18px;
+position:relative;
+overflow:hidden;
+min-height:280px;
+}
+.stepPanel:before{
+content:"";
+position:absolute;
+inset:-40%;
+background:radial-gradient(circle at 30% 30%, rgba(0,166,63,.22), transparent 55%);
+transform:rotate(12deg);
+opacity:.25;
+pointer-events:none;
+}
+.panelTitle{
+margin:0;
+font-size:18px;
+letter-spacing:-.2px;
+font-weight:1000;
+position:relative;
+}
+.panelSub{
+margin:8px 0 0 0;
+color:var(--muted);
+font-size:14px;
+max-width:72ch;
+position:relative;
+}
+.panelBullets{
+margin:14px 0 0 0;
+padding:0;
+list-style:none;
+display:grid;
+gap:10px;
+position:relative;
+}
+.panelBullets li{
+display:flex;
+gap:10px;
+align-items:flex-start;
+color:var(--muted);
+font-size:14px;
+}
+.bulletIco{
+width:18px;
+height:18px;
+border-radius:6px;
+display:flex;
+align-items:center;
+justify-content:center;
+background:#e9f7ee;
+border:1px solid rgba(0,166,63,.28);
+color:#0a3a1c;
+flex:0 0 auto;
+margin-top:2px;
+}
+.bulletIco svg{width:12px;height:12px}
+
+
+/* How it works: 3-step pipeline (job search → tailor → apply) */
+.pipeline{display:grid;gap:14px}
+
+.pipeRow{
+  display:grid;
+  grid-template-columns:1fr auto 1fr auto 1fr;
+  gap:12px;
+  align-items:stretch;
+}
+
+.pipeArrow{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:44px;
+  border-radius:16px;
+  border:1px solid rgba(215,218,220,.95);
+  background:rgba(246,247,248,.92);
+  color:rgba(0,0,0,.55);
+  box-shadow:0 10px 22px rgba(0,0,0,.05);
+}
+.pipeArrow svg{width:18px;height:18px;display:block}
+
+.pipeCard{
+  width:100%;
+  text-align:left;
+  padding:14px 14px 12px;
+  border-radius:18px;
+  border:1px solid rgba(215,218,220,.95);
+  background:#ffffff;
+  cursor:pointer;
+  transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease;
+  position:relative;
+  overflow:hidden;
+}
+.pipeCard:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:transparent;
+  pointer-events:none;
+}
+.pipeCard:hover{
+  transform:translateY(-2px);
+  box-shadow:var(--shadow2);
+  border-color:rgba(0,166,63,.22);
+}
+.pipeCard:hover:before{
+  background:linear-gradient(135deg, rgba(0,166,63,.06), rgba(0,0,0,.02));
+}
+
+.pipeCard[aria-current="step"]{
+  border-color:rgba(0,166,63,.45);
+  box-shadow:0 18px 44px rgba(0,166,63,.14);
+}
+.pipeCard[aria-current="step"]:before{
+  background:linear-gradient(135deg, rgba(0,166,63,.10), rgba(0,0,0,.02));
+}
+
+.pipeTop{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.pipeNum{
+  width:40px;
+  height:40px;
+  border-radius:999px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#ffffff;
+  border:1px solid rgba(215,218,220,.95);
+  font-weight:1000;
+  color:var(--ink2);
+  flex:0 0 auto;
+}
+.pipeCard[aria-current="step"] .pipeNum{
+  background:#e9f7ee;
+  border-color:rgba(0,166,63,.28);
+  color:#0a3a1c;
+}
+
+.pipeMeta{min-width:0}
+.pipeMeta strong{
+  display:block;
+  font-size:15px;
+  letter-spacing:-.2px;
+  font-weight:1000;
+}
+.pipeMeta span{
+  display:block;
+  margin-top:3px;
+  color:var(--muted2);
+  font-size:13px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:100%;
+}
+
+.pipeIco{
+  margin-left:auto;
+  width:44px;
+  height:44px;
+  border-radius:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#f4f4f4;
+  border:1px solid rgba(0,0,0,.10);
+  color:var(--ink2);
+  flex:0 0 auto;
+  transition:transform .12s ease, background .15s ease, border-color .15s ease;
+}
+.pipeIco svg{width:18px;height:18px}
+.pipeCard:hover .pipeIco{transform:rotate(-2deg) scale(1.02)}
+.pipeCard[aria-current="step"] .pipeIco{
+  background:#e9f7ee;
+  border-color:rgba(0,166,63,.28);
+  color:#0a3a1c;
+}
+
+.pipePills{
+  margin-top:10px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.pipePill{
+  padding:7px 10px;
+  border-radius:999px;
+  background:rgba(246,247,248,.92);
+  border:1px solid rgba(215,218,220,.9);
+  color:var(--muted);
+  font-size:12px;
+  font-weight:950;
+  white-space:nowrap;
+}
+.pipePill.lime{
+  background:#e9f7ee;
+  border-color:rgba(0,166,63,.28);
+  color:#0a3a1c;
+}
+
+/* Panel (re-uses stepPanel base) */
+.pipePanelTop{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  position:relative;
+}
+.pipeBadge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 12px;
+  border-radius:999px;
+  background:#e9f7ee;
+  border:1px solid rgba(0,166,63,.28);
+  color:#0a3a1c;
+  font-weight:1000;
+  font-size:12px;
+  white-space:nowrap;
+}
+
+.pipePreview{margin-top:14px; position:relative}
+.pipeBox{
+  border-radius:18px;
+  border:1px solid rgba(215,218,220,.9);
+  background:rgba(255,255,255,.92);
+  overflow:hidden;
+  box-shadow:0 12px 30px rgba(0,0,0,.06);
+}
+.pipeBoxTop{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px 12px;
+  background:rgba(246,247,248,.92);
+  border-bottom:1px solid rgba(215,218,220,.75);
+}
+.pipeBoxTitle{
+  font-size:12px;
+  letter-spacing:.2px;
+  text-transform:uppercase;
+  font-weight:1000;
+  color:var(--muted2);
+}
+.pipeBoxTag{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 10px;
+  border-radius:999px;
+  background:#ffffff;
+  border:1px solid rgba(215,218,220,.9);
+  font-size:12px;
+  font-weight:950;
+  color:var(--muted);
+}
+
+.pipeRows{display:grid}
+.pipeRowItem{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:10px;
+  padding:12px;
+  border-top:1px solid rgba(215,218,220,.75);
+  align-items:center;
+}
+.pipeRowItem:first-child{border-top:none}
+
+.pipeStatus{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:7px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:1000;
+  border:1px solid rgba(215,218,220,.9);
+  background:#f6f7f8;
+  color:var(--muted);
+  white-space:nowrap;
+}
+.pipeStatus.good{
+  background:#e9f7ee;
+  border-color:rgba(0,166,63,.26);
+  color:#0a3a1c;
+}
+
+.pipeRowMain{display:grid;gap:3px;min-width:0}
+.pipeRowTitle{font-weight:950;font-size:13px;color:var(--ink2)}
+.pipeRowMeta{font-size:12px;color:var(--muted2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.pipeMini{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:7px 10px;
+  border-radius:999px;
+  background:#ffffff;
+  border:1px solid rgba(215,218,220,.9);
+  font-size:12px;
+  font-weight:950;
+  color:var(--muted);
+  white-space:nowrap;
+}
+
+.pipeHint{
+  padding:10px 12px;
+  border-top:1px solid rgba(215,218,220,.75);
+  color:var(--muted2);
+  font-size:12px;
+  font-weight:850;
+  background:rgba(246,247,248,.55);
+}
+
+.pipeFine{
+  margin:12px 2px 0;
+  font-size:12px;
+  color:var(--muted2);
+  font-weight:850;
+}
+
+/* Mobile */
+@media (max-width:980px){
+  .pipeRow{grid-template-columns:1fr}
+  .pipeArrow{
+    width:100%;
+    height:44px;
+    border-radius:18px;
+  }
+  .pipeArrow svg{transform:rotate(90deg)}
+  .pipeMeta span{white-space:normal}
+  .pipeRowItem{grid-template-columns:1fr}
+  .pipeMini{justify-self:start}
+}
+
+/* ATS score */
+.atsBand{
+  padding:58px 0;
+  background:
+    radial-gradient(900px 420px at 20% 0%, rgba(0,166,63,.12), transparent 60%),
+    radial-gradient(900px 420px at 85% 10%, rgba(0,0,0,.05), transparent 62%),
+    linear-gradient(180deg, var(--surface), var(--bg));
+  border-top:1px solid rgba(215,218,220,.85);
+  border-bottom:1px solid rgba(215,218,220,.85);
+}
+.atsGrid{
+  display:grid;
+  grid-template-columns:1.05fr .95fr;
+  gap:14px;
+  align-items:start;
+}
+.atsCopy h3{
+  margin:0 0 8px;
+  font-size:18px;
+  letter-spacing:-.2px;
+  font-weight:1000;
+}
+.atsCopy p{
+  margin:0 0 14px;
+  color:var(--muted);
+  font-size:15px;
+  max-width:72ch;
+}
+.atsBullets{
+  margin:0;
+  padding:0;
+  list-style:none;
+  display:grid;
+  gap:10px;
+}
+.atsBullets li{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  color:var(--muted);
+  font-size:14px;
+}
+.atsNote{
+  margin-top:12px;
+  font-size:12px;
+  color:var(--muted2);
+  font-weight:850;
+}
+.atsPills{
+  margin-top:14px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.atsPill{
+  padding:10px 12px;
+  border-radius:999px;
+  background:rgba(255,255,255,.90);
+  border:1px solid rgba(215,218,220,.95);
+  color:var(--muted);
+  font-size:13px;
+  font-weight:950;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.atsPill .mini{
+  width:16px;
+  height:16px;
+  border-radius:6px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  background:#e9f7ee;
+  border:1px solid rgba(0,166,63,.28);
+  color:#0a3a1c;
+}
+.atsPill .mini svg{width:11px;height:11px}
+
+
+/* Dashboard */
+.dashBand{
+padding:64px 0;
+background:
+radial-gradient(880px 420px at 15% 0%, rgba(0,166,63,.12), transparent 62%),
+linear-gradient(180deg, var(--surface), var(--bg));
+border-top:1px solid rgba(215,218,220,.85);
+border-bottom:1px solid rgba(215,218,220,.85);
+}
+.dashGrid{
+display:grid;
+grid-template-columns:1.05fr .95fr;
+gap:14px;
+align-items:center;
+}
+.dashCopy h3{
+margin:0 0 10px;
+font-size:clamp(20px,2.2vw,28px);
+letter-spacing:-.5px;
+line-height:1.15;
+font-weight:1000;
+}
+.dashCopy p{
+margin:0 0 14px;
+color:var(--muted);
+font-size:15px;
+max-width:72ch;
+}
+.dashPoints{
+margin:0;
+padding:0;
+list-style:none;
+display:grid;
+gap:10px;
+}
+.dashPoints li{
+display:flex;
+gap:10px;
+align-items:flex-start;
+color:var(--muted);
+font-size:14px;
+}
+.dashPoints .tick{margin-top:2px}
+.dashActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+
+.dashFrame{
+border-radius:24px;
+background:#ffffff;
+border:1px solid rgba(215,218,220,.95);
+box-shadow:0 22px 58px rgba(0,0,0,.12);
+overflow:hidden;
+position:relative;
+transform:translateY(0);
+transition:transform .15s ease, box-shadow .2s ease, border-color .15s ease;
+}
+.dashFrame:hover{
+transform:translateY(-2px);
+box-shadow:0 26px 70px rgba(0,0,0,.14);
+border-color:rgba(0,166,63,.22);
+}
+.dashTop{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:10px;
+padding:12px 14px;
+background:linear-gradient(180deg, rgba(246,247,248,.96), rgba(255,255,255,.96));
+border-bottom:1px solid rgba(215,218,220,.9);
+}
+.dashDots{display:flex;gap:7px;align-items:center}
+.dashDots span{width:10px;height:10px;border-radius:999px;background:rgba(0,0,0,.16)}
+.dashDots span:nth-child(2){background:rgba(0,0,0,.12)}
+.dashDots span:nth-child(3){background:rgba(0,0,0,.08)}
+.dashLabel{display:flex;align-items:center;gap:10px;font-weight:950;color:var(--ink2);font-size:13px}
+.dashChip{
+display:inline-flex;
+align-items:center;
+gap:8px;
+padding:8px 10px;
+border-radius:999px;
+background:#e9f7ee;
+border:1px solid rgba(0,166,63,.28);
+color:#0a3a1c;
+font-weight:950;
+font-size:12px;
+}
+.dashBody{
+padding:14px;
+display:grid;
+gap:12px;
+background:
+radial-gradient(560px 220px at 75% 0%, rgba(0,166,63,.10), transparent 60%),
+#ffffff;
+}
+.dashRow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dashCard{
+border-radius:18px;
+border:1px solid rgba(215,218,220,.9);
+background:rgba(246,247,248,.72);
+padding:12px;
+}
+.dashCard h4{
+margin:0 0 8px;
+font-size:12px;
+font-weight:1000;
+letter-spacing:.2px;
+text-transform:uppercase;
+color:var(--muted2);
+}
+.kpi{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.kpi strong{font-size:22px;font-weight:1000;letter-spacing:-.3px}
+.kpi span{font-size:12px;font-weight:950;color:var(--muted2)}
+.kpiBadge{
+display:inline-flex;
+align-items:center;
+gap:6px;
+padding:6px 10px;
+border-radius:999px;
+background:#ffffff;
+border:1px solid rgba(215,218,220,.9);
+font-size:12px;
+font-weight:950;
+color:var(--muted);
+}
+.kpiBadge i{width:8px;height:8px;border-radius:999px;background:var(--brand);display:inline-block}
+.spark{
+margin-top:10px;
+width:100%;
+height:54px;
+border-radius:14px;
+background:#ffffff;
+border:1px solid rgba(215,218,220,.9);
+overflow:hidden;
+position:relative;
+}
+.spark svg{width:100%;height:100%;display:block}
+.log{
+border-radius:18px;
+border:1px solid rgba(215,218,220,.9);
+background:#ffffff;
+overflow:hidden;
+}
+.logHead{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:10px;
+padding:10px 12px;
+background:rgba(246,247,248,.9);
+border-bottom:1px solid rgba(215,218,220,.9);
+}
+.logHead strong{
+font-size:12px;
+letter-spacing:.2px;
+text-transform:uppercase;
+font-weight:1000;
+color:var(--muted2);
+}
+.logFilter{
+display:inline-flex;
+align-items:center;
+gap:8px;
+padding:8px 10px;
+border-radius:999px;
+border:1px solid rgba(215,218,220,.9);
+background:#fff;
+font-size:12px;
+font-weight:950;
+color:var(--muted);
+}
+.logList{display:grid}
+.logItem{
+display:grid;
+grid-template-columns:1fr auto;
+gap:10px;
+padding:12px;
+border-top:1px solid rgba(215,218,220,.75);
+align-items:center;
+}
+.logItem:first-child{border-top:none}
+.logLeft{display:grid;gap:4px}
+.logTitle{font-weight:950;font-size:13px;color:var(--ink2)}
+.logMeta{font-size:12px;color:var(--muted2)}
+.status{
+display:inline-flex;
+align-items:center;
+gap:8px;
+padding:8px 10px;
+border-radius:999px;
+font-size:12px;
+font-weight:1000;
+border:1px solid rgba(215,218,220,.9);
+background:#f6f7f8;
+color:var(--muted);
+}
+.status i{width:8px;height:8px;border-radius:999px;background:rgba(0,0,0,.18);display:inline-block}
+.status.sent{background:#e9f7ee;border-color:rgba(0,166,63,.26);color:#0a3a1c}
+.status.sent i{background:var(--brand)}
+.status.draft{background:#fff}
+.status.review{background:rgba(0,0,0,.06)}
+.noteSmall{font-size:12px;color:var(--muted2);margin:10px 2px 0;font-weight:850}
+
+/* Pricing */
+.pricingWrap{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:stretch}
+.plan{display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden}
+.plan.featured{border-color:rgba(0,166,63,.32);box-shadow:0 18px 48px rgba(0,166,63,.16);transform:translateY(-2px)}
+.ribbon{
+position:absolute;
+top:14px;
+right:14px;
+padding:8px 12px;
+border-radius:999px;
+background:#e9f7ee;
+border:1px solid rgba(0,166,63,.28);
+color:#0a3a1c;
+font-weight:1000;
+font-size:12px;
+}
+.priceRow{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.priceRow strong{font-size:36px;line-height:1;letter-spacing:-.9px;font-weight:1000}
+.priceRow span{font-size:13px;color:var(--muted2);font-weight:900;padding-bottom:5px}
+.strike{font-size:13px;color:var(--muted2);text-decoration:line-through;font-weight:950}
+.save{
+display:inline-flex;
+align-items:center;
+padding:8px 12px;
+border-radius:999px;
+background:#f4f4f4;
+border:1px solid rgba(0,0,0,.10);
+color:var(--ink2);
+font-weight:950;
+font-size:12px;
+}
+
+/* New: plan value row */
+.valueRow{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:10px;
+padding:12px;
+border-radius:18px;
+background:rgba(246,247,248,.72);
+border:1px solid rgba(215,218,220,.9);
+}
+.valueRow strong{font-weight:1000;color:var(--ink2);font-size:13px}
+.valueRow span{color:var(--muted);font-size:13px;font-weight:900}
+.valueBadge{
+display:inline-flex;
+align-items:center;
+gap:8px;
+padding:8px 10px;
+border-radius:999px;
+background:#e9f7ee;
+border:1px solid rgba(0,166,63,.28);
+color:#0a3a1c;
+font-weight:1000;
+font-size:12px;
+white-space:nowrap;
+}
+.valueBadge i{width:8px;height:8px;border-radius:999px;background:var(--brand);display:inline-block}
+
+.features{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.features li{display:flex;gap:10px;align-items:flex-start;color:var(--muted);font-size:14px}
+.tick{
+width:18px;height:18px;border-radius:6px;
+display:flex;align-items:center;justify-content:center;
+background:#e9f7ee;
+border:1px solid rgba(0,166,63,.28);
+color:#0a3a1c;
+flex:0 0 auto;
+margin-top:2px;
+}
+.tick svg{width:12px;height:12px}
+.planActions{margin-top:auto;display:flex;gap:10px;flex-wrap:wrap}
+.fineprint{margin:14px 0 0 0;color:var(--muted2);font-size:12px;font-weight:850}
+
+/* Why */
+.whyBand{
+background:linear-gradient(180deg, transparent, var(--surface));
+border-top:1px solid rgba(215,218,220,.85);
+border-bottom:1px solid rgba(215,218,220,.85);
+}
+.whyGrid{display:grid;grid-template-columns:1.05fr .95fr;gap:14px;align-items:start}
+.whyList{display:grid;gap:12px}
+.whyItem{
+display:flex;
+gap:12px;
+padding:16px;
+border-radius:var(--radius);
+border:1px solid rgba(215,218,220,.95);
+background:#ffffff;
+box-shadow:0 10px 22px rgba(0,0,0,.05);
+transition:transform .12s ease, box-shadow .18s ease, border-color .15s ease;
+}
+.whyItem:hover{transform:translateY(-2px);box-shadow:var(--shadow2);border-color:rgba(0,166,63,.22)}
+.whyIco{
+width:44px;
+height:44px;
+border-radius:16px;
+display:flex;
+align-items:center;
+justify-content:center;
+background:#e9f7ee;
+border:1px solid rgba(0,166,63,.28);
+color:#0a3a1c;
+flex:0 0 auto;
+}
+.whyIco svg{width:20px;height:20px}
+.whyText strong{display:block;font-size:14px;font-weight:1000;margin-bottom:4px}
+.whyText span{display:block;color:var(--muted);font-size:14px}
+
+/* Quality principle */
+.qpWrap{
+border-radius:24px;
+background:linear-gradient(135deg, rgba(0,166,63,.12), rgba(0,0,0,.03));
+border:1px solid rgba(0,166,63,.22);
+padding:18px;
+position:relative;
+overflow:hidden;
+box-shadow:0 18px 44px rgba(0,0,0,.08);
+}
+.qpWrap:before{
+content:"";
+position:absolute;
+inset:-40%;
+background:radial-gradient(circle at 25% 25%, rgba(0,166,63,.28), transparent 58%);
+transform:rotate(14deg);
+opacity:.7;
+pointer-events:none;
+}
+.qpHeader{
+display:flex;
+align-items:flex-start;
+gap:12px;
+position:relative;
+}
+.qpIcon{
+width:44px;
+height:44px;
+border-radius:16px;
+display:flex;
+align-items:center;
+justify-content:center;
+background:rgba(0,0,0,.07);
+border:1px solid rgba(0,0,0,.10);
+color:var(--ink2);
+flex:0 0 auto;
+}
+.qpIcon svg{width:20px;height:20px}
+.qpHeader h3{
+margin:0 0 6px;
+font-size:15px;
+letter-spacing:-.2px;
+font-weight:1000;
+}
+.qpHeader p{
+margin:0;
+color:var(--muted);
+font-size:14px;
+max-width:64ch;
+}
+.qpPills{
+margin-top:14px;
+display:flex;
+flex-wrap:wrap;
+gap:10px;
+position:relative;
+}
+.qpPill{
+padding:10px 12px;
+border-radius:999px;
+background:rgba(255,255,255,.86);
+border:1px solid rgba(215,218,220,.95);
+color:var(--muted);
+font-size:13px;
+font-weight:950;
+display:inline-flex;
+align-items:center;
+gap:8px;
+}
+.qpPill .mini{
+width:16px;height:16px;border-radius:6px;
+display:inline-flex;align-items:center;justify-content:center;
+background:#e9f7ee;border:1px solid rgba(0,166,63,.28);color:#0a3a1c;
+}
+.qpPill .mini svg{width:11px;height:11px}
+
+/* CTA */
+.cta{
+padding:62px 0;
+background:linear-gradient(180deg, var(--surface), var(--bg));
+}
+.ctaBox{
+border-radius:24px;
+background:var(--ink);
+color:#fff;
+padding:22px;
+display:grid;
+grid-template-columns:1.15fr .85fr;
+gap:16px;
+align-items:center;
+box-shadow:0 22px 58px rgba(0,0,0,.20);
+position:relative;
+overflow:hidden;
+}
+.ctaBox:before{
+content:"";
+position:absolute;
+inset:-2px;
+background:radial-gradient(circle at 20% 30%, rgba(0,166,63,.42), transparent 55%);
+opacity:.75;
+pointer-events:none;
+}
+.ctaBox > *{position:relative}
+.ctaBox h2{
+margin:0 0 8px;
+font-size:22px;
+letter-spacing:-.4px;
+line-height:1.15;
+font-weight:1000;
+}
+.ctaBox p{
+margin:0;
+color:rgba(255,255,255,.82);
+font-size:14px;
+max-width:70ch;
+}
+form{display:grid;gap:10px;width:100%}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input,textarea{
+width:100%;
+border:1px solid rgba(255,255,255,.16);
+background:rgba(255,255,255,.06);
+border-radius:16px;
+padding:12px 12px;
+font-size:14px;
+color:#fff;
+outline:none;
+transition:border-color .15s ease, box-shadow .15s ease, transform .10s ease;
+}
+input::placeholder,textarea::placeholder{color:rgba(255,255,255,.58)}
+input:focus,textarea:focus{border-color:rgba(0,166,63,.70);box-shadow:0 0 0 4px rgba(0,166,63,.22)}
+input:hover,textarea:hover{transform:translateY(-1px)}
+.formActions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{color:rgba(255,255,255,.70);font-size:12px;font-weight:850}
+
+/* Footer */
+footer{
+border-top:1px solid rgba(215,218,220,.85);
+padding:18px 0;
+color:var(--muted2);
+font-size:13px;
+}
+.footerRow{
+display:flex;
+justify-content:space-between;
+gap:12px;
+flex-wrap:wrap;
+align-items:center;
+}
+.footerLinks{display:flex;gap:14px;flex-wrap:wrap}
+.footerLinks a{
+color:var(--muted2);
+font-weight:900;
+padding:8px 10px;
+border-radius:12px;
+}
+.footerLinks a:hover{
+background:rgba(240,242,243,.95);
+color:var(--text);
+}
+
+@media (max-width:980px){
+.heroGrid{grid-template-columns:1fr}
+.stepper{grid-template-columns:1fr}
+.dashGrid{grid-template-columns:1fr}
+.atsGrid{grid-template-columns:1fr}
+.pricingWrap{grid-template-columns:1fr}
+.whyGrid{grid-template-columns:1fr}
+.ctaBox{grid-template-columns:1fr}
+.plan.featured{transform:none}
+.dashRow{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+.navlinks{display:none}
+.two{grid-template-columns:1fr}
+.stepList:before{left:18px}
+.stepBtn{grid-template-columns:50px 1fr auto}
+}
+/* FAQ */
+.faqGrid{display:grid;gap:10px}
+.faqItem{
+  border:1px solid rgba(215,218,220,.95);
+  border-radius:var(--radius);
+  background:#fff;
+  box-shadow:0 10px 22px rgba(0,0,0,.05);
+  padding:0;
+  overflow:hidden;
+}
+.faqItem summary{
+  list-style:none;
+  cursor:pointer;
+  padding:16px 18px;
+  font-weight:1000;
+  letter-spacing:-.2px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.faqItem summary::-webkit-details-marker{display:none}
+.faqItem summary:after{
+  content:"+";
+  width:26px;height:26px;
+  border-radius:10px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(246,247,248,.92);
+  border:1px solid rgba(215,218,220,.9);
+  color:var(--ink2);
+  font-weight:1000;
+  flex:0 0 auto;
+}
+.faqItem[open] summary:after{content:"–"}
+.faqBody{
+  padding:0 18px 16px;
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.5;
+  border-top:1px solid rgba(215,218,220,.75);
+  background:rgba(246,247,248,.55);
+}
+</style>
+</head>
+<body>
+<header>
+<div class="container">
+<nav class="nav" aria-label="Primary navigation">
+<a class="brand" href="#top" aria-label="jobmejob Home">
+<div class="logo" aria-hidden="true"></div>
+<span>jobmejob</span>
+</a>
+<div class="navlinks" aria-label="Site links">
+<a href="#how">How it works</a>
+<a href="#dashboard">Dashboard</a>
+<a href="#ats">ATS score</a>
+<a href="#pricing">Pricing</a>
+<a href="#why">Why this works</a>
+<a href="#faq">FAQ</a>
+<a href="#contact">Contact</a>
+</div>
+<div class="navcta">
+<a class="btn small" href="#pricing"><span class="btnLabel">View plans</span></a>
+<a class="btn small" href="login.html"><span class="btnLabel">Log in</span></a>
+<a class="btn primary small" href="signup.html"><span class="btnLabel">Get started</span></a>
+</div>
+</nav>
+</div>
+</header>
+
+<main id="top">
+<section class="hero">
+<div class="container">
+<div class="heroGrid">
+<div>
+<div class="eyebrow"><span class="badgeDot" aria-hidden="true"></span>AI-supported, human-reviewed, sent from your own email</div>
+<h1>Daily job applications, done for you.</h1>
+<p class="subtitle">jobmejob handles job research, CV adaptation, cover letters, and sending applications from your Gmail. You get consistent outreach without spending your evenings applying.</p>
+
+<div class="hero-actions">
+<a class="btn lime" href="signup.html">
+<span class="btnLabel">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+<path d="M12 5v14"></path><path d="M5 12h14"></path>
+</svg>
+<span>Get started</span>
+</span>
+</a>
+<a class="btn primary" href="#how">
+<span class="btnLabel">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+<path d="M8 5v14l11-7z"></path>
+</svg>
+<span>See how it works</span>
+</span>
+</a>
+</div>
+
+<div class="proofLine" aria-label="Key points">
+<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Zero manual effort</span>
+<span class="proofDot" aria-hidden="true"></span>
+<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Tailored per role</span>
+<span class="proofDot" aria-hidden="true"></span>
+<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Sent from your email</span>
+</div>
+</div>
+
+<aside class="heroCard" aria-label="Service snapshot">
+<h3>What happens behind the scenes</h3>
+<p>A quality-first workflow that increases your interview chances through volume and relevance.</p>
+<ul class="miniList">
+<li class="miniItem">
+<div class="miniIcon lime" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M21 21l-4.3-4.3"></path><circle cx="11" cy="11" r="7"></circle>
+</svg>
+</div>
+<div class="miniText"><strong>Job Search (Germany)</strong><span>Auto-fetch roles + shortlist daily.</span></div>
+</li>
+<li class="miniItem">
+<div class="miniIcon" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path>
+</svg>
+</div>
+<div class="miniText"><strong>CV tailoring</strong><span>Paste a JD or tailor from fetched jobs.</span></div>
+</li>
+<li class="miniItem">
+<div class="miniIcon lime" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"></path><path d="M21 8l-9 6-9-6"></path>
+</svg>
+</div>
+<div class="miniText"><strong>Auto apply</strong><span>Prepared + sent from your Gmail (review-first).</span></div>
+</li>
+</ul>
+<div class="heroCardActions">
+<a class="btn small" href="#pricing"><span class="btnLabel">Plans</span></a>
+<a class="btn small" href="#dashboard"><span class="btnLabel">Dashboard</span></a>
+<a class="btn primary small" href="signup.html"><span class="btnLabel">Get started</span></a>
+</div>
+</aside>
+</div>
+</div>
+</section>
+
+<section id="how" class="anchor">
+<div class="container">
+<div class="sectionHead">
+<div class="kicker">How it works</div>
+<h2 class="sectionTitle">Job search → tailored CV → applications sent.</h2>
+<p class="sectionDesc">A simple 3-step pipeline that turns your target into daily, high-quality outreach.</p>
+</div>
+
+<div class="pipeline" id="pipeline" aria-label="JobMeJob automation pipeline">
+<div class="pipeRow" role="list" aria-label="Pipeline steps">
+<button class="pipeCard" role="listitem" type="button" data-step="0" aria-current="step" aria-controls="pipe-panel" aria-expanded="true">
+<div class="pipeTop">
+<div class="pipeNum">1</div>
+<div class="pipeMeta">
+<strong>Job Search</strong>
+<span>Auto-fetch matching roles</span>
+</div>
+<div class="pipeIco" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M21 21l-4.3-4.3"></path><circle cx="11" cy="11" r="7"></circle>
+</svg>
+</div>
+</div>
+<div class="pipePills" aria-hidden="true">
+<span class="pipePill lime">Germany only</span>
+<span class="pipePill">Shortlist</span>
+<span class="pipePill">Daily matches</span>
+</div>
+</button>
+
+<span class="pipeArrow" aria-hidden="true" title="Next">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M5 12h14"></path><path d="m13 5 7 7-7 7"></path>
+</svg>
+</span>
+
+<button class="pipeCard" role="listitem" type="button" data-step="1" aria-controls="pipe-panel" aria-expanded="false">
+<div class="pipeTop">
+<div class="pipeNum">2</div>
+<div class="pipeMeta">
+<strong>CV Tailoring</strong>
+<span>Paste JD or use fetched jobs</span>
+</div>
+<div class="pipeIco" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path>
+</svg>
+</div>
+</div>
+<div class="pipePills" aria-hidden="true">
+<span class="pipePill">ATS-friendly</span>
+<span class="pipePill">Keyword gaps</span>
+<span class="pipePill">Same structure</span>
+</div>
+</button>
+
+<span class="pipeArrow" aria-hidden="true" title="Next">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M5 12h14"></path><path d="m13 5 7 7-7 7"></path>
+</svg>
+</span>
+
+<button class="pipeCard" role="listitem" type="button" data-step="2" aria-controls="pipe-panel" aria-expanded="false">
+<div class="pipeTop">
+<div class="pipeNum">3</div>
+<div class="pipeMeta">
+<strong>Auto Apply</strong>
+<span>Prepared + sent from your email</span>
+</div>
+<div class="pipeIco" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M22 2 11 13"></path><path d="M22 2 15 22 11 13 2 9 22 2Z"></path>
+</svg>
+</div>
+</div>
+<div class="pipePills" aria-hidden="true">
+<span class="pipePill lime">Review-first</span>
+<span class="pipePill">Gmail</span>
+<span class="pipePill">Log tracked</span>
+</div>
+</button>
+</div>
+
+<div class="stepPanel pipePanel" id="pipe-panel" role="region" aria-label="Pipeline preview">
+<div class="pipePanelTop">
+<h3 class="panelTitle" id="pipeTitle">Job Search</h3>
+<span class="pipeBadge" id="pipeBadge">Germany only</span>
+</div>
+<p class="panelSub" id="pipeSub">We fetch matching roles automatically and keep a shortlist — so you don’t waste evenings searching.</p>
+
+<div class="pipePreview" id="pipePreview" aria-label="Example output">
+<div class="pipeBox">
+<div class="pipeBoxTop">
+<strong class="pipeBoxTitle">Example: your job feed</strong>
+<span class="pipeBoxTag">New matches</span>
+</div>
+
+<div class="pipeRows" role="list">
+<div class="pipeRowItem" role="listitem">
+<span class="pipeStatus good">Match</span>
+<div class="pipeRowMain">
+<div class="pipeRowTitle">Product Manager</div>
+<div class="pipeRowMeta">Berlin · Hybrid · SaaS</div>
+</div>
+<span class="pipeMini">Score 84</span>
+</div>
+
+<div class="pipeRowItem" role="listitem">
+<span class="pipeStatus good">Match</span>
+<div class="pipeRowMain">
+<div class="pipeRowTitle">Data Analyst</div>
+<div class="pipeRowMeta">München · On-site · E‑commerce</div>
+</div>
+<span class="pipeMini">Score 79</span>
+</div>
+
+<div class="pipeRowItem" role="listitem">
+<span class="pipeStatus">New</span>
+<div class="pipeRowMain">
+<div class="pipeRowTitle">Software Engineer</div>
+<div class="pipeRowMeta">Hamburg · Remote · FinTech</div>
+</div>
+<span class="pipeMini">Score 76</span>
+</div>
+</div>
+
+<div class="pipeHint">Filters: title · location · remote · salary · seniority</div>
+</div>
+</div>
+
+<p class="pipeFine" id="pipeFine">Job fetching is optimized for the German market right now.</p>
+</div>
+</div>
+</div>
+</section>
+
+<section id="ats" class="atsBand anchor">
+<div class="container">
+<div class="sectionHead">
+<div class="kicker">ATS score</div>
+<h2 class="sectionTitle">A match score you can actually use.</h2>
+<p class="sectionDesc">Every tailored CV comes with an ATS match score and a keyword gap list — so you can see what improved and why.</p>
+</div>
+
+<div class="atsGrid">
+<div class="atsCopy">
+<div class="card">
+<h3>What the ATS match score measures</h3>
+<p>We compare the job description with your CV and check if the most important requirements show up clearly in an ATS-friendly format.</p>
+<ul class="atsBullets">
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><strong>Keyword coverage:</strong>&nbsp;skills, tools, and responsibilities found in your CV.</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><strong>Priority terms:</strong>&nbsp;we weight the “must-haves” higher than nice-to-haves.</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><strong>ATS basics:</strong>&nbsp;clear headings, readable structure, and consistent wording.</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><strong>Keyword gaps:</strong>&nbsp;you see missing terms we recommend adding (only if they match your experience).</li>
+</ul>
+<div class="atsPills" aria-label="ATS outputs">
+<div class="atsPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Score (0–100)</div>
+<div class="atsPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Missing keywords</div>
+<div class="atsPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Section suggestions</div>
+</div>
+<div class="atsNote">Note: Different companies use different ATS tools. The score is a practical indicator, not a guarantee of an interview.</div>
+</div>
+</div>
+
+<div class="dashFrame" aria-label="ATS score preview">
+<div class="dashTop">
+<div class="dashDots" aria-hidden="true"><span></span><span></span><span></span></div>
+<div class="dashLabel">
+<span>ATS Match</span>
+<span class="dashChip" aria-hidden="true">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block">
+<path d="M20 6 9 17l-5-5"></path>
+</svg>
+Keyword insights
+</span>
+</div>
+</div>
+
+<div class="dashBody">
+<div class="dashRow">
+<div class="dashCard">
+<h4>Match score</h4>
+<div class="kpi">
+<strong>82%</strong>
+<span>strong</span>
+</div>
+<div style="margin-top:8px" class="kpiBadge"><i aria-hidden="true"></i>Tailored to the job post</div>
+</div>
+
+<div class="dashCard">
+<h4>Keyword gaps</h4>
+<div class="kpi">
+<strong>7</strong>
+<span>missing</span>
+</div>
+<div style="margin-top:8px" class="kpiBadge"><i aria-hidden="true"></i>Suggested improvements</div>
+</div>
+</div>
+
+<div class="log" aria-label="ATS keyword preview">
+<div class="logHead">
+<strong>Examples</strong>
+<span class="logFilter" aria-hidden="true">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block">
+<path d="M4 6h16"></path><path d="M7 12h10"></path><path d="M10 18h4"></path>
+</svg>
+From a job post
+</span>
+</div>
+
+<div class="logList">
+<div class="logItem">
+<div class="logLeft">
+<div class="logTitle">Good coverage</div>
+<div class="logMeta">Leadership · Integrations · Data quality · GDPR</div>
+</div>
+<div class="status sent"><i aria-hidden="true"></i>Found</div>
+</div>
+
+<div class="logItem">
+<div class="logLeft">
+<div class="logTitle">Still missing</div>
+<div class="logMeta">Workday Studio · REST/SOAP · SFTP</div>
+</div>
+<div class="status review"><i aria-hidden="true"></i>Add</div>
+</div>
+</div>
+</div>
+
+<div class="noteSmall">We use the score to guide the tailoring — without inventing experience.</div>
+</div>
+</div>
+</div>
+</section>
+
+
+<section id="dashboard" class="dashBand anchor">
+<div class="container">
+<div class="dashGrid">
+<div class="dashCopy">
+<div class="kicker">Dashboard</div>
+<h3>See what gets done — every day.</h3>
+<p>Customers get a simple view of what was sent and what is in progress. This creates trust and makes the service feel like a full end-to-end job application workflow, not just “content generation”.</p>
+<ul class="dashPoints">
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Daily count of applications sent vs. plan quota</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Basic log view: company, role, date, and status</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Clear proof of execution, not just drafts</li>
+</ul>
+<div class="dashActions">
+<a class="btn primary" href="signup.html"><span class="btnLabel">Get started</span></a>
+<a class="btn" href="#pricing"><span class="btnLabel">View plans</span></a>
+</div>
+</div>
+
+<div class="dashFrame" aria-label="Dashboard preview visualization">
+<div class="dashTop">
+<div class="dashDots" aria-hidden="true"><span></span><span></span><span></span></div>
+<div class="dashLabel">
+<span>Application Tracker</span>
+<span class="dashChip" aria-hidden="true">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block">
+<path d="M20 6 9 17l-5-5"></path>
+</svg>
+Live log
+</span>
+</div>
+</div>
+
+<div class="dashBody">
+<div class="dashRow">
+<div class="dashCard">
+<h4>Today</h4>
+<div class="kpi">
+<strong>5</strong>
+<span>sent</span>
+</div>
+<div style="margin-top:8px" class="kpiBadge"><i aria-hidden="true"></i>On track (5 / 5)</div>
+<div class="spark" aria-hidden="true">
+<svg viewBox="0 0 300 70" preserveAspectRatio="none">
+<path d="M0 50 C 35 42, 55 44, 80 36 S 125 28, 150 34 S 195 46, 220 30 S 265 18, 300 24" fill="none" stroke="rgba(0,166,63,.85)" stroke-width="4" stroke-linecap="round"/>
+<path d="M0 60 L300 60" stroke="rgba(0,0,0,.06)" stroke-width="2"/>
+</svg>
+</div>
+</div>
+
+<div class="dashCard">
+<h4>This week</h4>
+<div class="kpi">
+<strong>23</strong>
+<span>sent</span>
+</div>
+<div style="margin-top:8px" class="kpiBadge"><i aria-hidden="true"></i>Consistency streak: 7 days</div>
+<div class="spark" aria-hidden="true">
+<svg viewBox="0 0 300 70" preserveAspectRatio="none">
+<path d="M0 44 C 38 40, 60 48, 90 40 S 135 26, 160 32 S 200 52, 230 36 S 270 24, 300 30" fill="none" stroke="rgba(17,17,17,.75)" stroke-width="4" stroke-linecap="round"/>
+<path d="M0 60 L300 60" stroke="rgba(0,0,0,.06)" stroke-width="2"/>
+</svg>
+</div>
+</div>
+</div>
+
+<div class="log" aria-label="Application log preview">
+<div class="logHead">
+<strong>Recent activity</strong>
+<span class="logFilter" aria-hidden="true">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block">
+<path d="M4 6h16"></path><path d="M7 12h10"></path><path d="M10 18h4"></path>
+</svg>
+Last 7 days
+</span>
+</div>
+
+<div class="logList">
+<div class="logItem">
+<div class="logLeft">
+<div class="logTitle">AI Engineer (w|m|d) — BMW AG</div>
+<div class="logMeta">Berlin · Unsolicited email · Today 09:18</div>
+</div>
+<div class="status sent"><i aria-hidden="true"></i>Sent</div>
+</div>
+
+<div class="logItem">
+<div class="logLeft">
+<div class="logTitle">Business Analyst — Spotify</div>
+<div class="logMeta">Remote · Draft prepared · Today 08:41</div>
+</div>
+<div class="status review"><i aria-hidden="true"></i>Review</div>
+</div>
+
+<div class="logItem">
+<div class="logLeft">
+<div class="logTitle">Mobile App Marketing Manager — HelloFresh SE</div>
+<div class="logMeta">Munich · Tailoring CV · Yesterday 17:22</div>
+</div>
+<div class="status draft"><i aria-hidden="true"></i>Draft</div>
+</div>
+</div>
+</div>
+
+<div class="noteSmall">Preview only. Final version can include search, filters, and downloads of sent emails.</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<section id="pricing" class="anchor">
+<div class="container">
+<div class="sectionHead">
+<div class="kicker">Pricing</div>
+<h2 class="sectionTitle">Start from $20. Save more as you scale.</h2>
+<p class="sectionDesc">Plans are based on daily output. The monthly value is shown as total applications per month.</p>
+</div>
+
+<div class="pricingWrap">
+<div class="card plan">
+<h3 style="margin:0 0 6px;font-weight:1000;letter-spacing:-.2px">Starter</h3>
+<p style="margin:0;color:var(--muted);font-size:14px">For steady progress.</p>
+<div class="priceRow" style="margin-top:10px">
+<div class="strike">$29</div>
+<strong>$20</strong>
+<span>/ month</span>
+<span class="save">Save 31%</span>
+</div>
+
+<div class="valueRow" aria-label="Monthly value">
+<div>
+<strong>1 application / day</strong>
+<span>≈ 30 per month</span>
+</div>
+<div class="valueBadge"><i aria-hidden="true"></i>From $0.67 / app</div>
+</div>
+
+<ul class="features">
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Tailored CV + cover letter</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>ATS match score + keyword gaps</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Sent from your Gmail</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Simple application log</li>
+</ul>
+<div class="planActions">
+<a class="btn primary" href="signup.html"><span class="btnLabel">Get started</span></a>
+</div>
+</div>
+
+<div class="card plan featured" aria-label="Best value plan">
+<div class="ribbon">Best value</div>
+<h3 style="margin:0 0 6px;font-weight:1000;letter-spacing:-.2px">Growth</h3>
+<p style="margin:0;color:var(--muted);font-size:14px">For active searches.</p>
+<div class="priceRow" style="margin-top:10px">
+<div class="strike">$59</div>
+<strong>$45</strong>
+<span>/ month</span>
+<span class="save">Save 24%</span>
+</div>
+
+<div class="valueRow" aria-label="Monthly value">
+<div>
+<strong>5 applications / day</strong>
+<span>≈ 150 per month</span>
+</div>
+<div class="valueBadge"><i aria-hidden="true"></i>≈ $0.30 / app</div>
+</div>
+
+<ul class="features">
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Better matching & shortlisting</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>ATS match score + keyword gaps</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Weekly progress summary</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Priority turnaround</li>
+</ul>
+<div class="planActions">
+<a class="btn lime" href="signup.html"><span class="btnLabel">Get started</span></a>
+<a class="btn primary" href="#how"><span class="btnLabel">How it works</span></a>
+</div>
+</div>
+
+<div class="card plan">
+<h3 style="margin:0 0 6px;font-weight:1000;letter-spacing:-.2px">Pro</h3>
+<p style="margin:0;color:var(--muted);font-size:14px">For faster outreach.</p>
+<div class="priceRow" style="margin-top:10px">
+<div class="strike">$119</div>
+<strong>$89</strong>
+<span>/ month</span>
+<span class="save">Save 25%</span>
+</div>
+
+<div class="valueRow" aria-label="Monthly value">
+<div>
+<strong>10 applications / day</strong>
+<span>≈ 300 per month</span>
+</div>
+<div class="valueBadge"><i aria-hidden="true"></i>≈ $0.30 / app</div>
+</div>
+
+<ul class="features">
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Priority turnaround</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>ATS match score + keyword gaps</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Follow-up templates</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Enhanced tracking view</li>
+</ul>
+<div class="planActions">
+<a class="btn primary" href="#contact"><span class="btnLabel">Contact</span></a>
+</div>
+</div>
+</div>
+
+<p class="fineprint">Monthly totals are approximate (30-day month) and shown to communicate value. Prices are promotional and may change after launch.</p>
+</div>
+</section>
+
+<section id="why" class="whyBand anchor">
+<div class="container">
+<div class="sectionHead">
+<div class="kicker">Why this works</div>
+<h2 class="sectionTitle">More interviews come from consistent, relevant outreach.</h2>
+<p class="sectionDesc">We combine daily volume with a quality-first process. Each application is tailored and sent from your email for credibility.</p>
+</div>
+
+<div class="whyGrid">
+<div class="whyList">
+<div class="whyItem">
+<div class="whyIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8 10L4 11"></path></svg></div>
+<div class="whyText"><strong>Zero manual effort</strong><span>You set the direction once. We execute daily applications for you.</span></div>
+</div>
+<div class="whyItem">
+<div class="whyIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg></div>
+<div class="whyText"><strong>Daily consistency</strong><span>Continuous outreach increases your chance of replies and interviews.</span></div>
+</div>
+<div class="whyItem">
+<div class="whyIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h16"></path></svg></div>
+<div class="whyText"><strong>Tailored per role and company</strong><span>Each application matches the job requirements and your experience.</span></div>
+</div>
+<div class="whyItem">
+<div class="whyIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"></path><path d="M21 8l-9 6-9-6"></path></svg></div>
+<div class="whyText"><strong>Sent from your email</strong><span>Applications look like they came directly from you, improving credibility.</span></div>
+</div>
+</div>
+
+<div class="qpWrap" aria-label="Quality principle">
+<div class="qpHeader">
+<div class="qpIcon" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path>
+<path d="M9 12l2 2 4-4"></path>
+</svg>
+</div>
+<div>
+<h3>Quality principle</h3>
+<p>We focus on relevant and personalized outreach. The goal is daily volume without harming your reputation.</p>
+</div>
+</div>
+
+<div class="qpPills" aria-label="Quality checks">
+<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Not mass spam</div>
+<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Human review step</div>
+<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Clear application log</div>
+<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Role-specific narrative</div>
+</div>
+
+<div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;position:relative">
+<a class="btn primary small" href="#how"><span class="btnLabel">See workflow</span></a>
+<a class="btn lime small" href="signup.html"><span class="btnLabel">Get started</span></a>
+</div>
+</div>
+
+</div>
+</div>
+</section>
+
+<section id="faq" class="anchor">
+<div class="container">
+<div class="sectionHead">
+<div class="kicker">FAQ</div>
+<h2 class="sectionTitle">Answers to the most common questions.</h2>
+<p class="sectionDesc">If you have a specific setup (industry, location, seniority), reach out — we’ll confirm what’s possible.</p>
+</div>
+
+<div class="faqGrid" aria-label="Frequently asked questions">
+<details class="faqItem">
+<summary>Do you really apply from my own email?</summary>
+<div class="faqBody">Yes. After you connect your Google account, applications can be sent from your Gmail so outreach looks natural and credible.</div>
+</details>
+
+<details class="faqItem">
+<summary>Do you invent experience or “fake” details?</summary>
+<div class="faqBody">No. Tailoring should improve clarity and relevance, not fabricate experience. If something is missing, we recommend changes only when it matches your real background.</div>
+</details>
+
+<details class="faqItem">
+<summary>Can I change targets or pause anytime?</summary>
+<div class="faqBody">Yes. You can update your role/location preferences as your search evolves and pause if you want to stop outreach for a period.</div>
+</details>
+
+<details class="faqItem">
+<summary>What does the ATS match score mean?</summary>
+<div class="faqBody">It’s a practical indicator of how well your CV’s wording aligns with a specific job description (keywords, priority terms, and formatting basics). It’s not a guarantee of an interview.</div>
+</details>
+
+<details class="faqItem">
+<summary>Is this “mass spam”?</summary>
+<div class="faqBody">No. The goal is consistent volume with relevance. We prioritize matching and role-specific narrative so your outreach protects your reputation.</div>
+</details>
+</div>
+</div>
+</section>
+
+<section id="contact" class="cta anchor">
+<div class="container">
+<div class="ctaBox">
+<div>
+<h2>Early Access</h2>
+<p>Tell us your target role and location. We will reach out with next steps and early access.</p>
+</div>
+<form action="#" method="post" aria-label="Waitlist form">
+<div class="two">
+<label class="sr-only" for="name">Name</label>
+<input id="name" name="name" type="text" placeholder="Name" autocomplete="name">
+<label class="sr-only" for="email">Email</label>
+<input id="email" name="email" type="email" placeholder="Email" autocomplete="email" required>
+</div>
+<label class="sr-only" for="goals">Preferences</label>
+<textarea id="goals" name="goals" rows="3" placeholder="Target job titles, industry, country, city, radius (optional)"></textarea>
+<div class="formActions">
+<button class="btn lime" type="submit">
+<span class="btnLabel">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+<path d="M22 2 11 13"></path><path d="M22 2 15 22 11 13 2 9 22 2Z"></path>
+</svg>
+<span>Send</span>
+</span>
+</button>
+<a class="btn" href="mailto:team@jobmejob.com" style="background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.16);color:#fff">
+<span class="btnLabel">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+<path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"></path><path d="M21 8l-9 6-9-6"></path>
+</svg>
+<span>Contact via email</span>
+</span>
+</a>
+<span class="note">Typical reply: 1–2 business days.</span>
+</div>
+</form>
+</div>
+</div>
+</section>
+</main>
+
+<footer>
+<div class="container">
+<div class="footerRow">
+<div><strong style="color:var(--text);font-weight:1000">jobmejob</strong><span> · </span><span>Continuous, professional job applications</span></div>
+<div class="footerLinks" aria-label="Footer links">
+<a href="#how">How it works</a>
+<a href="#dashboard">Dashboard</a>
+<a href="#ats">ATS score</a>
+<a href="#pricing">Pricing</a>
+<a href="#why">Why it works</a>
+<a href="#faq">FAQ</a>
+<a href="#contact">Contact</a>
+</div>
+<!-- TODO: Add legal pages: privacy.html · terms.html · imprint.html -->
+
+</div>
+<div style="margin-top:10px">© <span id="year"></span> jobmejob All rights reserved.</div>
+</div>
+
+<script>
+(function(){
+  // Year in footer
+  var yearEl = document.getElementById("year");
+  if(yearEl) yearEl.textContent = new Date().getFullYear();
+
+  // Pipeline (How it works)
+  var root = document.getElementById("pipeline");
+  if(!root) return;
+
+  var cards = [].slice.call(root.querySelectorAll(".pipeCard"));
+  var titleEl = document.getElementById("pipeTitle");
+  var subEl = document.getElementById("pipeSub");
+  var badgeEl = document.getElementById("pipeBadge");
+  var previewEl = document.getElementById("pipePreview");
+  var fineEl = document.getElementById("pipeFine");
+
+  if(!cards.length || !titleEl || !subEl || !badgeEl || !previewEl) return;
+
+  function prefersReducedMotion(){
+    try{ return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
+    catch(_){ return false; }
+  }
+
+  var steps = {
+    0: {
+      title: "Job Search",
+      sub: "We fetch matching roles automatically and keep a shortlist — so you don’t waste evenings searching.",
+      badge: "Germany only",
+      fine: "Job fetching is optimized for the German market right now.",
+      preview: [
+        '<div class="pipeBox">',
+          '<div class="pipeBoxTop">',
+            '<strong class="pipeBoxTitle">Example: your job feed</strong>',
+            '<span class="pipeBoxTag">New matches</span>',
+          '</div>',
+          '<div class="pipeRows" role="list">',
+            '<div class="pipeRowItem" role="listitem">',
+              '<span class="pipeStatus good">Match</span>',
+              '<div class="pipeRowMain">',
+                '<div class="pipeRowTitle">Product Manager</div>',
+                '<div class="pipeRowMeta">Berlin · Hybrid · SaaS</div>',
+              '</div>',
+              '<span class="pipeMini">Score 84</span>',
+            '</div>',
+            '<div class="pipeRowItem" role="listitem">',
+              '<span class="pipeStatus good">Match</span>',
+              '<div class="pipeRowMain">',
+                '<div class="pipeRowTitle">Data Analyst</div>',
+                '<div class="pipeRowMeta">München · On-site · E‑commerce</div>',
+              '</div>',
+              '<span class="pipeMini">Score 79</span>',
+            '</div>',
+            '<div class="pipeRowItem" role="listitem">',
+              '<span class="pipeStatus">New</span>',
+              '<div class="pipeRowMain">',
+                '<div class="pipeRowTitle">Software Engineer</div>',
+                '<div class="pipeRowMeta">Hamburg · Remote · FinTech</div>',
+              '</div>',
+              '<span class="pipeMini">Score 76</span>',
+            '</div>',
+          '</div>',
+          '<div class="pipeHint">Filters: title · location · remote · salary · seniority</div>',
+        '</div>'
+      ].join("")
+    },
+
+    1: {
+      title: "CV Tailoring",
+      sub: "Paste a job description (JD) or pick a fetched job. We tailor your CV for relevance and ATS readability.",
+      badge: "Paste JD or pick a job",
+      fine: "We improve clarity and keyword coverage — without inventing experience.",
+      preview: [
+        '<div class="pipeBox">',
+          '<div class="pipeBoxTop">',
+            '<strong class="pipeBoxTitle">Example: tailored CV snapshot</strong>',
+            '<span class="pipeBoxTag">ATS-ready</span>',
+          '</div>',
+          '<div class="pipeRows" role="list">',
+            '<div class="pipeRowItem" role="listitem">',
+              '<span class="pipeStatus good">Added</span>',
+              '<div class="pipeRowMain">',
+                '<div class="pipeRowTitle">Keywords aligned</div>',
+                '<div class="pipeRowMeta">OKRs · roadmap · stakeholder mgmt · data quality</div>',
+              '</div>',
+              '<span class="pipeMini">+8</span>',
+            '</div>',
+            '<div class="pipeRowItem" role="listitem">',
+              '<span class="pipeStatus good">Reordered</span>',
+              '<div class="pipeRowMain">',
+                '<div class="pipeRowTitle">Most relevant bullets moved up</div>',
+                '<div class="pipeRowMeta">So the first 10 seconds land the story</div>',
+              '</div>',
+              '<span class="pipeMini">+5</span>',
+            '</div>',
+            '<div class="pipeRowItem" role="listitem">',
+              '<span class="pipeStatus">Gaps</span>',
+              '<div class="pipeRowMain">',
+                '<div class="pipeRowTitle">Missing terms flagged</div>',
+                '<div class="pipeRowMeta">Only recommended if they match your real background</div>',
+              '</div>',
+              '<span class="pipeMini">7</span>',
+            '</div>',
+          '</div>',
+          '<div class="pipeHint">Input: paste JD · or choose from fetched jobs</div>',
+        '</div>'
+      ].join("")
+    },
+
+    2: {
+      title: "Auto Apply",
+      sub: "We prepare applications, then send them from your Gmail — consistent formatting, tracked status, daily execution.",
+      badge: "Review-first",
+      fine: "The goal is scale without spam: quality-first outreach sent from your email.",
+      preview: [
+        '<div class="pipeBox">',
+          '<div class="pipeBoxTop">',
+            '<strong class="pipeBoxTitle">Example: application queue</strong>',
+            '<span class="pipeBoxTag">Daily execution</span>',
+          '</div>',
+          '<div class="pipeRows" role="list">',
+            '<div class="pipeRowItem" role="listitem">',
+              '<span class="pipeStatus good">Ready</span>',
+              '<div class="pipeRowMain">',
+                '<div class="pipeRowTitle">Ready to send</div>',
+                '<div class="pipeRowMeta">All info found · CV & letter prepared</div>',
+              '</div>',
+              '<span class="pipeMini">6</span>',
+            '</div>',
+            '<div class="pipeRowItem" role="listitem">',
+              '<span class="pipeStatus">Review</span>',
+              '<div class="pipeRowMain">',
+                '<div class="pipeRowTitle">Needs a quick check</div>',
+                '<div class="pipeRowMeta">Edge cases: unclear contact · missing data</div>',
+              '</div>',
+              '<span class="pipeMini">2</span>',
+            '</div>',
+            '<div class="pipeRowItem" role="listitem">',
+              '<span class="pipeStatus good">Sent</span>',
+              '<div class="pipeRowMain">',
+                '<div class="pipeRowTitle">Sent</div>',
+                '<div class="pipeRowMeta">Logged + timestamped for tracking</div>',
+              '</div>',
+              '<span class="pipeMini">4</span>',
+            '</div>',
+          '</div>',
+          '<div class="pipeHint">You stay credible: sent from your Gmail · tracked in your log</div>',
+        '</div>'
+      ].join("")
+    }
+  };
+
+  var active = 0;
+  var timer = null;
+  var hoverPause = false;
+  var userPauseUntil = 0;
+
+  function setActive(step, opts){
+    var s = Number(step);
+    if(!steps.hasOwnProperty(s)) s = 0;
+    active = s;
+
+    cards.forEach(function(btn){
+      var isOn = btn.getAttribute("data-step") === String(s);
+      if(isOn){
+        btn.setAttribute("aria-current","step");
+        btn.setAttribute("aria-expanded","true");
+      }else{
+        btn.removeAttribute("aria-current");
+        btn.setAttribute("aria-expanded","false");
+      }
+    });
+
+    titleEl.textContent = steps[s].title;
+    subEl.textContent = steps[s].sub;
+
+    var badge = String(steps[s].badge || "");
+    badgeEl.textContent = badge;
+    badgeEl.style.display = badge ? "inline-flex" : "none";
+
+    if(fineEl){
+      fineEl.textContent = String(steps[s].fine || "");
+      fineEl.style.display = steps[s].fine ? "block" : "none";
+    }
+
+    previewEl.innerHTML = steps[s].preview;
+
+    // If the user clicked, pause auto cycling for a bit
+    opts = opts || {};
+    if(opts.user){
+      userPauseUntil = Date.now() + 7000;
+    }
+  }
+
+  // Click wiring
+  cards.forEach(function(btn){
+    btn.addEventListener("click", function(){
+      setActive(btn.getAttribute("data-step"), { user: true });
+    });
+
+    btn.addEventListener("keydown", function(e){
+      var keys = ["ArrowRight","ArrowLeft","ArrowDown","ArrowUp","Home","End"];
+      if(keys.indexOf(e.key) === -1) return;
+      e.preventDefault();
+
+      var all = cards;
+      var idx = all.indexOf(btn);
+      var next = idx;
+
+      if(e.key === "ArrowRight" || e.key === "ArrowDown") next = Math.min(all.length - 1, idx + 1);
+      if(e.key === "ArrowLeft" || e.key === "ArrowUp") next = Math.max(0, idx - 1);
+      if(e.key === "Home") next = 0;
+      if(e.key === "End") next = all.length - 1;
+
+      all[next].focus();
+      setActive(all[next].getAttribute("data-step"), { user: true });
+    });
+  });
+
+  // Hover pause
+  root.addEventListener("mouseenter", function(){ hoverPause = true; });
+  root.addEventListener("mouseleave", function(){ hoverPause = false; });
+
+  function startAuto(){
+    if(prefersReducedMotion()) return;
+    if(timer) return;
+
+    timer = window.setInterval(function(){
+      if(hoverPause) return;
+      if(Date.now() < userPauseUntil) return;
+      setActive((active + 1) % cards.length, { user: false });
+    }, 4200);
+  }
+
+  function stopAuto(){
+    if(!timer) return;
+    window.clearInterval(timer);
+    timer = null;
+  }
+
+  // Only run when visible
+  if(!prefersReducedMotion() && "IntersectionObserver" in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting) startAuto();
+        else stopAuto();
+      });
+    }, { threshold: 0.35 });
+
+    io.observe(root);
+  }else{
+    startAuto();
+  }
+
+  // Init
+  setActive(0);
+})();
+</script>
+</footer>
+</body>
+</html>
