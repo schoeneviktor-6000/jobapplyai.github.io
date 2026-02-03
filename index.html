@@ -1977,6 +1977,191 @@ color:var(--text);
   .howScore{justify-self:start}
   .howPreviewTitle{text-align:left}
 }
+
+/* How it works (simple, 3-step visualization) */
+.howSimple{
+  padding:64px 0;
+  background:linear-gradient(180deg, transparent, var(--surface));
+  border-bottom:1px solid rgba(215,218,220,.85);
+}
+.howRow{position:relative}
+.howRail{
+  position:absolute;
+  left:24px;
+  right:24px;
+  top:38px;
+  height:2px;
+  border-radius:99px;
+  background:linear-gradient(90deg, rgba(0,0,0,.06), rgba(0,166,63,.24), rgba(0,0,0,.06));
+  opacity:.75;
+}
+.howCards{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:14px;
+  align-items:stretch;
+  position:relative;
+}
+.howCard{
+  background:#fff;
+  border:1px solid rgba(215,218,220,.95);
+  border-radius:24px;
+  box-shadow:0 10px 22px rgba(0,0,0,.05);
+  padding:18px;
+  position:relative;
+  overflow:hidden;
+}
+.howCard:before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  right:0;
+  height:4px;
+  background:var(--howAccent, rgba(0,0,0,.18));
+}
+.howCard[data-accent="search"]{--howAccent: rgba(0,166,63,.75)}
+.howCard[data-accent="tailor"]{--howAccent: rgba(17,17,17,.65)}
+.howCard[data-accent="send"]{--howAccent: rgba(255,122,0,.70)}
+
+.howCardHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.howCard h3{
+  margin:6px 0 0 0;
+  font-size:18px;
+  letter-spacing:-.2px;
+  font-weight:1000;
+}
+.howCard p{
+  margin:10px 0 14px;
+  color:var(--muted);
+  font-size:14px;
+  max-width:62ch;
+}
+
+.howIcon{
+  width:44px;height:44px;border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.06);
+  border:1px solid rgba(0,0,0,.10);
+  color:var(--ink2);
+  flex:0 0 auto;
+}
+.howIcon svg{width:18px;height:18px}
+
+.howStepPill{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:7px 10px;border-radius:999px;
+  border:1px solid rgba(215,218,220,.9);
+  background:rgba(246,247,248,.92);
+  font-size:12px;font-weight:1000;color:var(--muted);
+  width:fit-content;
+}
+
+.howMock{
+  border-radius:18px;
+  border:1px solid rgba(215,218,220,.90);
+  background:rgba(246,247,248,.60);
+  overflow:hidden;
+}
+.howMockTop{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:10px 12px;
+  background:rgba(255,255,255,.74);
+  border-bottom:1px solid rgba(215,218,220,.75);
+}
+.howMockTop strong{
+  font-size:12px;
+  letter-spacing:.2px;
+  text-transform:uppercase;
+  font-weight:1000;
+  color:var(--muted2);
+}
+.howMockTop span{
+  font-size:12px;
+  font-weight:950;
+  color:var(--muted);
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(215,218,220,.85);
+  background:#fff;
+  white-space:nowrap;
+}
+
+.howMockList{display:grid}
+.howMockRow{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:12px;
+  border-top:1px solid rgba(215,218,220,.65);
+}
+.howMockRow:first-child{border-top:none}
+
+.howMiniLeft{min-width:0;display:grid;gap:2px}
+.howTitleMini{
+  font-size:13px;
+  font-weight:950;
+  color:var(--ink2);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.howMetaMini{
+  font-size:12px;
+  font-weight:850;
+  color:var(--muted2);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.howTag{
+  font-size:12px;
+  font-weight:1000;
+  padding:7px 10px;
+  border-radius:999px;
+  border:1px solid rgba(215,218,220,.85);
+  background:#fff;
+  color:var(--muted);
+  white-space:nowrap;
+  flex:0 0 auto;
+}
+.howTag.good{
+  background:#e9f7ee;
+  border-color:rgba(0,166,63,.26);
+  color:#0a3a1c;
+}
+
+.howKpis{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.howKpi{
+  padding:7px 10px;
+  border-radius:999px;
+  background:rgba(246,247,248,.92);
+  border:1px solid rgba(215,218,220,.9);
+  color:var(--muted);
+  font-size:12px;
+  font-weight:950;
+  white-space:nowrap;
+}
+.howKpi strong{color:var(--ink2)}
+
+.howOutcome{
+  margin-top:14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px;
+  border-radius:18px;
+  background:linear-gradient(135deg, rgba(0,166,63,.10), rgba(0,0,0,.03));
+  border:1px solid rgba(0,166,63,.22);
+  box-shadow:0 10px 22px rgba(0,0,0,.05);
+}
+
+@media (max-width:980px){
+  .howRail{display:none}
+  .howCards{grid-template-columns:1fr}
+  .howOutcome{align-items:flex-start;flex-direction:column}
+}
+
 </style>
 </head>
 <body>
@@ -2081,188 +2266,201 @@ color:var(--text);
 </div>
 </section>
 
-<section id="how" class="howBand anchor">
-  <div class="container">
-    <div class="sectionHead">
-      <div class="kicker">How it works</div>
-      <h2 class="sectionTitle">Job search → tailored CV → applications sent.</h2>
-      <p class="sectionDesc">Set your target once. jobmejob runs the daily workflow — matching, tailoring, sending, and tracking.</p>
-    </div>
+<section id="how" class="anchor howSimple">
+<div class="container">
+<div class="sectionHead">
+<div class="kicker">How it works</div>
+<h2 class="sectionTitle">Search → tailor → send.</h2>
+<p class="sectionDesc">Set your target once. jobmejob runs the daily workflow — matching roles, tailoring your documents, and sending applications from your email.</p>
+</div>
 
-    <div class="howFrame" id="howFlow" data-active="0" aria-label="How it works workflow">
-      <div class="howStory">
-        <!-- Sticky preview -->
-        <div class="howSticky">
-          <div class="howStickyInner">
-            <div class="howPreview" id="howPreview" role="region" aria-label="Workflow preview">
-              <div class="howPreviewTop">
-                <div class="howDots" aria-hidden="true"><span></span><span></span><span></span></div>
-                <div class="howPreviewTitle" id="howPreviewTitle" aria-live="polite">Job Search</div>
-                <div class="howProgress" aria-label="Step progress">
-                  <span class="howPip is-on" aria-hidden="true"></span>
-                  <span class="howPip" aria-hidden="true"></span>
-                  <span class="howPip" aria-hidden="true"></span>
-                </div>
-              </div>
+<div class="howRow" aria-label="Three-step workflow">
+<div class="howRail" aria-hidden="true"></div>
 
-              <div class="howPreviewBody is-anim" id="howPreviewBody">
-                <div class="howMock">
-                  <div class="howMockTop">
-                    <strong>Example: your job feed</strong>
-                    <span class="howMockPill">New matches</span>
-                  </div>
+<div class="howCards" role="list" aria-label="Workflow steps">
+<article class="howCard" role="listitem" data-accent="search">
+<div class="howCardHeader">
+<div style="display:flex;align-items:center;gap:12px;min-width:0">
+<div class="howIcon" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M21 21l-4.3-4.3"></path><circle cx="11" cy="11" r="7"></circle>
+</svg>
+</div>
+<div style="min-width:0">
+<div class="howStepPill">Step 1</div>
+<h3>Job Search</h3>
+</div>
+</div>
+</div>
+<p>We fetch matching roles and build a shortlist — optimized for the German market right now.</p>
 
-                  <div class="howMockRows" role="list">
-                    <div class="howRow" role="listitem">
-                      <span class="howState good">Match</span>
-                      <div class="howRowMain">
-                        <div class="howRowTitle">Product Manager</div>
-                        <div class="howRowMeta">Berlin · Hybrid · SaaS</div>
-                      </div>
-                      <span class="howScore">84</span>
-                    </div>
+<div class="howMock" aria-label="Job feed preview">
+<div class="howMockTop">
+<strong>Job feed</strong>
+<span>New matches</span>
+</div>
+<div class="howMockList" role="list">
+<div class="howMockRow" role="listitem">
+<span class="howTag good">Match</span>
+<div class="howMiniLeft">
+<div class="howTitleMini">Product Manager</div>
+<div class="howMetaMini">Berlin · Hybrid · SaaS</div>
+</div>
+<span class="howTag">84</span>
+</div>
+<div class="howMockRow" role="listitem">
+<span class="howTag good">Match</span>
+<div class="howMiniLeft">
+<div class="howTitleMini">Data Analyst</div>
+<div class="howMetaMini">München · On‑site · E‑commerce</div>
+</div>
+<span class="howTag">79</span>
+</div>
+<div class="howMockRow" role="listitem">
+<span class="howTag">New</span>
+<div class="howMiniLeft">
+<div class="howTitleMini">Software Engineer</div>
+<div class="howMetaMini">Hamburg · Remote · FinTech</div>
+</div>
+<span class="howTag">76</span>
+</div>
+</div>
+</div>
 
-                    <div class="howRow" role="listitem">
-                      <span class="howState good">Match</span>
-                      <div class="howRowMain">
-                        <div class="howRowTitle">Data Analyst</div>
-                        <div class="howRowMeta">München · On‑site · E‑commerce</div>
-                      </div>
-                      <span class="howScore">79</span>
-                    </div>
+<div class="howKpis" aria-label="Job search outputs">
+<div class="howKpi"><strong>Daily</strong> matches</div>
+<div class="howKpi">Shortlist</div>
+<div class="howKpi">Filters</div>
+</div>
+</article>
 
-                    <div class="howRow" role="listitem">
-                      <span class="howState">New</span>
-                      <div class="howRowMain">
-                        <div class="howRowTitle">Software Engineer</div>
-                        <div class="howRowMeta">Hamburg · Remote · FinTech</div>
-                      </div>
-                      <span class="howScore">76</span>
-                    </div>
-                  </div>
+<article class="howCard" role="listitem" data-accent="tailor">
+<div class="howCardHeader">
+<div style="display:flex;align-items:center;gap:12px;min-width:0">
+<div class="howIcon" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path>
+</svg>
+</div>
+<div style="min-width:0">
+<div class="howStepPill">Step 2</div>
+<h3>CV Tailoring</h3>
+</div>
+</div>
+</div>
+<p>Paste a job description (or pick from the shortlist). We tailor your CV + cover letter for relevance and ATS readability.</p>
 
-                  <div class="howMockHint">Filters: title · location · remote · salary · seniority</div>
-                </div>
-              </div>
+<div class="howMock" aria-label="Tailoring preview">
+<div class="howMockTop">
+<strong>Tailoring</strong>
+<span>ATS‑ready</span>
+</div>
+<div class="howMockList" role="list">
+<div class="howMockRow" role="listitem">
+<span class="howTag good">Score</span>
+<div class="howMiniLeft">
+<div class="howTitleMini">ATS match</div>
+<div class="howMetaMini">Keyword coverage improved</div>
+</div>
+<span class="howTag">82%</span>
+</div>
+<div class="howMockRow" role="listitem">
+<span class="howTag">Gaps</span>
+<div class="howMiniLeft">
+<div class="howTitleMini">Keyword gaps</div>
+<div class="howMetaMini">Suggested terms (only if true)</div>
+</div>
+<span class="howTag">7</span>
+</div>
+<div class="howMockRow" role="listitem">
+<span class="howTag good">Format</span>
+<div class="howMiniLeft">
+<div class="howTitleMini">Same structure</div>
+<div class="howMetaMini">ATS-friendly headings</div>
+</div>
+<span class="howTag">✓</span>
+</div>
+</div>
+</div>
 
-              <div class="howPreviewFine" id="howPreviewFine">Job fetching is optimized for the German market right now.</div>
-            </div>
+<div class="howKpis" aria-label="Tailoring outputs">
+<div class="howKpi">ATS score</div>
+<div class="howKpi">Keyword gaps</div>
+<div class="howKpi">Same structure</div>
+</div>
+</article>
 
-            <div class="howStickyActions">
-              <a class="btn lime small" href="signup.html"><span class="btnLabel">Get started</span></a>
-              <a class="btn small" href="#pricing"><span class="btnLabel">View plans</span></a>
-            </div>
+<article class="howCard" role="listitem" data-accent="send">
+<div class="howCardHeader">
+<div style="display:flex;align-items:center;gap:12px;min-width:0">
+<div class="howIcon" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M22 2 11 13"></path><path d="M22 2 15 22 11 13 2 9 22 2Z"></path>
+</svg>
+</div>
+<div style="min-width:0">
+<div class="howStepPill">Step 3</div>
+<h3>Auto Apply</h3>
+</div>
+</div>
+</div>
+<p>We prepare applications and send them from your Gmail. Review-first by default, with every send logged.</p>
 
-            <div class="howStickyNote" aria-label="Principles">
-              <span class="howMiniBadge"><span class="dot" aria-hidden="true"></span>Review-first</span>
-              <span class="howMiniBadge"><span class="dot" aria-hidden="true"></span>Sent from Gmail</span>
-              <span class="howMiniBadge"><span class="dot" aria-hidden="true"></span>Logged</span>
-            </div>
-          </div>
-        </div>
+<div class="howMock" aria-label="Sending preview">
+<div class="howMockTop">
+<strong>Outreach</strong>
+<span>Logged</span>
+</div>
+<div class="howMockList" role="list">
+<div class="howMockRow" role="listitem">
+<span class="howTag good">Ready</span>
+<div class="howMiniLeft">
+<div class="howTitleMini">Prepared drafts</div>
+<div class="howMetaMini">Queued for today</div>
+</div>
+<span class="howTag">6</span>
+</div>
+<div class="howMockRow" role="listitem">
+<span class="howTag">Review</span>
+<div class="howMiniLeft">
+<div class="howTitleMini">Review-first</div>
+<div class="howMetaMini">Quick check before send</div>
+</div>
+<span class="howTag">2</span>
+</div>
+<div class="howMockRow" role="listitem">
+<span class="howTag good">Sent</span>
+<div class="howMiniLeft">
+<div class="howTitleMini">Sent from Gmail</div>
+<div class="howMetaMini">Timestamped + tracked</div>
+</div>
+<span class="howTag">4</span>
+</div>
+</div>
+</div>
 
-        <!-- Steps -->
-        <div class="howSteps" role="list" aria-label="Workflow steps">
-          <div class="howStep shape-round is-active" data-step="0" role="listitem">
-            <button class="howStepCard" type="button" aria-current="step" aria-controls="howPreview" aria-expanded="true">
-              <div class="howStepHead">
-                <div class="howStepNo"><span class="n">1</span><span class="t">Search</span></div>
-                <div class="howStepIcon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 21l-4.3-4.3"></path><circle cx="11" cy="11" r="7"></circle>
-                  </svg>
-                </div>
-              </div>
-              <h3 class="howStepTitle">Job Search</h3>
-              <p class="howStepDesc">We fetch matching roles automatically and keep a shortlist — so you don’t waste evenings searching.</p>
+<div class="howKpis" aria-label="Sending outputs">
+<div class="howKpi">Gmail</div>
+<div class="howKpi"><strong>Review</strong>-first</div>
+<div class="howKpi">Log tracked</div>
+</div>
+</article>
+</div>
 
-              <div class="howIO" aria-label="Input and output">
-                <div class="howIOItem"><span>Input</span><strong>titles · location · seniority</strong></div>
-                <div class="howIOItem"><span>Output</span><strong>shortlist + match score</strong></div>
-              </div>
-
-              <div class="howChips" aria-hidden="true">
-                <span class="howChip hot">Germany market</span>
-                <span class="howChip">Daily matches</span>
-                <span class="howChip">Shortlist</span>
-              </div>
-            </button>
-          </div>
-
-          <div class="howStep shape-cut" data-step="1" role="listitem">
-            <button class="howStepCard" type="button" aria-controls="howPreview" aria-expanded="false">
-              <div class="howStepHead">
-                <div class="howStepNo"><span class="n">2</span><span class="t">Tailor</span></div>
-                <div class="howStepIcon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path>
-                  </svg>
-                </div>
-              </div>
-              <h3 class="howStepTitle">CV Tailoring</h3>
-              <p class="howStepDesc">Paste a job description (JD) or pick a fetched job. We tailor your CV + cover letter for relevance and ATS readability.</p>
-
-              <div class="howIO" aria-label="Input and output">
-                <div class="howIOItem"><span>Input</span><strong>your base CV + job post</strong></div>
-                <div class="howIOItem"><span>Output</span><strong>tailored CV + ATS score</strong></div>
-              </div>
-
-              <div class="howChips" aria-hidden="true">
-                <span class="howChip">ATS‑friendly</span>
-                <span class="howChip">Keyword gaps</span>
-                <span class="howChip">Same structure</span>
-              </div>
-            </button>
-          </div>
-
-          <div class="howStep shape-ticket" data-step="2" role="listitem">
-            <button class="howStepCard" type="button" aria-controls="howPreview" aria-expanded="false">
-              <span class="ticketNotch left" aria-hidden="true"></span>
-              <span class="ticketNotch right" aria-hidden="true"></span>
-              <div class="howStepHead">
-                <div class="howStepNo"><span class="n">3</span><span class="t">Send</span></div>
-                <div class="howStepIcon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 2 11 13"></path><path d="M22 2 15 22 11 13 2 9 22 2Z"></path>
-                  </svg>
-                </div>
-              </div>
-              <h3 class="howStepTitle">Auto Apply</h3>
-              <p class="howStepDesc">We prepare applications, then send them from your Gmail. You get a clear log so you always know what went out.</p>
-
-              <div class="howIO" aria-label="Input and output">
-                <div class="howIOItem"><span>Input</span><strong>Gmail connection</strong></div>
-                <div class="howIOItem"><span>Output</span><strong>sent email + tracked log</strong></div>
-              </div>
-
-              <div class="howChips" aria-hidden="true">
-                <span class="howChip hot">Review‑first</span>
-                <span class="howChip">Gmail</span>
-                <span class="howChip">Log tracked</span>
-              </div>
-            </button>
-          </div>
-
-          <div class="howBottomCard" aria-label="Quality principle">
-            <div class="howBottomLeft">
-              <div class="howSeal" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M20 7l-8 10L4 11"></path>
-                </svg>
-              </div>
-              <div class="howBottomText">
-                <strong>Quality-first workflow</strong>
-                <span>Not spam: tailored per role, human-reviewed, sent from your email.</span>
-              </div>
-            </div>
-            <a class="btn primary small" href="#pricing"><span class="btnLabel">Pick a plan</span></a>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
+<div class="howOutcome" aria-label="Outcome">
+<div>
+<strong>Quality-first workflow.</strong>
+<div style="margin-top:3px; color:var(--muted); font-size:13px; font-weight:900;">Tailored per role, human-reviewed, sent from your email.</div>
+</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end">
+<a class="btn primary small" href="signup.html"><span class="btnLabel">Get started</span></a>
+<a class="btn small" href="#pricing"><span class="btnLabel">View plans</span></a>
+</div>
+</div>
+</div>
+</div>
 </section>
+
 
 <section id="ats" class="atsBand anchor">
 <div class="container">
@@ -2735,254 +2933,8 @@ Last 7 days
 
 <script>
 (function(){
-  // Year in footer
   var yearEl = document.getElementById("year");
   if(yearEl) yearEl.textContent = new Date().getFullYear();
-})();
-
-(function(){
-  // How it works (v2)
-  var root = document.getElementById("howFlow");
-  if(!root) return;
-
-  var previewBody = document.getElementById("howPreviewBody");
-  var previewTitle = document.getElementById("howPreviewTitle");
-  var previewFine = document.getElementById("howPreviewFine");
-
-  var steps = [].slice.call(root.querySelectorAll(".howStep"));
-  var pips = [].slice.call(root.querySelectorAll(".howPip"));
-
-  if(!previewBody || !previewTitle || !previewFine || !steps.length) return;
-
-  function prefersReducedMotion(){
-    try{ return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
-    catch(_){ return false; }
-  }
-
-  var data = {
-    0: {
-      title: "Job Search",
-      fine: "Job fetching is optimized for the German market right now.",
-      preview: [
-        '<div class="howMock">',
-          '<div class="howMockTop">',
-            '<strong>Example: your job feed</strong>',
-            '<span class="howMockPill">New matches</span>',
-          '</div>',
-          '<div class="howMockRows" role="list">',
-            '<div class="howRow" role="listitem">',
-              '<span class="howState good">Match</span>',
-              '<div class="howRowMain">',
-                '<div class="howRowTitle">Product Manager</div>',
-                '<div class="howRowMeta">Berlin · Hybrid · SaaS</div>',
-              '</div>',
-              '<span class="howScore">84</span>',
-            '</div>',
-            '<div class="howRow" role="listitem">',
-              '<span class="howState good">Match</span>',
-              '<div class="howRowMain">',
-                '<div class="howRowTitle">Data Analyst</div>',
-                '<div class="howRowMeta">München · On‑site · E‑commerce</div>',
-              '</div>',
-              '<span class="howScore">79</span>',
-            '</div>',
-            '<div class="howRow" role="listitem">',
-              '<span class="howState">New</span>',
-              '<div class="howRowMain">',
-                '<div class="howRowTitle">Software Engineer</div>',
-                '<div class="howRowMeta">Hamburg · Remote · FinTech</div>',
-              '</div>',
-              '<span class="howScore">76</span>',
-            '</div>',
-          '</div>',
-          '<div class="howMockHint">Filters: title · location · remote · salary · seniority</div>',
-        '</div>'
-      ].join("")
-    },
-
-    1: {
-      title: "CV Tailoring",
-      fine: "We improve clarity and keyword coverage — without inventing experience.",
-      preview: [
-        '<div class="howMock">',
-          '<div class="howMockTop">',
-            '<strong>Example: tailored CV snapshot</strong>',
-            '<span class="howMockPill">ATS score 82</span>',
-          '</div>',
-          '<div class="howMockRows" role="list">',
-            '<div class="howRow" role="listitem">',
-              '<span class="howState good">Added</span>',
-              '<div class="howRowMain">',
-                '<div class="howRowTitle">Keywords aligned</div>',
-                '<div class="howRowMeta">OKRs · roadmap · stakeholder mgmt · data quality</div>',
-              '</div>',
-              '<span class="howScore">+8</span>',
-            '</div>',
-            '<div class="howRow" role="listitem">',
-              '<span class="howState good">Reordered</span>',
-              '<div class="howRowMain">',
-                '<div class="howRowTitle">Most relevant bullets first</div>',
-                '<div class="howRowMeta">So the story lands in the first 10 seconds</div>',
-              '</div>',
-              '<span class="howScore">+5</span>',
-            '</div>',
-            '<div class="howRow" role="listitem">',
-              '<span class="howState">Gaps</span>',
-              '<div class="howRowMain">',
-                '<div class="howRowTitle">Missing terms flagged</div>',
-                '<div class="howRowMeta">Only recommended if they match your real background</div>',
-              '</div>',
-              '<span class="howScore">7</span>',
-            '</div>',
-          '</div>',
-          '<div class="howMockHint">Output: tailored CV + cover letter + keyword gap list</div>',
-        '</div>'
-      ].join("")
-    },
-
-    2: {
-      title: "Auto Apply",
-      fine: "Review-first: sent from your Gmail and logged for tracking.",
-      preview: [
-        '<div class="howMock">',
-          '<div class="howMockTop">',
-            '<strong>Example: application queue</strong>',
-            '<span class="howMockPill">Sent from Gmail</span>',
-          '</div>',
-          '<div class="howMockRows" role="list">',
-            '<div class="howRow" role="listitem">',
-              '<span class="howState good">Ready</span>',
-              '<div class="howRowMain">',
-                '<div class="howRowTitle">Ready to send</div>',
-                '<div class="howRowMeta">All info found · CV & letter attached</div>',
-              '</div>',
-              '<span class="howScore">6</span>',
-            '</div>',
-            '<div class="howRow" role="listitem">',
-              '<span class="howState">Review</span>',
-              '<div class="howRowMain">',
-                '<div class="howRowTitle">Needs a quick check</div>',
-                '<div class="howRowMeta">Edge cases: unclear contact · missing data</div>',
-              '</div>',
-              '<span class="howScore">2</span>',
-            '</div>',
-            '<div class="howRow" role="listitem">',
-              '<span class="howState good">Sent</span>',
-              '<div class="howRowMain">',
-                '<div class="howRowTitle">Sent</div>',
-                '<div class="howRowMeta">Logged + timestamped for tracking</div>',
-              '</div>',
-              '<span class="howScore">4</span>',
-            '</div>',
-          '</div>',
-          '<div class="howMockHint">Quality-first outreach: review-first · tracked in your dashboard</div>',
-        '</div>'
-      ].join("")
-    }
-  };
-
-  var active = 0;
-  var userPauseUntil = 0;
-
-  function setActive(step, opts){
-    var s = Number(step);
-    if(!data.hasOwnProperty(s)) s = 0;
-    active = s;
-
-    root.setAttribute("data-active", String(s));
-
-    // Update steps
-    steps.forEach(function(stepEl){
-      var isOn = stepEl.getAttribute("data-step") === String(s);
-      stepEl.classList.toggle("is-active", isOn);
-
-      var btn = stepEl.querySelector(".howStepCard");
-      if(!btn) return;
-
-      if(isOn){
-        btn.setAttribute("aria-current","step");
-        btn.setAttribute("aria-expanded","true");
-      }else{
-        btn.removeAttribute("aria-current");
-        btn.setAttribute("aria-expanded","false");
-      }
-    });
-
-    // Progress pips
-    pips.forEach(function(pip, idx){
-      pip.classList.toggle("is-on", idx === s);
-    });
-
-    // Preview swap
-    previewTitle.textContent = data[s].title;
-
-    previewBody.classList.remove("is-anim");
-    void previewBody.offsetWidth;
-    previewBody.innerHTML = data[s].preview;
-    previewBody.classList.add("is-anim");
-
-    previewFine.textContent = String(data[s].fine || "");
-    previewFine.style.display = data[s].fine ? "block" : "none";
-
-    opts = opts || {};
-    if(opts.user){
-      userPauseUntil = Date.now() + 6000;
-    }
-  }
-
-  // Click + keyboard
-  steps.forEach(function(stepEl){
-    var btn = stepEl.querySelector(".howStepCard");
-    if(!btn) return;
-
-    btn.addEventListener("click", function(){
-      setActive(stepEl.getAttribute("data-step"), { user: true });
-
-      // On desktop, help keep context by centering the active step.
-      try{
-        if(window.matchMedia && window.matchMedia("(min-width: 981px)").matches){
-          stepEl.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "center" });
-        }
-      }catch(_){}
-    });
-
-    btn.addEventListener("keydown", function(e){
-      var keys = ["ArrowDown","ArrowUp","ArrowRight","ArrowLeft","Home","End"];
-      if(keys.indexOf(e.key) === -1) return;
-
-      var idx = steps.indexOf(stepEl);
-      var next = idx;
-
-      if(e.key === "ArrowDown" || e.key === "ArrowRight") next = Math.min(steps.length - 1, idx + 1);
-      if(e.key === "ArrowUp" || e.key === "ArrowLeft") next = Math.max(0, idx - 1);
-      if(e.key === "Home") next = 0;
-      if(e.key === "End") next = steps.length - 1;
-
-      e.preventDefault();
-
-      var nextBtn = steps[next].querySelector(".howStepCard");
-      if(nextBtn) nextBtn.focus();
-
-      setActive(steps[next].getAttribute("data-step"), { user: true });
-    });
-  });
-
-  // Scroll-driven activation
-  if("IntersectionObserver" in window){
-    var io = new IntersectionObserver(function(entries){
-      entries.forEach(function(entry){
-        if(!entry.isIntersecting) return;
-        if(Date.now() < userPauseUntil) return;
-        var el = entry.target;
-        setActive(el.getAttribute("data-step"), { user: false });
-      });
-    }, { threshold: 0.55 });
-
-    steps.forEach(function(stepEl){ io.observe(stepEl); });
-  }
-
-  // Init
-  setActive(0);
 })();
 </script>
 </footer>
