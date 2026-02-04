@@ -314,6 +314,174 @@ CV upload dropzone + tiny spinner
   font-weight:900;
 }
 
+
+
+/* ============================================================
+Step 2 (Matched jobs) — form facelift
+============================================================ */
+#prefsCard .sectionBody{ padding-top:12px; }
+
+#prefsCard .prefsForm{
+  display:grid;
+  grid-template-columns: 1.05fr .95fr;
+  gap:14px;
+  align-items:start;
+  margin-top:2px;
+}
+@media (max-width:900px){
+  #prefsCard .prefsForm{ grid-template-columns:1fr; }
+}
+
+#prefsCard .formGroup{
+  border:1px solid rgba(17,19,24,.10);
+  background:rgba(17,19,24,.02);
+  border-radius:20px;
+  padding:12px;
+}
+
+#prefsCard .formGroupHeader{ margin-bottom:10px; }
+#prefsCard .formGroupTitle{
+  font-size:13px;
+  font-weight:950;
+  letter-spacing:-.15px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+#prefsCard .formGroupSub{
+  margin-top:4px;
+  font-size:12px;
+  color:rgba(17,19,24,.60);
+  font-weight:750;
+  line-height:1.35;
+}
+
+#prefsCard .formGroup .field{ margin-top:10px; }
+#prefsCard .formGroup .field:first-of-type{ margin-top:0; }
+
+/* When a field is in a fieldRow (2-col), keep spacing clean */
+#prefsCard .formGroup .fieldRow{ margin-top:10px; }
+#prefsCard .formGroup .fieldRow .field{ margin-top:0; }
+
+#prefsCard .fieldCard{
+  border:1px solid rgba(17,19,24,.10);
+  background:rgba(255,255,255,.70);
+  border-radius:18px;
+  padding:12px;
+  box-shadow:0 1px 0 rgba(17,19,24,.02);
+  transition:
+    box-shadow .12s ease,
+    transform .12s ease,
+    border-color .12s ease,
+    background .12s ease;
+}
+#prefsCard .fieldCard:focus-within{
+  border-color:rgba(34,197,94,.55);
+  background:rgba(34,197,94,.06);
+  box-shadow:0 0 0 4px rgba(34,197,94,.12), 0 12px 30px rgba(17,19,24,.07);
+  transform:translateY(-1px);
+}
+
+#prefsCard .labelRow{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+}
+#prefsCard .labelRow label{
+  margin:0;
+  font-size:13px;
+  font-weight:950;
+  color:rgba(17,19,24,.78);
+}
+
+#prefsCard .fieldTag{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:950;
+  border:1px solid rgba(17,19,24,.12);
+  background:rgba(17,19,24,.03);
+  color:rgba(17,19,24,.66);
+  white-space:nowrap;
+}
+#prefsCard .fieldTag.req{
+  border-color: rgba(34,197,94,.40);
+  background: rgba(34,197,94,.12);
+  color: rgba(10,61,31,.95);
+}
+#prefsCard .fieldTag.opt{ opacity:.92; }
+
+#prefsCard input,
+#prefsCard textarea,
+#prefsCard select{
+  width:100%;
+  border-radius:14px;
+  border:1px solid rgba(17,19,24,.14);
+  background:rgba(255,255,255,.92);
+  padding:11px 12px;
+  font-size:14px;
+  font-weight:850;
+  color:rgba(17,19,24,.92);
+  outline:none;
+  transition:border-color .12s ease, box-shadow .12s ease, background .12s ease;
+}
+#prefsCard textarea{
+  min-height:92px;
+  resize:vertical;
+  line-height:1.35;
+}
+#prefsCard input:focus,
+#prefsCard textarea:focus,
+#prefsCard select:focus{
+  border-color:rgba(34,197,94,.68);
+  box-shadow:0 0 0 4px rgba(34,197,94,.14);
+  background:#fff;
+}
+#prefsCard ::placeholder{
+  color:rgba(17,19,24,.40);
+  font-weight:800;
+}
+
+#prefsCard .helper{
+  margin-top:8px;
+  color:rgba(17,19,24,.58);
+  font-weight:750;
+  line-height:1.45;
+}
+
+/* Chips inside fields (keep them feeling like controls) */
+#prefsCard .chip.quick{
+  background:rgba(255,255,255,.72);
+  border-color:rgba(17,19,24,.14);
+}
+#prefsCard .chip.quick:hover{
+  transform:translateY(-1px);
+  box-shadow:0 10px 22px rgba(17,19,24,.06);
+  background:rgba(255,255,255,.92);
+  border-color:rgba(17,19,24,.22);
+}
+
+/* Footer area */
+#prefsCard .prefsFooter{
+  margin-top:14px;
+  padding-top:12px;
+  border-top:1px solid rgba(17,19,24,.08);
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+#prefsCard .prefsFooter .actions{ margin-top:0; }
+#prefsCard .prefsFooter .small{ margin-top:0; }
+#prefsCard #autosaveHint,
+#prefsCard #continueHint{ max-width: 720px; }
+
 </style>
 </head>
 
@@ -493,57 +661,106 @@ CV upload dropzone + tiny spinner
 </div>
 </div>
 <div class="sectionBody">
-<div class="field">
-<label for="jobTitles">Desired job titles (comma separated)</label>
-<textarea id="jobTitles" placeholder="Receptionist, Front Desk Agent, Rezeption"></textarea>
-<div class="small">Tip: add 3–5 variations to avoid “0 jobs found”.</div>
-<div id="aiAppliedWrap" style="display:none;margin-top:10px">
-<div class="small"><strong>AI-added titles</strong></div>
-<div id="aiAppliedChips"></div>
-</div>
-</div>
-<div class="field">
-<label for="industries">Industries (comma separated)</label>
-<input id="industries" placeholder="Healthtech, Hospitality, Wellness"/>
-<div class="small">Optional.</div>
-</div>
-<div class="field">
-<label for="country">Country</label>
-<select id="country">
-<option value="DE">Germany (DE)</option>
-<option value="UK">United Kingdom (UK)</option>
-</select>
-</div>
-<div class="field">
-<div class="row" style="justify-content:space-between; align-items:flex-end">
-  <label for="locations" style="margin:0">Main location(s) (comma separated)</label>
-  <button class="btn small" id="useCvLocationBtn" type="button" style="display:none">Use CV location</button>
-</div>
-<input id="locations" placeholder="Berlin, Potsdam"/>
-<div id="locSuggestWrap" style="display:none;margin-top:10px">
-  <div class="small"><strong>Suggested from your CV</strong> (click to apply)</div>
-  <div id="locSuggestChips"></div>
-</div>
-<div id="locQuickWrap" style="margin-top:10px">
-  <div class="small"><strong>Popular in Germany</strong></div>
-  <div id="locQuickChips"></div>
-</div>
-</div>
-<div class="field">
-<label for="radiusKm">Radius (km)</label>
-<input id="radiusKm" inputmode="numeric" placeholder="20"/>
-<div class="row" id="radiusQuick" style="gap:8px;margin-top:8px;flex-wrap:wrap">
-  <div class="chip quick" data-radius="10">10 km</div>
-  <div class="chip quick" data-radius="20">20 km</div>
-  <div class="chip quick" data-radius="50">50 km</div>
-  <div class="chip quick" data-radius="100">100 km</div>
-</div>
-</div>
-<div class="actions" style="margin-top:12px">
-<button class="btn primary" id="continueBtn" type="button">Open CV Studio</button>
-</div>
-<div class="small" id="autosaveHint" style="margin-top:10px">Auto‑save is on. Preferences are saved as you type (and when you open CV Studio).</div>
-<div class="small" id="continueHint" style="margin-top:10px"></div>
+
+  <div class="prefsForm" role="form" aria-label="Matched jobs preferences">
+    <!-- Left column: what roles -->
+    <div class="formGroup">
+      <div class="formGroupHeader">
+        <div class="formGroupTitle">Role preferences</div>
+        <div class="formGroupSub">What kinds of jobs should we match you with?</div>
+      </div>
+
+      <div class="field fieldCard">
+        <div class="labelRow">
+          <label for="jobTitles">Desired job titles</label>
+          <span class="fieldTag req">Required</span>
+        </div>
+        <textarea id="jobTitles" placeholder="Receptionist, Front Desk Agent, Rezeption"></textarea>
+        <div class="small helper">Tip: add 3–5 variations to avoid “0 jobs found”.</div>
+
+        <div id="aiAppliedWrap" style="display:none;margin-top:10px">
+          <div class="small"><strong>AI-added titles</strong></div>
+          <div id="aiAppliedChips"></div>
+        </div>
+      </div>
+
+      <div class="field fieldCard">
+        <div class="labelRow">
+          <label for="industries">Industries</label>
+          <span class="fieldTag opt">Optional</span>
+        </div>
+        <input id="industries" placeholder="Healthtech, Hospitality, Wellness"/>
+        <div class="small helper">Leave blank if you want broad matches across industries.</div>
+      </div>
+    </div>
+
+    <!-- Right column: where to search -->
+    <div class="formGroup">
+      <div class="formGroupHeader">
+        <div class="formGroupTitle">Location &amp; radius</div>
+        <div class="formGroupSub">Where should we search (and how far are you willing to travel)?</div>
+      </div>
+
+      <div class="fieldRow">
+        <div class="field fieldCard">
+          <div class="labelRow">
+            <label for="country">Country</label>
+          </div>
+          <select id="country">
+            <option value="DE">Germany (DE)</option>
+            <option value="UK">United Kingdom (UK)</option>
+          </select>
+        </div>
+
+        <div class="field fieldCard">
+          <div class="labelRow">
+            <label for="radiusKm">Radius (km)</label>
+            <span class="fieldTag opt">Optional</span>
+          </div>
+          <input id="radiusKm" inputmode="numeric" placeholder="20"/>
+          <div class="row" id="radiusQuick" style="gap:8px;margin-top:10px;flex-wrap:wrap">
+            <div class="chip quick" data-radius="10">10 km</div>
+            <div class="chip quick" data-radius="20">20 km</div>
+            <div class="chip quick" data-radius="50">50 km</div>
+            <div class="chip quick" data-radius="100">100 km</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field fieldCard">
+        <div class="labelRow">
+          <div class="row" style="gap:8px; align-items:flex-end; flex-wrap:wrap">
+            <label for="locations" style="margin:0">Main location(s)</label>
+            <span class="fieldTag req">Required</span>
+          </div>
+          <button class="btn small" id="useCvLocationBtn" type="button" style="display:none">Use CV location</button>
+        </div>
+
+        <input id="locations" placeholder="Berlin, Potsdam"/>
+
+        <div id="locSuggestWrap" style="display:none;margin-top:10px">
+          <div class="small"><strong>Suggested from your CV</strong> (click to apply)</div>
+          <div id="locSuggestChips"></div>
+        </div>
+
+        <div id="locQuickWrap" style="margin-top:10px">
+          <div class="small"><strong>Popular in Germany</strong></div>
+          <div id="locQuickChips"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prefsFooter">
+    <div class="actions">
+      <button class="btn primary" id="continueBtn" type="button">Open CV Studio</button>
+    </div>
+    <div style="display:grid; gap:8px; min-width:260px">
+      <div class="small" id="autosaveHint">Auto‑save is on. Preferences are saved as you type (and when you open CV Studio).</div>
+      <div class="small" id="continueHint"></div>
+    </div>
+  </div>
+
 </div>
 </section>
 </div>
@@ -2179,8 +2396,6 @@ function restoreDraftIfHelpful(){
 
 function markPrefsDirty(){
   prefsDirty = true;
-  markPrefsDirty();
-scheduleAutoSave();
 }
 
 function scheduleAutoSave(){
