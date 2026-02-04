@@ -111,7 +111,6 @@ font-size:14px;
 .navlinks a{
 padding:10px 10px;
 border-radius:12px;
-white-space:nowrap;
 }
 .navlinks a:hover{
 background:rgba(240,242,243,.95);
@@ -2281,50 +2280,6 @@ color:var(--text);
   align-self:center;
 }
 
-/* AI tag + subtle pulse (used in CV Tailoring card) */
-.hiwTitleRow{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-  flex-wrap:wrap;
-}
-.hiwAiPill{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:8px 12px;
-  border-radius:999px;
-  background:rgba(255,255,255,.92);
-  border:1px solid rgba(215,218,220,.95);
-  font-size:12px;
-  font-weight:1000;
-  color:var(--accent);
-  letter-spacing:.14px;
-  box-shadow:0 10px 22px rgba(0,0,0,.06);
-}
-.hiwAiDot{
-  width:8px;
-  height:8px;
-  border-radius:999px;
-  background:var(--accent);
-  box-shadow:0 0 0 6px color-mix(in srgb, var(--accent) 18%, transparent);
-}
-@supports not (color-mix(in srgb, red, white)){
-  .hiwAiDot{ box-shadow:0 0 0 6px rgba(37,99,235,.18); }
-}
-
-@keyframes aiPulseRing{
-  0%,100%{ transform:scale(1); opacity:.35; }
-  50%{ transform:scale(1.22); opacity:.78; }
-}
-.hiwMedia svg .aiPulseRing{
-  transform-box:fill-box;
-  transform-origin:center;
-  animation:aiPulseRing 2.6s ease-in-out infinite;
-}
-
-
 .hiwList{
   margin:6px auto 0;
   padding:0;
@@ -2440,6 +2395,101 @@ color:var(--text);
 @media (max-width: 420px){
   .hiwMore{width:100%}
 }
+
+/* -----------------------------------------
+   Refinement pass (2026-02-04)
+   How it works: 3 clear feature cards
+   - flatter illustrations (less outline)
+   - no clipped text (chips wrap)
+   - centered hierarchy (Apple-ish)
+----------------------------------------- */
+.howSimple{
+  padding:76px 0;
+  background:
+    radial-gradient(900px 520px at 18% 0%, rgba(0,166,63,.16), transparent 62%),
+    radial-gradient(900px 520px at 85% 10%, rgba(0,0,0,.04), transparent 62%),
+    linear-gradient(180deg, #dff6ea 0%, var(--surface) 55%, #ffffff 100%);
+  border-top:1px solid rgba(215,218,220,.85);
+  border-bottom:1px solid rgba(215,218,220,.85);
+}
+
+.hiwGrid{gap:20px}
+
+.hiwCard{
+  border-radius:28px;
+  box-shadow:0 26px 74px rgba(0,0,0,.11);
+}
+.hiwCard:hover{
+  transform:translateY(-3px);
+  box-shadow:0 32px 92px rgba(0,0,0,.14);
+}
+
+.hiwMedia{
+  height:210px;
+  border-radius:24px;
+  border:1px solid rgba(0,0,0,.08);
+  background:linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,255,255,.76));
+}
+
+.hiwBody{
+  padding:16px 12px 14px;
+  gap:10px;
+}
+
+.hiwCard .hiwStepPill{
+  gap:10px;
+}
+.hiwCard .hiwStepPill:before{
+  content:"";
+  width:8px;height:8px;border-radius:999px;
+  background:var(--accent);
+  box-shadow:0 0 0 6px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+@supports not (color-mix(in srgb, red, white)){
+  .hiwCard .hiwStepPill:before{box-shadow:0 0 0 6px rgba(0,0,0,.06)}
+}
+
+.hiwBody h3{font-size:21px}
+.hiwBody p{
+  font-size:14.5px;
+  line-height:1.55;
+  max-width:46ch;
+}
+
+.hiwChips{
+  margin:6px auto 0;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:10px;
+  max-width:46ch;
+}
+
+.hiwChip{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:8px 12px;
+  border-radius:999px;
+  background:rgba(255,255,255,.92);
+  border:1px solid rgba(215,218,220,.95);
+  color:var(--muted);
+  font-weight:950;
+  font-size:12.5px;
+  letter-spacing:.12px;
+  white-space:nowrap;
+}
+
+.hiwCard[data-accent="search"] .hiwChip{border-color:rgba(0,166,63,.26)}
+.hiwCard[data-accent="tailor"] .hiwChip{border-color:rgba(37,99,235,.22)}
+.hiwCard[data-accent="send"] .hiwChip{border-color:rgba(249,115,22,.26)}
+
+/* Responsive */
+@media (max-width: 980px){
+  .howSimple{padding:64px 0}
+  .hiwMedia{height:190px}
+}
+
 </style>
 </head>
 <body>
@@ -2460,6 +2510,8 @@ color:var(--text);
 <a href="#contact">Contact</a>
 </div>
 <div class="navcta">
+<a class="btn small" href="#pricing"><span class="btnLabel">View plans</span></a>
+<a class="btn small" href="login.html"><span class="btnLabel">Log in</span></a>
 <a class="btn primary small" href="signup.html"><span class="btnLabel">Get started</span></a>
 </div>
 </nav>
@@ -2546,7 +2598,7 @@ color:var(--text);
   <div class="container">
     <div class="sectionHead">
       <div class="kicker">How it works</div>
-      <h2 class="sectionTitle">Search → tailor → send.</h2>
+      <h2 class="sectionTitle">Search. Tailor. Send.</h2>
       <p class="sectionDesc">Set your target once. jobmejob runs the daily workflow — matching roles, tailoring your documents, and sending applications from your email.</p>
     </div>
 
@@ -2554,25 +2606,78 @@ color:var(--text);
       <!-- Step 1 -->
       <article class="hiwCard" role="listitem" data-accent="search">
         <div class="hiwMedia" aria-hidden="true">
-          <!-- Simple illustration: job feed + search -->
-          <svg viewBox="0 0 520 300" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="66" y="48" width="388" height="212" rx="26" fill="white" stroke="rgba(0,0,0,.10)" stroke-width="3"/>
-            <rect x="66" y="48" width="388" height="46" rx="26" fill="rgba(0,0,0,.04)"/>
-            <circle cx="98" cy="71" r="7" fill="rgba(0,0,0,.14)"/>
-            <circle cx="122" cy="71" r="7" fill="rgba(0,0,0,.10)"/>
-            <circle cx="146" cy="71" r="7" fill="rgba(0,0,0,.06)"/>
-            <rect x="98" y="122" width="250" height="22" rx="11" fill="rgba(0,0,0,.05)"/>
-            <rect x="98" y="156" width="300" height="22" rx="11" fill="rgba(0,0,0,.05)"/>
-            <rect x="98" y="190" width="270" height="22" rx="11" fill="rgba(0,0,0,.05)"/>
+          <!-- Illustration: Job Search -->
+          <svg viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <filter id="sShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="rgba(0,0,0,.12)"/>
+              </filter>
+              <linearGradient id="sBlob" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="rgba(0,166,63,.18)"/>
+                <stop offset="1" stop-color="rgba(0,0,0,.00)"/>
+              </linearGradient>
+            </defs>
 
-            <rect x="364" y="112" width="68" height="34" rx="17" fill="rgba(0,166,63,.12)" stroke="rgba(0,166,63,.28)" stroke-width="2"/>
-            <path d="M393 128.5h10" stroke="rgba(0,166,63,.85)" stroke-width="3" stroke-linecap="round"/>
-            <path d="M398 123.5v10" stroke="rgba(0,166,63,.85)" stroke-width="3" stroke-linecap="round"/>
+            <!-- soft background blobs -->
+            <path d="M92 78c46-44 132-50 190-6 38 29 38 74 4 106-50 48-160 58-220 14-36-26-34-78 26-114Z" fill="rgba(0,166,63,.12)"/>
+            <path d="M360 46c54 6 94 44 88 92-5 40-46 70-96 64-52-7-92-40-86-88 6-50 46-74 94-68Z" fill="rgba(0,0,0,.04)"/>
 
-            <!-- Magnifier -->
-            <circle cx="404" cy="210" r="36" fill="rgba(0,166,63,.10)" stroke="rgba(0,166,63,.70)" stroke-width="4"/>
-            <circle cx="396" cy="202" r="14" stroke="rgba(0,166,63,.85)" stroke-width="4"/>
-            <path d="M407 213l18 18" stroke="rgba(0,166,63,.85)" stroke-width="4" stroke-linecap="round"/>
+            <!-- main UI card -->
+            <rect x="164" y="44" width="316" height="206" rx="30" fill="#ffffff" filter="url(#sShadow)"/>
+            <rect x="164" y="44" width="316" height="54" rx="30" fill="rgba(15,23,42,.04)"/>
+            <circle cx="190" cy="70" r="6" fill="rgba(15,23,42,.18)"/>
+            <circle cx="210" cy="70" r="6" fill="rgba(15,23,42,.12)"/>
+            <circle cx="230" cy="70" r="6" fill="rgba(15,23,42,.08)"/>
+
+            <!-- search bar -->
+            <rect x="252" y="60" width="188" height="20" rx="10" fill="rgba(15,23,42,.06)"/>
+            <circle cx="268" cy="70" r="6" fill="rgba(15,23,42,.30)"/>
+            <rect x="272" y="74" width="10" height="3" rx="1.5" fill="rgba(15,23,42,.30)" transform="rotate(45 272 74)"/>
+
+            <!-- job rows -->
+            <g fill="rgba(15,23,42,.08)">
+              <rect x="194" y="114" width="200" height="18" rx="9"/>
+              <rect x="194" y="146" width="238" height="18" rx="9"/>
+              <rect x="194" y="178" width="216" height="18" rx="9"/>
+            </g>
+
+            <!-- score pills -->
+            <g>
+              <rect x="410" y="110" width="54" height="26" rx="13" fill="rgba(0,166,63,.12)"/>
+              <rect x="420" y="119" width="18" height="8" rx="4" fill="rgba(0,166,63,.65)"/>
+              <rect x="410" y="142" width="54" height="26" rx="13" fill="rgba(0,166,63,.12)"/>
+              <rect x="420" y="151" width="18" height="8" rx="4" fill="rgba(0,166,63,.65)"/>
+            </g>
+
+            <!-- magnifier (ring without stroke) -->
+            <circle cx="404" cy="224" r="42" fill="url(#sBlob)"/>
+            <circle cx="392" cy="212" r="22" fill="rgba(0,166,63,.58)"/>
+            <circle cx="392" cy="212" r="14" fill="#ffffff"/>
+            <rect x="412" y="230" width="42" height="10" rx="5" fill="rgba(0,166,63,.58)" transform="rotate(45 412 230)"/>
+
+            <!-- character -->
+            <g>
+              <!-- shadow -->
+              <ellipse cx="122" cy="252" rx="34" ry="10" fill="rgba(15,23,42,.08)"/>
+              <!-- legs -->
+              <path d="M116 232c-6 16-12 20-22 22" fill="none"/>
+              <path d="M134 232c4 16 10 20 20 22" fill="none"/>
+              <path d="M104 254c8 3 18 3 26 0" fill="rgba(15,23,42,.10)"/>
+              <!-- body -->
+              <path d="M94 198c0-18 14-32 32-32s32 14 32 32v34c0 10-8 18-18 18h-28c-10 0-18-8-18-18v-34Z" fill="rgba(0,166,63,.20)"/>
+              <path d="M106 202c0-12 9-22 20-22h0c11 0 20 10 20 22v20c0 7-6 13-13 13h-14c-7 0-13-6-13-13v-20Z" fill="rgba(0,166,63,.60)"/>
+              <!-- head -->
+              <circle cx="126" cy="156" r="20" fill="#ffd6c9"/>
+              <!-- hair -->
+              <path d="M108 156c3-18 18-26 34-20 12 5 16 16 12 28-4-10-10-14-18-14-10 0-18 6-28 6Z" fill="rgba(15,23,42,.88)"/>
+              <!-- arm -->
+              <path d="M150 206c20 2 34 10 44 18" fill="none"/>
+              <path d="M146 214c22 4 34 12 44 20" fill="rgba(15,23,42,.10)"/>
+            </g>
+
+            <!-- tiny floating hearts -->
+            <path d="M468 36c0-8 10-8 10 0 0 8-10 12-10 12s-10-4-10-12c0-8 10-8 10 0Z" fill="rgba(249,115,22,.75)"/>
+            <path d="M438 50c0-6 8-6 8 0 0 6-8 10-8 10s-8-4-8-10c0-6 8-6 8 0Z" fill="rgba(0,166,63,.60)"/>
           </svg>
         </div>
 
@@ -2581,71 +2686,85 @@ color:var(--text);
             <span class="hiwStepPill">Step 1</span>
           </div>
           <h3>Job Search</h3>
-          <p>We fetch matching roles and build a shortlist — optimized for the German market right now.</p>
+          <p>We fetch matching roles and keep a shortlist — Germany-focused right now.</p>
 
-          <ul class="hiwList" aria-label="Job Search outputs">
-            <li><span class="hiwTick" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
-            </span>Daily matches (no job board scrolling)</li>
-            <li><span class="hiwTick" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
-            </span>Shortlist + match score</li>
-            <li><span class="hiwTick" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
-            </span>Filters: title · location · seniority</li>
-          </ul>
-
-          <a class="hiwMore" href="#pricing" aria-label="See plans for Job Search">More</a>
+          <div class="hiwChips" aria-label="Job Search outputs">
+            <span class="hiwChip">Daily matches</span>
+            <span class="hiwChip">Shortlist</span>
+            <span class="hiwChip">Match score</span>
+          </div>
         </div>
       </article>
 
       <!-- Step 2 -->
       <article class="hiwCard" role="listitem" data-accent="tailor">
         <div class="hiwMedia" aria-hidden="true">
-          <!-- Illustration: CV + Job Description → AI → tailored CV -->
-          <svg viewBox="0 0 520 300" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Input cards -->
-            <rect x="46" y="54" width="140" height="78" rx="18" fill="white" stroke="rgba(0,0,0,.10)" stroke-width="3"/>
-            <rect x="62" y="72" width="108" height="12" rx="6" fill="rgba(0,0,0,.06)"/>
-            <rect x="62" y="94" width="82" height="12" rx="6" fill="rgba(0,0,0,.06)"/>
-            <text x="116" y="122" text-anchor="middle" font-size="13" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" fill="rgba(17,17,17,.70)" font-weight="900">Your CV</text>
+          <!-- Illustration: CV Tailoring -->
+          <svg viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <filter id="tShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="rgba(0,0,0,.12)"/>
+              </filter>
+              <linearGradient id="tGlow" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="rgba(37,99,235,.18)"/>
+                <stop offset="1" stop-color="rgba(0,0,0,.00)"/>
+              </linearGradient>
+            </defs>
 
-            <rect x="334" y="54" width="140" height="78" rx="18" fill="white" stroke="rgba(0,0,0,.10)" stroke-width="3"/>
-            <rect x="350" y="72" width="108" height="12" rx="6" fill="rgba(0,0,0,.06)"/>
-            <rect x="350" y="94" width="92" height="12" rx="6" fill="rgba(0,0,0,.06)"/>
-            <text x="404" y="122" text-anchor="middle" font-size="13" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" fill="rgba(17,17,17,.70)" font-weight="900">Job description</text>
+            <!-- soft blobs -->
+            <path d="M92 66c46-42 128-44 186-2 36 26 40 66 10 98-46 48-150 60-212 22-40-24-42-78 16-118Z" fill="rgba(37,99,235,.10)"/>
+            <path d="M362 56c54 10 90 48 80 96-8 38-50 62-98 54-54-10-90-44-82-88 8-44 48-72 100-62Z" fill="rgba(15,23,42,.04)"/>
 
-            <!-- AI chip -->
-            <circle cx="260" cy="104" r="22" fill="rgba(37,99,235,.12)" stroke="rgba(37,99,235,.45)" stroke-width="3"/>
-            <circle class="aiPulseRing" cx="260" cy="104" r="22" fill="none" stroke="rgba(37,99,235,.35)" stroke-width="3"/>
-            <text x="260" y="110" text-anchor="middle" font-size="14" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" fill="rgba(37,99,235,.92)" font-weight="1000">AI</text>
+            <!-- document -->
+            <rect x="184" y="40" width="280" height="218" rx="28" fill="#ffffff" filter="url(#tShadow)"/>
+            <rect x="184" y="40" width="280" height="54" rx="28" fill="rgba(15,23,42,.04)"/>
+            <circle cx="210" cy="66" r="6" fill="rgba(15,23,42,.18)"/>
+            <circle cx="230" cy="66" r="6" fill="rgba(15,23,42,.12)"/>
+            <circle cx="250" cy="66" r="6" fill="rgba(15,23,42,.08)"/>
 
-            <!-- Flow arrows -->
-            <path d="M186 94 C 212 94, 220 104, 236 104" stroke="rgba(37,99,235,.55)" stroke-width="3" stroke-linecap="round"/>
-            <path d="M334 94 C 308 94, 300 104, 284 104" stroke="rgba(37,99,235,.55)" stroke-width="3" stroke-linecap="round"/>
-            <path d="M260 126 C 260 144, 260 148, 260 160" stroke="rgba(37,99,235,.55)" stroke-width="3" stroke-linecap="round"/>
-            <path d="M233 104l8-5v10l-8-5Z" fill="rgba(37,99,235,.55)"/>
-            <path d="M287 104l-8-5v10l8-5Z" fill="rgba(37,99,235,.55)"/>
-            <path d="M260 160l-5-8h10l-5 8Z" fill="rgba(37,99,235,.55)"/>
+            <!-- text lines -->
+            <g fill="rgba(15,23,42,.10)">
+              <rect x="214" y="112" width="210" height="14" rx="7"/>
+              <rect x="214" y="136" width="240" height="14" rx="7"/>
+              <rect x="214" y="160" width="220" height="14" rx="7"/>
+              <rect x="214" y="184" width="190" height="14" rx="7"/>
+              <rect x="214" y="208" width="230" height="14" rx="7"/>
+            </g>
 
-            <!-- Output document -->
-            <rect x="142" y="152" width="236" height="120" rx="22" fill="white" stroke="rgba(0,0,0,.10)" stroke-width="3"/>
-            <path d="M340 152v34h38" fill="rgba(37,99,235,.10)"/>
-            <path d="M340 152v34h38" stroke="rgba(37,99,235,.42)" stroke-width="3" stroke-linejoin="round"/>
+            <!-- highlight band -->
+            <rect x="206" y="152" width="252" height="26" rx="13" fill="rgba(37,99,235,.14)"/>
 
-            <rect x="162" y="176" width="166" height="14" rx="7" fill="rgba(0,0,0,.06)"/>
-            <rect x="162" y="198" width="194" height="14" rx="7" fill="rgba(0,0,0,.06)"/>
-            <rect x="162" y="220" width="182" height="14" rx="7" fill="rgba(37,99,235,.12)" stroke="rgba(37,99,235,.30)" stroke-width="2"/>
-            <rect x="162" y="242" width="152" height="14" rx="7" fill="rgba(0,0,0,.06)"/>
+            <!-- check bubble -->
+            <g>
+              <circle cx="436" cy="188" r="22" fill="rgba(0,166,63,.16)"/>
+              <circle cx="436" cy="188" r="14" fill="#ffffff"/>
+              <path d="M429 188l5 5 10-12" fill="none" stroke="rgba(0,166,63,.70)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
 
-            <!-- Score badge -->
-            <rect x="360" y="214" width="98" height="54" rx="18" fill="rgba(37,99,235,.12)" stroke="rgba(37,99,235,.30)" stroke-width="2"/>
-            <text x="409" y="246" text-anchor="middle" font-size="20" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" fill="rgba(17,17,17,.90)" font-weight="900">82%</text>
-            <text x="409" y="266" text-anchor="middle" font-size="12" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" fill="rgba(17,17,17,.55)" font-weight="800">ATS match</text>
+            <!-- pencil -->
+            <g transform="translate(60,210) rotate(-18)">
+              <rect x="0" y="-12" width="120" height="24" rx="12" fill="rgba(37,99,235,.18)"/>
+              <rect x="12" y="-8" width="72" height="16" rx="8" fill="rgba(37,99,235,.55)"/>
+              <path d="M98 -12h22v24H98z" fill="rgba(249,115,22,.78)"/>
+              <path d="M120 -12l18 12-18 12z" fill="rgba(15,23,42,.22)"/>
+            </g>
 
-            <!-- Sparkles -->
-            <path d="M305 70l3 10 10 3-10 3-3 10-3-10-10-3 10-3 3-10Z" fill="rgba(37,99,235,.22)"/>
-            <path d="M242 60l2 7 7 2-7 2-2 7-2-7-7-2 7-2 2-7Z" fill="rgba(37,99,235,.16)"/>
+            <!-- character -->
+            <g>
+              <ellipse cx="128" cy="252" rx="34" ry="10" fill="rgba(15,23,42,.08)"/>
+              <path d="M96 202c0-18 14-32 32-32s32 14 32 32v34c0 10-8 18-18 18h-28c-10 0-18-8-18-18v-34Z" fill="rgba(37,99,235,.18)"/>
+              <path d="M108 206c0-12 9-22 20-22h0c11 0 20 10 20 22v18c0 8-6 14-14 14h-12c-8 0-14-6-14-14v-18Z" fill="rgba(37,99,235,.55)"/>
+              <circle cx="128" cy="156" r="20" fill="#ffd6c9"/>
+              <path d="M110 156c3-18 18-26 34-20 12 5 16 16 12 28-4-10-10-14-18-14-10 0-18 6-28 6Z" fill="rgba(15,23,42,.88)"/>
+              <path d="M156 210c18-8 28-24 36-40" fill="rgba(15,23,42,.10)"/>
+            </g>
+
+            <!-- sparkles -->
+            <g fill="rgba(37,99,235,.45)">
+              <path d="M486 92l6 14 14 6-14 6-6 14-6-14-14-6 14-6z"/>
+              <path d="M456 116l4 10 10 4-10 4-4 10-4-10-10-4 10-4z"/>
+            </g>
+            <circle cx="468" cy="76" r="8" fill="url(#tGlow)"/>
           </svg>
         </div>
 
@@ -2653,57 +2772,71 @@ color:var(--text);
           <div class="hiwPills" aria-label="Step label">
             <span class="hiwStepPill">Step 2</span>
           </div>
+          <h3>CV Tailoring</h3>
+          <p>Paste a job post (or pick from the shortlist). We tailor your CV + cover letter for ATS readability.</p>
 
-          <div class="hiwTitleRow">
-            <h3>CV Tailoring</h3>
-            <span class="hiwAiPill" aria-label="AI powered">
-              <span class="hiwAiDot" aria-hidden="true"></span>
-              AI
-            </span>
+          <div class="hiwChips" aria-label="CV Tailoring outputs">
+            <span class="hiwChip">ATS-ready</span>
+            <span class="hiwChip">Keyword gaps</span>
+            <span class="hiwChip">Same structure</span>
           </div>
-
-          <p>Upload your CV once. For every role, we combine <strong>your CV + the job description</strong> to tailor your CV + cover letter — optimized for relevance and ATS readability.</p>
-
-          <ul class="hiwList" aria-label="CV Tailoring outputs">
-            <li><span class="hiwTick" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
-            </span>Uses your CV + the job post (no made-up experience)</li>
-            <li><span class="hiwTick" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
-            </span>ATS-friendly structure (keeps a clean layout)</li>
-            <li><span class="hiwTick" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
-            </span>Keyword gaps + ATS match score</li>
-          </ul>
-
-          <a class="hiwMore" href="#pricing" aria-label="See plans for CV Tailoring">More</a>
         </div>
       </article>
 
       <!-- Step 3 -->
       <article class="hiwCard" role="listitem" data-accent="send">
         <div class="hiwMedia" aria-hidden="true">
-          <!-- Simple illustration: send + log -->
-          <svg viewBox="0 0 520 300" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Envelope -->
-            <rect x="86" y="86" width="348" height="160" rx="28" fill="white" stroke="rgba(0,0,0,.10)" stroke-width="3"/>
-            <path d="M110 120l150 96 150-96" stroke="rgba(0,0,0,.14)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M110 210l110-70" stroke="rgba(0,0,0,.10)" stroke-width="3" stroke-linecap="round"/>
-            <path d="M410 210l-110-70" stroke="rgba(0,0,0,.10)" stroke-width="3" stroke-linecap="round"/>
+          <!-- Illustration: Auto Apply -->
+          <svg viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <filter id="aShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="rgba(0,0,0,.12)"/>
+              </filter>
+              <linearGradient id="aGlow" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="rgba(249,115,22,.18)"/>
+                <stop offset="1" stop-color="rgba(0,0,0,.00)"/>
+              </linearGradient>
+            </defs>
 
-            <!-- Paper plane -->
-            <path d="M420 70l-66 36 30 10 10 30 26-76Z" fill="rgba(249,115,22,.12)" stroke="rgba(249,115,22,.65)" stroke-width="3" stroke-linejoin="round"/>
-            <path d="M354 106l40 10" stroke="rgba(249,115,22,.75)" stroke-width="3" stroke-linecap="round"/>
+            <!-- soft blobs -->
+            <path d="M88 92c46-44 134-54 194-14 42 28 46 78 12 112-48 48-154 56-216 14-42-28-44-84 10-112Z" fill="rgba(249,115,22,.10)"/>
+            <path d="M354 56c56 8 96 48 88 98-7 40-50 66-102 58-56-8-96-44-88-92 8-52 52-72 102-64Z" fill="rgba(15,23,42,.04)"/>
 
-            <!-- Log chips -->
-            <rect x="120" y="250" width="90" height="34" rx="17" fill="rgba(249,115,22,.12)" stroke="rgba(249,115,22,.28)" stroke-width="2"/>
-            <text x="165" y="272" text-anchor="middle" font-size="13" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" fill="rgba(17,17,17,.70)" font-weight="800">Sent</text>
+            <!-- laptop -->
+            <rect x="170" y="74" width="280" height="164" rx="22" fill="#ffffff" filter="url(#aShadow)"/>
+            <rect x="170" y="74" width="280" height="118" rx="22" fill="rgba(15,23,42,.06)"/>
+            <rect x="198" y="98" width="224" height="16" rx="8" fill="rgba(255,255,255,.75)"/>
+            <rect x="198" y="126" width="180" height="14" rx="7" fill="rgba(255,255,255,.55)"/>
+            <rect x="198" y="148" width="206" height="14" rx="7" fill="rgba(255,255,255,.55)"/>
 
-            <rect x="220" y="250" width="120" height="34" rx="17" fill="rgba(0,0,0,.04)" stroke="rgba(0,0,0,.10)" stroke-width="2"/>
-            <text x="280" y="272" text-anchor="middle" font-size="13" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" fill="rgba(17,17,17,.70)" font-weight="800">Logged</text>
+            <path d="M150 242h320c8 0 14 6 14 14v4H136v-4c0-8 6-14 14-14Z" fill="rgba(15,23,42,.12)"/>
+            <rect x="250" y="248" width="120" height="8" rx="4" fill="rgba(15,23,42,.18)"/>
 
-            <rect x="350" y="250" width="86" height="34" rx="17" fill="rgba(0,0,0,.04)" stroke="rgba(0,0,0,.10)" stroke-width="2"/>
-            <text x="393" y="272" text-anchor="middle" font-size="13" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" fill="rgba(17,17,17,.70)" font-weight="800">Gmail</text>
+            <!-- paper plane -->
+            <g transform="translate(356,100) rotate(-10)">
+              <path d="M0 28L120 0 74 120 52 72 0 52z" fill="rgba(249,115,22,.24)"/>
+              <path d="M0 28L120 0 52 72z" fill="rgba(249,115,22,.62)"/>
+              <path d="M52 72l22 48 46-120z" fill="rgba(249,115,22,.40)"/>
+            </g>
+
+            <!-- character -->
+            <g>
+              <ellipse cx="128" cy="252" rx="34" ry="10" fill="rgba(15,23,42,.08)"/>
+              <path d="M96 202c0-18 14-32 32-32s32 14 32 32v34c0 10-8 18-18 18h-28c-10 0-18-8-18-18v-34Z" fill="rgba(0,166,63,.18)"/>
+              <path d="M108 206c0-12 9-22 20-22h0c11 0 20 10 20 22v18c0 8-6 14-14 14h-12c-8 0-14-6-14-14v-18Z" fill="rgba(0,166,63,.55)"/>
+              <circle cx="128" cy="156" r="20" fill="#ffd6c9"/>
+              <path d="M110 156c3-18 18-26 34-20 12 5 16 16 12 28-4-10-10-14-18-14-10 0-18 6-28 6Z" fill="rgba(15,23,42,.88)"/>
+              <rect x="112" y="176" width="34" height="10" rx="5" fill="rgba(255,255,255,.70)"/>
+            </g>
+
+            <!-- notifications -->
+            <g>
+              <circle cx="462" cy="86" r="18" fill="rgba(249,115,22,.14)"/>
+              <path d="M462 80c0-8 10-8 10 0 0 8-10 12-10 12s-10-4-10-12c0-8 10-8 10 0Z" fill="rgba(249,115,22,.70)"/>
+              <circle cx="430" cy="58" r="14" fill="rgba(0,166,63,.14)"/>
+              <path d="M430 54c0-6 8-6 8 0 0 6-8 10-8 10s-8-4-8-10c0-6 8-6 8 0Z" fill="rgba(0,166,63,.62)"/>
+              <circle cx="488" cy="128" r="10" fill="url(#aGlow)"/>
+            </g>
           </svg>
         </div>
 
@@ -2712,35 +2845,28 @@ color:var(--text);
             <span class="hiwStepPill">Step 3</span>
           </div>
           <h3>Auto Apply</h3>
-          <p>We prepare applications, then send them from your Gmail. Review-first by default — with every send logged.</p>
+          <p>Prepared and sent from your Gmail. Review-first by default, with every send logged.</p>
 
-          <ul class="hiwList" aria-label="Auto Apply outputs">
-            <li><span class="hiwTick" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
-            </span>Sent from your email</li>
-            <li><span class="hiwTick" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
-            </span>Review-first (protect your reputation)</li>
-            <li><span class="hiwTick" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
-            </span>Logged + timestamped</li>
-          </ul>
-
-          <a class="hiwMore" href="#pricing" aria-label="See plans for Auto Apply">More</a>
+          <div class="hiwChips" aria-label="Auto Apply outputs">
+            <span class="hiwChip">Review-first</span>
+            <span class="hiwChip">Sent from Gmail</span>
+            <span class="hiwChip">Logged</span>
+          </div>
         </div>
       </article>
     </div>
 
-    <div class="hiwCta" aria-label="Quality-first workflow callout">
+    <div class="hiwCta" aria-label="Quality-first callout">
       <div class="hiwCtaLeft">
         <div class="hiwCtaIcon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 7l-8 10L4 11"></path>
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path>
+            <path d="M9 12l2 2 4-4"></path>
           </svg>
         </div>
         <div>
           <div class="hiwCtaTitle">Quality-first workflow</div>
-          <div class="hiwCtaSub">Not spam: tailored per role, human-reviewed, sent from your email.</div>
+          <div class="hiwCtaSub">Tailored per role, human-reviewed, sent from your email.</div>
         </div>
       </div>
       <div class="hiwCtaActions">
@@ -2748,7 +2874,6 @@ color:var(--text);
         <a class="btn" href="#pricing"><span class="btnLabel">View plans</span></a>
       </div>
     </div>
-
   </div>
 </section>
 
