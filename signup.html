@@ -1,6 +1,4 @@
-from pathlib import Path, PurePosixPath
-
-html = r"""<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -293,7 +291,7 @@ white-space:pre-wrap;
 </aside>
 </div>
 
-<div class="footer">Support: <a href="mailto:team@jobmejob.com">team represented@jobmejob.com</a></div>
+<div class="footer">Support: <a href="mailto:team@jobmejob.com">team@jobmejob.com</a></div>
 
 </div>
 </div>
@@ -566,8 +564,3 @@ hydrate().catch(e=>showError(e && e.message ? e.message : String(e)));
 </script>
 </body>
 </html>
-"""
-
-path = Path("/mnt/data/signup.ready.html")
-path.write_text(html, encoding="utf-8")
-str(path)
