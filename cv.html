@@ -202,6 +202,8 @@ body.cvGate.cvGateForm #gateBackBadge{ display:none !important; }
   gap:12px;
 }
 
+.gateCardTop .badge{ align-self:flex-start; margin-top:2px; }
+
 .gateCardTitleRow{
   display:flex;
   gap:12px;
@@ -226,17 +228,23 @@ body.cvGate.cvGateForm #gateBackBadge{ display:none !important; }
 .gateCard[data-variant="fast"] .gateCardIcon{ color: rgba(245,158,11,.95); }
 .gateCardIcon svg{ width:20px; height:20px; }
 
-.gateCardTitleWrap{ min-width:0; }
+.gateCardTitleWrap{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
 
 .gateCardTitle{
   font-weight: 1000;
   font-size: 15px;
+  line-height:1.18;
   letter-spacing:-.2px;
   color: rgba(17,19,24,.92);
 }
 
 .gateCardDesc{
-  margin-top:4px;
+  margin-top:0;
   font-weight: 760;
   color: rgba(17,19,24,.62);
   line-height:1.35;
@@ -251,22 +259,23 @@ body.cvGate.cvGateForm #gateBackBadge{ display:none !important; }
 
 .gateCardMeta{
   display:flex;
-  gap:8px;
+  gap:6px;
   flex-wrap:wrap;
-  margin-top:8px;
+  margin-top:0;
 }
 
 .gateMetaPill{
-  font-size:11px;
+  font-size:10.5px;
   font-weight:920;
-  padding:3px 8px;
+  padding:3px 7px;
   border-radius:999px;
   border:1px solid rgba(17,19,24,.10);
   background: rgba(255,255,255,.80);
   color: rgba(17,19,24,.64);
+  white-space:nowrap;
 }
 
-/* Mini visualization: reuse the genViz inner components, but smaller */
+/* Mini visualization (compact + non-repetitive) */
 .gateViz{
   border:1px solid rgba(17,19,24,.10);
   border-radius:16px;
@@ -275,23 +284,104 @@ body.cvGate.cvGateForm #gateBackBadge{ display:none !important; }
   box-shadow: inset 0 1px 0 rgba(255,255,255,.65);
 }
 
-.gateViz .genVizCols{ gap:10px; }
-.gateViz .genVizStack{ min-width: 170px; gap:7px; }
-.gateViz .genVizMiniCard{ padding:9px; border-radius:13px; }
-.gateViz .genVizMiniHead{ font-size:12px; }
-.gateViz .genVizLine{ height:7px; }
-.gateViz .genVizFlow{ width:44px; min-width:44px; }
-.gateViz .genVizOut{ min-width: 190px; }
-.gateViz .genVizJobTitle{ font-size:13px; }
-.gateViz .genVizJobMeta{ font-size:11px; }
+.gateFlow{
+  display:grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap:10px;
+  align-items:center;
+}
+
+.gateNode{
+  border:1px solid rgba(17,19,24,.10);
+  border-radius:14px;
+  background: rgba(255,255,255,.78);
+  padding:10px;
+  min-width:0;
+}
+
+.gateNodeTop{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:950;
+  font-size:12px;
+  color: rgba(17,19,24,.84);
+  letter-spacing:-.1px;
+}
+
+.gateNodeText{
+  margin-top:4px;
+  font-weight:820;
+  font-size:11px;
+  color: rgba(17,19,24,.60);
+  line-height:1.25;
+}
+
+.gateConnector{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  min-width: 96px;
+}
+
+.gateArrow{
+  width:44px;
+  height:2px;
+  border-radius:999px;
+  background: rgba(17,19,24,.20);
+  position:relative;
+}
+
+.gateArrow::after{
+  content:"";
+  position:absolute;
+  right:-2px;
+  top:50%;
+  width:7px;
+  height:7px;
+  border-right:2px solid rgba(17,19,24,.20);
+  border-top:2px solid rgba(17,19,24,.20);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.gateChip{
+  font-size:10.5px;
+  font-weight:950;
+  padding:3px 8px;
+  border-radius:999px;
+  border:1px solid rgba(17,19,24,.10);
+  background: rgba(17,19,24,.03);
+  color: rgba(17,19,24,.62);
+  white-space:nowrap;
+}
+
+/* Dots (source vs output) */
+.gateDot{
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  background: rgba(17,19,24,.28);
+  box-shadow: 0 0 0 3px rgba(17,19,24,.06);
+  flex:0 0 auto;
+}
+
+.gateDot.src{ background: rgba(22,163,74,.92); box-shadow: 0 0 0 3px rgba(34,197,94,.14); }
+.gateCard[data-variant="fast"] .gateDot.src{ background: rgba(245,158,11,.95); box-shadow: 0 0 0 3px rgba(245,158,11,.14); }
+
+.gateDot.out{ background: rgba(17,19,24,.52); box-shadow: 0 0 0 3px rgba(17,19,24,.08); }
 
 @media (max-width: 640px){
-  .gateViz .genVizCols{ flex-direction:column; }
-  .gateViz .genVizFlow{
-    width:auto;
-    min-width:0;
-    height:28px;
+  .gateFlow{
+    grid-template-columns: 1fr;
   }
+  .gateConnector{
+    flex-direction:row;
+    justify-content:flex-start;
+    min-width: 0;
+  }
+  .gateArrow{ width:28px; }
 }
 
 /* Bullet list (short “why choose this”) */
@@ -334,9 +424,9 @@ body.cvGate.cvGateForm #gateBackBadge{ display:none !important; }
 
 /* Footer CTA */
 .gateCardFooter{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+  display:grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items:end;
   gap:10px;
   margin-top:2px;
 }
@@ -1702,61 +1792,34 @@ body.fromJobsLink #settingsDetails{
                     <div class="gateCardMeta" aria-hidden="true">
                       <span class="gateMetaPill">Auto‑fill</span>
                       <span class="gateMetaPill">Saved posting</span>
-                      <span class="gateMetaPill">Best for multi‑apply</span>
+                      <span class="gateMetaPill">Multi‑apply</span>
                     </div>
                   </div>
                 </div>
 
                 <span class="badge prio" id="gatePickQueueTag">Recommended</span>
               </div>
-
               <div class="gateViz" aria-hidden="true">
-                <div class="genVizCols">
-                  <div class="genVizStack">
-                    <div class="genVizMiniCard">
-                      <div class="genVizMiniHead">
-                        <span class="genVizDot" aria-hidden="true"></span>
-                        <span>Saved job</span>
-                      </div>
-                      <div class="genVizLines" aria-hidden="true">
-                        <span class="genVizLine w90"></span>
-                        <span class="genVizLine w70"></span>
-                        <span class="genVizLine w80"></span>
-                      </div>
+                <div class="gateFlow">
+                  <div class="gateNode">
+                    <div class="gateNodeTop">
+                      <span class="gateDot src" aria-hidden="true"></span>
+                      <span class="gateNodeName">Jobs queue</span>
                     </div>
-
-                    <div class="genVizPlus" aria-hidden="true">+</div>
-
-                    <div class="genVizMiniCard">
-                      <div class="genVizMiniHead">
-                        <span class="genVizDot cv" aria-hidden="true"></span>
-                        <span>Your CV</span>
-                      </div>
-                      <div class="genVizLines" aria-hidden="true">
-                        <span class="genVizLine w85"></span>
-                        <span class="genVizLine w60"></span>
-                        <span class="genVizLine w75"></span>
-                      </div>
-                    </div>
+                    <div class="gateNodeText">Pick a saved job</div>
                   </div>
 
-                  <div class="genVizFlow" aria-hidden="true"></div>
+                  <div class="gateConnector">
+                    <div class="gateArrow" aria-hidden="true"></div>
+                    <div class="gateChip">Auto‑fills title, company &amp; link</div>
+                  </div>
 
-                  <div class="genVizMiniCard genVizOut">
-                    <div class="genVizMiniHead">
-                      <span style="display:flex;align-items:center;gap:8px">
-                        <span class="genVizDot out" aria-hidden="true"></span>
-                        <span>Tailored CV</span>
-                      </span>
+                  <div class="gateNode out">
+                    <div class="gateNodeTop">
+                      <span class="gateDot out" aria-hidden="true"></span>
+                      <span class="gateNodeName">Tailored CV</span>
                     </div>
-                    <div class="genVizJobTitle">A4 preview</div>
-                    <div class="genVizJobMeta">ATS‑safe · ready to download</div>
-
-                    <div class="genVizLines" aria-hidden="true" style="margin-top:8px">
-                      <span class="genVizLine w80"></span>
-                      <span class="genVizLine w90"></span>
-                      <span class="genVizLine w70"></span>
-                    </div>
+                    <div class="gateNodeText">ATS‑safe A4 preview</div>
                   </div>
                 </div>
               </div>
@@ -1793,62 +1856,35 @@ body.fromJobsLink #settingsDetails{
 
                     <div class="gateCardMeta" aria-hidden="true">
                       <span class="gateMetaPill">Fastest</span>
-                      <span class="gateMetaPill">Any website</span>
-                      <span class="gateMetaPill">One‑off tailoring</span>
+                      <span class="gateMetaPill">Any site</span>
+                      <span class="gateMetaPill">One‑off</span>
                     </div>
                   </div>
                 </div>
 
                 <span class="badge warn" id="gatePickPasteTag">Fast</span>
               </div>
-
               <div class="gateViz" aria-hidden="true">
-                <div class="genVizCols">
-                  <div class="genVizStack">
-                    <div class="genVizMiniCard">
-                      <div class="genVizMiniHead">
-                        <span class="genVizDot" aria-hidden="true"></span>
-                        <span>Pasted JD</span>
-                      </div>
-                      <div class="genVizLines" aria-hidden="true">
-                        <span class="genVizLine w90"></span>
-                        <span class="genVizLine w70"></span>
-                        <span class="genVizLine w80"></span>
-                      </div>
+                <div class="gateFlow">
+                  <div class="gateNode">
+                    <div class="gateNodeTop">
+                      <span class="gateDot src" aria-hidden="true"></span>
+                      <span class="gateNodeName">Pasted JD</span>
                     </div>
-
-                    <div class="genVizPlus" aria-hidden="true">+</div>
-
-                    <div class="genVizMiniCard">
-                      <div class="genVizMiniHead">
-                        <span class="genVizDot cv" aria-hidden="true"></span>
-                        <span>Your CV</span>
-                      </div>
-                      <div class="genVizLines" aria-hidden="true">
-                        <span class="genVizLine w85"></span>
-                        <span class="genVizLine w60"></span>
-                        <span class="genVizLine w75"></span>
-                      </div>
-                    </div>
+                    <div class="gateNodeText">Copy from LinkedIn or any site</div>
                   </div>
 
-                  <div class="genVizFlow" aria-hidden="true"></div>
+                  <div class="gateConnector">
+                    <div class="gateArrow" aria-hidden="true"></div>
+                    <div class="gateChip">Start instantly (no saving)</div>
+                  </div>
 
-                  <div class="genVizMiniCard genVizOut">
-                    <div class="genVizMiniHead">
-                      <span style="display:flex;align-items:center;gap:8px">
-                        <span class="genVizDot out" aria-hidden="true"></span>
-                        <span>Tailored CV</span>
-                      </span>
+                  <div class="gateNode out">
+                    <div class="gateNodeTop">
+                      <span class="gateDot out" aria-hidden="true"></span>
+                      <span class="gateNodeName">Tailored CV</span>
                     </div>
-                    <div class="genVizJobTitle">A4 preview</div>
-                    <div class="genVizJobMeta">ATS‑safe · ready to download</div>
-
-                    <div class="genVizLines" aria-hidden="true" style="margin-top:8px">
-                      <span class="genVizLine w80"></span>
-                      <span class="genVizLine w90"></span>
-                      <span class="genVizLine w70"></span>
-                    </div>
+                    <div class="gateNodeText">ATS‑safe A4 preview</div>
                   </div>
                 </div>
               </div>
