@@ -132,6 +132,244 @@ body.cvGate.cvGateForm #gateBackBadge{ display:none !important; }
 .gateChooser{
   margin-top: 12px;
 }
+
+/* ============================================================
+   Step 1 — Job source cards (CV Studio gate)
+   Best-practice goals:
+   - Clear “either/or” choice with strong visual affordance
+   - Progressive disclosure: pick source first, then show the form (Step 2)
+   - Accessible: real <button>, focus-visible, large tap targets
+============================================================ */
+
+.gateCards{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap:12px;
+  margin-top:12px;
+}
+
+@media (max-width: 860px){
+  .gateCards{ grid-template-columns: 1fr; }
+}
+
+.gateCard{
+  appearance:none;
+  border:1px solid rgba(17,19,24,.12);
+  background: rgba(255,255,255,.78);
+  border-radius:18px;
+  padding:14px;
+  text-align:left;
+  width:100%;
+  cursor:pointer;
+
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+
+  box-shadow: 0 10px 26px rgba(17,19,24,.06);
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease;
+}
+
+.gateCard:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px rgba(17,19,24,.10);
+  border-color: rgba(17,19,24,.18);
+  background: rgba(255,255,255,.88);
+}
+
+.gateCard:active{ transform: translateY(0px) scale(.996); }
+
+.gateCard:focus-visible{
+  outline:none;
+  border-color: rgba(34,197,94,.55);
+  box-shadow: 0 0 0 4px rgba(34,197,94,.18), 0 16px 34px rgba(17,19,24,.10);
+}
+
+/* Visual variants */
+.gateCard[data-variant="recommended"]{
+  border-color: rgba(34,197,94,.22);
+  background: linear-gradient(180deg, rgba(34,197,94,.10), rgba(255,255,255,.82));
+}
+.gateCard[data-variant="fast"]{
+  border-color: rgba(245,158,11,.22);
+  background: linear-gradient(180deg, rgba(245,158,11,.10), rgba(255,255,255,.82));
+}
+
+.gateCardTop{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.gateCardTitleRow{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  min-width:0;
+}
+
+.gateCardIcon{
+  width:36px;
+  height:36px;
+  border-radius:12px;
+  border:1px solid rgba(17,19,24,.10);
+  background: rgba(255,255,255,.78);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+  box-shadow: 0 8px 18px rgba(17,19,24,.06);
+  color: rgba(17,19,24,.66);
+}
+.gateCard[data-variant="recommended"] .gateCardIcon{ color: rgba(22,163,74,.92); }
+.gateCard[data-variant="fast"] .gateCardIcon{ color: rgba(245,158,11,.95); }
+.gateCardIcon svg{ width:20px; height:20px; }
+
+.gateCardTitleWrap{ min-width:0; }
+
+.gateCardTitle{
+  font-weight: 1000;
+  font-size: 15px;
+  letter-spacing:-.2px;
+  color: rgba(17,19,24,.92);
+}
+
+.gateCardDesc{
+  margin-top:4px;
+  font-weight: 760;
+  color: rgba(17,19,24,.62);
+  line-height:1.35;
+}
+
+.gateCardHint{
+  font-weight: 820;
+  color: rgba(17,19,24,.54);
+  font-size: 12px;
+  line-height:1.35;
+}
+
+.gateCardMeta{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:8px;
+}
+
+.gateMetaPill{
+  font-size:11px;
+  font-weight:920;
+  padding:3px 8px;
+  border-radius:999px;
+  border:1px solid rgba(17,19,24,.10);
+  background: rgba(255,255,255,.80);
+  color: rgba(17,19,24,.64);
+}
+
+/* Mini visualization: reuse the genViz inner components, but smaller */
+.gateViz{
+  border:1px solid rgba(17,19,24,.10);
+  border-radius:16px;
+  background: rgba(255,255,255,.70);
+  padding:10px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.65);
+}
+
+.gateViz .genVizCols{ gap:10px; }
+.gateViz .genVizStack{ min-width: 170px; gap:7px; }
+.gateViz .genVizMiniCard{ padding:9px; border-radius:13px; }
+.gateViz .genVizMiniHead{ font-size:12px; }
+.gateViz .genVizLine{ height:7px; }
+.gateViz .genVizFlow{ width:44px; min-width:44px; }
+.gateViz .genVizOut{ min-width: 190px; }
+.gateViz .genVizJobTitle{ font-size:13px; }
+.gateViz .genVizJobMeta{ font-size:11px; }
+
+@media (max-width: 640px){
+  .gateViz .genVizCols{ flex-direction:column; }
+  .gateViz .genVizFlow{
+    width:auto;
+    min-width:0;
+    height:28px;
+  }
+}
+
+/* Bullet list (short “why choose this”) */
+.gateBullets{
+  list-style:none;
+  padding:0;
+  margin:0;
+  display:grid;
+  gap:6px;
+  color: rgba(17,19,24,.72);
+  font-weight: 780;
+  font-size:12px;
+  line-height:1.35;
+}
+
+.gateBullets li{
+  display:flex;
+  gap:8px;
+  align-items:flex-start;
+}
+
+.gateBulletMark{
+  width:18px;
+  height:18px;
+  border-radius:999px;
+  border:1px solid rgba(34,197,94,.28);
+  background: rgba(34,197,94,.14);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:12px;
+  line-height:1;
+  flex:0 0 auto;
+  margin-top:1px;
+}
+.gateCard[data-variant="fast"] .gateBulletMark{
+  border-color: rgba(245,158,11,.30);
+  background: rgba(245,158,11,.14);
+}
+
+/* Footer CTA */
+.gateCardFooter{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:2px;
+}
+
+.gateCta{
+  font-weight:950;
+  color: rgba(17,19,24,.66);
+  font-size:12px;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  white-space:nowrap;
+}
+
+.gateCtaArrow{
+  width:18px;
+  height:18px;
+  border-radius:999px;
+  border:1px solid rgba(17,19,24,.10);
+  background: rgba(255,255,255,.75);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  transition: transform .15s ease;
+}
+
+.gateCard:hover .gateCtaArrow{ transform: translateX(2px); }
+
+@media (max-width: 420px){
+  .gateCard{ padding:12px; }
+  .gateCardIcon{ width:34px; height:34px; }
+  .gateViz{ padding:9px; }
+}
 .gateBackRow{
   display:flex;
   align-items:center;
@@ -1443,27 +1681,188 @@ body.fromJobsLink #settingsDetails{
         </div>
 
         <div class="gateChooser" id="gateChooser" style="display:none">
-          <div class="gateCards">
-            <button class="gateCard" id="gatePickQueue" type="button">
+          <div class="gateCards" role="list" aria-label="Choose your job source">
+            <!-- Option 1: Queue / saved jobs -->
+            <button class="gateCard" id="gatePickQueue" type="button" data-variant="recommended" aria-describedby="gatePickQueueDesc gatePickQueueHint">
               <div class="gateCardTop">
-                <div>
-                  <div class="gateCardTitle" id="gatePickQueueTitle">From my Jobs</div>
-                  <div class="gateCardDesc" id="gatePickQueueDesc">Choose one of your matched jobs from the Jobs page / your queue.</div>
+                <div class="gateCardTitleRow">
+                  <div class="gateCardIcon" aria-hidden="true">
+                    <!-- Briefcase icon -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M9 6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2H9V6Z"/>
+                      <path d="M7 8h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2Z"/>
+                      <path d="M5 13h14"/>
+                    </svg>
+                  </div>
+
+                  <div class="gateCardTitleWrap">
+                    <div class="gateCardTitle" id="gatePickQueueTitle">From my Jobs</div>
+                    <div class="gateCardDesc" id="gatePickQueueDesc">Choose one of your matched jobs from the Jobs page / your queue.</div>
+
+                    <div class="gateCardMeta" aria-hidden="true">
+                      <span class="gateMetaPill">Auto‑fill</span>
+                      <span class="gateMetaPill">Saved posting</span>
+                      <span class="gateMetaPill">Best for multi‑apply</span>
+                    </div>
+                  </div>
                 </div>
+
                 <span class="badge prio" id="gatePickQueueTag">Recommended</span>
               </div>
-              <div class="gateCardHint" id="gatePickQueueHint">Best if you already saved jobs you want to apply to.</div>
+
+              <div class="gateViz" aria-hidden="true">
+                <div class="genVizCols">
+                  <div class="genVizStack">
+                    <div class="genVizMiniCard">
+                      <div class="genVizMiniHead">
+                        <span class="genVizDot" aria-hidden="true"></span>
+                        <span>Saved job</span>
+                      </div>
+                      <div class="genVizLines" aria-hidden="true">
+                        <span class="genVizLine w90"></span>
+                        <span class="genVizLine w70"></span>
+                        <span class="genVizLine w80"></span>
+                      </div>
+                    </div>
+
+                    <div class="genVizPlus" aria-hidden="true">+</div>
+
+                    <div class="genVizMiniCard">
+                      <div class="genVizMiniHead">
+                        <span class="genVizDot cv" aria-hidden="true"></span>
+                        <span>Your CV</span>
+                      </div>
+                      <div class="genVizLines" aria-hidden="true">
+                        <span class="genVizLine w85"></span>
+                        <span class="genVizLine w60"></span>
+                        <span class="genVizLine w75"></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="genVizFlow" aria-hidden="true"></div>
+
+                  <div class="genVizMiniCard genVizOut">
+                    <div class="genVizMiniHead">
+                      <span style="display:flex;align-items:center;gap:8px">
+                        <span class="genVizDot out" aria-hidden="true"></span>
+                        <span>Tailored CV</span>
+                      </span>
+                    </div>
+                    <div class="genVizJobTitle">A4 preview</div>
+                    <div class="genVizJobMeta">ATS‑safe · ready to download</div>
+
+                    <div class="genVizLines" aria-hidden="true" style="margin-top:8px">
+                      <span class="genVizLine w80"></span>
+                      <span class="genVizLine w90"></span>
+                      <span class="genVizLine w70"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <ul class="gateBullets">
+                <li><span class="gateBulletMark" aria-hidden="true">✓</span><span>Pulls title, company, and link from your saved job</span></li>
+                <li><span class="gateBulletMark" aria-hidden="true">✓</span><span>Keeps everything organized in your Jobs queue</span></li>
+                <li><span class="gateBulletMark" aria-hidden="true">✓</span><span>Best when tailoring for multiple roles</span></li>
+              </ul>
+
+              <div class="gateCardFooter">
+                <div class="gateCardHint" id="gatePickQueueHint">Best if you already saved jobs you want to apply to.</div>
+                <div class="gateCta" aria-hidden="true"><span>Choose</span><span class="gateCtaArrow">→</span></div>
+              </div>
             </button>
 
-            <button class="gateCard" id="gatePickPaste" type="button">
+            <!-- Option 2: Paste JD -->
+            <button class="gateCard" id="gatePickPaste" type="button" data-variant="fast" aria-describedby="gatePickPasteDesc gatePickPasteHint">
               <div class="gateCardTop">
-                <div>
-                  <div class="gateCardTitle" id="gatePickPasteTitle">Paste job description</div>
-                  <div class="gateCardDesc" id="gatePickPasteDesc">Paste any job description from LinkedIn or a company website.</div>
+                <div class="gateCardTitleRow">
+                  <div class="gateCardIcon" aria-hidden="true">
+                    <!-- Clipboard icon -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M9 4h6v2a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2V4Z"/>
+                      <path d="M9 6H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2"/>
+                      <path d="M8 12h8"/>
+                      <path d="M8 16h8"/>
+                    </svg>
+                  </div>
+
+                  <div class="gateCardTitleWrap">
+                    <div class="gateCardTitle" id="gatePickPasteTitle">Paste job description</div>
+                    <div class="gateCardDesc" id="gatePickPasteDesc">Paste any job description from LinkedIn or a company website.</div>
+
+                    <div class="gateCardMeta" aria-hidden="true">
+                      <span class="gateMetaPill">Fastest</span>
+                      <span class="gateMetaPill">Any website</span>
+                      <span class="gateMetaPill">One‑off tailoring</span>
+                    </div>
+                  </div>
                 </div>
+
                 <span class="badge warn" id="gatePickPasteTag">Fast</span>
               </div>
-              <div class="gateCardHint" id="gatePickPasteHint">Tip: include Responsibilities + Requirements + Tech stack.</div>
+
+              <div class="gateViz" aria-hidden="true">
+                <div class="genVizCols">
+                  <div class="genVizStack">
+                    <div class="genVizMiniCard">
+                      <div class="genVizMiniHead">
+                        <span class="genVizDot" aria-hidden="true"></span>
+                        <span>Pasted JD</span>
+                      </div>
+                      <div class="genVizLines" aria-hidden="true">
+                        <span class="genVizLine w90"></span>
+                        <span class="genVizLine w70"></span>
+                        <span class="genVizLine w80"></span>
+                      </div>
+                    </div>
+
+                    <div class="genVizPlus" aria-hidden="true">+</div>
+
+                    <div class="genVizMiniCard">
+                      <div class="genVizMiniHead">
+                        <span class="genVizDot cv" aria-hidden="true"></span>
+                        <span>Your CV</span>
+                      </div>
+                      <div class="genVizLines" aria-hidden="true">
+                        <span class="genVizLine w85"></span>
+                        <span class="genVizLine w60"></span>
+                        <span class="genVizLine w75"></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="genVizFlow" aria-hidden="true"></div>
+
+                  <div class="genVizMiniCard genVizOut">
+                    <div class="genVizMiniHead">
+                      <span style="display:flex;align-items:center;gap:8px">
+                        <span class="genVizDot out" aria-hidden="true"></span>
+                        <span>Tailored CV</span>
+                      </span>
+                    </div>
+                    <div class="genVizJobTitle">A4 preview</div>
+                    <div class="genVizJobMeta">ATS‑safe · ready to download</div>
+
+                    <div class="genVizLines" aria-hidden="true" style="margin-top:8px">
+                      <span class="genVizLine w80"></span>
+                      <span class="genVizLine w90"></span>
+                      <span class="genVizLine w70"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <ul class="gateBullets">
+                <li><span class="gateBulletMark" aria-hidden="true">✓</span><span>Start immediately (no saving needed)</span></li>
+                <li><span class="gateBulletMark" aria-hidden="true">✓</span><span>Works with any posting (LinkedIn, company site, PDF text)</span></li>
+                <li><span class="gateBulletMark" aria-hidden="true">✓</span><span>Best results when you paste the full posting</span></li>
+              </ul>
+
+              <div class="gateCardFooter">
+                <div class="gateCardHint" id="gatePickPasteHint">Tip: include Responsibilities + Requirements + Tech stack.</div>
+                <div class="gateCta" aria-hidden="true"><span>Choose</span><span class="gateCtaArrow">→</span></div>
+              </div>
             </button>
           </div>
         </div>
@@ -1801,7 +2200,7 @@ body.fromJobsLink #settingsDetails{
           </details>
         </div>
 
-      </aside
+      </aside>
     </section>
   
 <!-- Tailoring steps + progress modal -->
@@ -1882,7 +2281,7 @@ body.fromJobsLink #settingsDetails{
         </div>
       </div>
 
-      <div class="hint style="margin-top:10px" id="stepsIntro">
+      <div class="hint" style="margin-top:10px" id="stepsIntro">
         This is what happens when you click “Generate”:
       </div>
 
