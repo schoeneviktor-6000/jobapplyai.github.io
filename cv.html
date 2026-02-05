@@ -64,6 +64,10 @@ body.cvGate #btnCollapseSetup{ display:none !important; }
 body.cvGate #gateIntro{ display:block !important; }
 body.cvGate #btnGenerateAgain{ display:none !important; }
 
+/* Gate header cleanup: remove redundant labels in Step 1/2 */
+body.cvGate .sectionTitleTop{ display:none !important; }
+body.cvGate .gateIntro{ margin-top: 0 !important; }
+
 /* Gate chooser (Step 1): pick how you want to tailor */
 body.cvGate #gateChooser{ display:block; }
 body.cvGate #gateFormWrap{ display:none; }
@@ -1688,8 +1692,7 @@ body.fromJobsLink #settingsDetails{
       </div>
 
       <div class="studioActionsTop">
-        <span class="badge warn" id="authBadgeTop">Checking…</span>
-
+        
         <button class="btn small ghost" id="btnNewCv" type="button" title="Start a new CV tailoring flow">New CV</button>
 
         <div class="pill mini sourceChipPill" id="sourceChipPill" style="display:none" title="Current job context" aria-label="Current job context">
@@ -1723,14 +1726,12 @@ body.fromJobsLink #settingsDetails{
 
             <div class="sectionTitleActions">
               <button class="btn small ghost" id="btnCollapseSetup" type="button" title="Hide setup">Hide</button>
-              <span class="badge warn" id="authBadge">Checking…</span>
-              <span class="badge prio" id="gateStepBadge" style="display:none">Step 1 of 2</span>
-            </div>
+                          </div>
           </div>
 
           <div class="gateIntro" id="gateIntro" style="display:none">
-            <div class="gateStepTitle" id="gateStepTitle">Step 1 — Choose job context</div>
-            <div class="hint" id="gateStepHint">Pick a job from your queue or paste a job description. Next, we open the studio and generate an A4 tailored CV.</div>
+            <div class="gateStepTitle" id="gateStepTitle">Choose your job source</div>
+            <div class="hint" id="gateStepHint">Choose one option. Next you’ll add the details and start tailoring.</div>
 
             <div class="stepper" id="gateStepper" aria-label="Progress">
               <div class="stepperItem" id="stepper1">
@@ -1839,8 +1840,7 @@ body.fromJobsLink #settingsDetails{
         <div id="gateFormWrap">
           <div class="gateBackRow" id="gateBackRow" style="display:none">
             <button class="btn small ghost" id="gateBackBtn" type="button">← Back</button>
-            <span class="badge prio" id="gateBackBadge">Step 2 of 2</span>
-          </div>
+</div>
 
           <div class="label" id="jobSourceLbl">Job source</div>
         <div class="strengthPills" id="sourcePills">
@@ -3259,25 +3259,23 @@ function setGateView(view){
   }
 
   if(gateView === "choose"){
-    if(st) st.textContent = (uiLang==="de") ? "Schritt 1" : "Step 1";
+    // The stepper already communicates the step number — keep this header clean.
+    if(st) st.textContent = t("setupTitle") || "Setup";
     if(title) title.textContent = (uiLang==="de")
-      ? "Schritt 1 — Job-Quelle wählen"
-      : "Step 1 — Choose your job source";
+      ? "Job-Quelle wählen"
+      : "Choose your job source";
     if(hint) hint.textContent = (uiLang==="de")
       ? "Wähle eine Option. Danach ergänzt du die Details und startest das Tailoring."
       : "Choose one option. Next you’ll add the details and start tailoring.";
-    if(badge) badge.textContent = (uiLang==="de") ? "Schritt 1 von 2" : "Step 1 of 2";
     try{ renderGateStepper(1); }catch(_){ }
     return;
   }
 
   // gateView === "form"
-  if(st) st.textContent = (uiLang==="de") ? "Schritt 2" : "Step 2";
+  if(st) st.textContent = t("setupTitle") || "Setup";
   if(title) title.textContent = (uiLang==="de")
-    ? "Schritt 2 — Job-Details hinzufügen"
-    : "Step 2 — Add job details";
-  if(badge) badge.textContent = (uiLang==="de") ? "Schritt 2 von 2" : "Step 2 of 2";
-  if(backBadge) backBadge.textContent = (uiLang==="de") ? "Schritt 2 von 2" : "Step 2 of 2";
+    ? "Job-Details hinzufügen"
+    : "Add job details";
 
   // Keep "Settings (optional)" open by default in Step 2 (both sources)
   try{ $("settingsDetails").open = true; }catch(_){ }
