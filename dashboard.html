@@ -724,6 +724,27 @@ html{
 <div id="queueWrap"><div class="skeleton block"></div></div>
 <div id="queueError"></div>
 
+<div class="hr"></div>
+
+<div class="sectionHeader" style="border-radius:0;border-left:0;border-right:0">
+  <h2 style="margin:0">Application activity log</h2>
+  <p class="small">Latest timeline events (queued, prioritized, skipped, applied…).</p>
+  <div class="chips" id="activityFilters">
+    <button class="chip active" type="button" data-etype="">All</button>
+    <button class="chip" type="button" data-etype="queued">Queued</button>
+    <button class="chip" type="button" data-etype="prioritized">Prioritized</button>
+    <button class="chip" type="button" data-etype="applied">Applied</button>
+    <button class="chip" type="button" data-etype="sent">Sent</button>
+    <button class="chip" type="button" data-etype="rejected">Rejected</button>
+    <button class="chip" type="button" data-etype="skipped">Skipped</button>
+  </div>
+</div>
+
+<div class="hr"></div>
+
+<div id="activityWrap"><div class="skeleton block"></div></div>
+<div id="activityError"></div>
+
 </div>
 </section>
 
@@ -2812,6 +2833,6 @@ setBadge("badgeHealth","bad","Error");
 });
 </script>
 
-<script src="./dashboard.bi.override.v3.js"></script>
+<script src="./dashboard.bi.override.v3.1.js"></script>
 </body>
 </html>
