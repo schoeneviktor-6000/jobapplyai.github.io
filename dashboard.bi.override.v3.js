@@ -665,6 +665,13 @@ async function refreshQueueAndActivity(){
   renderNextActionsReco({ planDaily, queueCount: currentQueueCount||0, eventsItems: ev.items, primaryType: dashPrimaryEventType });
   renderAutomationHealth({ planDaily, queueCount: currentQueueCount||0 });
   renderAiRecommendations();
+
+    // Activity log (filters + table). Snapshot KPIs are removed from the HTML.
+    await loadActivity(session.access_token);
+
+
+  // Keep the detailed activity log in sync after actions
+  await loadActivity(lastSessionToken);
 }
 
 /* Override: loadDashboard to fill KPI strip + visuals + right rail */
@@ -690,6 +697,10 @@ async function loadDashboard(){
   setHtml("nextActionsReco", '<div class="skeleton block" style="height:120px"></div>');
   setHtml("automationHealth", '<div class="skeleton block" style="height:90px"></div>');
   setHtml("aiRecoList", '');
+
+  // Activity log (table)
+  setHtml("activityError","");
+  setHtml("activityWrap", '<div class="skeleton block"></div>');
 
   setText("lastCheck", nowStamp());
 
@@ -795,6 +806,9 @@ async function loadDashboard(){
     renderNextActionsReco({ planDaily: currentPlanDaily||0, queueCount: currentQueueCount||0, eventsItems: ev.items, primaryType: dashPrimaryEventType });
     renderAutomationHealth({ planDaily: currentPlanDaily||0, queueCount: currentQueueCount||0 });
     renderAiRecommendations();
+
+    // Activity log (filters + table). Snapshot KPIs are removed from the HTML.
+    await loadActivity(session.access_token);
 
   }catch(e){
     setHtml("queueWrap", '<span class="badge bad">Queue failed</span>');
