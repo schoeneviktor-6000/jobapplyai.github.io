@@ -10,4 +10,11 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://jobmejob.com/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://jobmejob.com/" />
   </url>
+  <url>
+    <loc>https://jobmejob.com/privacy.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jobmejob.com/privacy.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jobmejob.com/privacy.html" />
+  </url>
 </urlset>

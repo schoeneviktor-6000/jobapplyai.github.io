@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>jobmejob | Privacy Policy</title>
+  <meta name="description" content="Privacy Policy for jobmejob.com and the CV Studio Tailor Chrome extension.">
+  <style>
+    :root{
+      --bg:#f6fbf8;
+      --card:#ffffff;
+      --text:#172126;
+      --muted:#5c6870;
+      --line:rgba(23,33,38,.12);
+      --brand:#22c55e;
+      --brand-dark:#0f9f46;
+      --ink:#0f1720;
+      --shadow:0 22px 50px rgba(15,23,32,.08);
+      --radius:26px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      color:var(--text);
+      background:
+        radial-gradient(860px 420px at 12% -10%, rgba(34,197,94,.16), transparent 62%),
+        radial-gradient(960px 500px at 100% 0%, rgba(34,197,94,.10), transparent 55%),
+        linear-gradient(180deg, #fbfefc 0%, var(--bg) 100%);
+      font:400 16px/1.65 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a{color:var(--brand-dark);text-decoration:none}
+    a:hover{text-decoration:underline}
+    .shell{
+      width:min(1040px, calc(100vw - 32px));
+      margin:0 auto;
+    }
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:30;
+      backdrop-filter:saturate(180%) blur(16px);
+      background:rgba(255,255,255,.8);
+      border-bottom:1px solid rgba(23,33,38,.08);
+    }
+    .topbarInner{
+      min-height:72px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+    }
+    .brand{
+      display:inline-flex;
+      align-items:center;
+      gap:12px;
+      font-weight:900;
+      color:var(--ink);
+      letter-spacing:-.02em;
+    }
+    .brandMark{
+      width:34px;
+      height:34px;
+      border-radius:12px;
+      background:linear-gradient(135deg, rgba(34,197,94,.85), rgba(179,242,199,.85));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+    }
+    .topActions{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:42px;
+      padding:0 16px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:rgba(255,255,255,.86);
+      color:var(--ink);
+      font-weight:800;
+    }
+    .pill.primary{
+      background:linear-gradient(180deg, #2ddb6d, #15b955);
+      border-color:rgba(21,185,85,.36);
+      color:#08120b;
+      box-shadow:0 16px 34px rgba(21,185,85,.18);
+    }
+    .hero{
+      padding:56px 0 26px;
+    }
+    .heroCard{
+      border:1px solid rgba(23,33,38,.08);
+      border-radius:34px;
+      padding:34px;
+      background:
+        radial-gradient(780px 340px at 0% 0%, rgba(34,197,94,.10), transparent 62%),
+        linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.9));
+      box-shadow:var(--shadow);
+    }
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(34,197,94,.12);
+      color:var(--brand-dark);
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+    h1{
+      margin:18px 0 10px;
+      color:var(--ink);
+      font-size:clamp(38px, 5.3vw, 64px);
+      line-height:.95;
+      letter-spacing:-.05em;
+    }
+    .lead{
+      max-width:780px;
+      margin:0;
+      color:var(--muted);
+      font-size:18px;
+    }
+    .meta{
+      margin-top:18px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .metaChip{
+      display:inline-flex;
+      align-items:center;
+      min-height:38px;
+      padding:0 12px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:rgba(255,255,255,.84);
+      color:var(--ink);
+      font-size:14px;
+      font-weight:800;
+    }
+    .content{
+      padding:10px 0 72px;
+      display:grid;
+      grid-template-columns:minmax(0, 260px) minmax(0, 1fr);
+      gap:22px;
+    }
+    .toc,
+    .panel{
+      border:1px solid rgba(23,33,38,.08);
+      border-radius:var(--radius);
+      background:var(--card);
+      box-shadow:var(--shadow);
+    }
+    .toc{
+      position:sticky;
+      top:92px;
+      align-self:start;
+      padding:20px;
+    }
+    .toc h2,
+    .panel h2{
+      margin:0 0 14px;
+      color:var(--ink);
+      font-size:18px;
+      letter-spacing:-.02em;
+    }
+    .toc a{
+      display:block;
+      padding:10px 12px;
+      border-radius:14px;
+      color:var(--text);
+      font-weight:700;
+    }
+    .toc a:hover{
+      background:rgba(34,197,94,.08);
+      text-decoration:none;
+    }
+    .article{
+      display:grid;
+      gap:18px;
+    }
+    .panel{
+      padding:26px;
+    }
+    .panel p{
+      margin:0 0 12px;
+      color:var(--text);
+    }
+    .panel p:last-child{margin-bottom:0}
+    .panel ul{
+      margin:0;
+      padding-left:20px;
+      color:var(--text);
+    }
+    .panel li + li{margin-top:8px}
+    .note{
+      margin-top:14px;
+      padding:14px 16px;
+      border-radius:18px;
+      border:1px solid rgba(34,197,94,.18);
+      background:rgba(34,197,94,.08);
+      color:#14532d;
+      font-weight:700;
+    }
+    footer{
+      border-top:1px solid rgba(23,33,38,.08);
+      background:rgba(255,255,255,.76);
+    }
+    .footerInner{
+      min-height:84px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      flex-wrap:wrap;
+      color:var(--muted);
+    }
+    .footerLinks{
+      display:flex;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+    @media (max-width: 900px){
+      .content{
+        grid-template-columns:1fr;
+      }
+      .toc{
+        position:static;
+      }
+    }
+    @media (max-width: 640px){
+      .heroCard,
+      .panel,
+      .toc{
+        padding:20px;
+        border-radius:22px;
+      }
+      .topbarInner,
+      .footerInner{
+        padding-top:12px;
+        padding-bottom:12px;
+      }
+      .lead{font-size:16px}
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell topbarInner">
+      <a class="brand" href="/index.html" aria-label="jobmejob home">
+        <span class="brandMark" aria-hidden="true"></span>
+        <span>jobmejob</span>
+      </a>
+      <nav class="topActions" aria-label="Primary">
+        <a class="pill" href="/index.html">Home</a>
+        <a class="pill" href="/cv.html">CV Studio</a>
+        <a class="pill primary" href="mailto:team@jobmejob.com">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="shell">
+        <div class="heroCard">
+          <div class="eyebrow">Privacy Policy</div>
+          <h1>How jobmejob handles data</h1>
+          <p class="lead">This Privacy Policy explains how jobmejob.com and the CV Studio Tailor Chrome extension collect, use, and protect information when you use our website, Chrome extension, and related services.</p>
+          <div class="meta">
+            <span class="metaChip">Effective date: March 30, 2026</span>
+            <span class="metaChip">Applies to website + Chrome extension</span>
+            <span class="metaChip">Contact: team@jobmejob.com</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content shell">
+      <aside class="toc" aria-label="On this page">
+        <h2>Contents</h2>
+        <a href="#who-we-are">Who we are</a>
+        <a href="#what-we-collect">What we collect</a>
+        <a href="#how-we-use-data">How we use data</a>
+        <a href="#extension">Chrome extension</a>
+        <a href="#sharing">How data is shared</a>
+        <a href="#retention">Data retention</a>
+        <a href="#security">Security</a>
+        <a href="#rights">Your rights</a>
+        <a href="#international">International transfers</a>
+        <a href="#changes">Changes</a>
+        <a href="#contact">Contact</a>
+      </aside>
+
+      <div class="article">
+        <section class="panel" id="who-we-are">
+          <h2>Who we are</h2>
+          <p>jobmejob provides job application tooling, CV tailoring, and related workflow features through jobmejob.com. This policy also covers the CV Studio Tailor Chrome extension, which helps users scrape a job posting and open it in jobmejob CV Studio.</p>
+          <p>If you have questions about this policy, you can contact us at <a href="mailto:team@jobmejob.com">team@jobmejob.com</a>.</p>
+        </section>
+
+        <section class="panel" id="what-we-collect">
+          <h2>What we collect</h2>
+          <p>Depending on how you use jobmejob, we may collect and process the following categories of information:</p>
+          <ul>
+            <li>Account information, such as your name, email address, and authentication details provided through sign-in providers.</li>
+            <li>Profile and job search information, such as target roles, preferred locations, work preferences, and other settings you enter.</li>
+            <li>CV and application materials, including uploaded CV files, extracted CV text, tailored CV output, and related edits.</li>
+            <li>Job-related information, including job titles, companies, job descriptions, links, and keywords used to tailor your CV or support application workflows.</li>
+            <li>Usage and technical information, such as browser type, approximate region, timestamps, logs, and diagnostic information needed to operate and protect the service.</li>
+            <li>Support communications if you contact us.</li>
+          </ul>
+        </section>
+
+        <section class="panel" id="how-we-use-data">
+          <h2>How we use data</h2>
+          <p>We use personal data to operate and improve jobmejob, including to:</p>
+          <ul>
+            <li>authenticate users and secure accounts;</li>
+            <li>store and process uploaded CVs and profile data;</li>
+            <li>generate tailored CVs, keyword analysis, and related AI-assisted output;</li>
+            <li>help users review jobs, job descriptions, and application materials;</li>
+            <li>provide support, troubleshoot issues, and monitor service reliability;</li>
+            <li>comply with legal obligations and enforce our terms.</li>
+          </ul>
+          <div class="note">We do not sell personal data. We do not use or transfer user data for purposes unrelated to the service’s core job-application and CV-tailoring functionality.</div>
+        </section>
+
+        <section class="panel" id="extension">
+          <h2>Chrome extension</h2>
+          <p>The CV Studio Tailor Chrome extension is designed for one narrow purpose: helping a user scrape the currently open job posting and send it into jobmejob CV Studio.</p>
+          <p>When you use the extension, it may access:</p>
+          <ul>
+            <li>the URL of the active job posting page;</li>
+            <li>visible page content needed to identify the job title, company, and description;</li>
+            <li>the current tab state so the side panel can refresh when the job page changes.</li>
+          </ul>
+          <p>The extension does not monitor browsing activity in the background, does not sell browsing data, and does not inject advertising. It reads job-posting content only when the user opens the extension or explicitly requests a scrape.</p>
+          <p>After scraping, the extension opens jobmejob.com and passes the extracted job data into the website so the user can continue the CV Studio flow.</p>
+        </section>
+
+        <section class="panel" id="sharing">
+          <h2>How data is shared</h2>
+          <p>We may share data with service providers that help us operate the service, for example providers that support hosting, storage, authentication, analytics, email delivery, or AI-assisted generation. These providers may process data on our behalf under contractual or technical controls.</p>
+          <p>We may also disclose information if required to do so by law, to respond to valid legal process, or to protect the rights, safety, and security of jobmejob, our users, or others.</p>
+        </section>
+
+        <section class="panel" id="retention">
+          <h2>Data retention</h2>
+          <p>We keep data for as long as reasonably necessary to provide the service, maintain account history, comply with legal obligations, resolve disputes, and enforce our agreements. Retention periods may vary depending on the type of data and how the feature is used.</p>
+        </section>
+
+        <section class="panel" id="security">
+          <h2>Security</h2>
+          <p>We use reasonable administrative, technical, and organizational measures to protect data. No online service can guarantee absolute security, but we work to reduce risk and limit access to data where appropriate.</p>
+        </section>
+
+        <section class="panel" id="rights">
+          <h2>Your rights</h2>
+          <p>Depending on your location, you may have rights to access, correct, delete, or object to certain processing of your personal data. To make a request, contact <a href="mailto:team@jobmejob.com">team@jobmejob.com</a>.</p>
+        </section>
+
+        <section class="panel" id="international">
+          <h2>International transfers</h2>
+          <p>Your data may be processed in countries other than the one where you live. Where required, we rely on appropriate safeguards for cross-border data transfers.</p>
+        </section>
+
+        <section class="panel" id="changes">
+          <h2>Changes to this policy</h2>
+          <p>We may update this Privacy Policy from time to time. If we make material changes, we will update the effective date on this page and may provide additional notice where appropriate.</p>
+        </section>
+
+        <section class="panel" id="contact">
+          <h2>Contact</h2>
+          <p>If you have questions about this Privacy Policy or your data, contact us at <a href="mailto:team@jobmejob.com">team@jobmejob.com</a>.</p>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell footerInner">
+      <div><strong style="color:var(--ink);font-weight:900">jobmejob</strong><span> · </span><span>Continuous, professional job applications</span></div>
+      <div class="footerLinks">
+        <a href="/index.html">Home</a>
+        <a href="/privacy.html">Privacy Policy</a>
+        <a href="mailto:team@jobmejob.com">Contact</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
