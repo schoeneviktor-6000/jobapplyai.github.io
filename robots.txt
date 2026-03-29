@@ -6,5 +6,6 @@ Disallow: /jobs.html
 Disallow: /profile.html
 Disallow: /plan.html
 Disallow: /cv.html
+Disallow: /extension-bridge.html
 
 Sitemap: https://jobmejob.com/sitemap.xml

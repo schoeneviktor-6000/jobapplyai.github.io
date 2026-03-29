@@ -22,3 +22,6 @@
 
 /cv.html
   X-Robots-Tag: noindex, nofollow
+
+/extension-bridge.html
+  X-Robots-Tag: noindex, nofollow
