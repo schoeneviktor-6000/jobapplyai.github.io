@@ -5155,6 +5155,13 @@ function openKwModal(keywordRaw){
         const extImport = consumeExtensionImport();
         if(extImport) applyExtensionImportToDraft(extImport);
       }catch(_){}
+
+      if(pendingExtensionImport){
+        try{ sessionStorage.removeItem("cvstudio_started"); }catch(_){}
+        try{ setGateActive(true); }catch(_){}
+        try{ setGateView("form"); }catch(_){}
+      }
+
       applyPasteDraftToInputs();
 
       // apply initial mode UI
