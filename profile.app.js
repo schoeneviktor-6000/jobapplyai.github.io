@@ -11,6 +11,9 @@ const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 const AI_CACHE_KEY="jm_ai_titles_cache_v1";
 const AI_CACHE_KEY_OLD="ja_ai_titles_cache_v1";
+const GMAIL_VERIFY_RESULT_KEY="jm_gmail_verify_result_v1";
+const GMAIL_VERIFY_PENDING_KEY="jm_gmail_verify_pending";
+const GMAIL_VERIFY_SCOPE="openid email profile https://www.googleapis.com/auth/gmail.send";
 
 let supabaseClient=null;
 let session=null;
@@ -33,6 +36,7 @@ let lastCvMeta=null;
 
 let backendAiTitles=[];
 let aiAutoStarted=false;
+let gmailVerifyInFlight=false;
 
 function $(id){return document.getElementById(id);}
 function setText(id,t){const el=$(id);if(el) el.textContent=t;}
@@ -246,12 +250,364 @@ function lsSafeSet(k, v){
   try{ localStorage.setItem(k, String(v)); }catch(_){}
 }
 
+function ssSafeGet(k){
+  try{ return sessionStorage.getItem(k); }catch(_){ return null; }
+}
+
+function ssSafeSet(k, v){
+  try{ sessionStorage.setItem(k, String(v)); }catch(_){}
+}
+
+function ssSafeRemove(k){
+  try{ sessionStorage.removeItem(k); }catch(_){}
+}
+
 function toast(kind, title, message){
   try{
     if(S && typeof S.toast === "function"){
       S.toast(String(message || ""), { kind: kind || "good", title: title || "" });
     }
   }catch(_){}
+}
+
+function readJsonStorage(key){
+  try{
+    const raw = lsSafeGet(key);
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  }catch(_){
+    return null;
+  }
+}
+
+function writeJsonStorage(key, value){
+  try{ lsSafeSet(key, JSON.stringify(value || {})); }catch(_){}
+}
+
+function clearGmailVerifyPending(){
+  ssSafeRemove(GMAIL_VERIFY_PENDING_KEY);
+}
+
+function hasGmailVerifyMarker(){
+  try{
+    const url = new URL(window.location.href);
+    return url.searchParams.get("gmail_verify") === "1";
+  }catch(_){
+    return false;
+  }
+}
+
+function clearGmailVerifyMarker(){
+  try{
+    const url = new URL(window.location.href);
+    if(url.searchParams.get("gmail_verify") !== "1") return;
+    url.searchParams.delete("gmail_verify");
+    const next = url.pathname + (url.search ? url.search : "") + (url.hash ? url.hash : "");
+    window.history.replaceState({}, document.title, next);
+  }catch(_){}
+}
+
+function buildGmailVerifyRedirectUrl(){
+  const url = new URL(window.location.href);
+  url.searchParams.set("gmail_verify", "1");
+  return url.toString();
+}
+
+function rememberGoogleProviderTokens(){
+  try{
+    if(window.JobApplyAI?.auth?.cacheGoogleProviderTokens && session){
+      window.JobApplyAI.auth.cacheGoogleProviderTokens(session);
+    }
+  }catch(_){}
+}
+
+function getCachedGoogleProviderToken(){
+  try{
+    if(session && typeof session.provider_token === "string" && session.provider_token.trim()){
+      return session.provider_token.trim();
+    }
+  }catch(_){}
+  try{
+    if(window.JobApplyAI?.auth?.getCachedGoogleProviderToken){
+      const token = String(window.JobApplyAI.auth.getCachedGoogleProviderToken() || "").trim();
+      if(token) return token;
+    }
+  }catch(_){}
+  return String(ssSafeGet("jm_google_provider_token") || "").trim();
+}
+
+function getGmailVerifyProofForCurrentUser(){
+  const proof = readJsonStorage(GMAIL_VERIFY_RESULT_KEY);
+  const email = String(session?.user?.email || "").trim().toLowerCase();
+  if(!proof || !email) return null;
+  if(String(proof.email || "").trim().toLowerCase() !== email) return null;
+  return proof;
+}
+
+function setGmailVerifyUi(mode, info){
+  const badge = $("gmailStatusBadge");
+  const hint = $("gmailHint");
+  const metaEl = $("gmailMeta");
+  const verifyBtn = $("gmailVerifyBtn");
+  const sendAgainBtn = $("gmailSendAgainBtn");
+  if(!badge || !hint || !metaEl || !verifyBtn || !sendAgainBtn) return;
+
+  const details = info && typeof info === "object" ? info : {};
+  const badgeKind = details.badgeKind || "";
+  const badgeText = details.badgeText || "Not checked";
+  const hintText = details.hint || "Connect Gmail and send a test email to yourself.";
+  const metaText = details.meta || "";
+
+  setBadge("gmailStatusBadge", badgeKind, badgeText);
+  hint.textContent = hintText;
+  metaEl.textContent = metaText;
+  metaEl.style.display = metaText ? "block" : "none";
+
+  verifyBtn.disabled = !!details.verifyDisabled;
+  verifyBtn.textContent = details.verifyLabel || "Connect Gmail & send test";
+
+  sendAgainBtn.style.display = details.showSendAgain ? "inline-flex" : "none";
+  sendAgainBtn.disabled = !!details.sendAgainDisabled;
+
+  if(mode === "checking"){
+    verifyBtn.className = "btn";
+  } else {
+    verifyBtn.className = "btn primary";
+  }
+}
+
+function refreshGmailVerifyUi(){
+  const proof = getGmailVerifyProofForCurrentUser();
+  const token = getCachedGoogleProviderToken();
+
+  if(gmailVerifyInFlight){
+    setGmailVerifyUi("checking", {
+      badgeKind: "warn",
+      badgeText: "Checking…",
+      hint: "Sending a Gmail test message now. Please keep this tab open.",
+      verifyLabel: "Working…",
+      verifyDisabled: true,
+      showSendAgain: false
+    });
+    return;
+  }
+
+  if(proof){
+    const when = fmtWhen(proof.sent_at);
+    const msgId = String(proof.message_id || "—");
+    setGmailVerifyUi("verified", {
+      badgeKind: "good",
+      badgeText: "Verified",
+      hint: "A test email was sent successfully. Check your inbox and Gmail Sent folder to confirm delivery.",
+      meta: "Sent to " + String(proof.email || "—") + " at " + when + " · message " + msgId,
+      verifyLabel: "Reconnect Gmail",
+      showSendAgain: true,
+      sendAgainDisabled: !token
+    });
+    return;
+  }
+
+  if(token){
+    setGmailVerifyUi("ready", {
+      badgeKind: "warn",
+      badgeText: "Ready",
+      hint: "Google access is available for this tab. Send a test email to confirm Gmail delivery.",
+      verifyLabel: "Send Gmail test",
+      showSendAgain: false
+    });
+    return;
+  }
+
+  setGmailVerifyUi("idle", {
+    badgeKind: "warn",
+    badgeText: "Not checked",
+    hint: "Connect Gmail and send a test email to yourself. This confirms Gmail delivery end-to-end before you rely on it.",
+    verifyLabel: "Connect Gmail & send test",
+    showSendAgain: false
+  });
+}
+
+function buildGmailMimeMessage(toEmail){
+  const sentAt = new Date();
+  const stamp = sentAt.toLocaleString();
+  return [
+    "To: " + toEmail,
+    "Subject: jobmejob Gmail sending check",
+    "Content-Type: text/plain; charset=UTF-8",
+    "MIME-Version: 1.0",
+    "",
+    "This is a Gmail sending test from jobmejob.",
+    "Time: " + stamp,
+    "",
+    "If this email reached your inbox and appears in Gmail Sent, your Gmail send path is working end-to-end."
+  ].join("\r\n");
+}
+
+function base64UrlEncodeUtf8(text){
+  const bytes = new TextEncoder().encode(String(text || ""));
+  let binary = "";
+  const chunkSize = 0x8000;
+  for(let i = 0; i < bytes.length; i += chunkSize){
+    const chunk = bytes.subarray(i, i + chunkSize);
+    binary += String.fromCharCode.apply(null, Array.from(chunk));
+  }
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function gmailErrorMessage(res, payload, text){
+  const googleMessage =
+    (payload && payload.error && payload.error.message)
+      ? String(payload.error.message)
+      : String(text || "").trim();
+
+  if(res.status === 401){
+    return "Google access expired. Reconnect Gmail and try again.";
+  }
+  if(res.status === 403){
+    return "Google denied Gmail send access. Reconnect Gmail and approve the Gmail permission.";
+  }
+  return googleMessage || ("HTTP " + res.status);
+}
+
+async function sendGmailTestEmail(providerToken, recipientEmail){
+  const raw = base64UrlEncodeUtf8(buildGmailMimeMessage(recipientEmail));
+  let res;
+  try{
+    res = await fetchWithTimeout("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + providerToken,
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({ raw })
+    }, 45000);
+  }catch(e){
+    throw new Error("Gmail send failed: network error. Please retry.");
+  }
+
+  const text = await res.text().catch(()=> "");
+  let payload = null;
+  try{ payload = JSON.parse(text); }catch(_){ payload = null; }
+
+  if(!res.ok){
+    throw new Error("Gmail send failed: " + gmailErrorMessage(res, payload, text));
+  }
+
+  return payload && typeof payload === "object" ? payload : {};
+}
+
+async function runGmailVerification(){
+  const email = String(session?.user?.email || "").trim().toLowerCase();
+  const token = getCachedGoogleProviderToken();
+  if(!email) throw new Error("Signed-in email is missing.");
+  if(!token) throw new Error("Google access token is missing. Reconnect Gmail and try again.");
+
+  gmailVerifyInFlight = true;
+  refreshGmailVerifyUi();
+
+  try{
+    const result = await sendGmailTestEmail(token, email);
+    writeJsonStorage(GMAIL_VERIFY_RESULT_KEY, {
+      email,
+      sent_at: new Date().toISOString(),
+      message_id: result.id || null,
+      thread_id: result.threadId || null,
+      provider: "google",
+      via: "gmail_api_browser"
+    });
+    clearGmailVerifyPending();
+    clearGmailVerifyMarker();
+    refreshGmailVerifyUi();
+    toast("good", "Gmail verified", "Test email sent to " + email + ".");
+    return result;
+  } catch (e){
+    clearGmailVerifyPending();
+    clearGmailVerifyMarker();
+    try{ localStorage.removeItem(GMAIL_VERIFY_RESULT_KEY); }catch(_){}
+    refreshGmailVerifyUi();
+    throw e;
+  } finally {
+    gmailVerifyInFlight = false;
+    refreshGmailVerifyUi();
+  }
+}
+
+async function startGmailOAuthFlow(){
+  const auth = window.JobApplyAI?.auth;
+  if(!auth || typeof auth.loginWithGoogle !== "function"){
+    throw new Error("Google auth helper is unavailable.");
+  }
+
+  ssSafeSet(GMAIL_VERIFY_PENDING_KEY, "1");
+  setGmailVerifyUi("checking", {
+    badgeKind: "warn",
+    badgeText: "Redirecting…",
+    hint: "Redirecting to Google so you can approve Gmail send access.",
+    verifyLabel: "Redirecting…",
+    verifyDisabled: true
+  });
+
+  await auth.loginWithGoogle({
+    redirectTo: buildGmailVerifyRedirectUrl(),
+    scopes: GMAIL_VERIFY_SCOPE,
+    queryParams: {
+      prompt: "consent",
+      include_granted_scopes: "true"
+    }
+  });
+}
+
+async function handleGmailVerifyClick(){
+  clearTopError();
+  const proof = getGmailVerifyProofForCurrentUser();
+  if(proof){
+    await startGmailOAuthFlow();
+    return;
+  }
+
+  if(getCachedGoogleProviderToken()){
+    await runGmailVerification();
+    return;
+  }
+
+  await startGmailOAuthFlow();
+}
+
+async function handleGmailSendAgainClick(){
+  clearTopError();
+  if(getCachedGoogleProviderToken()){
+    await runGmailVerification();
+    return;
+  }
+  await startGmailOAuthFlow();
+}
+
+async function maybeFinishPendingGmailVerify(){
+  rememberGoogleProviderTokens();
+  if(!hasGmailVerifyMarker() && ssSafeGet(GMAIL_VERIFY_PENDING_KEY) !== "1"){
+    refreshGmailVerifyUi();
+    return;
+  }
+
+  if(!getCachedGoogleProviderToken()){
+    clearGmailVerifyPending();
+    clearGmailVerifyMarker();
+    setGmailVerifyUi("failed", {
+      badgeKind: "bad",
+      badgeText: "Token missing",
+      hint: "Google returned without a Gmail access token. Reconnect Gmail and approve the Gmail permission.",
+      verifyLabel: "Reconnect Gmail",
+      showSendAgain: false
+    });
+    return;
+  }
+
+  try{
+    await runGmailVerification();
+  }catch(e){
+    showTopError(e?.message || String(e));
+  }
 }
 
 function maybeAutofillJobTitlesFromAi(titles){
@@ -1889,6 +2245,8 @@ return;
 resetLocalStateForNewUser(email);
 try{sessionStorage.setItem("sb_access_token",session.access_token);}catch{}
 setText("subLine","Signed in as "+email);
+rememberGoogleProviderTokens();
+refreshGmailVerifyUi();
 
 // Nav state: show account dropdown, hide sign-in link
 try{
@@ -1908,6 +2266,7 @@ await ensureCustomer(email);
 await refreshState();
 await loadCvStatusAndUpdateUx();
 await loadProfileIntoForm();
+await maybeFinishPendingGmailVerify();
 // Restore any local draft (only fills empty fields)
 try{
   restoreDraftIfHelpful();
@@ -1937,6 +2296,23 @@ try{
   }
 }catch(_){}
 
+
+$("gmailVerifyBtn")?.addEventListener("click", async ()=>{
+  try{
+    await handleGmailVerifyClick();
+  }catch(e){
+    refreshGmailVerifyUi();
+    showTopError(e?.message || String(e));
+  }
+});
+$("gmailSendAgainBtn")?.addEventListener("click", async ()=>{
+  try{
+    await handleGmailSendAgainClick();
+  }catch(e){
+    refreshGmailVerifyUi();
+    showTopError(e?.message || String(e));
+  }
+});
 
 $("cvFile").addEventListener("change",handleCvFileSelected);
 
@@ -2057,7 +2433,13 @@ $("navLogout")?.addEventListener("click", async ()=>{
       }
     });
   }catch(_){}
-  try{ sessionStorage.removeItem("sb_access_token"); }catch(_){}
+  try{
+    Object.keys(sessionStorage).forEach(k=>{
+      if(k === "sb_access_token" || k.startsWith("ja_") || k.startsWith("jobapplyai_") || k.startsWith("jm_") || k.startsWith("jobmejob_")){
+        sessionStorage.removeItem(k);
+      }
+    });
+  }catch(_){}
 
   window.location.replace("./index.html");
 });
@@ -2068,4 +2450,3 @@ showTopError(e.message||String(e));
 
 window.addEventListener("beforeunload",()=>{try{stopOcrPollingAndCleanup();}catch{}});
 window.addEventListener("load",boot);
-  

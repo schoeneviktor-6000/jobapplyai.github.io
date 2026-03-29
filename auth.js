@@ -56,6 +56,14 @@ function ssKeys() {
   }
 }
 
+function ssGet(key) {
+  try { return sessionStorage.getItem(key); } catch { return null; }
+}
+
+function ssSet(key, val) {
+  try { sessionStorage.setItem(key, val); } catch {}
+}
+
 function ssRemove(key) {
   try { sessionStorage.removeItem(key); } catch {}
 }
@@ -120,6 +128,11 @@ const apiFromWindow =
 
 const API_BASE = apiOverride || apiFromWindow || API_BASE_DEFAULT;
 
+const GOOGLE_PROVIDER_TOKEN_KEY = "jm_google_provider_token";
+const GOOGLE_PROVIDER_REFRESH_TOKEN_KEY = "jm_google_provider_refresh_token";
+const GOOGLE_PROVIDER_SCOPE_KEY = "jm_google_provider_scope";
+const GOOGLE_PROVIDER_UPDATED_AT_KEY = "jm_google_provider_updated_at";
+
 /* ============================================================
 4) Create Supabase client
 ============================================================ */
@@ -134,6 +147,42 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_
 
 // Backward compatibility: some pages reference window.supabaseClient
 window.supabaseClient = supabaseClient;
+
+function cacheGoogleProviderTokens(session) {
+  try {
+    const s = session && typeof session === "object" ? session : null;
+    const providerToken = s && typeof s.provider_token === "string" ? s.provider_token.trim() : "";
+    const providerRefreshToken = s && typeof s.provider_refresh_token === "string" ? s.provider_refresh_token.trim() : "";
+
+    if (providerToken) {
+      ssSet(GOOGLE_PROVIDER_TOKEN_KEY, providerToken);
+      ssSet(GOOGLE_PROVIDER_UPDATED_AT_KEY, new Date().toISOString());
+    }
+    if (providerRefreshToken) {
+      ssSet(GOOGLE_PROVIDER_REFRESH_TOKEN_KEY, providerRefreshToken);
+    }
+    if (providerToken || providerRefreshToken) {
+      const scope = (ssGet("jm_google_oauth_scope_request") || "").trim();
+      if (scope) ssSet(GOOGLE_PROVIDER_SCOPE_KEY, scope);
+    }
+  } catch {}
+}
+
+function clearGoogleProviderTokens() {
+  ssRemove(GOOGLE_PROVIDER_TOKEN_KEY);
+  ssRemove(GOOGLE_PROVIDER_REFRESH_TOKEN_KEY);
+  ssRemove(GOOGLE_PROVIDER_SCOPE_KEY);
+  ssRemove(GOOGLE_PROVIDER_UPDATED_AT_KEY);
+  ssRemove("jm_google_oauth_scope_request");
+}
+
+supabaseClient.auth.onAuthStateChange((_event, session) => {
+  if (!session) {
+    clearGoogleProviderTokens();
+    return;
+  }
+  cacheGoogleProviderTokens(session);
+});
 
 /* ============================================================
 5) Auth helpers
@@ -153,11 +202,28 @@ async function requireSession(redirectTo = "./signup.html") {
   return session;
 }
 
-async function loginWithGoogle(redirectTo) {
-  const rt = redirectTo || (window.location.origin + window.location.pathname);
+async function loginWithGoogle(redirectToOrOptions, maybeOptions) {
+  const opts = (redirectToOrOptions && typeof redirectToOrOptions === "object")
+    ? redirectToOrOptions
+    : { ...(maybeOptions || {}), redirectTo: redirectToOrOptions };
+  const rt = opts.redirectTo || (window.location.origin + window.location.pathname);
+  const oauthOptions = { redirectTo: rt };
+
+  if (opts.scopes) {
+    oauthOptions.scopes = String(opts.scopes);
+  }
+  if (opts.queryParams && typeof opts.queryParams === "object") {
+    oauthOptions.queryParams = opts.queryParams;
+  }
+  if (oauthOptions.scopes) {
+    ssSet("jm_google_oauth_scope_request", oauthOptions.scopes);
+  } else {
+    ssRemove("jm_google_oauth_scope_request");
+  }
+
   const { error } = await supabaseClient.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo: rt }
+    options: oauthOptions
   });
   if (error) throw error;
 }
@@ -255,6 +321,11 @@ window.JobApplyAI.auth = {
   getSession,
   requireSession,
   loginWithGoogle,
+  cacheGoogleProviderTokens,
+  getCachedGoogleProviderToken: () => ssGet(GOOGLE_PROVIDER_TOKEN_KEY) || "",
+  getCachedGoogleProviderRefreshToken: () => ssGet(GOOGLE_PROVIDER_REFRESH_TOKEN_KEY) || "",
+  getCachedGoogleProviderScope: () => ssGet(GOOGLE_PROVIDER_SCOPE_KEY) || "",
+  clearGoogleProviderTokens,
   logout,
   requireAuthAndCustomer,
   syncStateToLocalStorage
