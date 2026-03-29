@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>jobmejob • Profile</title>
-  <meta name="description" content="Upload your CV to unlock CV tailoring and matched jobs. AI job titles run automatically in the background."/>
+  <meta name="description" content="Upload your CV to unlock CV tailoring. Add job preferences later if you also want matched jobs."/>
 
   <!-- Shared styles -->
   <link rel="stylesheet" href="./shared.css"/>
@@ -497,7 +497,7 @@ Step 2 (Matched jobs) — form facelift
 <a class="pill" href="./dashboard.html" data-nav="1">Dashboard</a>
       <a class="pill" href="./cv.html" data-nav="1">CV Studio</a>
       <a class="pill" href="./jobs.html" data-nav="1">Jobs</a>
-      <a class="pill" href="./plan.html" data-nav="1">Plan</a>
+      <a class="pill" href="./plan.html" data-nav="1">Pricing</a>
 
       <details class="navDrop" id="navAccount" style="display:none">
         <summary class="pill" aria-label="Account menu">
@@ -535,7 +535,7 @@ Step 2 (Matched jobs) — form facelift
 <h2>Step 1: Upload your CV</h2>
 <span class="badge" id="cvStatusBadge">Loading</span>
 </div>
-<p class="small">Upload your CV to unlock tailoring. We’ll extract text (OCR for PDF) and generate job title suggestions automatically in the background (used for matched jobs + Auto‑Apply later).</p>
+<p class="small">Upload your CV to unlock tailoring. We’ll extract text (OCR for PDF) and generate job title suggestions automatically in the background. Add location later only if you also want matched jobs.</p>
 </div>
 <div class="sectionBody">
 <div class="dropzone" id="cvDropzone" tabindex="0" role="button" aria-label="Upload CV">
@@ -618,7 +618,7 @@ Step 2 (Matched jobs) — form facelift
 <div class="kpiVal" id="kProfile">…</div>
 </div>
 <div class="kpiRow">
-<div class="kpiName">Plan selected</div>
+<div class="kpiName">Auto-apply plan</div>
 <div class="kpiVal" id="kPlan">…</div>
 </div>
 <div class="kpiRow">
@@ -653,7 +653,7 @@ Step 2 (Matched jobs) — form facelift
 <details class="helpBox" style="margin-top:12px">
   <summary class="small" style="cursor:pointer;font-weight:850">More links</summary>
   <div class="actions" style="margin-top:10px">
-    <a class="btn" data-nav="1" href="./plan.html">Plan</a>
+    <a class="btn" data-nav="1" href="./plan.html">Pricing</a>
     <a class="btn" data-nav="1" href="./dashboard.html">Dashboard</a>
   </div>
 </details>
@@ -662,13 +662,13 @@ Step 2 (Matched jobs) — form facelift
 <section class="card cardNoPad" id="prefsCard" style="grid-column:1/-1">
 <div class="sectionHeader">
 <div class="stepTitle">
-<h2>Step 2 (recommended): Enable matched jobs</h2>
+<h2>Step 2 (optional): Enable matched jobs</h2>
 <div class="row" style="gap:8px">
 <span class="badge" id="jobsPrefetchBadge" style="display:none">Fetching jobs…</span>
 <span class="badge" id="saveStatusBadge">Not saved</span>
 </div>
 </div>
-<p class="small">We already store your AI job titles in the background. Add your location — preferences auto‑save as you type — so we can fetch matched jobs automatically (Jobs feed + Auto‑Apply later).</p>
+<p class="small">We already store your AI job titles in the background. Add your location and preferences only if you want matched jobs later. CV Studio itself works without this step.</p>
 <div class="row" id="jobsPrefetchRow" style="display:none; gap:10px; margin-top:10px">
   <div class="spinner" aria-hidden="true"></div>
   <div class="small" id="jobsPrefetchText">Fetching matched jobs in the background…</div>

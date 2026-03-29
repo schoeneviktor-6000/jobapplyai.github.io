@@ -17,4 +17,18 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://jobmejob.com/privacy.html" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://jobmejob.com/privacy.html" />
   </url>
+  <url>
+    <loc>https://jobmejob.com/cv-studio.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jobmejob.com/cv-studio.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jobmejob.com/cv-studio.html" />
+  </url>
+  <url>
+    <loc>https://jobmejob.com/plan.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jobmejob.com/plan.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jobmejob.com/plan.html" />
+  </url>
 </urlset>

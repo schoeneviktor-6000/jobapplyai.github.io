@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>jobmejob — Daily job applications, done for you</title>
-<meta name="description" content="jobmejob applies for jobs for you — continuously, professionally, and at scale. AI-supported, human-reviewed, sent from your own email.">
+<title>jobmejob — CV Studio plus request-based Auto-apply</title>
+<meta name="description" content="Tailor your CV from any job posting with CV Studio, then add matched jobs or Auto-apply later if you need them.">
 <script>
   (function(){
     try{
@@ -2541,6 +2541,7 @@ color:var(--text);
 </a>
 <div class="navlinks" aria-label="Site links">
 <a href="#how">How it works</a>
+<a href="cv-studio.html">CV Studio</a>
 <a href="#dashboard">Dashboard</a>
 <a href="#ats">ATS score</a>
 <a href="#pricing">Pricing</a>
@@ -2550,7 +2551,7 @@ color:var(--text);
 </div>
 <div class="navcta">
 <a class="btn small" href="signup.html?mode=login"><span class="btnLabel">Log in</span></a>
-<a class="btn primary small" href="signup.html"><span class="btnLabel">Get started</span></a>
+<a class="btn primary small" href="signup.html?entry=cv-studio"><span class="btnLabel">Get started</span></a>
 </div>
 </nav>
 </div>
@@ -2562,11 +2563,11 @@ color:var(--text);
 <div class="heroGrid">
 <div>
 <div class="eyebrow"><span class="badgeDot" aria-hidden="true"></span>AI-supported, human-reviewed, sent from your own email</div>
-<h1>Daily job applications, done for you.</h1>
-<p class="subtitle">jobmejob handles job research, CV adaptation, cover letters, and sending applications from your Gmail. You get consistent outreach without spending your evenings applying.</p>
+<h1>Tailor your CV fast. Add Auto-apply when you need it.</h1>
+<p class="subtitle">jobmejob now starts with CV Studio: tailor your CV from any job posting using the Chrome extension or pasted job descriptions. Auto-apply stays available separately as a guided beta for supported markets.</p>
 
 <div class="hero-actions">
-<a class="btn lime" href="signup.html">
+<a class="btn lime" href="signup.html?entry=cv-studio">
 <span class="btnLabel">
 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
 <path d="M12 5v14"></path><path d="M5 12h14"></path>
@@ -2603,7 +2604,7 @@ color:var(--text);
 <path d="M21 21l-4.3-4.3"></path><circle cx="11" cy="11" r="7"></circle>
 </svg>
 </div>
-<div class="miniText"><strong>Job Search (Germany)</strong><span>Auto-fetch roles + shortlist daily.</span></div>
+<div class="miniText"><strong>Job search beta</strong><span>Auto-fetch roles in selected markets.</span></div>
 </li>
 <li class="miniItem">
 <div class="miniIcon" aria-hidden="true">
@@ -2611,7 +2612,7 @@ color:var(--text);
 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path>
 </svg>
 </div>
-<div class="miniText"><strong>CV tailoring</strong><span>Paste a JD or tailor from fetched jobs.</span></div>
+<div class="miniText"><strong>CV Studio</strong><span>Paste a JD or import one from the Chrome extension.</span></div>
 </li>
 <li class="miniItem">
 <div class="miniIcon lime" aria-hidden="true">
@@ -2619,13 +2620,13 @@ color:var(--text);
 <path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"></path><path d="M21 8l-9 6-9-6"></path>
 </svg>
 </div>
-<div class="miniText"><strong>Auto apply</strong><span>Prepared + sent from your Gmail (review-first).</span></div>
+<div class="miniText"><strong>Auto-apply beta</strong><span>Prepared + sent from your Gmail when enabled.</span></div>
 </li>
 </ul>
 <div class="heroCardActions">
 <a class="btn small" href="#pricing"><span class="btnLabel">Plans</span></a>
 <a class="btn small" href="#dashboard"><span class="btnLabel">Dashboard</span></a>
-<a class="btn primary small" href="signup.html"><span class="btnLabel">Get started</span></a>
+<a class="btn primary small" href="signup.html?entry=cv-studio"><span class="btnLabel">Get started</span></a>
 </div>
 </aside>
 </div>
@@ -2908,7 +2909,7 @@ color:var(--text);
         </div>
       </div>
       <div class="hiwCtaActions">
-        <a class="btn primary" href="signup.html"><span class="btnLabel">Get started</span></a>
+        <a class="btn primary" href="signup.html?entry=cv-studio"><span class="btnLabel">Get started</span></a>
         <a class="btn" href="#pricing"><span class="btnLabel">View plans</span></a>
       </div>
     </div>
@@ -3029,7 +3030,7 @@ From a job post
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Clear proof of execution, not just drafts</li>
 </ul>
 <div class="dashActions">
-<a class="btn primary" href="signup.html"><span class="btnLabel">Get started</span></a>
+<a class="btn primary" href="signup.html?entry=cv-studio"><span class="btnLabel">Get started</span></a>
 <a class="btn" href="#pricing"><span class="btnLabel">View plans</span></a>
 </div>
 </div>
@@ -3130,102 +3131,99 @@ Last 7 days
 <div class="container">
 <div class="sectionHead">
 <div class="kicker">Pricing</div>
-<h2 class="sectionTitle">Start from $20. Save more as you scale.</h2>
-<p class="sectionDesc">Plans are based on daily output. The monthly value is shown as total applications per month.</p>
+<h2 class="sectionTitle">Start free with CV Studio. Add Auto-apply later.</h2>
+<p class="sectionDesc">CV Studio is the global product and works with the Chrome extension or pasted job descriptions. Auto-apply stays request-only while market coverage expands.</p>
 </div>
 
 <div class="pricingWrap">
 <div class="card plan">
-<h3 style="margin:0 0 6px;font-weight:1000;letter-spacing:-.2px">Starter</h3>
-<p style="margin:0;color:var(--muted);font-size:14px">For steady progress.</p>
+<h3 style="margin:0 0 6px;font-weight:1000;letter-spacing:-.2px">CV Studio Free</h3>
+<p style="margin:0;color:var(--muted);font-size:14px">For first-time users.</p>
 <div class="priceRow" style="margin-top:10px">
-<div class="strike">$29</div>
-<strong>$20</strong>
+<strong>$0</strong>
 <span>/ month</span>
-<span class="save">Save 31%</span>
+<span class="save">5 tailored CVs included</span>
 </div>
 
 <div class="valueRow" aria-label="Monthly value">
 <div>
-<strong>1 application / day</strong>
-<span>≈ 30 per month</span>
+<strong>Use CV Studio without a paid plan</strong>
+<span>Try the extension or paste flow first</span>
 </div>
-<div class="valueBadge"><i aria-hidden="true"></i>From $0.67 / app</div>
+<div class="valueBadge"><i aria-hidden="true"></i>Best first step</div>
 </div>
 
 <ul class="features">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Tailored CV + cover letter</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Chrome extension + manual paste flow</li>
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>ATS match score + keyword gaps</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Sent from your Gmail</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Simple application log</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Reuses your stored base CV</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Great for validating the workflow</li>
 </ul>
 <div class="planActions">
-<a class="btn primary" href="signup.html"><span class="btnLabel">Get started</span></a>
+<a class="btn primary" href="signup.html?entry=cv-studio"><span class="btnLabel">Start free</span></a>
 </div>
 </div>
 
 <div class="card plan featured" aria-label="Best value plan">
 <div class="ribbon">Best value</div>
-<h3 style="margin:0 0 6px;font-weight:1000;letter-spacing:-.2px">Growth</h3>
-<p style="margin:0;color:var(--muted);font-size:14px">For active searches.</p>
+<h3 style="margin:0 0 6px;font-weight:1000;letter-spacing:-.2px">CV Studio Starter</h3>
+<p style="margin:0;color:var(--muted);font-size:14px">For focused weekly usage.</p>
 <div class="priceRow" style="margin-top:10px">
-<div class="strike">$59</div>
-<strong>$45</strong>
+<strong>$3</strong>
 <span>/ month</span>
-<span class="save">Save 24%</span>
+<span class="save">Low-friction upgrade</span>
 </div>
 
 <div class="valueRow" aria-label="Monthly value">
 <div>
-<strong>5 applications / day</strong>
-<span>≈ 150 per month</span>
+<strong>10 tailored CVs / month</strong>
+<span>One quota across extension + paste mode</span>
 </div>
-<div class="valueBadge"><i aria-hidden="true"></i>≈ $0.30 / app</div>
+<div class="valueBadge"><i aria-hidden="true"></i>Extension-first</div>
 </div>
 
 <ul class="features">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Better matching & shortlisting</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>ATS match score + keyword gaps</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Weekly progress summary</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Priority turnaround</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>All Free features</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Best fit for active extension users</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Simple recurring monthly plan</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Clear upgrade without market restrictions</li>
 </ul>
 <div class="planActions">
-<a class="btn lime" href="signup.html"><span class="btnLabel">Get started</span></a>
-<a class="btn primary" href="#how"><span class="btnLabel">How it works</span></a>
+<a class="btn lime" href="plan.html#cv-pricing"><span class="btnLabel">Choose Starter</span></a>
+<a class="btn primary" href="cv-studio.html"><span class="btnLabel">See CV Studio</span></a>
 </div>
 </div>
 
 <div class="card plan">
-<h3 style="margin:0 0 6px;font-weight:1000;letter-spacing:-.2px">Pro</h3>
-<p style="margin:0;color:var(--muted);font-size:14px">For faster outreach.</p>
+<h3 style="margin:0 0 6px;font-weight:1000;letter-spacing:-.2px">Auto-apply beta</h3>
+<p style="margin:0;color:var(--muted);font-size:14px">Request access for supported markets.</p>
 <div class="priceRow" style="margin-top:10px">
-<div class="strike">$119</div>
-<strong>$89</strong>
-<span>/ month</span>
-<span class="save">Save 25%</span>
+<strong>By request</strong>
+<span>beta</span>
+<span class="save">Guided onboarding</span>
 </div>
 
 <div class="valueRow" aria-label="Monthly value">
 <div>
-<strong>10 applications / day</strong>
-<span>≈ 300 per month</span>
+<strong>Separate from CV Studio pricing</strong>
+<span>Best when you also want sourcing + outbound help</span>
 </div>
-<div class="valueBadge"><i aria-hidden="true"></i>≈ $0.30 / app</div>
+<div class="valueBadge"><i aria-hidden="true"></i>Selected markets</div>
 </div>
 
 <ul class="features">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Priority turnaround</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>ATS match score + keyword gaps</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Follow-up templates</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Enhanced tracking view</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>More human-guided setup</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>For users who also want job sourcing</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Better expectation-setting across markets</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Request access instead of self-serve checkout</li>
 </ul>
 <div class="planActions">
-<a class="btn primary" href="#contact"><span class="btnLabel">Contact</span></a>
+<a class="btn primary" href="plan.html#auto-apply-request"><span class="btnLabel">Request access</span></a>
 </div>
 </div>
 </div>
 
-<p class="fineprint">Monthly totals are approximate (30-day month) and shown to communicate value. Prices are promotional and may change after launch.</p>
+<p class="fineprint">CV Studio pricing is monthly and should be easy to understand for global extension users. Auto-apply is intentionally separated so it can stay honest about market coverage.</p>
 </div>
 </section>
 
@@ -3280,7 +3278,7 @@ Last 7 days
 
 <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;position:relative">
 <a class="btn primary small" href="#how"><span class="btnLabel">See workflow</span></a>
-<a class="btn lime small" href="signup.html"><span class="btnLabel">Get started</span></a>
+<a class="btn lime small" href="signup.html?entry=cv-studio"><span class="btnLabel">Get started</span></a>
 </div>
 </div>
 
@@ -3369,9 +3367,10 @@ Last 7 days
 <footer>
 <div class="container">
 <div class="footerRow">
-<div><strong style="color:var(--text);font-weight:1000">jobmejob</strong><span> · </span><span>Continuous, professional job applications</span></div>
+<div><strong style="color:var(--text);font-weight:1000">jobmejob</strong><span> · </span><span>CV tailoring first, Auto-apply when it fits</span></div>
 <div class="footerLinks" aria-label="Footer links">
 <a href="#how">How it works</a>
+<a href="cv-studio.html">CV Studio</a>
 <a href="#dashboard">Dashboard</a>
 <a href="#ats">ATS score</a>
 <a href="#pricing">Pricing</a>

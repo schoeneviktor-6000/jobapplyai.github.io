@@ -18,6 +18,15 @@ const SUPABASE_ANON_KEY_DEFAULT =
 // Your Worker API base (default)
 const API_BASE_DEFAULT = "https://jobmejob.schoene-viktor.workers.dev";
 
+// Paste your Stripe payment links here when they are ready.
+const LINKS_DEFAULT = {
+  CV_STUDIO_STARTER_URL: "",
+  CV_STUDIO_PLUS_URL: "",
+  CV_STUDIO_PORTAL_URL: "",
+  CHROME_EXTENSION_URL: "",
+  AUTO_APPLY_REQUEST_URL: "mailto:team@jobmejob.com?subject=Auto-apply%20beta%20request"
+};
+
 /* ============================================================
 2) Safe localStorage helpers
 ============================================================ */
@@ -132,7 +141,29 @@ const apiFromWindow =
     ? String(appConfig.API_BASE).trim().replace(/\/+$/, "")
     : "";
 
+const linksFromWindow =
+  (appConfig && appConfig.LINKS && typeof appConfig.LINKS === "object")
+    ? appConfig.LINKS
+    : {};
+
 const API_BASE = apiOverride || apiFromWindow || API_BASE_DEFAULT;
+
+function resolveLinkValue(key) {
+  const fromWindow = String((linksFromWindow && linksFromWindow[key]) || "").trim();
+  const fromDefault = String((LINKS_DEFAULT && LINKS_DEFAULT[key]) || "").trim();
+  if (!CAN_USE_DEBUG_OVERRIDES) return fromWindow || fromDefault;
+  const storageKey = "jm_link_" + String(key || "").trim().toLowerCase();
+  const fromStorage = String(lsGet(storageKey) || "").trim();
+  return fromStorage || fromWindow || fromDefault;
+}
+
+const LINKS = {
+  CV_STUDIO_STARTER_URL: resolveLinkValue("CV_STUDIO_STARTER_URL"),
+  CV_STUDIO_PLUS_URL: resolveLinkValue("CV_STUDIO_PLUS_URL"),
+  CV_STUDIO_PORTAL_URL: resolveLinkValue("CV_STUDIO_PORTAL_URL"),
+  CHROME_EXTENSION_URL: resolveLinkValue("CHROME_EXTENSION_URL"),
+  AUTO_APPLY_REQUEST_URL: resolveLinkValue("AUTO_APPLY_REQUEST_URL")
+};
 
 const GOOGLE_PROVIDER_TOKEN_KEY = "jm_google_provider_token";
 const GOOGLE_PROVIDER_REFRESH_TOKEN_KEY = "jm_google_provider_refresh_token";
@@ -380,6 +411,7 @@ app.config = app.config || {};
 app.config.API_BASE = API_BASE;
 app.config.SUPABASE_URL = SUPABASE_URL;
 app.config.CAN_USE_DEBUG_OVERRIDES = CAN_USE_DEBUG_OVERRIDES;
+app.config.LINKS = Object.assign({}, LINKS);
 
 app.auth = {
   supabaseClient,

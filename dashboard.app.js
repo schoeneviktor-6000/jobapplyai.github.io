@@ -812,7 +812,7 @@ const pid=String(planId||"").trim().toLowerCase();
 if(pid==="starter") return {id:"starter",name:"Starter",daily:1,meta:"1 application/day",short:"Starter (1/day)"};
 if(pid==="pro") return {id:"pro",name:"Growth",daily:5,meta:"5 applications/day",short:"Growth (5/day)"};
 if(pid==="max") return {id:"max",name:"Max",daily:10,meta:"10 applications/day",short:"Max (10/day)"};
-return {id:null,name:"No plan",daily:0,meta:"Select Starter / Growth / Max",short:"No plan"};
+return {id:null,name:"Auto-apply off",daily:0,meta:"Request Auto-apply when you want daily sourcing",short:"Off"};
 }
 function planFallbackFromLocalStorage(){
 const raw=(localStorage.getItem("jm_plan")||localStorage.getItem("ja_plan")||"").trim().toLowerCase();
@@ -827,7 +827,7 @@ let recommendedCap=1;
 if(queueCount>=25){healthLabel="Healthy";badgeType="good";recommendedCap=10;}
 else if(queueCount>=5){healthLabel="Medium";badgeType="";recommendedCap=5;}
 let note="";
-if(!planDaily) note="Select a plan to start.";
+if(!planDaily) note="CV Studio is ready. Request Auto-apply if you also want daily job sourcing.";
 else if(queueCount===0) note="No jobs in your queue yet. Broaden titles or increase radius.";
 else if(queueCount<planDaily) note="Your queue is below your plan. Increase titles/radius to avoid running out.";
 else note="You have enough supply for today.";
@@ -840,7 +840,7 @@ function renderHealth(queueCount,plan){
 const s=computeSupply(queueCount,plan.daily);
 setBadge("badgeHealth",s.badgeType,s.healthLabel);
 setText("kpiHealthLabel",s.healthLabel);
-setBadge("badgeHealthPlan",plan.daily?"":"warn","Plan: "+plan.short);
+setBadge("badgeHealthPlan",plan.daily?"":"warn","Auto-apply: "+plan.short);
 setBadge("badgeHealthQueue",queueCount>0?"good":"warn","Queue: "+queueCount);
 setBadge("badgeHealthCap","","Today cap: "+(plan.daily?plan.daily:0)+"/day");
 const meter=document.getElementById("healthMeterFill");
@@ -908,7 +908,7 @@ function renderQueueCards(queue){
   const locLine = topLoc.length ? topLoc.map(x=>`${escapeHtml(x.label)} (${x.n})`).join(" · ") : "—";
 
   const supply = computeSupply(qCount, currentPlanDaily || 0);
-  const planTxt = currentPlanDaily ? (String(currentPlanDaily)+"/day") : "no plan";
+  const planTxt = currentPlanDaily ? (String(currentPlanDaily)+"/day") : "off";
   const estDays = (currentPlanDaily && currentPlanDaily>0) ? Math.floor(qCount / currentPlanDaily) : null;
   const cover = (estDays===null) ? "—" : (estDays===0 ? "today" : (String(estDays)+" day"+(estDays===1?"":"s")));
 
@@ -923,7 +923,7 @@ function renderQueueCards(queue){
         </div>
         <div class="itemMeta">
           <span><b>${qCount}</b> jobs ready</span><span>•</span>
-          <span>Plan: ${escapeHtml(planTxt)}</span><span>•</span>
+          <span>Auto-apply: ${escapeHtml(planTxt)}</span><span>•</span>
           <span>Coverage: ${escapeHtml(cover)}</span>
         </div>
         <div class="tagRow">
@@ -941,7 +941,7 @@ function renderQueueCards(queue){
         <div class="itemActions">
           <a class="btn small" href="./jobs.html" data-nav="1">Open Jobs</a>
           <a class="btn small ghost" href="./profile.html" data-nav="1">Adjust titles & radius</a>
-          <a class="btn small ghost" href="./plan.html" data-nav="1">Auto-apply (upgrade)</a>
+          <a class="btn small ghost" href="./plan.html" data-nav="1">Pricing</a>
         </div>
       </div>
 

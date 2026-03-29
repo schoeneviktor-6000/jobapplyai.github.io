@@ -467,7 +467,7 @@ function renderAutomationHealth({ planDaily, queueCount }){
   ].join("");
 
   setHtml("automationHealth", rows);
-  setText("automationHealthMeta", planDaily ? `Daily cap: ${planDaily}/day • Queue: ${queueCount}` : `No plan selected • Queue: ${queueCount}`);
+  setText("automationHealthMeta", planDaily ? `Daily cap: ${planDaily}/day • Queue: ${queueCount}` : `Auto-apply off • Queue: ${queueCount}`);
 
   const badgeCls = (freshPct!==null && freshPct>=60) ? "good" : "";
   const badgeTxt = (freshPct===null) ? "OK" : (freshPct>=60 ? "Fresh" : "OK");
@@ -750,7 +750,7 @@ async function loadDashboard(){
   currentPlanDaily = plan.daily;
 
   setText("kpiPlanName", plan.name);
-  setText("kpiPlanMeta", plan.daily ? plan.meta : "no plan selected");
+  setText("kpiPlanMeta", plan.daily ? plan.meta : "Auto-apply off");
   setBadge("badgePlan", plan.daily ? "good" : "warn", plan.daily ? "Selected" : "Not selected");
 
   if(state && state.customer_id){ setText("meCustomerId", state.customer_id); }

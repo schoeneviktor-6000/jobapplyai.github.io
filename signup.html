@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>jobmejob | We apply for jobs for you</title>
-<meta name="description" content="Sign in with Google to start. We apply for jobs for you.">
+<title>jobmejob | Sign in to CV Studio and job search tools</title>
+<meta name="description" content="Sign in with Google to start CV Studio or continue into the wider jobmejob workflow.">
 
 <style>
 :root{
@@ -225,7 +225,7 @@ white-space:pre-wrap;
 <span class="logo" aria-hidden="true"></span>
 <span class="wordmark">
 <span class="name">jobmejob</span>
-<span class="tag">We apply for jobs for you</span>
+<span class="tag">CV Studio + job search tools</span>
 </span>
 </a>
 <span class="pill" id="topState">Not signed in</span>
@@ -235,8 +235,8 @@ white-space:pre-wrap;
 
 <div class="grid">
 <section class="card hero">
-<h1>We apply for jobs for you</h1>
-<p class="sub">Sign in with Google to start. We’ll set up your account and take you to the next step.</p>
+<h1>Start with CV Studio, then expand if you need more.</h1>
+<p class="sub">Sign in with Google to start. We’ll set up your account and take you to the right next step for CV tailoring, matched jobs, or both.</p>
 
 <button class="googleBtn" id="btnGoogle" type="button">
 <span class="googleIcon" aria-hidden="true">
@@ -258,7 +258,7 @@ white-space:pre-wrap;
 <button class="linkBtn" id="btnSwitch" type="button">Switch</button>
 </div>
 
-<p class="small" id="hint" style="margin-top:10px;text-align:center">You stay in control. Nothing is sent without your confirmation.</p>
+<p class="small" id="hint" style="margin-top:10px;text-align:center">You stay in control. CV Studio works on its own, and nothing is sent without your confirmation.</p>
 </section>
 
 <aside class="card">
@@ -268,21 +268,21 @@ white-space:pre-wrap;
 <div class="num">1</div>
 <div class="stepText">
 <div class="stepTitle">Set up once</div>
-<div class="stepDesc">Upload your CV + choose what you want us to apply to.</div>
+<div class="stepDesc">Upload your CV and start tailoring against real job descriptions.</div>
 </div>
 </div>
 <div class="step">
 <div class="num">2</div>
 <div class="stepText">
-<div class="stepTitle">We apply for you</div>
-<div class="stepDesc">Applications are prepared and sent on your behalf.</div>
+<div class="stepTitle">Choose your workflow</div>
+<div class="stepDesc">Use CV Studio directly, or add matched jobs and Auto-apply later if you want them.</div>
 </div>
 </div>
 <div class="step">
 <div class="num">3</div>
 <div class="stepText">
 <div class="stepTitle">Track everything</div>
-<div class="stepDesc">See applied jobs and your application activity.</div>
+<div class="stepDesc">See tailored CVs, jobs, and application activity in one account.</div>
 </div>
 </div>
 </div>
@@ -469,14 +469,26 @@ return null;
 }
 
 async function determineNextUrl(session){
+const remembered=consumePendingPostAuthRedirect();
+if(remembered) return remembered;
+let entry="";
+let next="";
+try{
+const url=new URL(window.location.href);
+entry=String(url.searchParams.get("entry")||"").trim().toLowerCase();
+next=String(url.searchParams.get("next")||"").trim().toLowerCase();
+}catch(_){}
+const wantsCvStudio=entry==="cv-studio" || entry==="cv" || entry==="extension";
+if(next==="plan") return "./plan.html";
 try{
 const st=await apiGetWithBearer("/me/state", session.access_token);
 if(st && st.profile_complete === false) return "./profile.html";
-if(st && !st.plan_id) return "./plan.html";
+if(wantsCvStudio) return "./cv.html";
 return "./dashboard.html";
 }catch(_){
 if(!hasProfileLocal()) return "./profile.html";
-if(!hasPlanLocal()) return "./plan.html";
+if(wantsCvStudio) return "./cv.html";
+if(next==="plan") return "./plan.html";
 return "./dashboard.html";
 }
 }
@@ -544,7 +556,7 @@ showSignedOut();
 
 /* Button actions */
 async function loginWithGoogle(){
-const redirectTo=window.location.origin + window.location.pathname;
+const redirectTo=window.location.origin + window.location.pathname + window.location.search + window.location.hash;
 const { error } = await supabaseClient.auth.signInWithOAuth({
 provider:"google",
 options:{ redirectTo }

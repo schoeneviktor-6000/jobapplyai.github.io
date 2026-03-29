@@ -110,7 +110,7 @@ let genStepsState = "idle";
        ------------------------- */
     const I18N = {
       de: {
-        subTitle: "Passe deinen CV pro Rolle an – ATS-sicher formatiert. Jobsuche + CV Tailoring bleiben gratis.",
+        subTitle: "Passe deinen CV pro Rolle an – ATS-sicher formatiert. Funktioniert mit eingefuegten Stellenanzeigen und der Chrome-Erweiterung.",
         setupTitle: "Setup",
         jobToTailorLbl: "Job auswählen",
         openJobsBtn: "Jobs öffnen",
@@ -195,7 +195,7 @@ let genStepsState = "idle";
         copied: "Kopiert ✓"
       },
       en: {
-        subTitle: "Tailor your CV per role with ATS-safe formatting. Job search + CV tailoring stay free.",
+        subTitle: "Tailor your CV per role with ATS-safe formatting. Works with pasted job descriptions and the Chrome extension.",
         setupTitle: "Setup",
         jobSourceLbl: "Job source",
         sourceJobs: "From my Jobs",
@@ -5083,7 +5083,8 @@ function openKwModal(keywordRaw){
       try{ if(session && session.access_token) sessionStorage.setItem("sb_access_token", session.access_token); }catch(_){ }
       if(!session || !session.user || !session.user.email){
         setBadge("authBadge","warn", uiLang==="de" ? "Abgemeldet" : "Signed out");
-        window.location.replace("./signup.html");
+        try{ auth?.rememberPostAuthRedirect?.(window.location.pathname + window.location.search + window.location.hash); }catch(_){}
+        window.location.replace("./signup.html?entry=cv-studio");
         return;
       }
 
