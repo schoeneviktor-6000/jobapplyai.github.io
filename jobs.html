@@ -583,6 +583,10 @@
       go: (S && S.go) ? S.go.bind(S) : F.go
     };
 
+    function getAppAuth(){
+      return window.JobMeJob?.auth || window.JobApplyAI?.auth || null;
+    }
+
     H.wireNavTransitions();
 
     const $ = (id) => document.getElementById(id);
@@ -1984,13 +1988,14 @@ function renderDetailLoading(baseJob){
       H.setBadge("authBadge", "warn", "Checking…");
 
       // Sanity check: auth.js must be present
-      if(!window.JobApplyAI || !window.JobApplyAI.auth || typeof window.JobApplyAI.auth.getSession !== "function"){
+      const auth = getAppAuth();
+      if(!auth || typeof auth.getSession !== "function"){
         H.setBadge("authBadge", "bad", "Config error");
         showError("auth.js did not load. Ensure multipage/auth.js exists and is referenced as ./auth.js.");
         return null;
       }
 
-      session = await window.JobApplyAI.auth.getSession();
+      session = await auth.getSession();
       if(!session || !session.user || !session.user.email){
         H.setBadge("authBadge", "warn", "Signed out");
         window.location.replace("./signup.html");
@@ -2009,8 +2014,8 @@ function renderDetailLoading(baseJob){
       H.setBadge("authBadge", "good", "Signed in");
 
       // Ensure customer exists (best-effort)
-      try{ await window.JobApplyAI.auth.requireAuthAndCustomer({ redirectTo: "./signup.html" }); }catch(_){ }
-      try{ await window.JobApplyAI.auth.syncStateToLocalStorage(session); }catch(_){ }
+      try{ await auth.requireAuthAndCustomer({ redirectTo: "./signup.html" }); }catch(_){ }
+      try{ await auth.syncStateToLocalStorage(session); }catch(_){ }
 
       return session;
     }
@@ -2112,7 +2117,10 @@ function renderDetailLoading(baseJob){
 
     // Logout
     $("navLogout")?.addEventListener("click", async () => {
-      try{ await window.JobApplyAI.auth.logout("./index.html"); }
+      try{
+        const auth = getAppAuth();
+        if(auth?.logout) await auth.logout("./index.html");
+      }
       catch(_){ window.location.href = "./index.html"; }
     });
 

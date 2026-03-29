@@ -1,10 +1,14 @@
 "use strict";
 
 const S = window.JobMeJobShared || null;
+const APP_CONFIG = window.JobMeJob?.config || window.JobApplyAI?.config || null;
+function getAppAuth(){
+  return window.JobMeJob?.auth || window.JobApplyAI?.auth || null;
+}
 if (S && S.wireNavTransitions) { try { S.wireNavTransitions(); } catch {} }
 
 
-const API_BASE = (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE)
+const API_BASE = (APP_CONFIG && APP_CONFIG.API_BASE)
   || (S && S.resolveApiBase ? S.resolveApiBase("https://jobmejob.schoene-viktor.workers.dev") : "https://jobmejob.schoene-viktor.workers.dev");
 const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
@@ -89,9 +93,9 @@ if(v !== null && v !== undefined && v !== "") return v;
 return null;
 }
 function lsSetAll(keys, value){
-for(const k of keys){
-try{ localStorage.setItem(k, value); }catch(_){}
-}
+const key = Array.isArray(keys) && keys.length ? keys[0] : "";
+if(!key) return;
+try{ localStorage.setItem(key, value); }catch(_){}
 }
 function lsRemoveAll(keys){
 for(const k of keys){
@@ -316,8 +320,9 @@ function buildGmailVerifyRedirectUrl(){
 
 function rememberGoogleProviderTokens(){
   try{
-    if(window.JobApplyAI?.auth?.cacheGoogleProviderTokens && session){
-      window.JobApplyAI.auth.cacheGoogleProviderTokens(session);
+    const auth = getAppAuth();
+    if(auth?.cacheGoogleProviderTokens && session){
+      auth.cacheGoogleProviderTokens(session);
     }
   }catch(_){}
 }
@@ -329,8 +334,9 @@ function getCachedGoogleProviderToken(){
     }
   }catch(_){}
   try{
-    if(window.JobApplyAI?.auth?.getCachedGoogleProviderToken){
-      const token = String(window.JobApplyAI.auth.getCachedGoogleProviderToken() || "").trim();
+    const auth = getAppAuth();
+    if(auth?.getCachedGoogleProviderToken){
+      const token = String(auth.getCachedGoogleProviderToken() || "").trim();
       if(token) return token;
     }
   }catch(_){}
@@ -534,10 +540,13 @@ async function runGmailVerification(){
 }
 
 async function startGmailOAuthFlow(){
-  const auth = window.JobApplyAI?.auth;
+  const auth = getAppAuth();
   if(!auth || typeof auth.loginWithGoogle !== "function"){
     throw new Error("Google auth helper is unavailable.");
   }
+  try{
+    auth.rememberPostAuthRedirect?.(buildGmailVerifyRedirectUrl());
+  }catch(_){}
 
   ssSafeSet(GMAIL_VERIFY_PENDING_KEY, "1");
   setGmailVerifyUi("checking", {
@@ -549,7 +558,7 @@ async function startGmailOAuthFlow(){
   });
 
   await auth.loginWithGoogle({
-    redirectTo: buildGmailVerifyRedirectUrl(),
+    redirectTo: window.location.origin + "/",
     scopes: GMAIL_VERIFY_SCOPE,
     queryParams: {
       prompt: "consent",
@@ -1352,8 +1361,7 @@ return null;
 
 function setAiCache(payload){
 try{
-localStorage.setItem(AI_CACHE_KEY, JSON.stringify(payload));
-localStorage.setItem(AI_CACHE_KEY_OLD, JSON.stringify(payload));
+  localStorage.setItem(AI_CACHE_KEY, JSON.stringify(payload));
 }catch{}
 }
 
@@ -1400,7 +1408,6 @@ function applyAiUiFromTitles(titles){
   // Persist for other pages (Jobs toggle: "AI titles only")
   try{
     localStorage.setItem("jm_ai_titles_server", JSON.stringify(clean));
-    localStorage.setItem("ja_ai_titles_server", localStorage.getItem("jm_ai_titles_server"));
   }catch(_){}
 
   setBadge("aiStatusBadge","good","Ready");
@@ -1734,7 +1741,6 @@ async function handleAiGenerate({ force=false, background=false } = {}){
           tools: toolSkills.slice(0,10)
         }
       }));
-      localStorage.setItem("ja_ai_profile", localStorage.getItem("jm_ai_profile"));
     }catch(_){}
 
     {
@@ -1781,7 +1787,6 @@ async function handleAiGenerate({ force=false, background=false } = {}){
           clusters: (cm && Array.isArray(cm.clusters)) ? cm.clusters.slice(0,3) : [],
           alternative_titles: altUniq.slice(0,10)
         }));
-        localStorage.setItem("ja_ai_clusters", localStorage.getItem("jm_ai_clusters"));
       }catch(_){}
     }catch(_){}
 
@@ -2218,15 +2223,22 @@ async function boot(){
 try{
 clearTopError();
 setText("subLine","Checking session…");
-supabaseClient = (window.JobApplyAI && window.JobApplyAI.auth && window.JobApplyAI.auth.supabaseClient)
-  ? window.JobApplyAI.auth.supabaseClient
-  : window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+{
+  const auth = getAppAuth();
+  if(auth?.supabaseClient){
+    supabaseClient = auth.supabaseClient;
+  }
+}
 
 
 
-session = (window.JobApplyAI && window.JobApplyAI.auth && typeof window.JobApplyAI.auth.getSession === "function")
-  ? await window.JobApplyAI.auth.getSession()
-  : null;
+{
+  const auth = getAppAuth();
+  session = auth && typeof auth.getSession === "function"
+    ? await auth.getSession()
+    : null;
+}
 if(!session){
   const s=await supabaseClient.auth.getSession();
   session=s && s.data ? s.data.session : null;
@@ -2416,8 +2428,9 @@ $("activityFilter")?.addEventListener("change", () => loadActivityLog().catch(()
 
 $("navLogout")?.addEventListener("click", async ()=>{
   try{
-    if(window.JobApplyAI?.auth?.logout){
-      await window.JobApplyAI.auth.logout("./index.html");
+    const auth = getAppAuth();
+    if(auth?.logout){
+      await auth.logout("./index.html");
       return;
     }
   }catch(_){}

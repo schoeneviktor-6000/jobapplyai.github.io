@@ -5,6 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>jobmejob — Daily job applications, done for you</title>
 <meta name="description" content="jobmejob applies for jobs for you — continuously, professionally, and at scale. AI-supported, human-reviewed, sent from your own email.">
+<script>
+  (function(){
+    try{
+      var u = new URL(window.location.href);
+      var h = new URLSearchParams(String(u.hash || "").replace(/^#/, ""));
+      var isAuthReturn = !!(
+        u.searchParams.get("code") ||
+        u.searchParams.get("error") ||
+        u.searchParams.get("error_code") ||
+        h.get("access_token") ||
+        h.get("refresh_token") ||
+        h.get("error") ||
+        h.get("error_code")
+      );
+      if(!isAuthReturn) return;
+      window.location.replace("./signup.html" + window.location.search + window.location.hash);
+    }catch(_){}
+  })();
+</script>
 <!-- Favicons / Browser tab icon -->
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">

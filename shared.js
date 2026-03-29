@@ -76,13 +76,17 @@
     }
 
     const apiOverride = allowDebugOverride
-      ? normalizeBaseUrl(safeLocalGet("ja_api_base"))
+      ? normalizeBaseUrl(safeLocalGet("jm_api_base") || safeLocalGet("ja_api_base"))
       : "";
 
     // Base set by auth.js/pages
+    const appConfig =
+      (window.JobMeJob && window.JobMeJob.config)
+        ? window.JobMeJob.config
+        : ((window.JobApplyAI && window.JobApplyAI.config) ? window.JobApplyAI.config : null);
     const apiFromWindow =
-      (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE)
-        ? normalizeBaseUrl(window.JobApplyAI.config.API_BASE)
+      (appConfig && appConfig.API_BASE)
+        ? normalizeBaseUrl(appConfig.API_BASE)
         : "";
 
     return qp || apiOverride || apiFromWindow || normalizeBaseUrl(fallback);
@@ -360,9 +364,11 @@
 
   window.JobMeJobShared = Object.assign({}, window.JobMeJobShared || {}, api);
 
-  // Optional alias
-  window.JobApplyAI = window.JobApplyAI || {};
-  window.JobApplyAI.shared = window.JobMeJobShared;
+  // JobMeJob is primary; keep JobApplyAI as a legacy alias.
+  const app = window.JobMeJob || window.JobApplyAI || {};
+  window.JobMeJob = app;
+  window.JobApplyAI = app;
+  app.shared = window.JobMeJobShared;
 
   // Auto-wire global behaviors
   window.addEventListener("DOMContentLoaded", () => {

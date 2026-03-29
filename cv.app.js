@@ -2,6 +2,10 @@
     "use strict";
 
     const S = window.JobMeJobShared || null;
+    const APP_CONFIG = window.JobMeJob?.config || window.JobApplyAI?.config || null;
+    function getAppAuth(){
+      return window.JobMeJob?.auth || window.JobApplyAI?.auth || null;
+    }
 
     // Fallbacks (so one missing helper doesn't break the whole page)
     const F = {
@@ -31,8 +35,8 @@
 
     const $ = (id) => document.getElementById(id);
 
-    const API_BASE = (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE
-      ? String(window.JobApplyAI.config.API_BASE)
+    const API_BASE = (APP_CONFIG && APP_CONFIG.API_BASE
+      ? String(APP_CONFIG.API_BASE)
       : H.resolveApiBase("https://jobmejob.schoene-viktor.workers.dev")
     ).replace(/\/+$/, "");
 
@@ -1534,11 +1538,12 @@ function updatePasteQuality(){
 
     async function getSessionFresh(forceRefresh = false){
       try{
-        if(!window.JobApplyAI || !window.JobApplyAI.auth || !window.JobApplyAI.auth.getSession){
+        const auth = getAppAuth();
+        if(!auth || !auth.getSession){
           return session || null;
         }
 
-        let s = await window.JobApplyAI.auth.getSession();
+        let s = await auth.getSession();
 
         // Near-expiry refresh (best effort)
         const expiresAt = Number(s && s.expires_at ? s.expires_at : 0);
@@ -1546,7 +1551,7 @@ function updatePasteQuality(){
         const needsRefresh = forceRefresh || (expiresAt && (expiresAt - now) <= TOKEN_REFRESH_SKEW_SEC);
 
         if(needsRefresh){
-          const sb = window.JobApplyAI?.auth?.supabaseClient;
+          const sb = auth?.supabaseClient;
           if(sb && sb.auth && typeof sb.auth.refreshSession === "function"){
             const rr = await sb.auth.refreshSession();
             if(rr && rr.data && rr.data.session) s = rr.data.session;
@@ -5023,7 +5028,8 @@ function openKwModal(keywordRaw){
     async function loadStateAndNav(){
       setBadge("authBadge","warn", uiLang==="de" ? "Prüfe…" : "Checking…");
 
-      session = await window.JobApplyAI.auth.getSession();
+      const auth = getAppAuth();
+      session = auth ? await auth.getSession() : null;
       try{ if(session && session.access_token) sessionStorage.setItem("sb_access_token", session.access_token); }catch(_){ }
       if(!session || !session.user || !session.user.email){
         setBadge("authBadge","warn", uiLang==="de" ? "Abgemeldet" : "Signed out");
@@ -5038,11 +5044,11 @@ function openKwModal(keywordRaw){
 
       // Ensure customer exists (best effort)
       try{
-        await window.JobApplyAI.auth.requireAuthAndCustomer({ redirectTo: "./signup.html" });
+        await auth.requireAuthAndCustomer({ redirectTo: "./signup.html" });
       }catch(_){}
 
       try{
-        await window.JobApplyAI.auth.syncStateToLocalStorage(session);
+        await auth.syncStateToLocalStorage(session);
       }catch(_){}
     }
 
@@ -5064,7 +5070,8 @@ function openKwModal(keywordRaw){
 
 
 
-      if(!window.JobApplyAI || !window.JobApplyAI.auth){
+      const auth = getAppAuth();
+      if(!auth){
         showError("auth.js did not load. Ensure multipage/auth.js exists and is referenced as ./auth.js.");
         setBadge("authBadge","bad","Config error");
         return;
@@ -5649,7 +5656,8 @@ $("kwApply").addEventListener("click", applyKeyword);
     // Logout
     $("navLogout").addEventListener("click", async () => {
       try{
-        await window.JobApplyAI.auth.logout("./index.html");
+        const auth = getAppAuth();
+        if(auth?.logout) await auth.logout("./index.html");
       }catch(_){
         window.location.href = "./index.html";
       }

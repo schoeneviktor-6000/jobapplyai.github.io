@@ -93,6 +93,7 @@ function isAppStorageKey(key) {
     k.startsWith("ja_") ||
     k.startsWith("jm_") ||
     k.startsWith("jmj_") ||
+    k.startsWith("jobmejob_") ||
     k.startsWith("jobapplyai_") ||
     k.startsWith("cvstudio_") ||
     k.startsWith("jobs_") ||
@@ -104,8 +105,9 @@ function isAppStorageKey(key) {
 /* ============================================================
 3) Config resolution (NO duplicate consts)
 - sb_url / sb_anon can be overridden in localStorage for debugging
-- ja_api_base can override API base for debugging
-- Also supports window.JobApplyAI.config.API_BASE if already set by page
+- jm_api_base can override API base for debugging
+- Still falls back to legacy ja_api_base for older local setups
+- Also supports window.JobMeJob.config.API_BASE if already set by page
 ============================================================ */
 const CAN_USE_DEBUG_OVERRIDES = isLocalDebugHost();
 const SUPABASE_URL = CAN_USE_DEBUG_OVERRIDES
@@ -115,15 +117,19 @@ const SUPABASE_ANON_KEY = CAN_USE_DEBUG_OVERRIDES
   ? ((lsGet("sb_anon") || "").trim() || SUPABASE_ANON_KEY_DEFAULT)
   : SUPABASE_ANON_KEY_DEFAULT;
 
-// Debug override: localStorage.setItem("ja_api_base","http://localhost:8787")
+// Debug override: localStorage.setItem("jm_api_base","http://localhost:8787")
 const apiOverride = CAN_USE_DEBUG_OVERRIDES
-  ? (lsGet("ja_api_base") || "").trim().replace(/\/+$/, "")
+  ? ((lsGet("jm_api_base") || lsGet("ja_api_base") || "").trim().replace(/\/+$/, ""))
   : "";
 
 // If the page already defined a base (some pages do), reuse it
+const appConfig =
+  (window.JobMeJob && window.JobMeJob.config)
+    ? window.JobMeJob.config
+    : ((window.JobApplyAI && window.JobApplyAI.config) ? window.JobApplyAI.config : null);
 const apiFromWindow =
-  (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE)
-    ? String(window.JobApplyAI.config.API_BASE).trim().replace(/\/+$/, "")
+  (appConfig && appConfig.API_BASE)
+    ? String(appConfig.API_BASE).trim().replace(/\/+$/, "")
     : "";
 
 const API_BASE = apiOverride || apiFromWindow || API_BASE_DEFAULT;
@@ -132,6 +138,8 @@ const GOOGLE_PROVIDER_TOKEN_KEY = "jm_google_provider_token";
 const GOOGLE_PROVIDER_REFRESH_TOKEN_KEY = "jm_google_provider_refresh_token";
 const GOOGLE_PROVIDER_SCOPE_KEY = "jm_google_provider_scope";
 const GOOGLE_PROVIDER_UPDATED_AT_KEY = "jm_google_provider_updated_at";
+const POST_AUTH_REDIRECT_KEY = "jm_post_auth_redirect_v1";
+const POST_AUTH_REDIRECT_MAX_AGE_MS = 30 * 60 * 1000;
 
 /* ============================================================
 4) Create Supabase client
@@ -174,6 +182,60 @@ function clearGoogleProviderTokens() {
   ssRemove(GOOGLE_PROVIDER_SCOPE_KEY);
   ssRemove(GOOGLE_PROVIDER_UPDATED_AT_KEY);
   ssRemove("jm_google_oauth_scope_request");
+}
+
+function normalizePostAuthRedirect(input) {
+  try {
+    const raw = String(input || "").trim();
+    if (!raw) return "";
+    const url = new URL(raw, window.location.origin);
+    if (url.origin !== window.location.origin) return "";
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return "";
+  }
+}
+
+function rememberPostAuthRedirect(url) {
+  try {
+    const normalized = normalizePostAuthRedirect(url);
+    if (!normalized) return false;
+    lsSet(POST_AUTH_REDIRECT_KEY, JSON.stringify({
+      url: normalized,
+      created_at: Date.now()
+    }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function peekPostAuthRedirect() {
+  try {
+    const raw = lsGet(POST_AUTH_REDIRECT_KEY);
+    if (!raw) return "";
+    const parsed = JSON.parse(raw);
+    const createdAt = Number(parsed && parsed.created_at ? parsed.created_at : 0);
+    if (!createdAt || (Date.now() - createdAt) > POST_AUTH_REDIRECT_MAX_AGE_MS) {
+      lsRemove(POST_AUTH_REDIRECT_KEY);
+      return "";
+    }
+    const normalized = normalizePostAuthRedirect(parsed && parsed.url ? parsed.url : "");
+    if (!normalized) {
+      lsRemove(POST_AUTH_REDIRECT_KEY);
+      return "";
+    }
+    return normalized;
+  } catch {
+    lsRemove(POST_AUTH_REDIRECT_KEY);
+    return "";
+  }
+}
+
+function consumePostAuthRedirect() {
+  const url = peekPostAuthRedirect();
+  if (url) lsRemove(POST_AUTH_REDIRECT_KEY);
+  return url;
 }
 
 supabaseClient.auth.onAuthStateChange((_event, session) => {
@@ -272,8 +334,8 @@ async function requireAuthAndCustomer(opts = {}) {
   const data = await upsertCustomerByEmail(email);
   const customerId = data && data.customer_id ? String(data.customer_id).trim() : "";
 
-  if (customerId) lsSet("ja_customer_id", customerId);
-  lsSet("ja_user_email", email);
+  if (customerId) lsSet("jm_customer_id", customerId);
+  lsSet("jm_user_email", email);
 
   return { session, email, customerId: customerId || null };
 }
@@ -292,14 +354,14 @@ async function syncStateToLocalStorage(session) {
 
     const state = await res.json();
 
-    if (state && state.customer_id) lsSet("ja_customer_id", String(state.customer_id));
-    if (state && state.email) lsSet("ja_user_email", String(state.email).trim().toLowerCase());
+    if (state && state.customer_id) lsSet("jm_customer_id", String(state.customer_id));
+    if (state && state.email) lsSet("jm_user_email", String(state.email).trim().toLowerCase());
 
-    if (state && state.plan_id) lsSet("ja_plan", String(state.plan_id).trim().toLowerCase());
-    else lsRemove("ja_plan");
+    if (state && state.plan_id) lsSet("jm_plan", String(state.plan_id).trim().toLowerCase());
+    else lsRemove("jm_plan");
 
-    if (state && state.profile_complete) lsSet("ja_profile_complete", "true");
-    else lsRemove("ja_profile_complete");
+    if (state && state.profile_complete) lsSet("jm_profile_complete", "true");
+    else lsRemove("jm_profile_complete");
 
     return state;
   } catch {
@@ -310,13 +372,16 @@ async function syncStateToLocalStorage(session) {
 /* ============================================================
 7) Export API for existing pages
 ============================================================ */
-window.JobApplyAI = window.JobApplyAI || {};
-window.JobApplyAI.config = window.JobApplyAI.config || {};
-window.JobApplyAI.config.API_BASE = API_BASE;
-window.JobApplyAI.config.SUPABASE_URL = SUPABASE_URL;
-window.JobApplyAI.config.CAN_USE_DEBUG_OVERRIDES = CAN_USE_DEBUG_OVERRIDES;
+const app = window.JobMeJob || window.JobApplyAI || {};
+window.JobMeJob = app;
+window.JobApplyAI = app;
 
-window.JobApplyAI.auth = {
+app.config = app.config || {};
+app.config.API_BASE = API_BASE;
+app.config.SUPABASE_URL = SUPABASE_URL;
+app.config.CAN_USE_DEBUG_OVERRIDES = CAN_USE_DEBUG_OVERRIDES;
+
+app.auth = {
   supabaseClient,
   getSession,
   requireSession,
@@ -326,6 +391,9 @@ window.JobApplyAI.auth = {
   getCachedGoogleProviderRefreshToken: () => ssGet(GOOGLE_PROVIDER_REFRESH_TOKEN_KEY) || "",
   getCachedGoogleProviderScope: () => ssGet(GOOGLE_PROVIDER_SCOPE_KEY) || "",
   clearGoogleProviderTokens,
+  rememberPostAuthRedirect,
+  peekPostAuthRedirect,
+  consumePostAuthRedirect,
   logout,
   requireAuthAndCustomer,
   syncStateToLocalStorage

@@ -301,17 +301,20 @@ white-space:pre-wrap;
 "use strict";
 
 /* Config */
-const API_BASE=(window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE) || "https://jobmejob.schoene-viktor.workers.dev";
+const APP_CONFIG=(window.JobMeJob && window.JobMeJob.config) || (window.JobApplyAI && window.JobApplyAI.config) || null;
+const API_BASE=(APP_CONFIG && APP_CONFIG.API_BASE) || "https://jobmejob.schoene-viktor.workers.dev";
 const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
 
-/* Storage keys (compatible with jm_ and legacy ja_) */
+/* Storage keys (reads legacy ja_, writes jm_) */
 const LS={
 userEmail:["jm_user_email","ja_user_email"],
 customerId:["jm_customer_id","ja_customer_id"],
 profileDone:["jm_profile_complete","ja_profile_complete"],
 plan:["jm_plan","ja_plan"]
 };
+const POST_AUTH_REDIRECT_KEY="jm_post_auth_redirect_v1";
+const POST_AUTH_REDIRECT_MAX_AGE_MS=30*60*1000;
 
 function $(id){return document.getElementById(id);}
 function showError(msg){
@@ -337,8 +340,37 @@ if(v!==null && v!==undefined && v!=="") return v;
 return null;
 }
 function lsSetAll(keys, value){
-for(const k of keys){
-try{localStorage.setItem(k, value);}catch(_){}
+const key=Array.isArray(keys) && keys.length ? keys[0] : "";
+if(!key) return;
+try{localStorage.setItem(key, value);}catch(_){}
+}
+function normalizePostAuthRedirect(input){
+try{
+const raw=String(input||"").trim();
+if(!raw) return "";
+const url=new URL(raw, window.location.origin);
+if(url.origin!==window.location.origin) return "";
+return url.pathname + url.search + url.hash;
+}catch(_){
+return "";
+}
+}
+function consumePendingPostAuthRedirect(){
+try{
+const raw=localStorage.getItem(POST_AUTH_REDIRECT_KEY);
+if(!raw) return "";
+const parsed=JSON.parse(raw);
+const createdAt=Number(parsed && parsed.created_at ? parsed.created_at : 0);
+if(!createdAt || (Date.now()-createdAt) > POST_AUTH_REDIRECT_MAX_AGE_MS){
+localStorage.removeItem(POST_AUTH_REDIRECT_KEY);
+return "";
+}
+const normalized=normalizePostAuthRedirect(parsed && parsed.url ? parsed.url : "");
+localStorage.removeItem(POST_AUTH_REDIRECT_KEY);
+return normalized;
+}catch(_){
+try{localStorage.removeItem(POST_AUTH_REDIRECT_KEY);}catch(__){}
+return "";
 }
 }
 function resetLocalStateForNewUser(currentEmail){
@@ -481,7 +513,7 @@ setGoogleButton(true,"Setting up…");
 setHint("Setting up your account…");
 const data=await upsertCustomerByEmail(email);
 if(data && data.customer_id) lsSetAll(LS.customerId, String(data.customer_id));
-const next=await determineNextUrl(session);
+const next=consumePendingPostAuthRedirect() || await determineNextUrl(session);
 setHint("Done. Taking you to the next step…");
 setTimeout(()=>{go(next);}, 650);
 }catch(e){

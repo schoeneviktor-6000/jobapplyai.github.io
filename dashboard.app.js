@@ -1,4 +1,5 @@
-const API_BASE = (window.JobApplyAI && window.JobApplyAI.config && window.JobApplyAI.config.API_BASE) || "https://jobmejob.schoene-viktor.workers.dev";
+const APP_CONFIG = window.JobMeJob?.config || window.JobApplyAI?.config || null;
+const API_BASE = (APP_CONFIG && APP_CONFIG.API_BASE) || "https://jobmejob.schoene-viktor.workers.dev";
 const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
 let supabaseClient=null;
