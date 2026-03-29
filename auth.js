@@ -1,6 +1,6 @@
 /* auth.js - Shared Supabase + JobMeJob auth helpers
 IMPORTANT:
-- Load AFTER: https://unpkg.com/@supabase/supabase-js@2
+- Load AFTER: ./vendor/supabase-js-2.100.1.js
 - This is a plain JS file (NO <script> tags)
 */
 (() => {
@@ -43,20 +43,74 @@ function lsKeys() {
   }
 }
 
+function ssKeys() {
+  try {
+    const out = [];
+    for (let i = 0; i < sessionStorage.length; i += 1) {
+      const k = sessionStorage.key(i);
+      if (k) out.push(k);
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+function ssRemove(key) {
+  try { sessionStorage.removeItem(key); } catch {}
+}
+
+function isLocalDebugHost() {
+  try {
+    const host = String(window.location.hostname || "").trim().toLowerCase();
+    const protocol = String(window.location.protocol || "").trim().toLowerCase();
+    return (
+      protocol === "file:" ||
+      host === "localhost" ||
+      host.endsWith(".localhost") ||
+      host === "0.0.0.0" ||
+      host === "::1" ||
+      host === "[::1]" ||
+      /^127(?:\.\d{1,3}){3}$/.test(host)
+    );
+  } catch {
+    return false;
+  }
+}
+
+function isAppStorageKey(key) {
+  const k = String(key || "");
+  return (
+    k === "sb_access_token" ||
+    k.startsWith("ja_") ||
+    k.startsWith("jm_") ||
+    k.startsWith("jmj_") ||
+    k.startsWith("jobapplyai_") ||
+    k.startsWith("cvstudio_") ||
+    k.startsWith("jobs_") ||
+    k.startsWith("tailor_") ||
+    k.startsWith("cv_")
+  );
+}
+
 /* ============================================================
 3) Config resolution (NO duplicate consts)
 - sb_url / sb_anon can be overridden in localStorage for debugging
 - ja_api_base can override API base for debugging
 - Also supports window.JobApplyAI.config.API_BASE if already set by page
 ============================================================ */
-if (!lsGet("sb_url")) lsSet("sb_url", SUPABASE_URL_DEFAULT);
-if (!lsGet("sb_anon")) lsSet("sb_anon", SUPABASE_ANON_KEY_DEFAULT);
-
-const SUPABASE_URL = (lsGet("sb_url") || "").trim() || SUPABASE_URL_DEFAULT;
-const SUPABASE_ANON_KEY = (lsGet("sb_anon") || "").trim() || SUPABASE_ANON_KEY_DEFAULT;
+const CAN_USE_DEBUG_OVERRIDES = isLocalDebugHost();
+const SUPABASE_URL = CAN_USE_DEBUG_OVERRIDES
+  ? ((lsGet("sb_url") || "").trim() || SUPABASE_URL_DEFAULT)
+  : SUPABASE_URL_DEFAULT;
+const SUPABASE_ANON_KEY = CAN_USE_DEBUG_OVERRIDES
+  ? ((lsGet("sb_anon") || "").trim() || SUPABASE_ANON_KEY_DEFAULT)
+  : SUPABASE_ANON_KEY_DEFAULT;
 
 // Debug override: localStorage.setItem("ja_api_base","http://localhost:8787")
-const apiOverride = (lsGet("ja_api_base") || "").trim().replace(/\/+$/, "");
+const apiOverride = CAN_USE_DEBUG_OVERRIDES
+  ? (lsGet("ja_api_base") || "").trim().replace(/\/+$/, "")
+  : "";
 
 // If the page already defined a base (some pages do), reuse it
 const apiFromWindow =
@@ -70,7 +124,7 @@ const API_BASE = apiOverride || apiFromWindow || API_BASE_DEFAULT;
 4) Create Supabase client
 ============================================================ */
 if (!window.supabase || typeof window.supabase.createClient !== "function") {
-  console.error("[auth.js] supabase-js v2 is not loaded. Include https://unpkg.com/@supabase/supabase-js@2 BEFORE auth.js");
+  console.error("[auth.js] supabase-js is not loaded. Include ./vendor/supabase-js-2.100.1.js BEFORE auth.js");
   return;
 }
 
@@ -111,11 +165,13 @@ async function loginWithGoogle(redirectTo) {
 async function logout(redirectTo = "./index.html") {
   try { await supabaseClient.auth.signOut(); } catch {}
 
-  // Clean only app keys (keep sb_* keys intact to avoid auth weirdness)
+  // Clean app-owned caches and view state, but let supabase-js own its session keys.
   for (const k of lsKeys()) {
-    if (k.startsWith("ja_") || k.startsWith("jobapplyai_")) lsRemove(k);
+    if (isAppStorageKey(k)) lsRemove(k);
   }
-  try { sessionStorage.removeItem("sb_access_token"); } catch {}
+  for (const k of ssKeys()) {
+    if (isAppStorageKey(k)) ssRemove(k);
+  }
 
   if (redirectTo) window.location.replace(redirectTo);
 }
@@ -192,6 +248,7 @@ window.JobApplyAI = window.JobApplyAI || {};
 window.JobApplyAI.config = window.JobApplyAI.config || {};
 window.JobApplyAI.config.API_BASE = API_BASE;
 window.JobApplyAI.config.SUPABASE_URL = SUPABASE_URL;
+window.JobApplyAI.config.CAN_USE_DEBUG_OVERRIDES = CAN_USE_DEBUG_OVERRIDES;
 
 window.JobApplyAI.auth = {
   supabaseClient,

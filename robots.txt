@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /signup.html
+Disallow: /dashboard.html
+Disallow: /jobs.html
+Disallow: /profile.html
+Disallow: /plan.html
+Disallow: /cv.html
+
+Sitemap: https://jobmejob.com/sitemap.xml

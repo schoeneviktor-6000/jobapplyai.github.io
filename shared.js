@@ -34,6 +34,24 @@
     try { localStorage.setItem(key, val); } catch {}
   }
 
+  function isLocalDebugHost(){
+    try{
+      const host = String(window.location.hostname || "").trim().toLowerCase();
+      const protocol = String(window.location.protocol || "").trim().toLowerCase();
+      return (
+        protocol === "file:" ||
+        host === "localhost" ||
+        host.endsWith(".localhost") ||
+        host === "0.0.0.0" ||
+        host === "::1" ||
+        host === "[::1]" ||
+        /^127(?:\.\d{1,3}){3}$/.test(host)
+      );
+    }catch(_){
+      return false;
+    }
+  }
+
   function prefersReducedMotion(){
     try{
       return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -47,15 +65,19 @@
   }
 
   function resolveApiBase(fallback){
-    // Debug override (query): ?api=http://localhost:8787
+    // Production pages must ignore client-controlled API overrides.
+    const allowDebugOverride = isLocalDebugHost();
     let qp = "";
-    try{
-      const u = new URL(window.location.href);
-      qp = normalizeBaseUrl(u.searchParams.get("api") || "");
-    }catch(_){}
+    if (allowDebugOverride){
+      try{
+        const u = new URL(window.location.href);
+        qp = normalizeBaseUrl(u.searchParams.get("api") || "");
+      }catch(_){}
+    }
 
-    // Debug override (localStorage): localStorage.setItem("ja_api_base","http://localhost:8787")
-    const apiOverride = normalizeBaseUrl(safeLocalGet("ja_api_base"));
+    const apiOverride = allowDebugOverride
+      ? normalizeBaseUrl(safeLocalGet("ja_api_base"))
+      : "";
 
     // Base set by auth.js/pages
     const apiFromWindow =
@@ -313,6 +335,7 @@
 
     safeLocalGet,
     safeLocalSet,
+    isLocalDebugHost,
 
     normalizeBaseUrl,
     resolveApiBase,
