@@ -1224,18 +1224,24 @@ async function ensureCvStudioImportSourceId(env) {
   const existing = await supabaseFetch(env, `/rest/v1/sources?${q.toString()}`, { method: "GET" });
   if (Array.isArray(existing) && existing.length && existing[0]?.id) return existing[0].id;
 
-  await supabaseFetch(env, `/rest/v1/sources?on_conflict=name,country`, {
-    method: "POST",
-    body: [{
-      name,
-      country,
-      api_type: "manual",
-      auth_type: "none",
-      base_url: "https://jobmejob.com/cv",
-      enabled: true
-    }],
-    headers: { Prefer: "resolution=merge-duplicates,return=minimal" }
-  });
+  try {
+    await supabaseFetch(env, `/rest/v1/sources`, {
+      method: "POST",
+      body: [{
+        name,
+        country,
+        api_type: "manual",
+        auth_type: "none",
+        base_url: "https://jobmejob.com/cv",
+        enabled: true
+      }],
+      headers: { Prefer: "return=minimal" }
+    });
+  } catch (err) {
+    const msg = String(err?.message || err || "");
+    const duplicateLike = msg.includes("duplicate key") || msg.includes("23505");
+    if (!duplicateLike) throw err;
+  }
 
   const rows = await supabaseFetch(env, `/rest/v1/sources?${q.toString()}`, { method: "GET" });
   if (Array.isArray(rows) && rows.length && rows[0]?.id) return rows[0].id;
