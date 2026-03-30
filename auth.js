@@ -23,7 +23,7 @@ const LINKS_DEFAULT = {
   CV_STUDIO_STARTER_URL: "",
   CV_STUDIO_PLUS_URL: "",
   CV_STUDIO_PORTAL_URL: "",
-  CHROME_EXTENSION_URL: "https://chromewebstore.google.com/detail/cv-studio-tailor/jibmnlonajhoaanhoblhiciddggiohba",
+  CHROME_EXTENSION_URL: "",
   AUTO_APPLY_REQUEST_URL: "mailto:team@jobmejob.com?subject=Auto-apply%20beta%20request"
 };
 

@@ -318,7 +318,7 @@ white-space:pre-wrap;
 <div class="grid">
 <section class="card hero">
 <h1>Start with CV Studio, then expand if you need more.</h1>
-<p class="sub">Sign in with Google on jobmejob, upload your base CV once, and then tailor from any job page. The Chrome extension does not ask for a separate login inside its side panel.</p>
+<p class="sub">Sign in with Google on jobmejob, upload your base CV once, and start tailoring right away. The Chrome extension is still in review, so manual paste is the public path today.</p>
 
 <button class="googleBtn" id="btnGoogle" type="button">
 <span class="googleIcon" aria-hidden="true">
@@ -366,15 +366,15 @@ white-space:pre-wrap;
 <div class="step">
 <div class="num">3</div>
 <div class="stepText">
-<div class="stepTag">Daily workflow</div>
-<div class="stepTitle">Add the extension or paste manually</div>
-<div class="stepDesc">Install the Chrome extension for one-click imports, or keep using manual paste for the same CV Studio flow.</div>
+<div class="stepTag">Soon</div>
+<div class="stepTitle">Add the extension later</div>
+<div class="stepDesc">Manual paste is live today. Once the Chrome Web Store listing is approved, you can add one-click imports without changing your account setup.</div>
 </div>
 </div>
 </div>
 <div class="hr"></div>
 <div class="ctaStack">
-<a class="pill" data-extension-link href="https://chromewebstore.google.com/detail/cv-studio-tailor/jibmnlonajhoaanhoblhiciddggiohba">Add to Chrome</a>
+<a class="pill" data-extension-link data-extension-fallback="cv-studio.html#manual" data-extension-disabled-label="Extension soon" data-extension-ready-label="Add to Chrome" href="cv-studio.html#manual"><span data-extension-label>Add to Chrome</span></a>
 <a class="pill" href="cv-studio.html" data-nav="1">See CV Studio</a>
 </div>
 <p class="small">If sign-in loops: Supabase Auth settings must allow this page URL as a redirect URL.</p>
@@ -387,8 +387,8 @@ white-space:pre-wrap;
 </div>
 
 <script src="./vendor/supabase-js-2.100.1.js"></script>
-<script src="./auth.js?v=202603302245"></script>
-<script src="./shared.js?v=202603302245"></script>
+<script src="./auth.js?v=202603302355"></script>
+<script src="./shared.js?v=202603302355"></script>
 <script>
 "use strict";
 

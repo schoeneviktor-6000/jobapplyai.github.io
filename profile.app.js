@@ -1309,13 +1309,13 @@ try{
 
 if(!cvOk2){
 setText("continueBtn","Upload CV to start");
-setText("continueHint","Upload your CV first. After that, you can add the Chrome extension or open CV Studio directly.");
+setText("continueHint","Upload your CV first. After that, you can open CV Studio directly and paste job descriptions manually.");
 }else if(!profOk2){
 setText("continueBtn","Open CV Studio");
-setText("continueHint","You can tailor your CV now. For the smoothest workflow, add the Chrome extension and import job pages in one click.");
+setText("continueHint","You can tailor your CV now with manual paste. The Chrome extension will plug into the same account once it is approved.");
 }else{
 setText("continueBtn","Open CV Studio");
-setText("continueHint","You're all set. Next: add the Chrome extension or open CV Studio and tailor your next role.");
+setText("continueHint","You're all set. Next: open CV Studio and tailor your next role. The extension can be added later once it is approved.");
 }
 }
 

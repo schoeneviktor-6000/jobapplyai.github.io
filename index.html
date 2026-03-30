@@ -2731,12 +2731,12 @@ color:var(--text);
 <p class="subtitle">Paste a job description or import one from the Chrome extension. CV Studio tailors against your stored base CV, improves ATS coverage, and gets you to an export-ready draft fast.</p>
 
 <div class="hero-actions">
-<a class="btn lime" data-extension-link href="https://chromewebstore.google.com/detail/cv-studio-tailor/jibmnlonajhoaanhoblhiciddggiohba">
+<a class="btn lime" data-extension-link data-extension-fallback="cv-studio.html#manual" data-extension-disabled-label="Chrome extension soon" data-extension-ready-label="Add to Chrome" href="cv-studio.html#manual">
 <span class="btnLabel">
 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
 <rect x="4" y="5" width="16" height="14" rx="3"></rect><path d="M9 3v4"></path><path d="M15 3v4"></path><path d="M8 11h8"></path><path d="M12 8v8"></path>
 </svg>
-<span>Add to Chrome</span>
+<span data-extension-label>Add to Chrome</span>
 </span>
 </a>
 <a class="btn primary" href="signup.html?entry=cv-studio">
@@ -2750,47 +2750,47 @@ color:var(--text);
 </div>
 
 <div class="proofLine" aria-label="Key points">
-<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Chrome extension ready</span>
+<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Manual paste available now</span>
 <span class="proofDot" aria-hidden="true"></span>
 <span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Tailored per role</span>
 <span class="proofDot" aria-hidden="true"></span>
-<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Export-ready draft</span>
+<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Extension launch soon</span>
 </div>
 
 <div class="installFlow" aria-label="First-run setup">
 <div class="installFlowHead">
-<div class="installFlowTitle">Best first run</div>
-<p class="installFlowCopy">Install the extension first, then sign in on jobmejob when you want to tailor. The extension never asks for a separate login inside its side panel.</p>
+<div class="installFlowTitle">Extension launch soon</div>
+<p class="installFlowCopy">The Chrome extension is currently in review. Start with manual paste today, then switch to one-click imports once the Chrome Web Store listing is approved.</p>
 </div>
 <div class="installStrip">
 <article class="installStepCard">
 <div class="installStepTop">
 <span class="installStepNum">1</span>
-<span class="installStepLabel">Chrome</span>
+<span class="installStepLabel">Today</span>
 </div>
-<strong>Add the extension</strong>
-<span>Install from the Chrome Web Store and pin it so it is easy to use on job pages.</span>
+<strong>Start free on jobmejob</strong>
+<span>Sign in with Google and create your CV Studio account on the website.</span>
 </article>
 <article class="installStepCard">
 <div class="installStepTop">
 <span class="installStepNum">2</span>
 <span class="installStepLabel">One time</span>
 </div>
-<strong>Sign in and upload your base CV</strong>
-<span>Google sign-in and CV upload happen on jobmejob, not inside the extension window.</span>
+<strong>Upload your base CV</strong>
+<span>Keep your source CV here once so every tailored version can build from it.</span>
 </article>
 <article class="installStepCard">
 <div class="installStepTop">
 <span class="installStepNum">3</span>
-<span class="installStepLabel">Live</span>
+<span class="installStepLabel">Soon</span>
 </div>
-<strong>Open any job page and tailor</strong>
-<span>Review the scraped job description, click “Open in CV Studio”, then export the version you want.</span>
+<strong>Add the extension when approved</strong>
+<span>The extension will plug into the same account later for faster imports from job pages.</span>
 </article>
 </div>
 <div class="installFlowFoot">
-<p><strong>No extension?</strong> You can still paste a job description manually and use the same CV Studio workflow.</p>
-<a class="installMiniLink" href="#how">See the workflow</a>
+<p><strong>You can use CV Studio right now.</strong> Paste any job description manually and follow the same tailoring workflow today.</p>
+<a class="installMiniLink" href="cv-studio.html#manual">Use manual paste now</a>
 </div>
 </div>
 </div>
@@ -3595,7 +3595,7 @@ Last 7 days
 </script>
 </footer>
 <script src="./vendor/supabase-js-2.100.1.js"></script>
-<script src="./auth.js?v=202603302245"></script>
-<script src="./shared.js?v=202603302245"></script>
+<script src="./auth.js?v=202603302355"></script>
+<script src="./shared.js?v=202603302355"></script>
 </body>
 </html>

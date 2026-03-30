@@ -333,8 +333,14 @@
     targets.forEach((el) => {
       const fallback = String(el.getAttribute("data-extension-fallback") || "./cv-studio.html#manual").trim();
       const isAnchor = String(el.tagName || "").toLowerCase() === "a";
+      const labelEl = el.querySelector("[data-extension-label]");
+      const readyLabel = String(el.getAttribute("data-extension-ready-label") || "").trim();
+      const disabledLabel = String(el.getAttribute("data-extension-disabled-label") || "").trim();
 
       el.dataset.extensionReady = extensionUrl ? "1" : "0";
+      el.classList.toggle("isExtensionUnavailable", !extensionUrl);
+      if(!extensionUrl) el.setAttribute("aria-disabled", "true");
+      else el.removeAttribute("aria-disabled");
 
       if(isAnchor){
         el.setAttribute("href", extensionUrl || fallback);
@@ -347,8 +353,12 @@
         }
       }
 
-      if(!extensionUrl && el.hasAttribute("data-extension-disabled-label")){
-        el.textContent = String(el.getAttribute("data-extension-disabled-label") || "").trim() || el.textContent;
+      if(labelEl){
+        if(extensionUrl && readyLabel) labelEl.textContent = readyLabel;
+        if(!extensionUrl && disabledLabel) labelEl.textContent = disabledLabel;
+      }else{
+        if(extensionUrl && readyLabel) el.textContent = readyLabel;
+        if(!extensionUrl && disabledLabel) el.textContent = disabledLabel;
       }
     });
 
