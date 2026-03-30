@@ -211,6 +211,41 @@ border:1px solid rgba(15,23,42,.06);
 .stepText{display:flex;flex-direction:column;gap:2px}
 .stepTitle{font-weight:950}
 .stepDesc{color:var(--muted2);font-size:12px;line-height:1.45}
+.stepTag{
+display:inline-flex;
+align-items:center;
+min-height:22px;
+padding:0 9px;
+border-radius:999px;
+background:rgba(15,23,42,.05);
+border:1px solid rgba(15,23,42,.08);
+color:var(--muted2);
+font-size:10px;
+font-weight:950;
+letter-spacing:.08em;
+text-transform:uppercase;
+margin-bottom:4px;
+white-space:nowrap;
+}
+.ctaStack{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+margin-top:14px;
+}
+.ctaStack .pill{
+text-decoration:none;
+}
+.workflowNote{
+margin-top:14px;
+padding:12px 14px;
+border-radius:16px;
+border:1px solid var(--border);
+background:rgba(255,255,255,.8);
+color:var(--muted);
+font-size:12px;
+line-height:1.55;
+}
 .hr{height:1px;background:rgba(15,23,42,.08);margin:14px 0}
 .footer{margin-top:18px;text-align:center;color:var(--muted2);font-size:12px}
 .errorTop{
@@ -283,7 +318,7 @@ white-space:pre-wrap;
 <div class="grid">
 <section class="card hero">
 <h1>Start with CV Studio, then expand if you need more.</h1>
-<p class="sub">Sign in with Google to start. We’ll set up your account and take you to the right next step for CV tailoring, matched jobs, or both.</p>
+<p class="sub">Sign in with Google on jobmejob, upload your base CV once, and then tailor from any job page. The Chrome extension does not ask for a separate login inside its side panel.</p>
 
 <button class="googleBtn" id="btnGoogle" type="button">
 <span class="googleIcon" aria-hidden="true">
@@ -306,34 +341,42 @@ white-space:pre-wrap;
 </div>
 
 <p class="small" id="hint" style="margin-top:10px;text-align:center">You stay in control. CV Studio works on its own, and nothing is sent without your confirmation.</p>
+<div class="workflowNote">After sign-in, we’ll take you to CV upload first. Once your base CV is in place, the extension can hand job pages straight into your account.</div>
 </section>
 
 <aside class="card">
-<div style="font-weight:950;margin-bottom:8px">How it works</div>
+<div style="font-weight:950;margin-bottom:8px">Best path for extension users</div>
 <div class="steps">
 <div class="step">
 <div class="num">1</div>
 <div class="stepText">
-<div class="stepTitle">Set up once</div>
-<div class="stepDesc">Upload your CV and start tailoring against real job descriptions.</div>
+<div class="stepTag">Here on jobmejob</div>
+<div class="stepTitle">Sign in with Google</div>
+<div class="stepDesc">This website handles the account, billing, and stored CV. The extension only imports the job page.</div>
 </div>
 </div>
 <div class="step">
 <div class="num">2</div>
 <div class="stepText">
-<div class="stepTitle">Choose your workflow</div>
-<div class="stepDesc">Use CV Studio directly, or add matched jobs and Auto-apply later if you want them.</div>
+<div class="stepTag">One-time setup</div>
+<div class="stepTitle">Upload your base CV once</div>
+<div class="stepDesc">We keep this as your source of truth so every tailored version stays grounded in your real experience.</div>
 </div>
 </div>
 <div class="step">
 <div class="num">3</div>
 <div class="stepText">
-<div class="stepTitle">Track everything</div>
-<div class="stepDesc">See tailored CVs, jobs, and application activity in one account.</div>
+<div class="stepTag">Daily workflow</div>
+<div class="stepTitle">Add the extension or paste manually</div>
+<div class="stepDesc">Install the Chrome extension for one-click imports, or keep using manual paste for the same CV Studio flow.</div>
 </div>
 </div>
 </div>
 <div class="hr"></div>
+<div class="ctaStack">
+<a class="pill" data-extension-link href="https://chromewebstore.google.com/detail/cv-studio-tailor/jibmnlonajhoaanhoblhiciddggiohba">Add to Chrome</a>
+<a class="pill" href="cv-studio.html" data-nav="1">See CV Studio</a>
+</div>
 <p class="small">If sign-in loops: Supabase Auth settings must allow this page URL as a redirect URL.</p>
 </aside>
 </div>
@@ -344,8 +387,8 @@ white-space:pre-wrap;
 </div>
 
 <script src="./vendor/supabase-js-2.100.1.js"></script>
-<script src="./auth.js?v=202603301635"></script>
-<script src="./shared.js?v=202603301635"></script>
+<script src="./auth.js?v=202603302245"></script>
+<script src="./shared.js?v=202603302245"></script>
 <script>
 "use strict";
 

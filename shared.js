@@ -308,6 +308,57 @@
     }
   }
 
+  function getAppLinks(){
+    try{
+      const app = window.JobMeJob || window.JobApplyAI || {};
+      const links = app && app.config && app.config.LINKS && typeof app.config.LINKS === "object"
+        ? app.config.LINKS
+        : {};
+      return Object.assign({}, links);
+    }catch(_){
+      return {};
+    }
+  }
+
+  function getChromeExtensionUrl(){
+    const links = getAppLinks();
+    return String(links.CHROME_EXTENSION_URL || "").trim();
+  }
+
+  function hydrateExtensionLinks(root = document){
+    const extensionUrl = getChromeExtensionUrl();
+    const targets = $$("[data-extension-link]", root);
+    if(!targets.length) return { ready: !!extensionUrl, url: extensionUrl };
+
+    targets.forEach((el) => {
+      const fallback = String(el.getAttribute("data-extension-fallback") || "./cv-studio.html#manual").trim();
+      const isAnchor = String(el.tagName || "").toLowerCase() === "a";
+
+      el.dataset.extensionReady = extensionUrl ? "1" : "0";
+
+      if(isAnchor){
+        el.setAttribute("href", extensionUrl || fallback);
+        if(extensionUrl){
+          el.setAttribute("target", "_blank");
+          el.setAttribute("rel", "noopener noreferrer");
+        }else{
+          el.removeAttribute("target");
+          el.removeAttribute("rel");
+        }
+      }
+
+      if(!extensionUrl && el.hasAttribute("data-extension-disabled-label")){
+        el.textContent = String(el.getAttribute("data-extension-disabled-label") || "").trim() || el.textContent;
+      }
+    });
+
+    $$("[data-extension-copy='url']", root).forEach((el) => {
+      el.textContent = extensionUrl || "Chrome Web Store";
+    });
+
+    return { ready: !!extensionUrl, url: extensionUrl };
+  }
+
   function safeParseJson(raw){
     try{
       return raw ? JSON.parse(raw) : null;
@@ -757,6 +808,9 @@ details[data-dd="1"]:not([open]) .navMenu{
 
     normalizeBaseUrl,
     resolveApiBase,
+    getAppLinks,
+    getChromeExtensionUrl,
+    hydrateExtensionLinks,
 
     go,
     wireNavTransitions,
@@ -790,6 +844,7 @@ details[data-dd="1"]:not([open]) .navMenu{
     wireNavTransitions();
     wireDetailsDropdowns();
     wireModalDismiss();
+    hydrateExtensionLinks();
     hydrateAccountNav().catch(() => {});
   });
 })();

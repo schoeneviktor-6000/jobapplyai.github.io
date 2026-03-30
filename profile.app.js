@@ -1309,13 +1309,13 @@ try{
 
 if(!cvOk2){
 setText("continueBtn","Upload CV to start");
-setText("continueHint","Upload your CV to unlock tailoring. (PDF recommended)");
+setText("continueHint","Upload your CV first. After that, you can add the Chrome extension or open CV Studio directly.");
 }else if(!profOk2){
 setText("continueBtn","Open CV Studio");
-setText("continueHint","You can tailor your CV now. To also get matched jobs, add a location and save preferences below (recommended).");
+setText("continueHint","You can tailor your CV now. For the smoothest workflow, add the Chrome extension and import job pages in one click.");
 }else{
 setText("continueBtn","Open CV Studio");
-setText("continueHint","You're all set. Next: tailor your CV (ATS-safe).");
+setText("continueHint","You're all set. Next: add the Chrome extension or open CV Studio and tailor your next role.");
 }
 }
 
@@ -2256,7 +2256,7 @@ return;
 
 resetLocalStateForNewUser(email);
 try{sessionStorage.setItem("sb_access_token",session.access_token);}catch{}
-setText("subLine","Signed in as "+email);
+setText("subLine","Signed in as "+email+" — upload your base CV once, then tailor from any job page.");
 rememberGoogleProviderTokens();
 refreshGmailVerifyUi();
 

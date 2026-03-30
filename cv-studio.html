@@ -142,6 +142,18 @@
       flex-wrap:wrap;
       margin-top:22px;
     }
+    .heroNote{
+      margin-top:14px;
+      padding:14px 16px;
+      border-radius:18px;
+      background:rgba(255,255,255,.78);
+      border:1px solid rgba(17,19,24,.08);
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.55;
+      max-width:46ch;
+    }
+    .heroNote strong{color:var(--text)}
     .proof{
       display:flex;
       gap:10px;
@@ -246,6 +258,21 @@
       font-size:24px;
       letter-spacing:-.04em;
     }
+    .flowTag{
+      display:inline-flex;
+      align-items:center;
+      min-height:24px;
+      padding:0 10px;
+      border-radius:999px;
+      background:rgba(17,19,24,.05);
+      border:1px solid rgba(17,19,24,.08);
+      color:var(--muted2);
+      font-size:11px;
+      font-weight:950;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      margin-bottom:12px;
+    }
     .sites{
       display:flex;
       gap:10px;
@@ -259,6 +286,30 @@
       background:rgba(255,255,255,.8);
       font-weight:850;
       color:var(--muted);
+    }
+    .altPathBox{
+      margin-top:16px;
+      padding:18px;
+      border-radius:22px;
+      border:1px solid rgba(17,19,24,.08);
+      background:linear-gradient(180deg, rgba(255,255,255,.95), rgba(247,245,239,.88));
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+    .altPathBox strong{
+      display:block;
+      margin-bottom:6px;
+      font-size:16px;
+      letter-spacing:-.02em;
+    }
+    .altPathBox p{
+      margin:0;
+      max-width:50ch;
+      color:var(--muted);
+      line-height:1.55;
     }
     .pricingGrid{
       display:grid;
@@ -455,13 +506,14 @@
             <h1>Tailor any job posting into a stronger CV.</h1>
             <p>Use the Chrome extension on LinkedIn and other job boards, or paste the full job description manually. CV Studio keeps your real experience, improves ATS alignment, and gets you to a tailored CV in minutes.</p>
             <div class="heroActions">
-              <a class="btn primary" href="./signup.html?entry=cv-studio">Start with 5 free CVs</a>
-              <a class="btn ghost" href="./plan.html#cv-pricing">See pricing</a>
+              <a class="btn primary" data-extension-link href="https://chromewebstore.google.com/detail/cv-studio-tailor/jibmnlonajhoaanhoblhiciddggiohba">Add to Chrome</a>
+              <a class="btn ghost" href="./signup.html?entry=cv-studio">Start with 5 free CVs</a>
             </div>
+            <p class="heroNote"><strong>Install first, sign in later.</strong> The extension never asks for a separate login. It opens jobmejob only when you want to tailor, so sign-in and CV upload stay on the website.</p>
             <div class="proof" aria-label="Key product points">
               <span>Chrome extension + paste flow</span>
-              <span>ATS match score + keyword gaps</span>
-              <span>No invented experience</span>
+              <span>Upload base CV once</span>
+              <span>No login in extension panel</span>
             </div>
           </div>
 
@@ -503,25 +555,28 @@
         <div class="sectionHead">
           <div>
             <span class="sectionKicker">Workflow</span>
-            <h2>One flow for extension users and manual users</h2>
+            <h2>The smoothest first run for new users</h2>
           </div>
-          <p>You do not need the job fetching product to get value. CV Studio works on its own and should feel complete from day one.</p>
+          <p>Most people should install the extension, sign in on jobmejob once, upload their base CV, and then start tailoring directly from job pages.</p>
         </div>
         <div class="flowGrid">
           <article class="flowCard">
             <div class="flowNum">01</div>
-            <h3>Open a job post</h3>
-            <p>Use LinkedIn, Greenhouse, Lever, Workday, Indeed, or most career pages with visible descriptions.</p>
+            <span class="flowTag">Chrome Web Store</span>
+            <h3>Add to Chrome</h3>
+            <p>Install the extension from the Chrome Web Store and pin it so it is easy to open on job pages.</p>
           </article>
           <article class="flowCard">
             <div class="flowNum">02</div>
-            <h3>Send it into CV Studio</h3>
-            <p>Review the scraped job title, company, and description, then jump straight into the paste/import flow.</p>
+            <span class="flowTag">One-time setup</span>
+            <h3>Sign in and upload your base CV</h3>
+            <p>Google sign-in and CV upload happen on jobmejob. This is where your account, usage, and stored CV live.</p>
           </article>
           <article class="flowCard">
             <div class="flowNum">03</div>
-            <h3>Tailor and export</h3>
-            <p>Generate a tailored CV, inspect ATS keywords, make edits if needed, and export the version you want to send.</p>
+            <span class="flowTag">Live workflow</span>
+            <h3>Open any job page and tailor</h3>
+            <p>Review the scraped title and description, click “Open in CV Studio”, then tailor and export the final version.</p>
           </article>
         </div>
         <div class="sites" aria-label="Supported sites">
@@ -531,6 +586,16 @@
           <span>Workday</span>
           <span>Indeed</span>
           <span>Generic career pages</span>
+        </div>
+        <div class="altPathBox" id="manual">
+          <div>
+            <strong>No extension yet?</strong>
+            <p>You can still sign in, upload your CV, and paste any job description manually. The extension just makes that import step faster.</p>
+          </div>
+          <div class="heroActions" style="margin-top:0">
+            <a class="btn primary" data-extension-link href="https://chromewebstore.google.com/detail/cv-studio-tailor/jibmnlonajhoaanhoblhiciddggiohba">Add to Chrome</a>
+            <a class="btn ghost" href="./signup.html?entry=cv-studio">Use manual paste</a>
+          </div>
         </div>
       </div>
     </section>
@@ -641,7 +706,7 @@
     </div>
   </footer>
   <script src="./vendor/supabase-js-2.100.1.js"></script>
-  <script src="./auth.js?v=202603301635"></script>
-  <script src="./shared.js?v=202603301635"></script>
+  <script src="./auth.js?v=202603302245"></script>
+  <script src="./shared.js?v=202603302245"></script>
 </body>
 </html>

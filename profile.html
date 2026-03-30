@@ -136,6 +136,69 @@
   border:1px solid rgba(17,19,24,.10);
   background:rgba(17,19,24,.03);
 }
+.journeyBox{
+  padding:14px;
+  border-radius:18px;
+  border:1px solid rgba(17,19,24,.10);
+  background:
+    radial-gradient(520px 180px at 0% 0%, rgba(34,197,94,.10), transparent 62%),
+    linear-gradient(180deg, rgba(255,255,255,.96), rgba(17,19,24,.03));
+}
+.journeyList{
+  display:grid;
+  gap:10px;
+  margin-top:12px;
+}
+.journeyItem{
+  display:grid;
+  grid-template-columns:30px 1fr;
+  gap:10px;
+  align-items:start;
+  padding:10px 0;
+  border-top:1px solid rgba(17,19,24,.08);
+}
+.journeyItem:first-child{border-top:0;padding-top:0}
+.journeyNum{
+  width:30px;
+  height:30px;
+  border-radius:10px;
+  display:grid;
+  place-items:center;
+  background:rgba(34,197,94,.12);
+  border:1px solid rgba(34,197,94,.26);
+  color:#0a3d1f;
+  font-size:12px;
+  font-weight:1000;
+}
+.journeyCopy{
+  display:grid;
+  gap:4px;
+}
+.journeyTag{
+  display:inline-flex;
+  align-items:center;
+  min-height:22px;
+  padding:0 9px;
+  border-radius:999px;
+  background:rgba(17,19,24,.05);
+  border:1px solid rgba(17,19,24,.08);
+  color:rgba(17,19,24,.58);
+  font-size:10px;
+  font-weight:950;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  width:max-content;
+}
+.journeyCopy strong{
+  font-size:13px;
+  font-weight:950;
+  letter-spacing:-.12px;
+}
+.journeyCopy span{
+  color:rgba(17,19,24,.60);
+  font-size:12px;
+  line-height:1.45;
+}
 
 /* Chips (AI suggestions) */
 .chips{
@@ -612,9 +675,47 @@ Step 2 (Matched jobs) — form facelift
 <h2>Onboarding status</h2>
 <span class="badge" id="signedInBadge">Checking…</span>
 </div>
-<p class="small">Read from backend (/me/state).</p>
+<p class="small">Finish your CV Studio setup here, then use the extension for one-click imports from job pages.</p>
 </div>
 <div class="sectionBody">
+<div class="journeyBox">
+  <div class="stepTitle">
+    <h2>Recommended next step</h2>
+    <span class="badge good">Extension</span>
+  </div>
+  <div class="small" style="margin-top:8px">Install the Chrome extension when you want the easiest workflow. There is no separate login inside the side panel.</div>
+  <div class="journeyList">
+    <div class="journeyItem">
+      <div class="journeyNum">1</div>
+      <div class="journeyCopy">
+        <span class="journeyTag">Chrome</span>
+        <strong>Add the extension</strong>
+        <span>Install it from the Chrome Web Store and pin it for faster access.</span>
+      </div>
+    </div>
+    <div class="journeyItem">
+      <div class="journeyNum">2</div>
+      <div class="journeyCopy">
+        <span class="journeyTag">One time</span>
+        <strong>Keep your base CV here</strong>
+        <span>Upload once on jobmejob so every tailored version can reuse the same source CV.</span>
+      </div>
+    </div>
+    <div class="journeyItem">
+      <div class="journeyNum">3</div>
+      <div class="journeyCopy">
+        <span class="journeyTag">Live</span>
+        <strong>Open any job page and tailor</strong>
+        <span>Review the scrape, click “Open in CV Studio”, then edit and export the final version.</span>
+      </div>
+    </div>
+  </div>
+  <div class="actions" style="margin-top:12px">
+    <a class="btn primary" data-extension-link href="https://chromewebstore.google.com/detail/cv-studio-tailor/jibmnlonajhoaanhoblhiciddggiohba">Add to Chrome</a>
+    <a class="btn" data-nav="1" href="./cv.html">Paste manually</a>
+  </div>
+</div>
+<div class="hr"></div>
 <div class="kpiCol">
 <div class="kpiRow">
 <div class="kpiName">Signed in</div>
@@ -836,9 +937,9 @@ Step 2 (Matched jobs) — form facelift
 
   <!-- Scripts: order matters -->
   <script src="./vendor/supabase-js-2.100.1.js"></script>
-  <script src="./auth.js?v=202603301635"></script>
-  <script src="./shared.js?v=202603301635"></script>
+  <script src="./auth.js?v=202603302245"></script>
+  <script src="./shared.js?v=202603302245"></script>
 
-  <script src="./profile.app.js?v=202603301635"></script>
+  <script src="./profile.app.js?v=202603302245"></script>
 </body>
 </html>
