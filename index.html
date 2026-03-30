@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>jobmejob — CV Studio plus request-based Auto-apply</title>
-<meta name="description" content="Tailor your CV from any job posting with CV Studio, then add matched jobs or Auto-apply later if you need them.">
+<title>jobmejob — CV Studio for tailored CVs</title>
+<meta name="description" content="Tailor your CV from any job posting with the Chrome extension or pasted job descriptions.">
 <script>
   (function(){
     try{
@@ -411,6 +411,30 @@ display:flex;
 gap:10px;
 flex-wrap:wrap;
 margin-top:14px;
+}
+
+.soonFlagWrap{
+position:relative;
+padding-top:18px;
+}
+.soonFlagWrap::before{
+content:attr(data-flag);
+position:absolute;
+top:0;
+left:14px;
+display:inline-flex;
+align-items:center;
+height:24px;
+padding:0 10px;
+border-radius:999px;
+background:rgba(249,115,22,.12);
+border:1px solid rgba(249,115,22,.18);
+color:#a44e14;
+font-size:11px;
+font-weight:950;
+letter-spacing:.08em;
+text-transform:uppercase;
+z-index:2;
 }
 
 /* Sections */
@@ -2590,9 +2614,9 @@ color:var(--text);
 <div class="container">
 <div class="heroGrid">
 <div>
-<div class="eyebrow"><span class="badgeDot" aria-hidden="true"></span>AI-supported, human-reviewed, sent from your own email</div>
-<h1>Tailor your CV fast. Add Auto-apply when you need it.</h1>
-<p class="subtitle">jobmejob now starts with CV Studio: tailor your CV from any job posting using the Chrome extension or pasted job descriptions. Auto-apply stays available separately as a guided beta for supported markets.</p>
+<div class="eyebrow"><span class="badgeDot" aria-hidden="true"></span>CV Studio for real job descriptions</div>
+<h1>Tailor your CV for any job in minutes.</h1>
+<p class="subtitle">Paste a job description or import one from the Chrome extension. CV Studio tailors against your stored base CV, improves ATS coverage, and gets you to an export-ready draft fast.</p>
 
 <div class="hero-actions">
 <a class="btn lime" href="signup.html?entry=cv-studio">
@@ -2614,17 +2638,17 @@ color:var(--text);
 </div>
 
 <div class="proofLine" aria-label="Key points">
-<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Zero manual effort</span>
+<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Chrome extension ready</span>
 <span class="proofDot" aria-hidden="true"></span>
 <span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Tailored per role</span>
 <span class="proofDot" aria-hidden="true"></span>
-<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Sent from your email</span>
+<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Export-ready draft</span>
 </div>
 </div>
 
 <aside class="heroCard" aria-label="Service snapshot">
-<h3>What happens behind the scenes</h3>
-<p>A quality-first workflow that increases your interview chances through volume and relevance.</p>
+<h3>What CV Studio does</h3>
+<p>A focused workflow for tailoring quality, ATS coverage, and faster iteration.</p>
 <ul class="miniList">
 <li class="miniItem">
 <div class="miniIcon lime" aria-hidden="true">
@@ -2632,7 +2656,7 @@ color:var(--text);
 <path d="M21 21l-4.3-4.3"></path><circle cx="11" cy="11" r="7"></circle>
 </svg>
 </div>
-<div class="miniText"><strong>Job search beta</strong><span>Auto-fetch roles in selected markets.</span></div>
+<div class="miniText"><strong>Paste or import</strong><span>Bring in a JD from the Chrome extension or paste it manually.</span></div>
 </li>
 <li class="miniItem">
 <div class="miniIcon" aria-hidden="true">
@@ -2640,7 +2664,7 @@ color:var(--text);
 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path>
 </svg>
 </div>
-<div class="miniText"><strong>CV Studio</strong><span>Paste a JD or import one from the Chrome extension.</span></div>
+<div class="miniText"><strong>CV Studio</strong><span>Tailor against your stored base CV and keep the structure clean.</span></div>
 </li>
 <li class="miniItem">
 <div class="miniIcon lime" aria-hidden="true">
@@ -2648,12 +2672,12 @@ color:var(--text);
 <path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"></path><path d="M21 8l-9 6-9-6"></path>
 </svg>
 </div>
-<div class="miniText"><strong>Auto-apply beta</strong><span>Prepared + sent from your Gmail when enabled.</span></div>
+<div class="miniText"><strong>ATS review</strong><span>See keyword gaps and polish the result before you export.</span></div>
 </li>
 </ul>
 <div class="heroCardActions">
 <a class="btn small" href="#pricing"><span class="btnLabel">Plans</span></a>
-<a class="btn small" href="#dashboard"><span class="btnLabel">Dashboard</span></a>
+<a class="btn small" href="cv-studio.html"><span class="btnLabel">CV Studio</span></a>
 <a class="btn primary small" href="signup.html?entry=cv-studio"><span class="btnLabel">Get started</span></a>
 </div>
 </aside>
@@ -2665,8 +2689,8 @@ color:var(--text);
   <div class="container">
     <div class="sectionHead">
       <div class="kicker">How it works</div>
-      <h2 class="sectionTitle">Search. Tailor. Send.</h2>
-      <p class="sectionDesc">Set your target once. jobmejob runs the daily workflow — matching roles, tailoring your documents, and sending applications from your email.</p>
+      <h2 class="sectionTitle">Paste. Tailor. Export.</h2>
+      <p class="sectionDesc">CV Studio keeps the workflow simple: bring in a job description, tailor your CV, then review the ATS gaps before you export.</p>
     </div>
 
     <div class="hiwGrid" role="list" aria-label="Three-step workflow">
@@ -2752,13 +2776,13 @@ color:var(--text);
           <div class="hiwPills" aria-label="Step label">
             <span class="hiwStepPill">Step 1</span>
           </div>
-          <h3>Job Search</h3>
-          <p>We fetch matching roles and keep a shortlist — Germany-focused right now.</p>
+          <h3>Paste or import</h3>
+          <p>Use the Chrome extension on a job page, or paste the job description manually.</p>
 
           <div class="hiwChips" aria-label="Job Search outputs">
-            <span class="hiwChip">Daily matches</span>
-            <span class="hiwChip">Shortlist</span>
-            <span class="hiwChip">Match score</span>
+            <span class="hiwChip">Chrome extension</span>
+            <span class="hiwChip">Manual paste</span>
+            <span class="hiwChip">Any job page</span>
           </div>
         </div>
       </article>
@@ -2840,7 +2864,7 @@ color:var(--text);
             <span class="hiwStepPill">Step 2</span>
           </div>
           <h3>CV Tailoring</h3>
-          <p>Paste a job post (or pick from the shortlist). We tailor your CV + cover letter for ATS readability.</p>
+          <p>We tailor your CV to the role while keeping the wording truthful, clear, and ATS-friendly.</p>
 
           <div class="hiwChips" aria-label="CV Tailoring outputs">
             <span class="hiwChip">ATS-ready</span>
@@ -2911,13 +2935,13 @@ color:var(--text);
           <div class="hiwPills" aria-label="Step label">
             <span class="hiwStepPill">Step 3</span>
           </div>
-          <h3>Auto Apply</h3>
-          <p>Prepared and sent from your Gmail. Review-first by default, with every send logged.</p>
+          <h3>Review + Export</h3>
+          <p>Check the match score, polish the wording, and export a ready-to-send CV.</p>
 
           <div class="hiwChips" aria-label="Auto Apply outputs">
-            <span class="hiwChip">Review-first</span>
-            <span class="hiwChip">Sent from Gmail</span>
-            <span class="hiwChip">Logged</span>
+            <span class="hiwChip">Match score</span>
+            <span class="hiwChip">Manual edit</span>
+            <span class="hiwChip">Export PDF</span>
           </div>
         </div>
       </article>
@@ -2932,8 +2956,8 @@ color:var(--text);
           </svg>
         </div>
         <div>
-          <div class="hiwCtaTitle">Quality-first workflow</div>
-          <div class="hiwCtaSub">Tailored per role, human-reviewed, sent from your email.</div>
+          <div class="hiwCtaTitle">CV Studio keeps you in control</div>
+          <div class="hiwCtaSub">Paste a job, tailor your CV, review the gaps, and export when ready.</div>
         </div>
       </div>
       <div class="hiwCtaActions">
@@ -3047,15 +3071,15 @@ From a job post
 
 <section id="dashboard" class="dashBand anchor">
 <div class="container">
-<div class="dashGrid">
+<div class="dashGrid soonFlagWrap" data-flag="Coming soon">
 <div class="dashCopy">
 <div class="kicker">Dashboard</div>
-<h3>See what gets done — every day.</h3>
-<p>Customers get a simple view of what was sent and what is in progress. This creates trust and makes the service feel like a full end-to-end job application workflow, not just “content generation”.</p>
+<h3>Track your CV Studio history in one place.</h3>
+<p>A future dashboard for tailored CV history, export activity, and keyword progress so every version stays easy to review later.</p>
 <ul class="dashPoints">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Daily count of applications sent vs. plan quota</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Basic log view: company, role, date, and status</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Clear proof of execution, not just drafts</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Recent tailored CVs and export history</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Saved roles, job titles, and timestamps</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Keyword coverage progress over time</li>
 </ul>
 <div class="dashActions">
 <a class="btn primary" href="signup.html?entry=cv-studio"><span class="btnLabel">Get started</span></a>
@@ -3067,12 +3091,12 @@ From a job post
 <div class="dashTop">
 <div class="dashDots" aria-hidden="true"><span></span><span></span><span></span></div>
 <div class="dashLabel">
-<span>Application Tracker</span>
+<span>CV History</span>
 <span class="dashChip" aria-hidden="true">
 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block">
 <path d="M20 6 9 17l-5-5"></path>
 </svg>
-Live log
+Preview
 </span>
 </div>
 </div>
@@ -3080,12 +3104,12 @@ Live log
 <div class="dashBody">
 <div class="dashRow">
 <div class="dashCard">
-<h4>Today</h4>
+<h4>This week</h4>
 <div class="kpi">
-<strong>5</strong>
-<span>sent</span>
+<strong>4</strong>
+<span>tailored</span>
 </div>
-<div style="margin-top:8px" class="kpiBadge"><i aria-hidden="true"></i>On track (5 / 5)</div>
+<div style="margin-top:8px" class="kpiBadge"><i aria-hidden="true"></i>2 exported</div>
 <div class="spark" aria-hidden="true">
 <svg viewBox="0 0 300 70" preserveAspectRatio="none">
 <path d="M0 50 C 35 42, 55 44, 80 36 S 125 28, 150 34 S 195 46, 220 30 S 265 18, 300 24" fill="none" stroke="rgba(0,166,63,.85)" stroke-width="4" stroke-linecap="round"/>
@@ -3095,12 +3119,12 @@ Live log
 </div>
 
 <div class="dashCard">
-<h4>This week</h4>
+<h4>Keyword gaps</h4>
 <div class="kpi">
-<strong>23</strong>
-<span>sent</span>
+<strong>11</strong>
+<span>tracked</span>
 </div>
-<div style="margin-top:8px" class="kpiBadge"><i aria-hidden="true"></i>Consistency streak: 7 days</div>
+<div style="margin-top:8px" class="kpiBadge"><i aria-hidden="true"></i>Across recent roles</div>
 <div class="spark" aria-hidden="true">
 <svg viewBox="0 0 300 70" preserveAspectRatio="none">
 <path d="M0 44 C 38 40, 60 48, 90 40 S 135 26, 160 32 S 200 52, 230 36 S 270 24, 300 30" fill="none" stroke="rgba(17,17,17,.75)" stroke-width="4" stroke-linecap="round"/>
@@ -3110,7 +3134,7 @@ Live log
 </div>
 </div>
 
-<div class="log" aria-label="Application log preview">
+<div class="log" aria-label="CV history preview">
 <div class="logHead">
 <strong>Recent activity</strong>
 <span class="logFilter" aria-hidden="true">
@@ -3124,31 +3148,31 @@ Last 7 days
 <div class="logList">
 <div class="logItem">
 <div class="logLeft">
-<div class="logTitle">AI Engineer (w|m|d) — BMW AG</div>
-<div class="logMeta">Berlin · Unsolicited email · Today 09:18</div>
+<div class="logTitle">Head of Revenue Planning</div>
+<div class="logMeta">Imported from LinkedIn · Today 09:18</div>
 </div>
-<div class="status sent"><i aria-hidden="true"></i>Sent</div>
+<div class="status sent"><i aria-hidden="true"></i>Ready</div>
 </div>
 
 <div class="logItem">
 <div class="logLeft">
-<div class="logTitle">Business Analyst — Spotify</div>
-<div class="logMeta">Remote · Draft prepared · Today 08:41</div>
+<div class="logTitle">Senior Operations Manager</div>
+<div class="logMeta">Pasted job description · Today 08:41</div>
 </div>
 <div class="status review"><i aria-hidden="true"></i>Review</div>
 </div>
 
 <div class="logItem">
 <div class="logLeft">
-<div class="logTitle">Mobile App Marketing Manager — HelloFresh SE</div>
-<div class="logMeta">Munich · Tailoring CV · Yesterday 17:22</div>
+<div class="logTitle">Revenue Operations Lead</div>
+<div class="logMeta">ATS gaps updated · Yesterday 17:22</div>
 </div>
 <div class="status draft"><i aria-hidden="true"></i>Draft</div>
 </div>
 </div>
 </div>
 
-<div class="noteSmall">Preview only. Final version can include search, filters, and downloads of sent emails.</div>
+<div class="noteSmall">Preview only. Final version can include filters, progress tracking, and export history.</div>
 </div>
 </div>
 </div>
@@ -3159,8 +3183,8 @@ Last 7 days
 <div class="container">
 <div class="sectionHead">
 <div class="kicker">Pricing</div>
-<h2 class="sectionTitle">Start free with CV Studio. Add Auto-apply later.</h2>
-<p class="sectionDesc">CV Studio is the global product and works with the Chrome extension or pasted job descriptions. Auto-apply stays request-only while market coverage expands.</p>
+<h2 class="sectionTitle">Start free with CV Studio.</h2>
+<p class="sectionDesc">Simple monthly pricing for CV tailoring with the Chrome extension or pasted job descriptions.</p>
 </div>
 
 <div class="pricingWrap">
@@ -3222,27 +3246,28 @@ Last 7 days
 </div>
 </div>
 
+<div class="soonFlagWrap" data-flag="Coming soon">
 <div class="card plan">
-<h3 style="margin:0 0 6px;font-weight:1000;letter-spacing:-.2px">Auto-apply beta</h3>
-<p style="margin:0;color:var(--muted);font-size:14px">Request access for supported markets.</p>
+<h3 style="margin:0 0 6px;font-weight:1000;letter-spacing:-.2px">Auto-apply</h3>
+<p style="margin:0;color:var(--muted);font-size:14px">Separate request-only workflow for later.</p>
 <div class="priceRow" style="margin-top:10px">
 <strong>By request</strong>
-<span>beta</span>
-<span class="save">Guided onboarding</span>
+<span>later</span>
+<span class="save">Request only</span>
 </div>
 
 <div class="valueRow" aria-label="Monthly value">
 <div>
 <strong>Separate from CV Studio pricing</strong>
-<span>Best when you also want sourcing + outbound help</span>
+<span>Will be introduced separately when the workflow is ready.</span>
 </div>
 <div class="valueBadge"><i aria-hidden="true"></i>Selected markets</div>
 </div>
 
 <ul class="features">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>More human-guided setup</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>For users who also want job sourcing</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Better expectation-setting across markets</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Separate rollout from CV Studio</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Market coverage will be announced clearly</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>More guided setup when it launches</li>
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Request access instead of self-serve checkout</li>
 </ul>
 <div class="planActions">
@@ -3250,8 +3275,9 @@ Last 7 days
 </div>
 </div>
 </div>
+</div>
 
-<p class="fineprint">CV Studio pricing is monthly and should be easy to understand for global extension users. Auto-apply is intentionally separated so it can stay honest about market coverage.</p>
+<p class="fineprint">CV Studio pricing is monthly, global, and built for extension-first usage. Future workflows will be introduced separately when they are ready.</p>
 </div>
 </section>
 
@@ -3259,19 +3285,19 @@ Last 7 days
 <div class="container">
 <div class="sectionHead">
 <div class="kicker">Why this works</div>
-<h2 class="sectionTitle">More interviews come from consistent, relevant outreach.</h2>
-<p class="sectionDesc">We combine daily volume with a quality-first process. Each application is tailored and sent from your email for credibility.</p>
+<h2 class="sectionTitle">Better tailoring leads to better interviews.</h2>
+<p class="sectionDesc">A clearer CV, stronger keyword match, and faster iteration help you apply with more confidence.</p>
 </div>
 
 <div class="whyGrid">
 <div class="whyList">
 <div class="whyItem">
 <div class="whyIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8 10L4 11"></path></svg></div>
-<div class="whyText"><strong>Zero manual effort</strong><span>You set the direction once. We execute daily applications for you.</span></div>
+<div class="whyText"><strong>Faster first draft</strong><span>Import a job description and get to a tailored version without rewriting your CV from scratch.</span></div>
 </div>
 <div class="whyItem">
 <div class="whyIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg></div>
-<div class="whyText"><strong>Daily consistency</strong><span>Continuous outreach increases your chance of replies and interviews.</span></div>
+<div class="whyText"><strong>Better keyword coverage</strong><span>ATS gaps stay visible so you can improve the wording before you export.</span></div>
 </div>
 <div class="whyItem">
 <div class="whyIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h16"></path></svg></div>
@@ -3279,7 +3305,7 @@ Last 7 days
 </div>
 <div class="whyItem">
 <div class="whyIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"></path><path d="M21 8l-9 6-9-6"></path></svg></div>
-<div class="whyText"><strong>Sent from your email</strong><span>Applications look like they came directly from you, improving credibility.</span></div>
+<div class="whyText"><strong>Built on your base CV</strong><span>Your stored CV stays the source of truth, so the output remains grounded in your real background.</span></div>
 </div>
 </div>
 
@@ -3292,15 +3318,15 @@ Last 7 days
 </svg>
 </div>
 <div>
-<h3>Quality principle</h3>
-<p>We focus on relevant and personalized outreach. The goal is daily volume without harming your reputation.</p>
+<h3>CV quality principle</h3>
+<p>We focus on truthful tailoring, strong structure, and practical ATS coverage so each exported version is easier to review and send.</p>
 </div>
 </div>
 
 <div class="qpPills" aria-label="Quality checks">
-<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Not mass spam</div>
-<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Human review step</div>
-<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Clear application log</div>
+<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>No invented experience</div>
+<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Human in control</div>
+<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Clear keyword gaps</div>
 <div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Role-specific narrative</div>
 </div>
 
@@ -3324,18 +3350,18 @@ Last 7 days
 
 <div class="faqGrid" aria-label="Frequently asked questions">
 <details class="faqItem">
-<summary>Do you really apply from my own email?</summary>
-<div class="faqBody">Yes. After you connect your Google account, applications can be sent from your Gmail so outreach looks natural and credible.</div>
+<summary>Can I tailor from any website?</summary>
+<div class="faqBody">Yes. You can paste any job description manually, and the Chrome extension is designed to import the active job page directly into CV Studio.</div>
 </details>
 
 <details class="faqItem">
-<summary>Do you invent experience or “fake” details?</summary>
+<summary>Does CV Studio invent experience or “fake” details?</summary>
 <div class="faqBody">No. Tailoring should improve clarity and relevance, not fabricate experience. If something is missing, we recommend changes only when it matches your real background.</div>
 </details>
 
 <details class="faqItem">
-<summary>Can I change targets or pause anytime?</summary>
-<div class="faqBody">Yes. You can update your role/location preferences as your search evolves and pause if you want to stop outreach for a period.</div>
+<summary>Can I edit the tailored CV before exporting?</summary>
+<div class="faqBody">Yes. CV Studio keeps you in control. You can review the output, make manual edits, and decide what to export.</div>
 </details>
 
 <details class="faqItem">
@@ -3344,8 +3370,8 @@ Last 7 days
 </details>
 
 <details class="faqItem">
-<summary>Is this “mass spam”?</summary>
-<div class="faqBody">No. The goal is consistent volume with relevance. We prioritize matching and role-specific narrative so your outreach protects your reputation.</div>
+<summary>Do I need to rewrite my whole CV each time?</summary>
+<div class="faqBody">No. The product reuses your stored base CV, then tailors it per role so you do not have to start from scratch for every application.</div>
 </details>
 </div>
 </div>
@@ -3355,8 +3381,8 @@ Last 7 days
 <div class="container">
 <div class="ctaBox">
 <div>
-<h2>Early Access</h2>
-<p>Tell us your target role and location. We will reach out with next steps and early access.</p>
+<h2>Need help getting started?</h2>
+<p>Tell us your target role and we will point you to the best CV Studio setup for your search.</p>
 </div>
 <form action="#" method="post" aria-label="Waitlist form">
 <div class="two">
@@ -3395,7 +3421,7 @@ Last 7 days
 <footer>
 <div class="container">
 <div class="footerRow">
-<div><strong style="color:var(--text);font-weight:1000">jobmejob</strong><span> · </span><span>CV tailoring first, Auto-apply when it fits</span></div>
+<div><strong style="color:var(--text);font-weight:1000">jobmejob</strong><span> · </span><span>CV tailoring first</span></div>
 <div class="footerLinks" aria-label="Footer links">
 <a href="#how">How it works</a>
 <a href="cv-studio.html">CV Studio</a>
