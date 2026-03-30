@@ -486,21 +486,19 @@ details[data-dd="1"] > summary::-webkit-details-marker{
   display:inline-flex;
   align-items:center;
   gap:8px;
-  min-height:40px;
-  padding:9px 12px;
+  min-height:42px;
+  padding:0 14px;
   border-radius:999px;
   border:1px solid rgba(17,19,24,.12);
-  background:rgba(255,255,255,.78);
+  background:#fff;
   color:inherit;
   font-weight:850;
   font-size:13px;
   white-space:nowrap;
   cursor:pointer;
-  transition:.15s ease;
 }
 .jmNavTrigger:hover{
-  transform:translateY(-1px);
-  background:rgba(255,255,255,.92);
+  background:rgba(17,19,24,.04);
 }
 details.navDrop[open] > .jmNavTrigger,
 details[data-dd="1"][open] > .jmNavTrigger{
@@ -511,17 +509,17 @@ details[data-dd="1"][open] > .jmNavTrigger{
   position:absolute;
   top:calc(100% + 10px);
   right:0;
-  width:min(340px, calc(100vw - 24px));
-  padding:12px;
-  border-radius:18px;
+  width:min(300px, calc(100vw - 24px));
+  padding:8px;
+  border-radius:16px;
   border:1px solid rgba(17,19,24,.14);
-  background:rgba(255,255,255,.94);
-  -webkit-backdrop-filter:saturate(1.2) blur(14px);
-  backdrop-filter:saturate(1.2) blur(14px);
-  box-shadow:0 18px 50px rgba(17,19,24,.18);
+  background:#fff;
+  -webkit-backdrop-filter:saturate(1.05) blur(10px);
+  backdrop-filter:saturate(1.05) blur(10px);
+  box-shadow:0 14px 30px rgba(17,19,24,.12);
   display:flex;
   flex-direction:column;
-  gap:10px;
+  gap:6px;
   z-index:60;
 }
 details.navDrop:not([open]) .navMenu,
@@ -530,25 +528,26 @@ details[data-dd="1"]:not([open]) .navMenu{
 }
 .jmAccountCard{
   padding:12px;
-  border-radius:16px;
-  border:1px solid rgba(17,19,24,.10);
-  background:linear-gradient(180deg, rgba(34,197,94,.08), rgba(255,255,255,.86));
+  border-radius:12px;
+  border:1px solid rgba(17,19,24,.08);
+  background:rgba(17,19,24,.02);
   display:grid;
-  gap:10px;
+  gap:8px;
 }
 .jmAccountTop{
   display:flex;
-  align-items:flex-start;
+  align-items:center;
   justify-content:space-between;
-  gap:10px;
+  gap:8px;
 }
 .jmAccountTitle{
-  font-weight:950;
+  font-size:15px;
+  font-weight:900;
   letter-spacing:-.02em;
 }
 .jmAccountEmail{
   font-size:13px;
-  color:rgba(17,19,24,.72);
+  color:rgba(17,19,24,.64);
   word-break:break-word;
 }
 .jmAccountMetaRow{
@@ -559,24 +558,24 @@ details[data-dd="1"]:not([open]) .navMenu{
 .jmNavMetaPill{
   display:inline-flex;
   align-items:center;
-  gap:6px;
-  min-height:30px;
-  padding:0 10px;
+  min-height:26px;
+  padding:0 8px;
   border-radius:999px;
-  border:1px solid rgba(17,19,24,.12);
-  background:rgba(255,255,255,.82);
-  font-size:12px;
+  border:1px solid rgba(17,19,24,.10);
+  background:#fff;
+  font-size:11px;
   font-weight:850;
   white-space:nowrap;
 }
 .jmNavMetaPill.good{
-  border-color:rgba(34,197,94,.40);
+  border-color:rgba(34,197,94,.30);
   background:rgba(34,197,94,.12);
+  color:#0a4a22;
 }
 .jmAccountHint{
   font-size:12px;
-  color:rgba(17,19,24,.58);
-  line-height:1.45;
+  color:rgba(17,19,24,.48);
+  line-height:1.35;
 }
 .menuLabel{
   font-size:12px;
@@ -589,30 +588,29 @@ details[data-dd="1"]:not([open]) .navMenu{
 .menuSep{
   height:1px;
   background:rgba(17,19,24,.10);
-  margin:2px 0;
+  margin:4px 0;
 }
 .jmNavItem{
   width:100%;
   display:flex;
   align-items:center;
-  justify-content:flex-start;
-  gap:10px;
-  min-height:40px;
-  padding:10px 12px;
-  border-radius:14px;
-  border:1px solid rgba(17,19,24,.10);
-  background:rgba(17,19,24,.03);
+  min-height:38px;
+  padding:8px 10px;
+  border-radius:10px;
+  border:0;
+  background:transparent;
   color:inherit;
   font-weight:800;
   font-size:13px;
-  cursor:pointer;
   text-align:left;
 }
 .jmNavItem:hover{
-  background:rgba(17,19,24,.06);
+  background:rgba(17,19,24,.05);
 }
 .jmNavDanger{
-  border-color:rgba(216,27,96,.24);
+  color:#8b1d42;
+}
+.jmNavDanger:hover{
   background:rgba(216,27,96,.08);
 }
 @media (max-width: 860px){

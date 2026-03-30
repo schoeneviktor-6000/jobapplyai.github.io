@@ -1589,13 +1589,6 @@ updateAiSwitchState();
 const email=session.user&&session.user.email?session.user.email:"—";
 setText("meEmail",email);
 setText("subLine","Signed in as "+email);
-try{
-  const acc=document.getElementById("navAccount");
-  const sign=document.getElementById("navSignIn");
-  if(acc) acc.style.display="";
-  if(sign) sign.style.display="none";
-}catch(_){ }
-
 
 renderAiInsightsFromCache();
 

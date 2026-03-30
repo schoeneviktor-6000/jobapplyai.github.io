@@ -2260,15 +2260,6 @@ setText("subLine","Signed in as "+email);
 rememberGoogleProviderTokens();
 refreshGmailVerifyUi();
 
-// Nav state: show account dropdown, hide sign-in link
-try{
-  const navAcct = $("navAccount");
-  if(navAcct) navAcct.style.display = "";
-  const navSignIn = $("navSignIn");
-  if(navSignIn) navSignIn.style.display = "none";
-}catch(_){}
-
-
 await ensureCustomer(email);
 await refreshState();
 try{ window.JobMeJobShared?.hydrateAccountNav?.({ session, state }); }catch(_){}

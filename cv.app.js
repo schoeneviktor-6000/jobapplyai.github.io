@@ -5395,9 +5395,6 @@ ${bodyHtml}
         return;
       }
 
-      const navAcct = $("navAccount");
-      if(navAcct) navAcct.style.display = "";
-      $("navSignIn").style.display = "none";
       setBadge("authBadge","good", uiLang==="de" ? "Angemeldet" : "Signed in");
 
       // Ensure customer exists (best effort)

@@ -307,7 +307,8 @@
         <a class="pill" href="./cv.html" data-nav="1">CV Studio</a>
         <a class="pill active" href="./jobs.html" data-nav="1">Jobs</a>
         <a class="pill" href="./plan.html" data-nav="1">Pricing</a>
-
+      </div>
+      <div class="navcta">
         <details class="navDrop" id="navAccount" style="display:none">
           <summary class="jmNavTrigger" aria-label="Account menu">
             <span id="navAccountLabel">Account</span>
@@ -2014,12 +2015,6 @@ function renderDetailLoading(baseJob){
 
       lastSessionToken = String(session.access_token || "");
       try{ if(lastSessionToken) sessionStorage.setItem("sb_access_token", lastSessionToken); }catch(_){ }
-
-      // Nav state
-      const navAcct = $("navAccount");
-      if(navAcct) navAcct.style.display = "";
-      const navSignIn = $("navSignIn");
-      if(navSignIn) navSignIn.style.display = "none";
 
       H.setBadge("authBadge", "good", "Signed in");
 
