@@ -325,13 +325,19 @@
     return String(links.CHROME_EXTENSION_URL || "").trim();
   }
 
+  function getChromeExtensionNotifyUrl(){
+    const links = getAppLinks();
+    return String(links.CHROME_EXTENSION_NOTIFY_URL || "").trim();
+  }
+
   function hydrateExtensionLinks(root = document){
     const extensionUrl = getChromeExtensionUrl();
+    const notifyUrl = getChromeExtensionNotifyUrl();
     const targets = $$("[data-extension-link]", root);
     if(!targets.length) return { ready: !!extensionUrl, url: extensionUrl };
 
     targets.forEach((el) => {
-      const fallback = String(el.getAttribute("data-extension-fallback") || "./cv-studio.html#manual").trim();
+      const fallback = String(el.getAttribute("data-extension-fallback") || notifyUrl || "./cv-studio.html#manual").trim();
       const isAnchor = String(el.tagName || "").toLowerCase() === "a";
       const labelEl = el.querySelector("[data-extension-label]");
       const readyLabel = String(el.getAttribute("data-extension-ready-label") || "").trim();
@@ -366,7 +372,7 @@
       el.textContent = extensionUrl || "Chrome Web Store";
     });
 
-    return { ready: !!extensionUrl, url: extensionUrl };
+    return { ready: !!extensionUrl, url: extensionUrl, notifyUrl };
   }
 
   function safeParseJson(raw){
@@ -820,6 +826,7 @@ details[data-dd="1"]:not([open]) .navMenu{
     resolveApiBase,
     getAppLinks,
     getChromeExtensionUrl,
+    getChromeExtensionNotifyUrl,
     hydrateExtensionLinks,
 
     go,
