@@ -649,6 +649,18 @@ body.cvGate.cvGateForm #jobSourceHint{
       background: rgba(34,197,94,.14);
       color:#0a3d1f;
     }
+    .simplifyHidden{ display:none !important; }
+    .templatePill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(17,19,24,.12);
+      background:rgba(255,255,255,.82);
+      font-weight:900;
+      color:rgba(17,19,24,.82);
+    }
 
     .cvBox{
       margin-top:12px;
@@ -1477,6 +1489,11 @@ body.cvGate.cvGateForm #jobSourceHint{
       font-weight:950;
       color: rgba(17,19,24,.82);
     }
+    .usedKeywordsDetails .chips{ margin-top:10px; }
+    .usedKeywordsDetails summary{
+      font-weight:900;
+      color:rgba(17,19,24,.74);
+    }
 
     @media (max-width: 620px){
       .sourceChipPill{ max-width: 92vw; }
@@ -1679,16 +1696,15 @@ body.fromJobsLink #settingsDetails{
 
   <main class="main mainWide">
     <h1 class="h1">CV Studio</h1>
-    <p class="sub" id="subTitle">Tailor your CV per role with ATS-safe formatting. Works with pasted job descriptions and the Chrome extension.</p>
+    <p class="sub" id="subTitle">Paste a job or pick one from Jobs. We tailor your CV, show the ATS gaps, and get you ready to send.</p>
 
     <div class="errorTop" id="errorTop"></div>
 
     <div class="studioBar" aria-label="CV Studio modes">
       <div class="studioTabsTop" role="tablist" aria-label="Studio modes">
-        <button class="modeTab active" id="modeTailor" type="button" role="tab" aria-selected="true" title="AI tailoring + ATS keywords">Tailor ✨</button>
-        <button class="modeTab" id="modeEdit" type="button" role="tab" aria-selected="false" title="Manually edit the generated CV (Text view)">Edit text ✍️</button>
-        <button class="modeTab" id="modeReview" type="button" role="tab" aria-selected="false" title="Quality check + suggestions">AI Review</button>
-        <button class="modeTab" id="modeCustomize" type="button" role="tab" aria-selected="false" disabled>Customize <span class="modeTag">Soon</span></button>
+        <button class="modeTab active" id="modeTailor" type="button" role="tab" aria-selected="true" title="Tailor your CV and improve ATS coverage">1. Tailor</button>
+        <button class="modeTab" id="modeEdit" type="button" role="tab" aria-selected="false" title="Review changes or edit the CV manually" style="display:none">2. Improve</button>
+        <button class="modeTab" id="modeReview" type="button" role="tab" aria-selected="false" title="Run the final check before export" style="display:none">3. Final check</button>
       </div>
 
       <div class="studioActionsTop">
@@ -1703,20 +1719,6 @@ body.fromJobsLink #settingsDetails{
           <span class="sourceChipLabel" id="sourceChipLabel">Using:</span>
           <span class="sourceChipValue" id="sourceChipValue">—</span>
         </div>
-
-        <details class="studioDrop" id="studioDownloadDrop">
-          <summary class="btn primary" id="studioDownloadSummary" aria-label="Download menu">Download ▾</summary>
-          <div class="studioMenu" role="menu" aria-label="Download options">
-            <div class="menuLabel">Export</div>
-            <button class="btn ghost" id="studioActCopy" type="button" role="menuitem">Copy</button>
-            <button class="btn ghost" id="studioActDownload" type="button" role="menuitem">Download .txt</button>
-            <button class="btn ghost" id="studioActPrint" type="button" role="menuitem">Print / PDF</button>
-
-            <div class="menuSep" role="separator"></div>
-            <div class="menuLabel">Quality</div>
-            <button class="btn ghost" id="studioActQa" type="button" role="menuitem">Final QA</button>
-          </div>
-        </details>
       </div>
     </div>
 
@@ -1909,27 +1911,28 @@ body.fromJobsLink #settingsDetails{
             <div class="autoStartTitle" id="autoStartTitle">Next: Tailoring settings</div>
             <span class="badge good" id="autoStartBadge">From Jobs</span>
           </div>
-          <div class="autoStartDesc" id="autoStartDesc">Choose template & strength, then click Generate tailored CV.</div>
+          <div class="autoStartDesc" id="autoStartDesc">Choose the strength, then click Tailor CV.</div>
           <div class="row" style="margin-top:10px">
-            <button class="btn primary small" id="btnStartNow" type="button">Generate</button>
+            <button class="btn primary small" id="btnStartNow" type="button">Tailor now</button>
             <button class="btn small ghost" id="btnCancelAuto" type="button">Hide</button>
           </div>
         </div>
 
 <details class="info" id="settingsDetails" open style="margin-top:2px">
-          <summary id="settingsSummary">Settings (optional)</summary>
+          <summary id="settingsSummary">Tailoring options</summary>
           <div style="margin-top:10px">
         <div class="label">
-          <span id="templateLbl">Template</span>
+          <span id="templateLbl">Format</span>
           <span class="badge" title="ATS-safe formatting" id="atsSafeBadge">ATS-safe</span>
         </div>
         <div class="row">
-          <select id="tplSelect" class="selectWide">
+          <div class="templatePill" id="templateValuePill">Professional ATS-safe format</div>
+          <select id="tplSelect" class="selectWide simplifyHidden" aria-hidden="true" tabindex="-1">
             <option value="professional">Professional (ATS-safe)</option>
           </select>
-          <button class="btn ghost" id="btnAtsInfo" type="button" style="flex:0 0 auto">ATS?</button>
+          <button class="btn ghost" id="btnAtsInfo" type="button" style="flex:0 0 auto">Why ATS-safe?</button>
         </div>
-        <div class="hint" id="atsHintLine">ATS-safe formatting = simple headings, no tables/columns, easy-to-parse structure.</div>
+        <div class="hint" id="atsHintLine">Simple headings and clean structure so ATS systems can read your CV reliably.</div>
 
         <div class="label" id="tailorStrengthLbl">Tailoring strength</div>
         <div class="strengthWrap">
@@ -1939,10 +1942,10 @@ body.fromJobsLink #settingsDetails{
               <span class="miniPill active" data-s="1" id="pillBalanced">Balanced</span>
               <span class="miniPill" data-s="2" id="pillAggressive">Aggressive</span>
             </div>
-            <span class="badge" id="strengthBadge">Balanced</span>
+            <span class="badge simplifyHidden" id="strengthBadge">Balanced</span>
           </div>
 
-          <input id="strengthRange" type="range" min="0" max="2" step="1" value="1" />
+          <input id="strengthRange" class="simplifyHidden" type="range" min="0" max="2" step="1" value="1" />
 
           <div class="hint" id="strengthHint">
             Improves summary and bullets to match the job, without over-rewriting.
@@ -1955,21 +1958,21 @@ body.fromJobsLink #settingsDetails{
         <div class="hr"></div>
 
         <div class="row">
-          <button class="btn primary cta" id="btnGenerate" type="button" disabled>Generate tailored CV</button>
+          <button class="btn primary cta" id="btnGenerate" type="button" disabled>Tailor CV</button>
           <button class="btn" id="btnGenerateAgain" type="button" disabled style="display:none">Generate again</button>
         </div>
         <div class="hint" id="ctaHint" style="display:none; margin-top:8px"></div>
         <div class="hint" id="genHint">
-          Same settings reuse a cached result (fast). To create a different version, change the tailoring strength.
+          We keep your real experience, make it ATS-friendly, and reuse matching results when possible.
         </div>
 
-        <button class="infoButton" id="btnHowItWorks" type="button">
+        <button class="infoButton simplifyHidden" id="btnHowItWorks" type="button">
   <span id="stepsTitle">How it works</span>
   <span class="badge" id="stepsBadge">Ready</span>
 </button>
-<div class="hint" id="stepsMiniHint">Live progress shows while generating. We stay truthful and ATS-safe.</div>
+<div class="hint simplifyHidden" id="stepsMiniHint">Live progress shows while generating. We stay truthful and ATS-safe.</div>
 
-        <details class="info" id="pipelineDetails">
+        <details class="info simplifyHidden" id="pipelineDetails">
           <summary>
             <span id="pipelineTitle">Pipeline status</span>
             <span class="badge" id="pipeBadge">—</span>
@@ -1984,13 +1987,13 @@ body.fromJobsLink #settingsDetails{
         <div class="outputTop">
           <div>
             <div style="font-weight:980;font-size:18px;letter-spacing:-.2px" id="tailoredTitle">Tailored CV</div>
-            <div class="hint" id="outHint">Generate a CV to see preview and ATS match.</div>
+            <div class="hint" id="outHint">Start with a job to create your tailored CV.</div>
           </div>
 
           <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
             <button class="btn small ghost showWhenSetupCollapsed" id="btnShowSetup" type="button">Setup</button>
             <span class="badge warn" id="outStatus">Not generated</span>
-            <span class="badge" id="outModel">Model: —</span>
+            <span class="badge simplifyHidden" id="outModel">Model: —</span>
           </div>
         </div>
 
@@ -1998,8 +2001,8 @@ body.fromJobsLink #settingsDetails{
 
         <div class="tabs" id="canvasTabs" role="tablist" aria-label="Output view">
           <button class="tabBtn active" id="tabPreview" type="button">Preview</button>
-          <button class="tabBtn" id="tabText" type="button">Text</button>
-          <button class="tabBtn" id="tabChanges" type="button">Changes</button>
+          <button class="tabBtn" id="tabText" type="button">Manual edit</button>
+          <button class="tabBtn" id="tabChanges" type="button">What changed</button>
         </div>
 
         <div class="cvBox" id="cvBox">
@@ -2007,7 +2010,7 @@ body.fromJobsLink #settingsDetails{
             <div class="pageStage paperWrap">
               <div class="pageZoom paperZoom" id="pageZoom">
                 <div id="cvPreview" class="cvPreview page paperA4">
-              <div class="hint">No CV generated yet.</div>
+              <div class="hint">No tailored CV yet.</div>
             </div>
               </div>
             </div>
@@ -2064,8 +2067,8 @@ body.fromJobsLink #settingsDetails{
           <div class="stickyRow">
             <button class="btn" id="btnCopy" type="button" disabled>Copy</button>
             <button class="btn" id="btnDownload" type="button" disabled>Download .txt</button>
-            <button class="btn" id="btnQa" type="button" disabled>Final QA<span class="miniBadgeDot" id="qaDot"></span></button>
-            <button class="btn primary" id="btnPrint" type="button" disabled>Print / PDF</button>
+            <button class="btn" id="btnQa" type="button" disabled>Final check<span class="miniBadgeDot" id="qaDot"></span></button>
+            <button class="btn primary" id="btnPrint" type="button" disabled>Export PDF</button>
           </div>
         </div>
       </section>
@@ -2077,65 +2080,54 @@ body.fromJobsLink #settingsDetails{
           <span class="badge" id="inspectorBadge">Live</span>
         </div>
         <div class="hint" id="inspectorHint">
-          Your CV stays centered. Use this panel to improve ATS match and polish wording without getting overwhelmed.
+          Start with the missing ATS terms. When the match looks good, run the final check and export.
         </div>
 
         <div id="inspectorKeywords">
-
-        <details class="info" style="margin-top:12px">
-          <summary id="inspectorFutureTitle">More tools (coming soon)</summary>
-          <div class="hint" id="inspectorFutureHint" style="margin-top:8px">
-            Planned next: click any line in <b>Preview</b> to edit it here, bullet tightening, quantified impact suggestions, and section re-ordering.
-          </div>
-          <div class="row" style="margin-top:10px; flex-wrap:wrap">
-            <button class="btn small" type="button" disabled title="Coming soon">Shorten bullets</button>
-            <button class="btn small" type="button" disabled title="Coming soon">Add metrics</button>
-            <button class="btn small" type="button" disabled title="Coming soon">Rewrite for clarity</button>
-            <button class="btn small" type="button" disabled title="Coming soon">Tone control</button>
-          </div>
-        </details>
 
         <div class="kpiRow">
           <div class="kpi">
             <div class="k" id="kpiAts">ATS match</div>
             <div class="v" id="atsScore">—</div>
             <div class="bar" aria-hidden="true"><div id="atsBar"></div></div>
-            <div class="hint" id="atsHint">Calculated from keyword coverage (used vs missing).</div>
+            <div class="hint" id="atsHint">A practical ATS fit score based on which job terms your CV already covers.</div>
           </div>
 
           <div class="kpi">
-            <div class="k" id="kpiUsed">Keywords used</div>
+            <div class="k" id="kpiUsed">Covered terms</div>
             <div class="v" id="kwUsedCount">—</div>
-            <div class="hint" id="kpiUsedHint">Found in your tailored CV.</div>
+            <div class="hint" id="kpiUsedHint">Already present in your tailored CV.</div>
           </div>
 
           <div class="kpi">
-            <div class="k" id="kpiMissing">Keywords missing</div>
+            <div class="k" id="kpiMissing">Terms to add</div>
             <div class="v" id="kwMissCount">—</div>
-            <div class="hint" id="kpiMissingHint">Click a missing keyword to add it (truthfully).</div>
+            <div class="hint" id="kpiMissingHint">Click a true missing term to add it quickly.</div>
           </div>
         </div>
 
         <div class="hr"></div>
 
         <div class="sectionTitle" style="margin-bottom:6px">
-          <h2 id="atsKwTitle">ATS keywords</h2>
+          <h2 id="atsKwTitle">ATS improvements</h2>
           <div class="row" style="justify-content:flex-end; flex:0 0 auto">
             <button class="btn small" id="btnUndoEdit" type="button" disabled>Undo</button>
             <button class="btn small" id="btnResetEdits" type="button" disabled>Reset</button>
-            <button class="btn small" id="btnCopyMissing" type="button" disabled>Copy missing</button>
+            <button class="btn small simplifyHidden" id="btnCopyMissing" type="button" disabled>Copy missing</button>
           </div>
         </div>
 
-        <div class="hint" id="atsKwHint">These keywords are extracted from the job description. Click a missing keyword to add it to your CV (truthfully) and improve your ATS match.</div>
+        <div class="hint" id="atsKwHint">Add only the true missing terms below. This is the fastest way to lift your ATS match.</div>
 
-        <div class="label" style="margin-top:12px" id="usedLbl">Used</div>
-        <div class="chips" id="chipsUsed"></div>
-
-        <div class="label" style="margin-top:12px" id="missingLbl">Missing</div>
+        <div class="label" style="margin-top:12px" id="missingLbl">Add next</div>
         <div class="chips" id="chipsMissing"></div>
 
-        <details class="info" style="margin-top:12px">
+        <details class="info usedKeywordsDetails" id="usedKeywordsDetails" style="margin-top:12px; display:none">
+          <summary id="usedKeywordsSummary">Already covered</summary>
+          <div class="chips" id="chipsUsed"></div>
+        </details>
+
+        <details class="info simplifyHidden" style="margin-top:12px">
           <summary id="debugTitle">Debug details</summary>
           <div class="monoSmall" id="debugBox">—</div>
         </details>
@@ -2144,17 +2136,16 @@ body.fromJobsLink #settingsDetails{
         <div id="inspectorReview">
           <div class="reviewCard">
             <div class="reviewRow" style="margin-top:0">
-              <h3 class="reviewTitle" id="reviewTitle">AI Review</h3>
+              <h3 class="reviewTitle" id="reviewTitle">Final check</h3>
               <span class="badge" id="reviewBadge">Not run</span>
             </div>
 
             <div class="hint" id="reviewHint" style="margin-top:8px">
-              Run a final check before you send or print. We flag missing basics, ATS risks, and “too good to be true” claims.
+              Run one last check before you export. We flag missing basics, ATS risks, and claims that may feel overstated.
             </div>
 
             <div class="reviewRow">
-              <button class="btn" id="btnRunReview" type="button">Run review</button>
-              <button class="btn ghost" id="btnOpenReview" type="button">Open full report</button>
+              <button class="btn primary" id="btnRunReview" type="button">Run final check</button>
             </div>
 
             <ul class="reviewList" id="reviewList">
@@ -2337,32 +2328,37 @@ body.fromJobsLink #settingsDetails{
   <div class="modalBackdrop" id="kwModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="kwH">
     <div class="modalCard">
       <div class="modalScroll">
-        <div class="modalHeader">
-          <div style="min-width:0">
-            <h3 class="modalTitle" id="kwH">Add keyword</h3>
-            <div class="hint" style="margin-top:6px" id="kwSub">Add missing keywords — only if it's truly accurate for you.</div>
+          <div class="modalHeader">
+            <div style="min-width:0">
+              <h3 class="modalTitle" id="kwH">Add keyword</h3>
+              <div class="hint" style="margin-top:6px" id="kwSub">Fastest win: add true missing terms. Open advanced placement only if you want to place one inside experience.</div>
+            </div>
+            <button class="btn small" id="kwClose" type="button">Close</button>
           </div>
-          <button class="btn small" id="kwClose" type="button">Close</button>
-        </div>
 
         <div class="hr"></div>
 
-        <div class="field">
-          <div class="fieldLabel" id="kwFieldLbl">Keyword</div>
-          <div class="chips" style="margin-top:0">
-            <span class="chip warn" id="kwChip">—</span>
-          </div>
+          <div class="field">
+            <div class="fieldLabel" id="kwFieldLbl">Keyword</div>
+            <div class="chips" style="margin-top:0">
+              <span class="chip warn" id="kwChip">—</span>
+            </div>
 
           <div class="checkLine" style="margin-top:10px">
             <input type="checkbox" id="kwTruth"/>
             <div>
               <div id="kwTruthLbl">I confirm this keyword is true for me.</div>
               <div class="tinyNote" id="kwTruthNote">We never invent experience. If it's not true, don’t add it.</div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="formRow" style="margin-top:12px">
+        <div class="tinyNote" id="kwQuickHint" style="margin-top:12px">Default action: add it under Skills. That is usually the safest ATS improvement.</div>
+
+        <details class="info" id="kwAdvancedDetails" style="margin-top:12px">
+          <summary id="kwAdvancedSummary">Advanced placement</summary>
+          <div style="margin-top:12px">
+        <div class="formRow">
           <div class="field">
             <div class="fieldLabel" id="kwWhereLbl">Where should it appear?</div>
             <select id="kwTarget">
@@ -2461,6 +2457,9 @@ body.fromJobsLink #settingsDetails{
           </div>
         </div>
 
+          </div>
+        </details>
+
         <div class="field" style="margin-top:12px">
           <div class="fieldLabel" id="kwPreviewLbl">Preview</div>
           <div class="kwPreview" id="kwResultPreview">—</div>
@@ -2471,7 +2470,7 @@ body.fromJobsLink #settingsDetails{
 
       <div class="modalActions">
         <button class="btn" id="kwCancel" type="button">Cancel</button>
-        <button class="btn primary" id="kwApply" type="button">Apply</button>
+        <button class="btn primary" id="kwApply" type="button">Add term</button>
       </div>
     </div>
   </div>
@@ -2483,8 +2482,8 @@ body.fromJobsLink #settingsDetails{
       <div class="modalScroll">
         <div class="modalHeader">
           <div style="min-width:0">
-            <h3 class="modalTitle" id="qaH">Final QA check</h3>
-            <div class="hint" style="margin-top:6px" id="qaSub">Last quick review before you export. This runs local checks (fast) and highlights common issues.</div>
+            <h3 class="modalTitle" id="qaH">Final check</h3>
+            <div class="hint" style="margin-top:6px" id="qaSub">One last pass before export. We flag ATS risks and the easiest fixes first.</div>
           </div>
           <button class="btn small" id="qaCloseX" type="button">Close</button>
         </div>
