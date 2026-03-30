@@ -1312,14 +1312,15 @@ async function ensureCustomerBootstrap(env, email) {
     headers: { Prefer: "resolution=ignore-duplicates,return=minimal" }
   });
 
-  // 4) Ensure plan row exists (default free; ignore duplicates)
-  await supabaseFetch(env, `/rest/v1/customer_plans?on_conflict=customer_id`, {
-    method: "POST",
-    body: [{ customer_id: customerId, plan_id: "free", updated_at: now }],
-    headers: { Prefer: "resolution=ignore-duplicates,return=minimal" }
-  });
-
   return { customerId };
+}
+
+async function deleteCustomerPlanRecord(env, customerId) {
+  if (!looksLikeUuid(customerId)) throw new Error("Valid customerId is required");
+  await supabaseFetch(env, `/rest/v1/customer_plans?customer_id=eq.${encodeURIComponent(customerId)}`, {
+    method: "DELETE",
+    headers: { Prefer: "return=minimal" }
+  });
 }
 
 async function enqueueJobsForCustomer(env, customerId, jobIds, appliedBy = "system", queuedMeta = null) {
@@ -1649,9 +1650,14 @@ async function ensureCvStudioImportedJob(env, customerId, {
   if (!allowed.has(plan_id)) {
   return json(request, { error: "Invalid plan_id", allowed: Array.from(allowed) }, 400);
   }
-  
+
+  if (plan_id === "free") {
+  await deleteCustomerPlanRecord(env, customer_id);
+  return json(request, { ok: true, customer_id, plan_id }, 200);
+  }
+
   const row = { customer_id, plan_id, updated_at: new Date().toISOString() };
-  
+
   await supabaseFetch(env, `/rest/v1/customer_plans?on_conflict=customer_id`, {
   method: "POST",
   body: [row],
@@ -1670,6 +1676,11 @@ async function upsertCustomerPlanRecord(env, customerId, planId) {
   const normalizedPlanId = normalizeCvStudioPlanId(planId) || (String(planId || "").trim().toLowerCase() === "free" ? "free" : null);
   if (!looksLikeUuid(customerId)) throw new Error("Valid customerId is required");
   if (!normalizedPlanId) throw new Error("Unsupported planId");
+
+  if (normalizedPlanId === "free") {
+    await deleteCustomerPlanRecord(env, customerId);
+    return "free";
+  }
 
   await supabaseFetch(env, `/rest/v1/customer_plans?on_conflict=customer_id`, {
     method: "POST",
@@ -1922,9 +1933,14 @@ async function handleStripeWebhook(request, env) {
   if (!allowed.has(plan_id)) {
   return json(request, { error: "Invalid plan_id", allowed: Array.from(allowed) }, 400);
   }
-  
+
+  if (plan_id === "free") {
+  await deleteCustomerPlanRecord(env, me.customerId);
+  return json(request, { ok: true, me: true, customer_id: me.customerId, plan_id }, 200);
+  }
+
   const row = { customer_id: me.customerId, plan_id, updated_at: new Date().toISOString() };
-  
+
   await supabaseFetch(env, `/rest/v1/customer_plans?on_conflict=customer_id`, {
   method: "POST",
   body: [row],
