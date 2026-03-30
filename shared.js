@@ -490,15 +490,18 @@ details[data-dd="1"] > summary::-webkit-details-marker{
   padding:0 14px;
   border-radius:999px;
   border:1px solid rgba(17,19,24,.12);
-  background:#fff;
+  background:rgba(255,255,255,.92);
   color:inherit;
   font-weight:850;
   font-size:13px;
   white-space:nowrap;
   cursor:pointer;
+  transition:border-color .15s ease, background .15s ease, box-shadow .15s ease, transform .15s ease;
 }
 .jmNavTrigger:hover{
-  background:rgba(17,19,24,.04);
+  background:#fff;
+  border-color:rgba(17,19,24,.18);
+  transform:translateY(-1px);
 }
 details.navDrop[open] > .jmNavTrigger,
 details[data-dd="1"][open] > .jmNavTrigger{
@@ -509,17 +512,17 @@ details[data-dd="1"][open] > .jmNavTrigger{
   position:absolute;
   top:calc(100% + 10px);
   right:0;
-  width:min(300px, calc(100vw - 24px));
-  padding:8px;
-  border-radius:16px;
-  border:1px solid rgba(17,19,24,.14);
-  background:#fff;
-  -webkit-backdrop-filter:saturate(1.05) blur(10px);
-  backdrop-filter:saturate(1.05) blur(10px);
-  box-shadow:0 14px 30px rgba(17,19,24,.12);
+  width:min(340px, calc(100vw - 24px));
+  padding:12px;
+  border-radius:20px;
+  border:1px solid rgba(17,19,24,.12);
+  background:rgba(255,255,255,.98);
+  -webkit-backdrop-filter:saturate(1.1) blur(18px);
+  backdrop-filter:saturate(1.1) blur(18px);
+  box-shadow:0 22px 56px rgba(17,19,24,.16), 0 8px 22px rgba(17,19,24,.08);
   display:flex;
   flex-direction:column;
-  gap:6px;
+  gap:8px;
   z-index:60;
 }
 details.navDrop:not([open]) .navMenu,
@@ -527,26 +530,29 @@ details[data-dd="1"]:not([open]) .navMenu{
   display:none;
 }
 .jmAccountCard{
-  padding:12px;
-  border-radius:12px;
+  padding:14px;
+  border-radius:16px;
   border:1px solid rgba(17,19,24,.08);
-  background:rgba(17,19,24,.02);
+  background:linear-gradient(180deg, rgba(255,255,255,.96), rgba(17,19,24,.03));
   display:grid;
-  gap:8px;
+  gap:10px;
 }
 .jmAccountTop{
   display:flex;
-  align-items:center;
+  align-items:flex-start;
   justify-content:space-between;
   gap:8px;
+  flex-wrap:wrap;
 }
 .jmAccountTitle{
-  font-size:15px;
+  font-size:16px;
   font-weight:900;
   letter-spacing:-.02em;
+  line-height:1.1;
 }
 .jmAccountEmail{
-  font-size:13px;
+  font-size:12px;
+  line-height:1.45;
   color:rgba(17,19,24,.64);
   word-break:break-word;
 }
@@ -558,14 +564,15 @@ details[data-dd="1"]:not([open]) .navMenu{
 .jmNavMetaPill{
   display:inline-flex;
   align-items:center;
-  min-height:26px;
-  padding:0 8px;
+  min-height:28px;
+  padding:0 10px;
   border-radius:999px;
   border:1px solid rgba(17,19,24,.10);
   background:#fff;
   font-size:11px;
   font-weight:850;
   white-space:nowrap;
+  letter-spacing:.01em;
 }
 .jmNavMetaPill.good{
   border-color:rgba(34,197,94,.30);
@@ -575,7 +582,7 @@ details[data-dd="1"]:not([open]) .navMenu{
 .jmAccountHint{
   font-size:12px;
   color:rgba(17,19,24,.48);
-  line-height:1.35;
+  line-height:1.45;
 }
 .menuLabel{
   font-size:12px;
@@ -583,35 +590,42 @@ details[data-dd="1"]:not([open]) .navMenu{
   letter-spacing:.03em;
   text-transform:uppercase;
   color:rgba(17,19,24,.55);
-  padding:2px 4px 0;
+  padding:6px 4px 2px;
 }
 .menuSep{
   height:1px;
   background:rgba(17,19,24,.10);
-  margin:4px 0;
+  margin:6px 2px;
 }
 .jmNavItem{
   width:100%;
   display:flex;
   align-items:center;
-  min-height:38px;
-  padding:8px 10px;
-  border-radius:10px;
-  border:0;
+  justify-content:flex-start;
+  gap:10px;
+  min-height:42px;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid transparent;
   background:transparent;
   color:inherit;
   font-weight:800;
   font-size:13px;
   text-align:left;
+  line-height:1.25;
+  transition:background .15s ease, border-color .15s ease, transform .15s ease;
 }
 .jmNavItem:hover{
-  background:rgba(17,19,24,.05);
+  background:rgba(17,19,24,.045);
+  border-color:rgba(17,19,24,.08);
+  transform:translateY(-1px);
 }
 .jmNavDanger{
   color:#8b1d42;
 }
 .jmNavDanger:hover{
   background:rgba(216,27,96,.08);
+  border-color:rgba(216,27,96,.10);
 }
 @media (max-width: 860px){
   .navMenu{
@@ -663,7 +677,7 @@ details[data-dd="1"]:not([open]) .navMenu{
     const usageInfo = buildAccountUsageInfo(state || {});
 
     if ($("navAccountLabel")) $("navAccountLabel").textContent = shortHandle || "Account";
-    if ($("navAccountTitle")) $("navAccountTitle").textContent = planInfo.detail || "Your account";
+    if ($("navAccountTitle")) $("navAccountTitle").textContent = "Your account";
     if ($("navAccountEmail")) $("navAccountEmail").textContent = email;
     if ($("navPlanPill")){
       $("navPlanPill").textContent = planInfo.shortLabel || "Free";

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>jobmejob • Pricing</title>
   <meta name="description" content="Choose a CV Studio plan or request access to the Auto-apply beta."/>
-  <link rel="stylesheet" href="./shared.css"/>
+  <link rel="stylesheet" href="./shared.css?v=202603301635"/>
   <style>
     .heroCard,
     .priceCard,
@@ -24,7 +24,7 @@
     }
 
     .heroGrid{
-      grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);
+      grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr);
       align-items:stretch;
     }
 
@@ -38,10 +38,10 @@
     }
 
     .heroCopy{
-      padding:26px;
+      padding:30px;
       background:
-        radial-gradient(520px 220px at 100% 0%, rgba(34,197,94,.12), transparent 60%),
-        linear-gradient(180deg, rgba(255,255,255,.98), rgba(245,248,246,.92));
+        radial-gradient(540px 240px at 100% 0%, rgba(34,197,94,.14), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.99), rgba(245,248,246,.94));
     }
 
     .heroCopy h1,
@@ -53,11 +53,26 @@
 
     .heroCopy h1{
       font-size:clamp(34px, 5vw, 58px);
-      max-width:11ch;
+      max-width:12ch;
     }
 
     .heroCopy .sub{
-      max-width:38ch;
+      max-width:43ch;
+      margin-top:16px;
+      font-size:16px;
+      line-height:1.6;
+    }
+
+    .heroActions{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:22px;
+    }
+
+    .heroActions .btn{
+      min-width:170px;
+      justify-content:center;
     }
 
     .eyebrow{
@@ -84,7 +99,7 @@
     }
 
     .proofRow{
-      margin-top:18px;
+      margin-top:20px;
     }
 
     .proofRow span,
@@ -100,10 +115,18 @@
       font-weight:850;
     }
 
+    .heroSupport{
+      margin-top:16px;
+      color:var(--muted2);
+      font-size:13px;
+      line-height:1.55;
+      max-width:46ch;
+    }
+
     .cardBullets{
       display:grid;
-      gap:10px;
-      margin-top:18px;
+      gap:12px;
+      margin-top:22px;
     }
 
     .bulletCard{
@@ -112,9 +135,9 @@
       gap:12px;
       align-items:start;
       border:1px solid rgba(17,19,24,.08);
-      border-radius:18px;
-      background:rgba(255,255,255,.75);
-      padding:12px;
+      border-radius:20px;
+      background:rgba(255,255,255,.78);
+      padding:14px;
     }
 
     .bulletNum{
@@ -134,7 +157,7 @@
     }
 
     .priceCard{
-      padding:18px;
+      padding:20px;
       display:flex;
       flex-direction:column;
       gap:14px;
@@ -158,6 +181,13 @@
       margin:0 0 6px;
       font-size:26px;
       letter-spacing:-.03em;
+    }
+
+    .priceLead{
+      color:var(--muted2);
+      font-size:13px;
+      line-height:1.55;
+      font-weight:700;
     }
 
     .tag{
@@ -200,7 +230,7 @@
     }
 
     .quota{
-      padding:12px;
+      padding:14px;
       border-radius:18px;
       background:rgba(17,19,24,.03);
       border:1px solid rgba(17,19,24,.10);
@@ -256,6 +286,14 @@
       justify-content:center;
     }
 
+    .planFit{
+      margin-top:-2px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.55;
+      font-weight:700;
+    }
+
     .infoCard{
       padding:22px;
     }
@@ -280,7 +318,7 @@
     .requestBox{
       border:1px dashed rgba(17,19,24,.18);
       border-radius:18px;
-      padding:14px;
+      padding:16px;
       background:rgba(17,19,24,.025);
     }
 
@@ -311,6 +349,24 @@
       color:var(--text);
     }
 
+    .sectionHeaderRow{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+
+    .sectionHeaderRow .small{
+      max-width:60ch;
+    }
+
+    .sectionHeaderActions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
     .actionHint{
       margin-top:10px;
       color:var(--muted2);
@@ -323,6 +379,10 @@
       .pricingGrid,
       .infoGrid{
         grid-template-columns:1fr;
+      }
+
+      .heroCopy{
+        padding:24px;
       }
 
       .priceCard.featured{
@@ -345,8 +405,6 @@
         <a class="pill" href="./cv.html" data-nav="1">CV Studio</a>
         <a class="pill" href="./jobs.html" data-nav="1">Jobs</a>
         <a class="pill active" href="./plan.html" data-nav="1">Pricing</a>
-        <a class="pill" href="./cv-studio.html">CV Studio page</a>
-        <a class="pill" href="./index.html">Home</a>
       </div>
       <div class="navcta">
         <details class="navDrop" id="navAccount" style="display:none">
@@ -374,12 +432,12 @@
             <a class="jmNavItem" href="./jobs.html" data-nav="1" role="menuitem">Jobs</a>
             <a class="jmNavItem" href="./profile.html" data-nav="1" role="menuitem">Profile</a>
             <a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Billing & plans</a>
+            <button class="jmNavItem" id="navActivity" type="button" role="menuitem">Activity</button>
             <div class="menuSep" role="separator"></div>
             <button class="jmNavItem jmNavDanger" id="navLogout" type="button" role="menuitem">Logout</button>
           </div>
         </details>
-        <a class="pill" href="./signup.html?mode=login&entry=cv-studio" id="navSignIn" data-nav="1">Sign in</a>
-        <a class="btn small primary" href="./signup.html?entry=cv-studio" id="navStartFree" data-nav="1">Start free</a>
+        <a class="pill" href="./signup.html" id="navSignIn" data-nav="1">Sign in</a>
       </div>
     </nav>
   </header>
@@ -387,44 +445,51 @@
   <main class="main">
     <section class="heroGrid">
       <article class="heroCard heroCopy">
-        <div class="eyebrow">CV Studio first</div>
-        <h1>Pricing that matches how the product is actually used.</h1>
-        <p class="sub">CV Studio is now the default paid product: global, extension-friendly, and usable without job fetching. Auto-apply stays separate as a request-only beta until market coverage is broader.</p>
+        <div class="eyebrow">CV Studio pricing</div>
+        <h1>Start free. Upgrade when CV tailoring becomes part of your weekly search.</h1>
+        <p class="sub">Use one monthly CV quota across the Chrome extension and pasted job descriptions. CV Studio stays simple to buy and easy to understand. Auto-apply remains a separate, request-only beta for users who need more than tailoring.</p>
+
+        <div class="heroActions">
+          <a class="btn primary" href="./signup.html?entry=cv-studio" data-nav="1">Start free</a>
+          <a class="btn ghost" href="#cv-pricing">Compare plans</a>
+        </div>
 
         <div class="proofRow" aria-label="Product positioning">
-          <span>First 5 CVs free</span>
-          <span>Chrome extension + paste flow</span>
-          <span>Auto-apply via request</span>
+          <span>5 tailored CVs free</span>
+          <span>One shared monthly quota</span>
+          <span>Manage billing later</span>
         </div>
+
+        <p class="heroSupport">Best for job seekers who want a cleaner CV workflow first and only want sourcing or Auto-apply if it actually becomes necessary.</p>
 
         <div class="cardBullets">
           <div class="bulletCard">
             <div class="bulletNum">1</div>
             <div>
-              <strong>Global by default</strong>
-              <div class="small">CV Studio works with pasted job descriptions and the Chrome extension, even when job fetching does not.</div>
+              <strong>Works wherever you apply</strong>
+              <div class="small">CV Studio works with pasted job descriptions and the Chrome extension, so the product is useful even when job fetching is not.</div>
             </div>
           </div>
           <div class="bulletCard">
             <div class="bulletNum">2</div>
             <div>
-              <strong>Cheap to try, easy to understand</strong>
-              <div class="small">A simple monthly CV quota is much clearer than daily auto-apply caps for international users.</div>
+              <strong>Simple pricing, low friction</strong>
+              <div class="small">You pay for a monthly CV quota, not for a complicated bundle of automations you may not need yet.</div>
             </div>
           </div>
           <div class="bulletCard">
             <div class="bulletNum">3</div>
             <div>
-              <strong>Honest upsell path</strong>
-              <div class="small">Users can start with tailoring, then request Auto-apply only if they also want sourcing and outbound help.</div>
+              <strong>Auto-apply stays optional</strong>
+              <div class="small">Start with tailoring first, then request the higher-touch Auto-apply beta only if you want sourcing and outbound help too.</div>
             </div>
           </div>
         </div>
       </article>
 
       <aside class="infoCard">
-        <h3>Billing and access</h3>
-        <p>CV Studio should feel lightweight to buy: monthly plans, one shared quota across extension and paste mode, and a clean path to manage billing later.</p>
+        <h3>What happens when you upgrade</h3>
+        <p>Pick the monthly quota that matches your search volume. If checkout is live you go straight into billing. If a billing path is still being finalized, you still get a guided fallback instead of a dead end.</p>
 
         <div class="statusStrip">
           <span class="badge warn" id="authBadge">Checking...</span>
@@ -440,18 +505,27 @@
           </div>
           <p class="footNote" id="billingSummary" style="margin:12px 0 0">Paid CV Studio plans open in Stripe checkout. Signed-in customers can later manage or cancel in the billing portal.</p>
         </div>
+
+        <div class="requestBox" style="margin-top:14px">
+          <div class="miniLabel">Best if you want</div>
+          <ul class="planFeatures" style="margin-top:12px">
+            <li>A clear start with no commitment</li>
+            <li>A paid plan that matches real application volume</li>
+            <li>A separate path for Auto-apply instead of hidden complexity</li>
+          </ul>
+        </div>
       </aside>
     </section>
 
     <section class="card" id="cv-pricing" style="margin-top:18px">
-      <div class="sectionTitle">
-        <div class="sectionTitleTop">
+      <div>
+        <div class="sectionHeaderRow">
           <div>
             <h2 class="sectionTitle">CV Studio plans</h2>
-            <div class="small" style="margin-top:8px">The extension and the paste flow use the same CV Studio quota. Prices below are monthly.</div>
+            <div class="small" style="margin-top:8px">Choose the quota that matches how often you tailor. The extension and the paste flow use the same monthly CV Studio allowance.</div>
           </div>
-          <div class="sectionTitleActions">
-            <a class="btn small ghost" href="./cv-studio.html">Public product page</a>
+          <div class="sectionHeaderActions">
+            <a class="btn small ghost" href="./cv.html" data-nav="1">Open CV Studio</a>
             <button class="btn small ghost" id="btnManageBilling" type="button">Manage billing</button>
           </div>
         </div>
@@ -462,7 +536,7 @@
           <div class="priceTop">
             <div>
               <h3>Free</h3>
-              <div class="small">Try the workflow before paying.</div>
+              <div class="priceLead">Validate the workflow before you pay.</div>
             </div>
             <span class="tag">Included</span>
           </div>
@@ -474,8 +548,10 @@
 
           <div class="quota">
             <strong>5 tailored CVs</strong>
-            <span class="small">Enough to validate the extension flow and your first applications.</span>
+            <span class="small">Enough to test the extension, the pasted job flow, and your first applications.</span>
           </div>
+
+          <div class="planFit"><strong>Best for:</strong> trying the product before it becomes part of your weekly routine.</div>
 
           <ul class="planFeatures">
             <li>Chrome extension + pasted JD flow</li>
@@ -492,7 +568,7 @@
           <div class="priceTop">
             <div>
               <h3>Starter</h3>
-              <div class="small">For focused weekly applications.</div>
+              <div class="priceLead">For active weekly applications across a few target roles.</div>
             </div>
             <span class="tag good">Recommended</span>
           </div>
@@ -504,8 +580,10 @@
 
           <div class="quota">
             <strong>10 tailored CVs / month</strong>
-            <span class="small">Keeps the product lightweight while covering a normal active search.</span>
+            <span class="small">A lightweight paid tier for a normal active search without overbuying usage.</span>
           </div>
+
+          <div class="planFit"><strong>Best for:</strong> focused job searches where tailoring quality matters more than brute-force volume.</div>
 
           <ul class="planFeatures">
             <li>All free features</li>
@@ -522,7 +600,7 @@
           <div class="priceTop">
             <div>
               <h3>Plus</h3>
-              <div class="small">For broader or multi-role searches.</div>
+              <div class="priceLead">For broader, heavier, or multi-role search volume.</div>
             </div>
             <span class="tag">Power users</span>
           </div>
@@ -534,8 +612,10 @@
 
           <div class="quota">
             <strong>50 tailored CVs / month</strong>
-            <span class="small">Better for daily extension usage across many applications.</span>
+            <span class="small">Built for daily usage when you tailor across more roles, markets, or experiments.</span>
           </div>
+
+          <div class="planFit"><strong>Best for:</strong> heavier weekly usage, repeated tailoring, and broader search coverage.</div>
 
           <ul class="planFeatures">
             <li>All Starter features</li>
@@ -549,36 +629,36 @@
         </article>
       </div>
 
-      <p class="footNote" id="checkoutNote" style="margin:14px 0 0">Free includes 5 tailored CVs. Paid plans bill monthly and use one shared quota across the extension and manual paste flow.</p>
+      <p class="footNote" id="checkoutNote" style="margin:14px 0 0">Free includes 5 tailored CVs. Paid plans are monthly and use one shared quota across extension and manual paste mode.</p>
     </section>
 
     <section class="infoGrid" style="margin-top:18px">
       <article class="infoCard">
-        <div class="tag">Billing basics</div>
-        <h3 style="margin-top:14px">Make pricing feel simple</h3>
+        <div class="tag">Included across the product</div>
+        <h3 style="margin-top:14px">One workflow, different usage levels</h3>
         <ul class="planFeatures" style="margin-top:18px">
-          <li>Monthly plans instead of daily caps or market-specific complexity</li>
           <li>One quota covers both Chrome extension imports and pasted job descriptions</li>
-          <li>Start free, then upgrade only when CV Studio becomes part of the weekly routine</li>
-          <li>Auto-apply stays separate so international users are not forced into a Germany-first workflow</li>
+          <li>Start free, then upgrade only when CV Studio becomes part of your real routine</li>
+          <li>Keep using the same stored base CV and tailoring flow as you move up plans</li>
+          <li>Auto-apply stays separate so pricing remains simple and globally usable</li>
         </ul>
       </article>
 
       <aside class="infoCard">
-        <div class="tag">Before someone pays</div>
-        <h3 style="margin-top:14px">Questions customers usually have</h3>
+        <div class="tag">Before you pay</div>
+        <h3 style="margin-top:14px">Questions people usually ask</h3>
         <div class="faqStack">
           <div class="faqItem">
             <strong>What counts toward the quota?</strong>
             <div class="small">Each successful tailored CV generation counts once, whether it starts from the extension or from pasted job text.</div>
           </div>
           <div class="faqItem">
-            <strong>Can I upgrade later?</strong>
-            <div class="small">Yes. Users can begin on Free, move into Starter or Plus when needed, and keep Auto-apply as a separate request step.</div>
+            <strong>Do I need Auto-apply to use CV Studio?</strong>
+            <div class="small">No. CV Studio is the main product. Auto-apply is optional and handled separately for users who want more than tailoring.</div>
           </div>
           <div class="faqItem">
-            <strong>What if billing is not fully self-serve yet?</strong>
-            <div class="small">The page should still give a clean fallback so interested users can request access instead of hitting a dead end.</div>
+            <strong>What if self-serve billing is still being finalized?</strong>
+            <div class="small">You still get a guided fallback, so you can signal buying intent and get help instead of hitting a dead end.</div>
           </div>
         </div>
       </aside>
@@ -587,13 +667,13 @@
     <section class="infoGrid" id="auto-apply-request" style="margin-top:18px">
       <article class="infoCard">
         <div class="tag">Request beta</div>
-        <h3 style="margin-top:14px">Auto-apply should be request-only for now</h3>
-        <p>Job fetching and Auto-apply are still market-sensitive. Instead of asking every user to pick a daily application quota, this should now be positioned as a guided beta for users who want more than CV tailoring.</p>
+        <h3 style="margin-top:14px">Add Auto-apply only if you need more than CV tailoring</h3>
+        <p>Auto-apply is a guided beta for users who also want sourcing and outbound support. Keeping it separate makes the main product simpler, more honest, and easier to buy.</p>
 
         <div class="featureList" style="margin-top:18px">
           <span>Best for supported markets</span>
           <span>Higher-touch onboarding</span>
-          <span>Honest expectation setting</span>
+          <span>Request before access</span>
         </div>
 
         <div style="margin-top:18px">
@@ -602,21 +682,21 @@
       </article>
 
       <aside class="infoCard">
-        <h3>What users should understand</h3>
-        <p>CV Studio is the default product. Auto-apply is the add-on. That keeps the extension globally useful and prevents international users from feeling forced into a Germany-focused workflow.</p>
+        <h3>Who should request it</h3>
+        <p>Request Auto-apply if you already know you want help beyond tailoring and you are comfortable with a more guided, higher-touch setup.</p>
 
         <ul class="planFeatures" style="margin-top:18px">
-          <li>CV Studio works without job fetching</li>
+          <li>CV Studio already works without job fetching</li>
           <li>Auto-apply depends on sourcing quality and market support</li>
-          <li>The higher-ticket product should begin with a request flow</li>
+          <li>The higher-touch product starts with a request flow on purpose</li>
         </ul>
       </aside>
     </section>
   </main>
 
   <script src="./vendor/supabase-js-2.100.1.js"></script>
-  <script src="./auth.js"></script>
-  <script src="./shared.js"></script>
+  <script src="./auth.js?v=202603301635"></script>
+  <script src="./shared.js?v=202603301635"></script>
   <script>
   (() => {
     "use strict";
@@ -737,7 +817,7 @@
       const portalReady = !!state.portalEnabled;
       const chips = [];
 
-      chips.push(starterReady || plusReady ? "Secure Stripe checkout" : "Guided billing handoff");
+      chips.push(starterReady || plusReady ? "Secure checkout" : "Guided billing handoff");
       chips.push(portalReady ? "Self-serve billing portal" : "Direct billing support");
       chips.push("Auto-apply reviewed on request");
 
@@ -760,19 +840,19 @@
       }
 
       if (starterReady && plusReady && portalReady) {
-        setText("billingSummary", "Paid CV Studio plans open in secure Stripe checkout. Signed-in customers can manage or cancel later in the billing portal.");
-        setText("checkoutNote", "Free includes 5 tailored CVs. Starter and Plus are monthly CV Studio plans with one shared quota across extension and paste mode.");
+        setText("billingSummary", "Paid CV Studio plans open in secure checkout. Signed-in customers can manage or cancel later in the billing portal.");
+        setText("checkoutNote", "Starter and Plus are monthly CV Studio plans with one shared quota across extension and paste mode.");
         return;
       }
 
       if (starterReady || plusReady) {
         setText("billingSummary", "Checkout is available for paid CV Studio plans. If a specific billing action is not self-serve yet, the page falls back to direct support.");
-        setText("checkoutNote", "Paid plans are monthly. If a checkout or billing action is still being finalized, users are routed into a billing request instead of hitting a dead end.");
+        setText("checkoutNote", "Paid plans are monthly. If a billing action is still being finalized, you still get a guided support path.");
         return;
       }
 
       setText("billingSummary", "Pricing is live, but direct checkout is still being finalized. Paid plan buttons currently route into a guided billing request.");
-      setText("checkoutNote", "Keep the pricing public and simple even before checkout is fully live: users should still be able to express buying intent and get a response.");
+      setText("checkoutNote", "If checkout is not live yet, you can still request access and get a response instead of losing your place.");
     }
 
     function applyBillingReturnState() {
@@ -783,7 +863,7 @@
           setBadge("authBadge", "good", "Checkout complete");
           setText("checkoutNote", "Thanks. Your billing flow completed successfully. If your plan status does not refresh immediately, reopen CV Studio in a moment.");
         } else if (state === "cancelled") {
-          setText("checkoutNote", "Checkout was cancelled. You can retry at any time or stay on the free plan.");
+          setText("checkoutNote", "Checkout was cancelled. You can retry any time or stay on the free plan.");
         }
       } catch (_) {}
     }
@@ -844,7 +924,7 @@
 
     async function boot() {
       setBadge("authBadge", "warn", "Checking...");
-      setBadge("sessionBadge", "", "Session: signed out");
+      setBadge("sessionBadge", "", "Account: not signed in");
 
       await fetchBillingConfig();
 
@@ -856,10 +936,10 @@
 
       if (session && session.user && session.user.email) {
         setBadge("authBadge", "good", "Signed in");
-        setBadge("sessionBadge", "", "Session: " + String(session.user.email));
+        setBadge("sessionBadge", "", String(session.user.email));
       } else {
-        setBadge("authBadge", "warn", "Signed out");
-        setBadge("sessionBadge", "", "Session: sign in to subscribe");
+        setBadge("authBadge", "warn", "Ready to start free");
+        setBadge("sessionBadge", "", "Create an account when you want to upgrade");
       }
 
       setBillingPresentation();
