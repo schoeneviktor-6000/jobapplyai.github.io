@@ -593,10 +593,12 @@
 
     const $ = (id) => document.getElementById(id);
     const APP = window.JobMeJob || window.JobApplyAI || {};
+    const API_BASE = String((APP.config && APP.config.API_BASE) || "").trim();
     const LINKS = (APP.config && APP.config.LINKS) ? APP.config.LINKS : {};
     const auth = APP.auth || null;
 
     let session = null;
+    let billingState = null;
 
     const CHECKOUTS = {
       starter: String(LINKS.CV_STUDIO_STARTER_URL || "").trim(),
@@ -624,6 +626,12 @@
       window.location.href = url;
     }
 
+    function notify(text, kind) {
+      try {
+        window.JobMeJobShared?.toast?.(String(text || ""), { kind: kind || "warn", title: "Billing" });
+      } catch (_) {}
+    }
+
     function supportFallback(subject, body) {
       const params = new URLSearchParams();
       params.set("subject", String(subject || "jobmejob support"));
@@ -631,10 +639,69 @@
       return "mailto:" + SUPPORT_EMAIL + "?" + params.toString();
     }
 
+    async function fetchBillingConfig() {
+      const fallback = {
+        starterEnabled: !!CHECKOUTS.starter,
+        plusEnabled: !!CHECKOUTS.plus,
+        portalEnabled: !!BILLING_PORTAL,
+        source: "links"
+      };
+
+      if (!API_BASE) {
+        billingState = fallback;
+        return billingState;
+      }
+
+      try {
+        const res = await fetch(API_BASE.replace(/\/+$/, "") + "/billing/config", { method: "GET" });
+        const data = await res.json().catch(() => null);
+        const billing = data && data.billing ? data.billing : null;
+        if (!res.ok || !billing) throw new Error("Billing config unavailable");
+
+        billingState = {
+          starterEnabled: billing.starter_enabled === true || fallback.starterEnabled,
+          plusEnabled: billing.plus_enabled === true || fallback.plusEnabled,
+          portalEnabled: billing.portal_enabled === true || fallback.portalEnabled,
+          source: "backend"
+        };
+        return billingState;
+      } catch (_) {
+        billingState = fallback;
+        return billingState;
+      }
+    }
+
+    async function apiPostAuthed(path, body) {
+      if (!API_BASE) throw new Error("Billing API is not configured");
+      const activeSession = session || (auth && typeof auth.getSession === "function" ? await auth.getSession() : null);
+      if (!activeSession || !activeSession.access_token) throw new Error("Please sign in first.");
+
+      const res = await fetch(API_BASE.replace(/\/+$/, "") + path, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          Authorization: "Bearer " + activeSession.access_token
+        },
+        body: JSON.stringify(body || {})
+      });
+
+      const text = await res.text().catch(() => "");
+      let data = null;
+      try { data = text ? JSON.parse(text) : null; } catch { data = null; }
+      if (!res.ok) throw new Error((data && data.error) ? data.error : ("Request failed: " + res.status));
+      return data || {};
+    }
+
     function setBillingPresentation() {
-      const starterReady = !!CHECKOUTS.starter;
-      const plusReady = !!CHECKOUTS.plus;
-      const portalReady = !!BILLING_PORTAL;
+      const state = billingState || {
+        starterEnabled: !!CHECKOUTS.starter,
+        plusEnabled: !!CHECKOUTS.plus,
+        portalEnabled: !!BILLING_PORTAL,
+        source: "links"
+      };
+      const starterReady = !!state.starterEnabled;
+      const plusReady = !!state.plusEnabled;
+      const portalReady = !!state.portalEnabled;
       const chips = [];
 
       chips.push(starterReady || plusReady ? "Secure Stripe checkout" : "Guided billing handoff");
@@ -675,7 +742,20 @@
       setText("checkoutNote", "Keep the pricing public and simple even before checkout is fully live: users should still be able to express buying intent and get a response.");
     }
 
-    function openCvPlan(plan) {
+    function applyBillingReturnState() {
+      try {
+        const url = new URL(window.location.href);
+        const state = String(url.searchParams.get("billing") || "").trim().toLowerCase();
+        if (state === "success") {
+          setBadge("authBadge", "good", "Checkout complete");
+          setText("checkoutNote", "Thanks. Your billing flow completed successfully. If your plan status does not refresh immediately, reopen CV Studio in a moment.");
+        } else if (state === "cancelled") {
+          setText("checkoutNote", "Checkout was cancelled. You can retry at any time or stay on the free plan.");
+        }
+      } catch (_) {}
+    }
+
+    async function openCvPlan(plan) {
       const pid = String(plan || "").trim().toLowerCase();
       if (pid === "free") {
         go(session ? "./cv.html" : "./signup.html?entry=cv-studio");
@@ -687,27 +767,53 @@
         return;
       }
 
-      const target = CHECKOUTS[pid] || supportFallback(
+      const fallbackTarget = CHECKOUTS[pid] || supportFallback(
         pid === "starter" ? "CV Studio Starter plan" : "CV Studio Plus plan",
         "Hi jobmejob team,\n\nI would like help activating the " + (pid === "starter" ? "Starter" : "Plus") + " CV Studio plan.\n\nThanks."
       );
-      window.location.href = target;
+
+      try {
+        const data = await apiPostAuthed("/me/billing/checkout", { plan_id: pid });
+        if (data && data.url) {
+          window.location.href = data.url;
+          return;
+        }
+      } catch (err) {
+        notify(String(err?.message || err || "Billing checkout failed"), "warn");
+      }
+
+      window.location.href = fallbackTarget;
     }
 
-    function openBillingPortal() {
+    async function openBillingPortal() {
       if (!session || !session.user || !session.user.email) {
         go("./signup.html?entry=cv-studio&next=plan");
         return;
       }
-      window.location.href = BILLING_PORTAL || supportFallback(
+
+      const fallbackTarget = BILLING_PORTAL || supportFallback(
         "CV Studio billing support",
         "Hi jobmejob team,\n\nI need help with billing for my CV Studio subscription.\n\nThanks."
       );
+
+      try {
+        const data = await apiPostAuthed("/me/billing/portal", {});
+        if (data && data.url) {
+          window.location.href = data.url;
+          return;
+        }
+      } catch (err) {
+        notify(String(err?.message || err || "Billing portal unavailable"), "warn");
+      }
+
+      window.location.href = fallbackTarget;
     }
 
     async function boot() {
       setBadge("authBadge", "warn", "Checking...");
       setBadge("sessionBadge", "", "Session: signed out");
+
+      await fetchBillingConfig();
 
       try {
         session = auth && typeof auth.getSession === "function" ? await auth.getSession() : null;
@@ -724,12 +830,28 @@
       }
 
       setBillingPresentation();
+      applyBillingReturnState();
 
       document.querySelectorAll("button[data-cv-plan]").forEach((btn) => {
-        btn.addEventListener("click", () => openCvPlan(btn.getAttribute("data-cv-plan")));
+        btn.addEventListener("click", async () => {
+          btn.disabled = true;
+          try {
+            await openCvPlan(btn.getAttribute("data-cv-plan"));
+          } finally {
+            btn.disabled = false;
+          }
+        });
       });
 
-      $("btnManageBilling")?.addEventListener("click", openBillingPortal);
+      $("btnManageBilling")?.addEventListener("click", async () => {
+        const btn = $("btnManageBilling");
+        if (btn) btn.disabled = true;
+        try {
+          await openBillingPortal();
+        } finally {
+          if (btn) btn.disabled = false;
+        }
+      });
       $("btnAutoApplyRequest")?.addEventListener("click", () => { window.location.href = AUTO_APPLY_REQUEST_URL; });
     }
 

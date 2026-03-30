@@ -4,6 +4,8 @@
 // POST /customers/upsert                 (PUBLIC - for website signup)
 // POST /customer-profiles/upsert         (PUBLIC - legacy; prefer /me/profile)
 // POST /customer-plans/upsert            (PUBLIC - legacy; prefer /me/plan)
+// GET  /billing/config                   (PUBLIC - pricing/billing capabilities)
+// POST /stripe/webhook                   (PUBLIC - Stripe webhook)
 // GET  /customers/search?email=test@example.com
 // GET  /jobs/search?country=DE&q=analyst&city=Berlin&limit=25&email=test@example.com
 // POST /ingest/ba
@@ -17,6 +19,8 @@
 // POST /me/profile                                      <-- customer (Supabase auth)  [NEW]
 // GET  /me/plan                                          <-- customer (Supabase auth)  [NEW]
 // POST /me/plan                                         <-- customer (Supabase auth)  [NEW]
+// POST /me/billing/checkout                              <-- customer (Supabase auth)
+// POST /me/billing/portal                                <-- customer (Supabase auth)
 // GET  /me/cv                                            <-- customer (Supabase auth)
 // POST /me/cv                                           <-- customer (Supabase auth)
 // POST /me/cv/suggest-titles                             <-- customer (Supabase auth)
@@ -53,6 +57,14 @@
 // GCP_GCS_INPUT_PREFIX (Text) default "input"
 // GCP_GCS_OUTPUT_PREFIX (Text) default "output"
 // OCR_MAX_PDF_BYTES (Text) default 10485760 (10MB)
+//
+// Stripe / billing vars:
+// STRIPE_SECRET_KEY (Secret)
+// STRIPE_WEBHOOK_SECRET (Secret)
+// STRIPE_CV_STARTER_PRICE_ID (Text)
+// STRIPE_CV_PLUS_PRICE_ID (Text)
+// STRIPE_BILLING_PORTAL_CONFIGURATION_ID (Text, optional)
+// SITE_ORIGIN (Text, optional; default https://jobmejob.com)
 
 export default {
   async fetch(request, env) {
@@ -75,6 +87,8 @@ export default {
   "POST /customers/upsert",
   "POST /customer-profiles/upsert",
   "POST /customer-plans/upsert",
+  "GET /billing/config",
+  "POST /stripe/webhook",
   "GET /me/jobs/queue",
   "GET /me/jobs/description?job_id=<uuid>",
   "GET /me/applications/summary",
@@ -82,6 +96,8 @@ export default {
   "POST /me/profile",
   "GET /me/plan",
   "POST /me/plan",
+  "POST /me/billing/checkout",
+  "POST /me/billing/portal",
   "GET /me/cv",
   "POST /me/cv",
   "POST /me/cv/suggest-titles",
@@ -115,6 +131,12 @@ export default {
   }
   if (url.pathname === "/customer-plans/upsert" && request.method === "POST") {
   return await handleCustomerPlanUpsertPublic(request, env);
+  }
+  if ((url.pathname === "/billing/config" || url.pathname === "/api/billing/config") && request.method === "GET") {
+  return await handleBillingConfigGet(request, env);
+  }
+  if ((url.pathname === "/stripe/webhook" || url.pathname === "/api/stripe/webhook") && request.method === "POST") {
+  return await handleStripeWebhook(request, env);
   }
   
   // Customer (/me)
@@ -152,6 +174,12 @@ if (url.pathname === "/me/profile" && request.method === "GET") {
   }    
   if (url.pathname === "/me/plan" && request.method === "POST") {
   return await handleMePlanUpsert(request, env);
+  }
+  if ((url.pathname === "/me/billing/checkout" || url.pathname === "/api/me/billing/checkout") && request.method === "POST") {
+    return await handleMeBillingCheckout(request, env);
+  }
+  if ((url.pathname === "/me/billing/portal" || url.pathname === "/api/me/billing/portal") && request.method === "POST") {
+    return await handleMeBillingPortal(request, env);
   }
     if (url.pathname === "/me/ai/profile-from-cv" && request.method === "POST") {
     return await handleMeAiProfileFromCv(request, env);
@@ -436,6 +464,177 @@ const data = new TextEncoder().encode(String(input ?? ""));
 const hashBuf = await crypto.subtle.digest("SHA-256", data);
 const hashArr = Array.from(new Uint8Array(hashBuf));
 return hashArr.map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function normalizeCvStudioPlanId(planId) {
+  const raw = String(planId || "").trim().toLowerCase();
+  if (raw === "starter" || raw === "cv_starter") return "cv_starter";
+  if (raw === "plus" || raw === "cv_plus") return "cv_plus";
+  if (raw === "unlimited" || raw === "cv_unlimited") return "cv_unlimited";
+  if (raw === "free") return "free";
+  return null;
+}
+
+function getStripeBillingConfig(env) {
+  const secret = String(env.STRIPE_SECRET_KEY || "").trim();
+  const starterPriceId = String(env.STRIPE_CV_STARTER_PRICE_ID || "").trim();
+  const plusPriceId = String(env.STRIPE_CV_PLUS_PRICE_ID || "").trim();
+  const mode = secret.startsWith("sk_live_") ? "live" : (secret.startsWith("sk_test_") ? "test" : "unknown");
+  return {
+    provider: "stripe",
+    mode,
+    stripe_enabled: !!secret,
+    checkout_enabled: !!secret && (!!starterPriceId || !!plusPriceId),
+    starter_enabled: !!secret && !!starterPriceId,
+    plus_enabled: !!secret && !!plusPriceId,
+    portal_enabled: !!secret,
+    webhook_enabled: !!String(env.STRIPE_WEBHOOK_SECRET || "").trim()
+  };
+}
+
+function getSiteOrigin(env) {
+  return String(env.SITE_ORIGIN || env.PUBLIC_SITE_ORIGIN || "https://jobmejob.com").trim().replace(/\/+$/, "");
+}
+
+function getStripePriceIdForPlan(env, planId) {
+  const pid = normalizeCvStudioPlanId(planId);
+  if (pid === "cv_starter") return String(env.STRIPE_CV_STARTER_PRICE_ID || "").trim();
+  if (pid === "cv_plus") return String(env.STRIPE_CV_PLUS_PRICE_ID || "").trim();
+  return "";
+}
+
+async function stripeFetchJson(env, path, { method = "GET", body = null } = {}) {
+  const secret = mustEnv(env, "STRIPE_SECRET_KEY");
+  const res = await fetch(`https://api.stripe.com${path}`, {
+    method,
+    headers: {
+      Authorization: `Bearer ${secret}`,
+      ...(body ? { "Content-Type": "application/x-www-form-urlencoded" } : {})
+    },
+    body: body ? body.toString() : undefined
+  });
+
+  const text = await res.text().catch(() => "");
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch { data = null; }
+  if (!res.ok) {
+    const msg = data?.error?.message || text || `Stripe error ${res.status}`;
+    throw new Error(`Stripe error ${res.status}: ${msg}`);
+  }
+  return data;
+}
+
+async function stripeFindCustomerByEmail(env, email) {
+  const q = new URLSearchParams();
+  q.set("email", String(email || "").trim().toLowerCase());
+  q.set("limit", "1");
+  const data = await stripeFetchJson(env, `/v1/customers?${q.toString()}`, { method: "GET" });
+  return Array.isArray(data?.data) && data.data.length ? data.data[0] : null;
+}
+
+async function stripeGetCustomer(env, stripeCustomerId) {
+  if (!stripeCustomerId) return null;
+  return await stripeFetchJson(env, `/v1/customers/${encodeURIComponent(String(stripeCustomerId))}`, { method: "GET" });
+}
+
+async function stripeGetSubscription(env, subscriptionId) {
+  if (!subscriptionId) return null;
+  return await stripeFetchJson(env, `/v1/subscriptions/${encodeURIComponent(String(subscriptionId))}`, { method: "GET" });
+}
+
+async function stripeEnsureCustomer(env, { email, customerId }) {
+  const normalizedEmail = String(email || "").trim().toLowerCase();
+  if (!looksLikeEmail(normalizedEmail)) throw new Error("Valid email is required for Stripe customer");
+
+  const existing = await stripeFindCustomerByEmail(env, normalizedEmail);
+  if (existing?.id) return existing;
+
+  const body = new URLSearchParams();
+  body.set("email", normalizedEmail);
+  if (customerId) body.set("metadata[customer_id]", String(customerId));
+  return await stripeFetchJson(env, "/v1/customers", { method: "POST", body });
+}
+
+async function stripeCreateCheckoutSession(env, { email, customerId, planId }) {
+  const normalizedPlanId = normalizeCvStudioPlanId(planId);
+  const priceId = getStripePriceIdForPlan(env, normalizedPlanId);
+  if (!priceId) throw new Error("Stripe checkout is not configured for that plan");
+
+  const stripeCustomer = await stripeEnsureCustomer(env, { email, customerId });
+  const siteOrigin = getSiteOrigin(env);
+  const params = new URLSearchParams();
+  params.set("mode", "subscription");
+  params.set("customer", stripeCustomer.id);
+  params.set("client_reference_id", String(customerId || ""));
+  params.set("success_url", `${siteOrigin}/plan.html?billing=success&plan=${encodeURIComponent(normalizedPlanId)}`);
+  params.set("cancel_url", `${siteOrigin}/plan.html?billing=cancelled#cv-pricing`);
+  params.set("allow_promotion_codes", "true");
+  params.set("line_items[0][price]", priceId);
+  params.set("line_items[0][quantity]", "1");
+  params.set("metadata[customer_id]", String(customerId || ""));
+  params.set("metadata[plan_id]", normalizedPlanId);
+  params.set("metadata[email]", String(email || ""));
+  params.set("subscription_data[metadata][customer_id]", String(customerId || ""));
+  params.set("subscription_data[metadata][plan_id]", normalizedPlanId);
+  params.set("subscription_data[metadata][email]", String(email || ""));
+  return await stripeFetchJson(env, "/v1/checkout/sessions", { method: "POST", body: params });
+}
+
+async function stripeCreatePortalSession(env, { email, customerId }) {
+  const stripeCustomer = await stripeEnsureCustomer(env, { email, customerId });
+  const params = new URLSearchParams();
+  params.set("customer", stripeCustomer.id);
+  params.set("return_url", `${getSiteOrigin(env)}/plan.html#cv-pricing`);
+  const configurationId = String(env.STRIPE_BILLING_PORTAL_CONFIGURATION_ID || "").trim();
+  if (configurationId) params.set("configuration", configurationId);
+  return await stripeFetchJson(env, "/v1/billing_portal/sessions", { method: "POST", body: params });
+}
+
+function parseStripeSignatureHeader(headerValue) {
+  const out = { timestamp: "", signatures: [] };
+  for (const part of String(headerValue || "").split(",")) {
+    const idx = part.indexOf("=");
+    if (idx <= 0) continue;
+    const key = part.slice(0, idx).trim();
+    const value = part.slice(idx + 1).trim();
+    if (key === "t") out.timestamp = value;
+    if (key === "v1" && value) out.signatures.push(value);
+  }
+  return out;
+}
+
+function timingSafeEqualHex(a, b) {
+  const aa = String(a || "");
+  const bb = String(b || "");
+  if (aa.length !== bb.length) return false;
+  let diff = 0;
+  for (let i = 0; i < aa.length; i += 1) diff |= aa.charCodeAt(i) ^ bb.charCodeAt(i);
+  return diff === 0;
+}
+
+async function hmacSha256Hex(secret, payload) {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(String(secret || "")),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(String(payload || "")));
+  return Array.from(new Uint8Array(sig)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function verifyStripeWebhookSignature(env, payload, signatureHeader) {
+  const secret = mustEnv(env, "STRIPE_WEBHOOK_SECRET");
+  const parsed = parseStripeSignatureHeader(signatureHeader);
+  if (!parsed.timestamp || !parsed.signatures.length) return false;
+
+  const now = Math.floor(Date.now() / 1000);
+  const ts = Number(parsed.timestamp);
+  if (!Number.isFinite(ts) || Math.abs(now - ts) > 300) return false;
+
+  const expected = await hmacSha256Hex(secret, `${parsed.timestamp}.${payload}`);
+  return parsed.signatures.some((sig) => timingSafeEqualHex(expected, sig));
 }
 
 // -----------------------------
@@ -1113,10 +1312,10 @@ async function ensureCustomerBootstrap(env, email) {
     headers: { Prefer: "resolution=ignore-duplicates,return=minimal" }
   });
 
-  // 4) Ensure plan row exists (default starter; ignore duplicates)
+  // 4) Ensure plan row exists (default free; ignore duplicates)
   await supabaseFetch(env, `/rest/v1/customer_plans?on_conflict=customer_id`, {
     method: "POST",
-    body: [{ customer_id: customerId, plan_id: "starter", updated_at: now }],
+    body: [{ customer_id: customerId, plan_id: "free", updated_at: now }],
     headers: { Prefer: "resolution=ignore-duplicates,return=minimal" }
   });
 
@@ -1446,7 +1645,7 @@ async function ensureCvStudioImportedJob(env, customerId, {
   }
   
   const plan_id = (body?.plan_id || "").toString().trim().toLowerCase();
-  const allowed = new Set(["starter", "pro", "max", "cv_starter", "cv_plus", "cv_unlimited"]);
+  const allowed = new Set(["free", "starter", "pro", "max", "cv_starter", "cv_plus", "cv_unlimited"]);
   if (!allowed.has(plan_id)) {
   return json(request, { error: "Invalid plan_id", allowed: Array.from(allowed) }, 400);
   }
@@ -1461,6 +1660,123 @@ async function ensureCvStudioImportedJob(env, customerId, {
   
   return json(request, { ok: true, customer_id, plan_id }, 200);
   }
+
+async function handleBillingConfigGet(request, env) {
+  const billing = getStripeBillingConfig(env);
+  return json(request, { ok: true, billing }, 200);
+}
+
+async function upsertCustomerPlanRecord(env, customerId, planId) {
+  const normalizedPlanId = normalizeCvStudioPlanId(planId) || (String(planId || "").trim().toLowerCase() === "free" ? "free" : null);
+  if (!looksLikeUuid(customerId)) throw new Error("Valid customerId is required");
+  if (!normalizedPlanId) throw new Error("Unsupported planId");
+
+  await supabaseFetch(env, `/rest/v1/customer_plans?on_conflict=customer_id`, {
+    method: "POST",
+    body: [{
+      customer_id: customerId,
+      plan_id: normalizedPlanId,
+      updated_at: new Date().toISOString()
+    }],
+    headers: { Prefer: "resolution=merge-duplicates,return=minimal" }
+  });
+
+  return normalizedPlanId;
+}
+
+function resolveStripePlanIdFromSubscription(env, subscription) {
+  const metaPlanId = normalizeCvStudioPlanId(subscription?.metadata?.plan_id || "");
+  if (metaPlanId) return metaPlanId;
+
+  const items = Array.isArray(subscription?.items?.data) ? subscription.items.data : [];
+  for (const item of items) {
+    const priceId = String(item?.price?.id || "").trim();
+    if (!priceId) continue;
+    if (priceId === String(env.STRIPE_CV_STARTER_PRICE_ID || "").trim()) return "cv_starter";
+    if (priceId === String(env.STRIPE_CV_PLUS_PRICE_ID || "").trim()) return "cv_plus";
+  }
+  return null;
+}
+
+async function resolveStripeCustomerContext(env, stripeCustomerId, metadata = {}) {
+  let customerId = looksLikeUuid(metadata?.customer_id) ? String(metadata.customer_id).trim() : "";
+  let email = looksLikeEmail(metadata?.email || "") ? String(metadata.email).trim().toLowerCase() : "";
+
+  if ((!customerId || !email) && stripeCustomerId) {
+    const stripeCustomer = await stripeGetCustomer(env, stripeCustomerId);
+    if (!customerId && looksLikeUuid(stripeCustomer?.metadata?.customer_id)) {
+      customerId = String(stripeCustomer.metadata.customer_id).trim();
+    }
+    if (!email && looksLikeEmail(stripeCustomer?.email || "")) {
+      email = String(stripeCustomer.email).trim().toLowerCase();
+    }
+  }
+
+  if (!customerId && email) {
+    customerId = await getCustomerIdForSupabaseUserEmail(env, email) || "";
+  }
+  if (!customerId && email) {
+    const boot = await ensureCustomerBootstrap(env, email);
+    customerId = boot.customerId;
+  }
+
+  return { customerId: customerId || null, email: email || null };
+}
+
+async function syncStripeSubscriptionToCustomerPlan(env, subscription, { forceFree = false } = {}) {
+  if (!subscription || typeof subscription !== "object") return null;
+
+  const stripeCustomerId = String(subscription.customer || "").trim();
+  const ctx = await resolveStripeCustomerContext(env, stripeCustomerId, subscription.metadata || {});
+  if (!ctx.customerId) throw new Error("Could not resolve customer for Stripe subscription");
+
+  const status = String(subscription.status || "").trim().toLowerCase();
+  if (forceFree || ["canceled", "unpaid", "incomplete_expired"].includes(status)) {
+    return await upsertCustomerPlanRecord(env, ctx.customerId, "free");
+  }
+
+  if (!["active", "trialing", "past_due"].includes(status)) {
+    return null;
+  }
+
+  const planId = resolveStripePlanIdFromSubscription(env, subscription);
+  if (!planId) throw new Error("Could not resolve CV Studio plan from Stripe subscription");
+  return await upsertCustomerPlanRecord(env, ctx.customerId, planId);
+}
+
+async function handleStripeWebhook(request, env) {
+  const payload = await request.text();
+  const signatureHeader = request.headers.get("Stripe-Signature") || "";
+
+  if (!(await verifyStripeWebhookSignature(env, payload, signatureHeader))) {
+    return json(request, { error: "Invalid Stripe signature" }, 400);
+  }
+
+  let event = null;
+  try {
+    event = JSON.parse(payload);
+  } catch {
+    return json(request, { error: "Invalid Stripe webhook payload" }, 400);
+  }
+
+  try {
+    const obj = event?.data?.object || null;
+    const type = String(event?.type || "").trim();
+
+    if (type === "customer.subscription.created" || type === "customer.subscription.updated") {
+      await syncStripeSubscriptionToCustomerPlan(env, obj);
+    } else if (type === "customer.subscription.deleted") {
+      await syncStripeSubscriptionToCustomerPlan(env, obj, { forceFree: true });
+    } else if (type === "invoice.paid" && obj?.subscription) {
+      const subscription = await stripeGetSubscription(env, obj.subscription);
+      await syncStripeSubscriptionToCustomerPlan(env, subscription);
+    }
+  } catch (err) {
+    return json(request, { error: "Stripe webhook handler failed", details: String(err?.message || err || "") }, 500);
+  }
+
+  return json(request, { ok: true, received: true }, 200);
+}
   
   /* -----------------------------
   CUSTOMER auth: shared helper
@@ -1602,7 +1918,7 @@ async function ensureCvStudioImportedJob(env, customerId, {
   }
   
   const plan_id = (body?.plan_id || "").toString().trim().toLowerCase();
-  const allowed = new Set(["starter", "pro", "max", "cv_starter", "cv_plus", "cv_unlimited"]);
+  const allowed = new Set(["free", "starter", "pro", "max", "cv_starter", "cv_plus", "cv_unlimited"]);
   if (!allowed.has(plan_id)) {
   return json(request, { error: "Invalid plan_id", allowed: Array.from(allowed) }, 400);
   }
@@ -1617,6 +1933,59 @@ async function ensureCvStudioImportedJob(env, customerId, {
   
   return json(request, { ok: true, me: true, customer_id: me.customerId, plan_id }, 200);
   }
+
+async function handleMeBillingCheckout(request, env) {
+  const me = await requireMeCustomerId(request, env);
+  if (!me.ok) return me.res;
+
+  const billing = getStripeBillingConfig(env);
+  if (!billing.checkout_enabled) {
+    return json(request, { ok: false, error: "Stripe checkout is not configured yet." }, 501);
+  }
+
+  let body = null;
+  try {
+    body = await request.json();
+  } catch {
+    body = null;
+  }
+
+  const planId = normalizeCvStudioPlanId(body?.plan_id || "");
+  if (planId !== "cv_starter" && planId !== "cv_plus") {
+    return json(request, { ok: false, error: "plan_id must be starter or plus" }, 400);
+  }
+
+  try {
+    const session = await stripeCreateCheckoutSession(env, {
+      email: me.email,
+      customerId: me.customerId,
+      planId
+    });
+    return json(request, { ok: true, provider: "stripe", plan_id: planId, url: session?.url || null, session_id: session?.id || null }, 200);
+  } catch (err) {
+    return json(request, { ok: false, error: String(err?.message || err || "Stripe checkout failed") }, 502);
+  }
+}
+
+async function handleMeBillingPortal(request, env) {
+  const me = await requireMeCustomerId(request, env);
+  if (!me.ok) return me.res;
+
+  const billing = getStripeBillingConfig(env);
+  if (!billing.portal_enabled) {
+    return json(request, { ok: false, error: "Stripe billing portal is not configured yet." }, 501);
+  }
+
+  try {
+    const session = await stripeCreatePortalSession(env, {
+      email: me.email,
+      customerId: me.customerId
+    });
+    return json(request, { ok: true, provider: "stripe", url: session?.url || null }, 200);
+  } catch (err) {
+    return json(request, { ok: false, error: String(err?.message || err || "Stripe billing portal failed") }, 502);
+  }
+}
 
 const CV_STUDIO_PLAN_LIMITS = Object.freeze({
   starter: 0,
