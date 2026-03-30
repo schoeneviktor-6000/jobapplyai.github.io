@@ -21,7 +21,8 @@
 // POST /me/cv                                           <-- customer (Supabase auth)
 // POST /me/cv/suggest-titles                             <-- customer (Supabase auth)
 // POST /me/cv/tailor                                    <-- customer (Supabase auth)  [NEW]
-// POST /me/cv/tailor_from_text                          <-- customer (Supabase auth)  [NEW]
+// POST /me/cv/tailor_from_text                              <-- customer (Supabase auth)  [NEW]
+// POST /me/cv/keyword_insert                                <-- customer (Supabase auth)  [NEW]
 // GET  /me/cv/tailored?job_id=<uuid>&job_ids=<uuid,uuid,...>  <-- customer (Supabase auth)  [NEW]
 // POST /me/cv/ocr                                       <-- start OCR job
 // GET  /me/cv/ocr/status                                 <-- poll OCR + save text
@@ -86,6 +87,8 @@ export default {
   "POST /me/cv/suggest-titles",
   "POST /me/cv/tailor",
   "POST /me/cv/tailor_from_text",
+  "POST /me/cv/keyword_suggest",
+  "POST /me/cv/keyword_insert",
 "GET /me/cv/tailored?job_ids=<uuid,uuid,...>",
   "POST /me/cv/ocr",
   "GET /me/cv/ocr/status",
@@ -187,6 +190,35 @@ if (url.pathname === "/me/cv" && request.method === "POST") {
   ) {
     return await handleMeCvTailorFromText(request, env);
   }
+
+  if (
+    (
+      url.pathname === "/me/cv/keyword_suggest" ||
+      url.pathname === "/api/me/cv/keyword_suggest" ||
+      url.pathname === "/me/cv/keyword_recommend" ||
+      url.pathname === "/api/me/cv/keyword_recommend"
+    ) &&
+    request.method === "POST"
+  ) {
+    return await handleMeCvKeywordSuggest(request, env);
+  }
+
+
+  if (
+    (
+      url.pathname === "/me/cv/keyword_polish" ||
+      url.pathname === "/api/me/cv/keyword_polish" ||
+      url.pathname === "/me/cv/keyword_boost" ||
+      url.pathname === "/api/me/cv/keyword_boost" ||
+      url.pathname === "/me/cv/keyword_inject" ||
+      url.pathname === "/api/me/cv/keyword_inject" ||
+      url.pathname === "/me/cv/keyword_insert" ||
+      url.pathname === "/api/me/cv/keyword_insert"
+    ) &&
+    request.method === "POST"
+  ) {
+    return await handleMeCvKeywordInsert(request, env);
+  }
   if ((url.pathname === "/me/cv/tailored" || url.pathname === "/api/me/cv/tailored") && request.method === "GET") {
     return await handleMeCvTailoredGet(request, env);
   }
@@ -278,24 +310,11 @@ if (url.pathname === "/me/cv" && request.method === "POST") {
   ----------------------------- */
   
   function corsHeaders(request) {
-  // Allow browser calls from your production + preview domains
-  const ALLOWED_ORIGINS = new Set([
-    "https://jobmejob.com",
-    "https://www.jobmejob.com",
-    "https://jobmejob.pages.dev",
-
-    // Team/workplace frontends (add as you migrate)
-    "https://workplace.jobmejob.com",
-    "https://team.jobmejob.com",
-    "https://jobapplyai-workplace.pages.dev",
-    "https://schoeneviktor-6000.github.io",
-
-    // Optional local dev
-    "http://localhost:8787",
-    "http://localhost:5173",
-    "http://localhost:3000",
-  ]);
-
+  // Robust CORS:
+  // - Echo the request Origin when present (we use bearer-token auth; no cookies).
+  // - Echo requested headers during preflight so browser/device header differences don't break.
+  //
+  // If you want to lock this down later, replace `allowOrigin = origin` with an allowlist check.
   let origin = "";
   try {
     origin = request?.headers?.get("Origin") || "";
@@ -303,18 +322,24 @@ if (url.pathname === "/me/cv" && request.method === "POST") {
     origin = "";
   }
 
-  // If the request comes from an allowed origin, echo it back.
-  // If there is no Origin header (server-to-server), allow "*".
-  const allowOrigin = origin
-    ? (ALLOWED_ORIGINS.has(origin) ? origin : "null")
-    : "*";
+  // If no Origin header (server-to-server), allow "*".
+  const allowOrigin = origin || "*";
+
+  let reqHeaders = "";
+  try {
+    reqHeaders = request?.headers?.get("Access-Control-Request-Headers") || "";
+  } catch {
+    reqHeaders = "";
+  }
+
+  const allowHeaders = reqHeaders || "Content-Type, Authorization, x-admin-token";
 
   return {
     "Access-Control-Allow-Origin": allowOrigin,
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, x-admin-token",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS, PUT, PATCH, DELETE",
+    "Access-Control-Allow-Headers": allowHeaders,
     "Access-Control-Max-Age": "86400",
-    "Vary": "Origin"
+    "Vary": "Origin, Access-Control-Request-Headers"
   };
 }
 
@@ -1197,9 +1222,7 @@ async function ensureCvStudioImportSourceId(env) {
   q.set("limit", "1");
 
   const existing = await supabaseFetch(env, `/rest/v1/sources?${q.toString()}`, { method: "GET" });
-  if (Array.isArray(existing) && existing.length && existing[0]?.id) {
-    return existing[0].id;
-  }
+  if (Array.isArray(existing) && existing.length && existing[0]?.id) return existing[0].id;
 
   await supabaseFetch(env, `/rest/v1/sources?on_conflict=name,country`, {
     method: "POST",
@@ -1215,9 +1238,7 @@ async function ensureCvStudioImportSourceId(env) {
   });
 
   const rows = await supabaseFetch(env, `/rest/v1/sources?${q.toString()}`, { method: "GET" });
-  if (Array.isArray(rows) && rows.length && rows[0]?.id) {
-    return rows[0].id;
-  }
+  if (Array.isArray(rows) && rows.length && rows[0]?.id) return rows[0].id;
 
   throw new Error("Failed to resolve CV Studio import source");
 }
@@ -1250,12 +1271,7 @@ async function ensureCvStudioImportedJob(env, customerId, {
   const safeApplyUrl = normalizeImportedApplyUrl(applyUrl);
   const lang = String(languageHint || "auto").trim().toLowerCase();
   const descHash = await sha256Hex(descText);
-  const compositeHash = await sha256Hex([
-    title,
-    company || "",
-    safeApplyUrl || "",
-    descHash
-  ].join("|"));
+  const compositeHash = await sha256Hex([title, company || "", safeApplyUrl || "", descHash].join("|"));
   const externalJobId = `cvstudio_${compositeHash.slice(0, 48)}`;
   const now = new Date().toISOString();
 
@@ -1295,9 +1311,7 @@ async function ensureCvStudioImportedJob(env, customerId, {
 
   const jobRows = await supabaseFetch(env, `/rest/v1/jobs_normalized?${qJob.toString()}`, { method: "GET" });
   const job = Array.isArray(jobRows) && jobRows.length ? jobRows[0] : null;
-  if (!job?.id) {
-    throw new Error("Failed to create imported CV Studio job");
-  }
+  if (!job?.id) throw new Error("Failed to create imported CV Studio job");
 
   await supabaseFetch(env, `/rest/v1/applications?on_conflict=customer_id,job_id`, {
     method: "POST",
@@ -1447,8 +1461,15 @@ async function ensureCvStudioImportedJob(env, customerId, {
   ----------------------------- */
   
   async function requireMeCustomerId(request, env) {
+  const auth = (request.headers.get("Authorization") || "").trim();
+  if (!auth.startsWith("Bearer ")) {
+    return { ok: false, res: json(request, { error: "Unauthorized: missing Authorization Bearer token" }, 401) };
+  }
+
   const user = await getSupabaseUserFromAuthHeader(request, env);
-  if (!user?.email) return { ok: false, res: json(request, { error: "Unauthorized" }, 401) };
+  if (!user?.email) {
+    return { ok: false, res: json(request, { error: "Unauthorized: invalid or expired token" }, 401) };
+  }
 
   const email = String(user.email || "").trim().toLowerCase();
   let customerId = await getCustomerIdForSupabaseUserEmail(env, email);
@@ -1592,12 +1613,16 @@ async function ensureCvStudioImportedJob(env, customerId, {
   }
 
 const CV_STUDIO_PLAN_LIMITS = Object.freeze({
+  starter: 0,
+  pro: 0,
+  max: 0,
   cv_starter: 10,
   cv_plus: 50,
   cv_unlimited: 0
 });
 
 function getCvStudioPlanLimit(planId) {
+  if (!planId) return null;
   return Object.prototype.hasOwnProperty.call(CV_STUDIO_PLAN_LIMITS, planId)
     ? CV_STUDIO_PLAN_LIMITS[planId]
     : null;
@@ -1615,13 +1640,22 @@ async function listSuccessfulTailoredCvRows(env, customerId, { sinceIso = null, 
   return Array.isArray(rows) ? rows : [];
 }
 
+async function getCustomerPlanRow(env, customerId) {
+  const qPlan = new URLSearchParams();
+  qPlan.set("select", "customer_id,plan_id,updated_at");
+  qPlan.set("customer_id", `eq.${customerId}`);
+  qPlan.set("limit", "1");
+  const planRows = await supabaseFetch(env, `/rest/v1/customer_plans?${qPlan.toString()}`, { method: "GET" });
+  return Array.isArray(planRows) && planRows.length ? planRows[0] : null;
+}
+
 async function resolveCvStudioAccess(env, customerId, planRow = null) {
   const freeLimit = clampInt(env.CV_STUDIO_FREE_LIMIT || "5", 0, 1000, 5);
-  const legacyPlanId = planRow?.plan_id ? String(planRow.plan_id).trim().toLowerCase() : null;
-  const cvPlanId = getCvStudioPlanLimit(legacyPlanId) !== null ? legacyPlanId : null;
-  const paid = !!cvPlanId;
-  const cvLimit = cvPlanId ? getCvStudioPlanLimit(cvPlanId) : freeLimit;
-  const periodStartedAt = cvPlanId ? (planRow?.updated_at || null) : null;
+  const planId = planRow?.plan_id ? String(planRow.plan_id).trim().toLowerCase() : null;
+  const paidPlanLimit = getCvStudioPlanLimit(planId);
+  const paid = paidPlanLimit !== null;
+  const limit = paid ? paidPlanLimit : freeLimit;
+  const periodStartedAt = paid ? (planRow?.updated_at || null) : null;
 
   const freeRows = await listSuccessfulTailoredCvRows(env, customerId, { limit: freeLimit + 1 });
   const freeUsed = freeRows.length;
@@ -1630,23 +1664,18 @@ async function resolveCvStudioAccess(env, customerId, planRow = null) {
   const paidRows = paid
     ? await listSuccessfulTailoredCvRows(env, customerId, {
         sinceIso: periodStartedAt || null,
-        limit: cvLimit > 0 ? (cvLimit + 1) : 1
+        limit: paidPlanLimit > 0 ? (paidPlanLimit + 1) : 1
       })
     : freeRows;
   const paidUsed = paidRows.length;
-  const paidRemaining = cvLimit > 0 ? Math.max(0, cvLimit - paidUsed) : null;
-
-  const limit = paid ? cvLimit : freeLimit;
-  const used = paid ? paidUsed : freeUsed;
-  const remaining = paid ? paidRemaining : freeRemaining;
+  const paidRemaining = paidPlanLimit > 0 ? Math.max(0, paidPlanLimit - paidUsed) : null;
 
   return {
     paid,
-    legacyPlanId,
-    planId: cvPlanId,
+    planId,
     limit,
-    used,
-    remaining,
+    used: paid ? paidUsed : freeUsed,
+    remaining: paid ? paidRemaining : freeRemaining,
     periodStartedAt,
     freeLimit,
     freeUsed,
@@ -1689,18 +1718,9 @@ function buildCvQuotaExceededBody(access) {
   };
 }
 
-async function getCustomerPlanRow(env, customerId) {
-  const qPlan = new URLSearchParams();
-  qPlan.set("select", "customer_id,plan_id,updated_at");
-  qPlan.set("customer_id", `eq.${customerId}`);
-  qPlan.set("limit", "1");
-  const planRows = await supabaseFetch(env, `/rest/v1/customer_plans?${qPlan.toString()}`, { method: "GET" });
-  return Array.isArray(planRows) && planRows.length ? planRows[0] : null;
-}
-
 async function handleMeStateGet(request, env) {
-  const me = await requireMeCustomerId(request, env);
-  if (!me.ok) return me.res;
+    const me = await requireMeCustomerId(request, env);
+    if (!me.ok) return me.res;
 
     const email = me.email;
     const customerId = me.customerId;
@@ -1710,28 +1730,21 @@ async function handleMeStateGet(request, env) {
     qProf.set("customer_id", `eq.${customerId}`);
     qProf.set("limit", "1");
     
-    const qPlan = new URLSearchParams();
-    qPlan.set("select", "customer_id,plan_id,updated_at");
-    qPlan.set("customer_id", `eq.${customerId}`);
-    qPlan.set("limit", "1");
-    
     const profRows = await supabaseFetch(env, `/rest/v1/customer_profiles?${qProf.toString()}`, { method: "GET" });
-    const planRows = await supabaseFetch(env, `/rest/v1/customer_plans?${qPlan.toString()}`, { method: "GET" });
-    
+    const plan = await getCustomerPlanRow(env, customerId);
     const profile = Array.isArray(profRows) && profRows.length ? profRows[0] : null;
-    const plan = Array.isArray(planRows) && planRows.length ? planRows[0] : null;
     
     const desiredTitles = Array.isArray(profile?.desired_titles) ? profile.desired_titles.filter(Boolean) : [];
     const locations = Array.isArray(profile?.locations) ? profile.locations.filter(Boolean) : [];
     
     const profileExists = !!profile;
-  const profileComplete = desiredTitles.length > 0 && locations.length > 0;
-  
-  const planId = plan?.plan_id ? String(plan.plan_id).trim().toLowerCase() : null;
-  const cvAccess = await resolveCvStudioAccess(env, customerId, plan);
-  
-  const cvUploaded = !!(profile?.cv_path);
-  const cvOcrStatus = profile?.cv_ocr_status ? String(profile.cv_ocr_status).trim().toLowerCase() : null;
+    const profileComplete = desiredTitles.length > 0 && locations.length > 0;
+    
+    const planId = plan?.plan_id ? String(plan.plan_id).trim().toLowerCase() : null;
+    const cvAccess = await resolveCvStudioAccess(env, customerId, plan);
+    
+    const cvUploaded = !!(profile?.cv_path);
+    const cvOcrStatus = profile?.cv_ocr_status ? String(profile.cv_ocr_status).trim().toLowerCase() : null;
     
     return json(request, {
     ok: true,
@@ -2053,63 +2066,266 @@ async function handleMeStateGet(request, env) {
   CUSTOMER: GET /me/jobs/queue
   ----------------------------- */
 
-  async function geminiGenerateJson(env, { model, promptText, temperature = 0.2, maxOutputTokens = 700 }) {
-    const apiKey = env.GEMINI_API_KEY;
-    if (!apiKey) throw new Error("Missing GEMINI_API_KEY secret in Worker");
+  // --- Gemini / LLM helpers -------------------------------------------------
+  // Notes:
+  // - Vertex AI Gemini requires OAuth2 (service account / ADC). API keys are NOT supported. 
+  // - The Gemini API (Google AI Studio / Generative Language API) supports API keys and also supports OAuth. 
+  // - Vertex 429 "RESOURCE_EXHAUSTED" is a capacity / quota signal; retry with backoff or fallback. 
 
-    // Endpoint selection:
-    // - vertex:    aiplatform.googleapis.com (Vertex AI publisher models)
-    // - aistudio:  generativelanguage.googleapis.com (Gemini API / AI Studio)
-    // Default: try Vertex first, then fall back to AI Studio.
+  let __gcpOauthTokenCache = { token: null, exp: 0 };
+
+  async function getGcpAccessTokenCached(env) {
+    const now = Math.floor(Date.now() / 1000);
+    if (__gcpOauthTokenCache.token && now < (__gcpOauthTokenCache.exp - 60)) {
+      return __gcpOauthTokenCache.token;
+    }
+    const token = await getGcpAccessToken(env);
+    __gcpOauthTokenCache.token = token;
+    // token endpoint returns 3600s by default; cache slightly under that
+    __gcpOauthTokenCache.exp = now + 3300;
+    return token;
+  }
+
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  function parseRetryAfterMs(res) {
+    try {
+      const ra = res?.headers?.get?.("retry-after");
+      if (!ra) return null;
+      const n = Number(ra);
+      if (Number.isFinite(n) && n > 0) return Math.min(60000, n * 1000);
+    } catch {}
+    return null;
+  }
+
+  function isRetriableStatus(status) {
+    return status === 429 || status === 503 || status === 500 || status === 502 || status === 504;
+  }
+
+  async function fetchJsonWithRetry(url, options, { label, retries = 2, baseDelayMs = 900, maxDelayMs = 8000 } = {}) {
+    let attempt = 0;
+
+    while (true) {
+      const res = await fetch(url, options);
+      const txt = await res.text().catch(() => "");
+      let data = null;
+      try {
+        data = txt ? JSON.parse(txt) : null;
+      } catch {
+        data = null;
+      }
+
+      if (res.ok) return { res, txt, data };
+
+      if (isRetriableStatus(res.status) && attempt < retries) {
+        const raMs = parseRetryAfterMs(res);
+        const exp = Math.min(maxDelayMs, baseDelayMs * Math.pow(2, attempt));
+        const jitter = Math.floor(Math.random() * 250);
+        const delay = (raMs != null ? raMs : exp) + jitter;
+        await sleep(delay);
+        attempt += 1;
+        continue;
+      }
+
+      const clipped = (txt || "").slice(0, 1200);
+      throw new Error(`${label} ${res.status}: ${clipped}`);
+    }
+  }
+
+  function getVertexProjectId(env) {
+    const v = String(env.GEMINI_VERTEX_PROJECT_ID || env.VERTEX_PROJECT_ID || env.GCP_PROJECT_ID || "").trim();
+    if (v) return v;
+
+    // Try parse from service account json (best-effort)
+    try {
+      const raw = String(env.GCP_SA_KEY_JSON || "").trim();
+      if (raw) {
+        const sa = JSON.parse(raw);
+        if (sa?.project_id) return String(sa.project_id);
+      }
+    } catch {}
+
+    return "";
+  }
+
+  function getVertexLocation(env) {
+    let loc = String(env.GEMINI_VERTEX_LOCATION || env.VERTEX_LOCATION || env.GEMINI_LOCATION || "").trim();
+
+    // Don't accidentally use Vision's "eu" here; Vertex wants regions like "us-central1" / "europe-west4"
+    if (!loc) {
+      const g = String(env.GCP_LOCATION || "").trim();
+      if (g && g.includes("-")) loc = g;
+    }
+
+    if (!loc) loc = "us-central1";
+    return loc;
+  }
+
+  function getAiStudioKey(env) {
+    return String(env.GEMINI_AI_STUDIO_API_KEY || env.GOOGLE_AI_API_KEY || env.GEMINI_API_KEY || "").trim();
+  }
+
+  async function geminiGenerateJson(env, { model, promptText, temperature = 0.2, maxOutputTokens = 700 }) {
     const prefer = String(env.GEMINI_API_BASE || "").trim().toLowerCase();
 
     const payload = {
       contents: [{ role: "user", parts: [{ text: promptText }] }],
-      generationConfig: { temperature, maxOutputTokens }
+      generationConfig: { temperature, maxOutputTokens, responseMimeType: "application/json" },
     };
 
     async function callVertex() {
-      const url = `https://aiplatform.googleapis.com/v1/publishers/google/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      const txt = await res.text();
-      if (!res.ok) throw new Error(`Vertex Gemini error ${res.status}: ${txt}`);
-      const data = JSON.parse(txt);
-      return data?.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("") || "";
+      const project = getVertexProjectId(env);
+      const location = getVertexLocation(env);
+
+      if (!project) {
+        throw new Error("Vertex Gemini misconfigured: missing GEMINI_VERTEX_PROJECT_ID (or GCP_PROJECT_ID)");
+      }
+      if (!String(env.GCP_SA_KEY_JSON || "").trim()) {
+        throw new Error("Vertex Gemini misconfigured: missing GCP_SA_KEY_JSON (service account key)");
+      }
+
+      // Vertex AI requires OAuth2; API keys are rejected. 
+      const accessToken = await getGcpAccessTokenCached(env);
+
+      // Use the regional hostname (recommended by Google examples)
+      const host = `${location}-aiplatform.googleapis.com`;
+      // REST ref: projects.locations.publishers.models.generateContent 
+      const url =
+        `https://${host}/v1/projects/${encodeURIComponent(project)}` +
+        `/locations/${encodeURIComponent(location)}` +
+        `/publishers/google/models/${encodeURIComponent(model)}:generateContent`;
+
+      const { data } = await fetchJsonWithRetry(
+        url,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify(payload),
+        },
+        { label: "Vertex Gemini error", retries: 2 }
+      );
+
+      return data?.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("") || "";
+    }
+
+    async function callAiStudioWithApiKey(apiKey) {
+      const url =
+        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent` +
+        `?key=${encodeURIComponent(apiKey)}`;
+
+      const { data } = await fetchJsonWithRetry(
+        url,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+        { label: "AI Studio Gemini error", retries: 1 }
+      );
+
+      return data?.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("") || "";
+    }
+
+    async function callAiStudioWithOauth() {
+      if (!String(env.GCP_SA_KEY_JSON || "").trim()) {
+        throw new Error("AI Studio OAuth misconfigured: missing GCP_SA_KEY_JSON");
+      }
+
+      const accessToken = await getGcpAccessTokenCached(env);
+      const project = getVertexProjectId(env) || String(env.GCP_PROJECT_ID || "").trim();
+
+      // OAuth calls to generativelanguage typically include x-goog-user-project for billing. 
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      };
+      if (project) headers["x-goog-user-project"] = project;
+
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+
+      const { data } = await fetchJsonWithRetry(
+        url,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify(payload),
+        },
+        { label: "AI Studio Gemini error", retries: 1 }
+      );
+
+      return data?.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("") || "";
     }
 
     async function callAiStudio() {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      const txt = await res.text();
-      if (!res.ok) throw new Error(`AI Studio Gemini error ${res.status}: ${txt}`);
-      const data = JSON.parse(txt);
-      return data?.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("") || "";
+      const apiKey = getAiStudioKey(env);
+
+      // 1) Try API key first (default, simplest) 
+      if (apiKey) {
+        try {
+          return await callAiStudioWithApiKey(apiKey);
+        } catch (e) {
+          const msg = String(e?.message || e || "");
+          // If the API explicitly rejects API key auth, try OAuth instead (if possible).
+          if (
+            msg.includes("API keys are not supported") ||
+            msg.includes("CREDENTIALS_MISSING") ||
+            msg.includes("UNAUTHENTICATED")
+          ) {
+            if (String(env.GCP_SA_KEY_JSON || "").trim()) {
+              return await callAiStudioWithOauth();
+            }
+          }
+          throw e;
+        }
+      }
+
+      // 2) If no API key, try OAuth (requires service account)
+      if (String(env.GCP_SA_KEY_JSON || "").trim()) {
+        return await callAiStudioWithOauth();
+      }
+
+      throw new Error("AI Studio Gemini misconfigured: set GEMINI_API_KEY (AI Studio key) or provide GCP_SA_KEY_JSON for OAuth");
     }
 
+    // Provider routing
     if (prefer === "aistudio" || prefer === "generativelanguage") {
-      return await callAiStudio();
+      try {
+        return await callAiStudio();
+      } catch (e) {
+        const msg = String(e?.message || e || "");
+        // Some environments/endpoints reject API-key auth (and sometimes even AI Studio OAuth).
+        // If we have a service account + project, try Vertex as a robust fallback.
+        if (
+          String(env.GCP_SA_KEY_JSON || "").trim() &&
+          (msg.includes("API keys are not supported") || msg.includes("UNAUTHENTICATED") || msg.includes("CREDENTIALS_MISSING"))
+        ) {
+          try {
+            return await callVertex();
+          } catch (_) {
+            // fall through to original error
+          }
+        }
+        throw e;
+      }
     }
     if (prefer === "vertex" || prefer === "aiplatform") {
       return await callVertex();
     }
 
-    // Auto fallback
+    // Auto fallback: Vertex first, then AI Studio. Combine error messages for debugging.
     try {
       return await callVertex();
     } catch (e1) {
-      const msg1 = String(e1 && e1.message ? e1.message : e1);
+      const msg1 = String(e1?.message || e1 || "");
       try {
         return await callAiStudio();
       } catch (e2) {
-        const msg2 = String(e2 && e2.message ? e2.message : e2);
+        const msg2 = String(e2?.message || e2 || "");
         throw new Error((msg1 + " || " + msg2).slice(0, 1200));
       }
     }
@@ -2135,60 +2351,194 @@ async function handleMeStateGet(request, env) {
 
   async function geminiGenerateJsonWithModels(env, { models, promptText, temperature = 0.2, maxOutputTokens = 1400 }) {
     const list = parseModelList(models);
-    if(!list.length) throw new Error('No Gemini models configured');
+    if (!list.length) throw new Error("No Gemini models configured");
+
+    // Retry policy:
+    // - For 429 / RESOURCE_EXHAUSTED / rate limit: retry the SAME model a few times with backoff
+    // - If the model returns incomplete JSON (truncation): retry once with higher maxOutputTokens (within a cap)
+    // - Then fall back to the next model in the list (e.g., Pro -> Flash)
+    const maxRetries429 = Number(env.GEMINI_RETRY_429 || 2); // per model
+    const baseDelayMs = Number(env.GEMINI_RETRY_BASE_MS || 650);
+
+    const maxJsonRetries = Number(env.GEMINI_RETRY_JSON || 1); // per model
+    const jsonRetryMaxTokens = Number(env.GEMINI_JSON_RETRY_MAX_TOKENS || 12000);
+
+    function isRetryable429(err) {
+      const msg = String((err && (err.message || err.details)) || err || "");
+      return /\b429\b/.test(msg) || /RESOURCE_EXHAUSTED/i.test(msg) || /rate\s*limit/i.test(msg);
+    }
+
+    async function sleep(ms) {
+      return new Promise((r) => setTimeout(r, ms));
+    }
 
     let lastErr = null;
-    for(const model of list){
-      try{
-        const text = await geminiGenerateJson(env, { model, promptText, temperature, maxOutputTokens });
-        const parsed = safeJsonParse(text);
-        return { model, parsed, rawText: text };
-      }catch(e){
-        lastErr = e;
-        // Try next model
+
+    for (const model of list) {
+      let tokens = Number(maxOutputTokens) || 1400;
+      let jsonRetryCount = 0;
+
+      // First attempt + retries for 429 / and for truncation (INCOMPLETE_JSON)
+      for (let attempt = 0; attempt <= maxRetries429; attempt++) {
+        try {
+          const text = await geminiGenerateJson(env, { model, promptText, temperature, maxOutputTokens: tokens });
+          const parsed = safeJsonParse(text);
+          return { model, parsed, rawText: text };
+        } catch (e) {
+          lastErr = e;
+
+          // If we got incomplete JSON, retry once with a higher output token limit.
+          if (
+            e &&
+            (e.code === "INCOMPLETE_JSON" || e.code === "EMPTY_OUTPUT") &&
+            jsonRetryCount < maxJsonRetries
+          ) {
+            jsonRetryCount += 1;
+            const bumped = Math.min(
+              jsonRetryMaxTokens,
+              Math.max(tokens + 1200, Math.floor(tokens * 1.35))
+            );
+            if (bumped > tokens) {
+              tokens = bumped;
+              continue;
+            }
+          }
+
+          if (attempt < maxRetries429 && isRetryable429(e)) {
+            const jitter = Math.floor(Math.random() * 250);
+            const delay = baseDelayMs * Math.pow(2, attempt) + jitter;
+            await sleep(delay);
+            continue;
+          }
+
+          // Not retryable (or retries exhausted): move to next model
+          break;
+        }
       }
     }
 
-    throw lastErr || new Error('Gemini generation failed');
+    throw lastErr || new Error("Gemini generation failed");
   }
 
-
-  function stripJsonFences(s) {
-    let t = String(s || "").trim();
+function stripJsonFences(s) {
+    let t = String(s ?? "").trim();
     if (!t) return "";
+
+    // Remove BOM if present
+    if (t.charCodeAt(0) === 0xFEFF) t = t.slice(1);
+
+    // Remove ``` fences (``` or ```json)
     if (t.startsWith("```")) {
-      // Remove opening fence (``` or ```json)
       t = t.replace(/^```[a-zA-Z0-9_-]*\s*/i, "");
-      // Remove a trailing closing fence
       t = t.replace(/\s*```\s*$/i, "");
     }
+
+    // Sometimes models prepend a language label line like "json\n{...}"
+    t = t.replace(/^\s*(json|javascript)\s*\n/i, "");
+
     return t.trim();
   }
 
+  function _repairJsonCommon(text) {
+    let t = String(text || "");
+    // Remove control chars that can break JSON.parse (keep \n,\r,\t)
+    t = t.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "");
+    // Remove trailing commas before } or ]
+    t = t.replace(/,\s*([}\]])/g, "$1");
+    return t.trim();
+  }
+
+  function _extractFirstJsonValue(text) {
+    const s = String(text || "");
+    let start = -1;
+
+    for (let i = 0; i < s.length; i++) {
+      const ch = s[i];
+      if (ch === "{" || ch === "[") { start = i; break; }
+    }
+    if (start === -1) return null;
+
+    let depth = 0;
+    let inStr = false;
+    let strCh = "";
+    let esc = false;
+
+    for (let i = start; i < s.length; i++) {
+      const ch = s[i];
+
+      if (inStr) {
+        if (esc) { esc = false; continue; }
+        if (ch === "\\") { esc = true; continue; }
+        if (ch === strCh) { inStr = false; strCh = ""; continue; }
+        continue;
+      }
+
+      // JSON strings should be double quotes, but treat single quotes as strings too (model mistakes)
+      if (ch === "\"" || ch === "'") {
+        inStr = true;
+        strCh = ch;
+        continue;
+      }
+
+      if (ch === "{" || ch === "[") depth += 1;
+      else if (ch === "}" || ch === "]") {
+        depth -= 1;
+        if (depth === 0) return s.slice(start, i + 1);
+      }
+    }
+
+    // No complete JSON value found (likely truncated output)
+    return null;
+  }
+
   function safeJsonParse(s) {
-    const cleaned = stripJsonFences(s);
+    const cleaned0 = stripJsonFences(s);
+    const cleaned = _repairJsonCommon(cleaned0);
+
+    if (!cleaned) {
+      const e = new Error("Gemini returned empty output");
+      e.code = "EMPTY_OUTPUT";
+      throw e;
+    }
+
+    // 1) Direct parse
     try {
       return JSON.parse(cleaned);
-    } catch (_) {
+    } catch (err1) {
       // continue
-    }
+      const msg1 = String(err1?.message || "");
 
-    // Try to extract the first JSON object/array from the text (handles "Here is the JSON: {...}")
-    const o1 = cleaned.indexOf("{");
-    const o2 = cleaned.lastIndexOf("}");
-    if (o1 !== -1 && o2 !== -1 && o2 > o1) {
-      const cand = cleaned.slice(o1, o2 + 1);
-      try { return JSON.parse(cand); } catch (_) {}
-    }
+      // 2) Try extracting the first COMPLETE JSON object/array (ignores extra text after it)
+      const first = _extractFirstJsonValue(cleaned);
+      if (first) {
+        const cand = _repairJsonCommon(first);
+        try {
+          return JSON.parse(cand);
+        } catch (err2) {
+          // continue
+        }
+      }
 
-    const a1 = cleaned.indexOf("[");
-    const a2 = cleaned.lastIndexOf("]");
-    if (a1 !== -1 && a2 !== -1 && a2 > a1) {
-      const cand = cleaned.slice(a1, a2 + 1);
-      try { return JSON.parse(cand); } catch (_) {}
-    }
+      // 3) Last attempt: extract from original cleaned0 (in case repairs broke bracket balance)
+      const first2 = _extractFirstJsonValue(cleaned0);
+      if (first2) {
+        const cand2 = _repairJsonCommon(first2);
+        try {
+          return JSON.parse(cand2);
+        } catch (_) {}
+      }
 
-    throw new Error("Gemini returned non-JSON output. First 400 chars: " + cleaned.slice(0, 400));
+      const e = new Error("Gemini returned non-JSON output. First 400 chars: " + cleaned0.slice(0, 400));
+
+      // Mark likely truncation to allow callers to decide how to retry/fallback
+      const looksTruncated =
+        /Unexpected end of JSON input/i.test(msg1) ||
+        /unterminated/i.test(msg1) ||
+        ((cleaned0.includes("{") || cleaned0.includes("[")) && !(cleaned0.includes("}") || cleaned0.includes("]")));
+
+      e.code = looksTruncated ? "INCOMPLETE_JSON" : "JSON_PARSE_FAILED";
+      throw e;
+    }
   }
 
 // -----------------------------
@@ -2294,6 +2644,14 @@ function buildTailoredCvPrompt({ lang, job, jobDescription, cvTextSlice }) {
     "- For missing personal details (phone/address), use placeholders like [Phone].",
     "- ats_keywords_used and ats_keywords_missing must be lowercase, deduplicated, max 30 each, 1-4 words per item.",
     "- confidence must be between 0.50 and 0.95.",
+    "- Output size limits (must follow):",
+    "- summary: 3–6 bullets (max 6).",
+    "- experience: max 5 bullets per role (prefer 3–5).",
+    "- key_achievements: max 5 items.",
+    "- skills.groups: max 6 groups; max 10 items per group.",
+    "- skills.additional: max 15 items.",
+    "- courses: max 10 items; interests max 6; languages max 6.",
+
     "",
     "Output language:",
     (language === "de") ? "- Write the CV in German." : "- Write the CV in English.",
@@ -4154,7 +4512,7 @@ async function persistAiTitles(env, customerId, aiTitles){
   const header = { alg: "RS256", typ: "JWT" };
   const payload = {
   iss: clientEmail,
-  scope: "https://www.googleapis.com/auth/cloud-platform",
+  scope: "https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/generative-language https://www.googleapis.com/auth/generative-language.retriever",
   aud: "https://oauth2.googleapis.com/token",
   iat: now,
   exp: now + 3600
@@ -4194,31 +4552,147 @@ async function persistAiTitles(env, customerId, aiTitles){
   return text ? JSON.parse(text) : null;
   }
   
-  async function gcsProbeVisionOutputFiles(env, accessToken, bucket, outPrefix) {
-  const max = 20;
+  async function gcsListObjectNames(env, accessToken, bucket, prefix, { maxResults = 200, pageToken = null } = {}) {
+  const q = new URLSearchParams();
+  q.set("prefix", prefix);
+  q.set("maxResults", String(maxResults));
+  // keep payload small
+  q.set("fields", "items(name),nextPageToken");
+  if (pageToken) q.set("pageToken", pageToken);
+
+  const url = `https://storage.googleapis.com/storage/v1/b/${encodeURIComponent(bucket)}/o?${q.toString()}`;
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: "application/json"
+    }
+  });
+
+  const text = await res.text().catch(() => "");
+  if (!res.ok) {
+    throw new Error(`GCS list failed ${res.status}: ${text.slice(0, 600)}`);
+  }
+
+  const data = text ? JSON.parse(text) : null;
+  const items = Array.isArray(data?.items) ? data.items : [];
+  const names = items.map((it) => String(it?.name || "")).filter(Boolean);
+  return { names, nextPageToken: data?.nextPageToken || null };
+}
+
+function parseVisionOutputRange(objectName) {
+  const m = String(objectName || "").match(/output-(\d+)-to-(\d+)\.json$/);
+  if (!m) return null;
+  const start = Number(m[1]);
+  const end = Number(m[2]);
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return null;
+  return { start, end };
+}
+
+// Metadata probe (small payload) – avoids downloading large JSON during guessing.
+async function gcsObjectExists(env, accessToken, bucket, objectName) {
+  const url = `https://storage.googleapis.com/storage/v1/b/${encodeURIComponent(bucket)}/o/${encodeURIComponent(objectName)}?fields=name`;
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+  if (res.status === 404) return false;
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`GCS meta failed ${res.status}: ${body.slice(0, 600)}`);
+  }
+  return true;
+}
+
+async function gcsProbeVisionOutputFiles(env, accessToken, bucket, outPrefix) {
+  // Keep this conservative: Cloudflare Workers have a hard subrequest limit per request.
+  // We must NOT brute-force dozens of candidate filenames.
+  const MAX_JSON_FILES = 25;
+  const prefix = String(outPrefix || "");
+  const base = prefix.endsWith("/") ? prefix : (prefix + "/");
+
+  // 1) Fast path: list objects once and sort them by their output range.
+  try {
+    let pageToken = null;
+    let all = [];
+
+    for (let i = 0; i < 3; i++) { // up to 3 pages; plenty for CV output folders
+      const r = await gcsListObjectNames(env, accessToken, bucket, base, { maxResults: 200, pageToken });
+      all = all.concat(r.names || []);
+      pageToken = r.nextPageToken;
+      if (!pageToken) break;
+      if (all.length >= 600) break;
+    }
+
+    const parsed = [];
+    for (const name of all) {
+      if (!name.startsWith(base)) continue;
+      const pr = parseVisionOutputRange(name);
+      if (!pr) continue;
+      parsed.push({ name, start: pr.start, end: pr.end });
+    }
+
+    if (parsed.length) {
+      parsed.sort((a, b) => a.start - b.start);
+      const out = [];
+      const seen = new Set();
+      for (const p of parsed) {
+        if (seen.has(p.name)) continue;
+        seen.add(p.name);
+        out.push(p.name);
+        if (out.length >= MAX_JSON_FILES) break;
+      }
+      return out;
+    }
+  } catch (e) {
+    // If the service account lacks "storage.objects.list", listing will fail (403).
+    // We'll fallback to a small, safe probing strategy that still works with "get" only.
+  }
+
+  // 2) Fallback: safe probing (bounded number of requests).
+  // Vision async PDF OCR writes: <outPrefix>/output-<start>-to-<end>.json
+  // and we request batchSize=10 in visionStartAsyncOcr().
+  const batchSize = 10;
+  const maxChunks = 3; // up to ~30 pages; enough for CVs, and stays within CF limits
+
   const names = [];
-  const base = outPrefix.replace(/\/$/, "");
-  
-  for (let a = 1; a <= max; a++) {
-  for (let b = a; b <= Math.min(a + 1, max); b++) {
-  const name = `${base}/output-${a}-to-${b}.json`;
-  const json = await gcsTryDownloadJson(env, accessToken, bucket, name);
-  if (json) names.push(name);
+  let startPage = 1;
+
+  for (let chunk = 0; chunk < maxChunks; chunk++) {
+    const maxEnd = startPage + batchSize - 1;
+    let foundEnd = null;
+
+    // Try full batch first, then walk down to handle last chunk (e.g., 1-to-2.json)
+    for (let endPage = maxEnd; endPage >= startPage; endPage--) {
+      const name = `${base}output-${startPage}-to-${endPage}.json`;
+
+      let exists = false;
+      try {
+        exists = await gcsObjectExists(env, accessToken, bucket, name);
+      } catch (err) {
+        // Some setups block metadata; as a last resort, try direct download.
+        const msg = String(err?.message || err);
+        if (msg.includes("403") || msg.toLowerCase().includes("forbidden")) {
+          const json = await gcsTryDownloadJson(env, accessToken, bucket, name);
+          exists = !!json;
+        } else {
+          throw err;
+        }
+      }
+
+      if (exists) {
+        names.push(name);
+        foundEnd = endPage;
+        break;
+      }
+    }
+
+    if (!foundEnd) break;
+    if (names.length >= MAX_JSON_FILES) break;
+
+    startPage = foundEnd + 1;
   }
-  }
-  
-  if (names.length === 0) {
-  for (let n = 1; n <= max; n++) {
-  const name = `${base}/output-1-to-${n}.json`;
-  const json = await gcsTryDownloadJson(env, accessToken, bucket, name);
-  if (json) names.push(name);
-  }
-  }
-  
-  return [...new Set(names)];
-  }
-  
-  async function gcsTryDownloadJson(env, accessToken, bucket, objectName) {
+
+  return names;
+}
+
+async function gcsTryDownloadJson(env, accessToken, bucket, objectName) {
   const url = `https://storage.googleapis.com/storage/v1/b/${encodeURIComponent(bucket)}/o/${encodeURIComponent(objectName)}?alt=media`;
   const res = await fetch(url, {
   headers: {
@@ -4383,7 +4857,7 @@ async function handleMeCvTailor(request, env) {
     env,
     `/rest/v1/jobs_normalized?select=` +
       `id,title,company_name,country,city,region,` +
-      `external_job_id,apply_url,source_id,source_modified_at,` +
+      `external_job_id,apply_url,source_id,source_modified_at,description_snippet,` +
       `description_full,description_full_source,description_full_hash,description_full_fetched_at,description_full_error,description_full_error_at` +
       `&id=eq.${jobId}&limit=1`
   );
@@ -4441,9 +4915,45 @@ async function handleMeCvTailor(request, env) {
     } catch {}
   }
 
-  // If we still don't have a description, we can still try but results will be weaker.
+  const jobDescWarnings = [];
+
+  // If we still don't have a description, fall back to:
+  // 1) client-provided job_description (if present),
+  // 2) description_snippet from DB,
+  // 3) minimal synthetic description from job fields.
+  //
+  // This prevents hard failures for newly ingested jobs where the full description
+  // hasn't been fetched yet. Quality is best with the full description, but a short
+  // snippet is usually good enough to proceed.
   if (!descText) {
-    return jsonResponse({ ok: false, error: "No job description available for this job." }, 400);
+    const provided = String(body.job_description || body.job_text || body.description || "").trim();
+    const snippet = String(job.description_snippet || "").trim();
+
+    if (provided) {
+      descText = provided;
+      descCacheStatus = "provided";
+    } else if (snippet) {
+      descText = snippet;
+      descCacheStatus = "snippet";
+      jobDescWarnings.push("Full job description was not available; using a short snippet.");
+    } else {
+      descText = [
+        `Job title: ${String(job.title || "").trim()}`,
+        job.company_name ? `Company: ${String(job.company_name).trim()}` : "",
+        [job.city, job.region, job.country].filter(Boolean).length
+          ? `Location: ${[job.city, job.region, job.country].filter(Boolean).join(", ")}`
+          : "",
+        job.apply_url ? `Apply URL: ${String(job.apply_url).trim()}` : "",
+      ].filter(Boolean).join("\n");
+      descCacheStatus = "minimal";
+      jobDescWarnings.push("Full job description was not available; tailoring used only basic job info (title/company/location).");
+    }
+
+    if (descText && !descHash) {
+      try {
+        descHash = await sha256Hex(descText);
+      } catch {}
+    }
   }
 
   // Decide output language (job description + customer language preferences)
@@ -4508,6 +5018,18 @@ async function handleMeCvTailor(request, env) {
 
   const baseHash = cvStructuredHash || cvCleanHash;
 
+  // Tailoring models (final CV generation only)
+  // Prefer higher quality here. Default: Pro -> Flash fallback.
+  // You can override via Worker env var GEMINI_CV_TAILOR_MODELS.
+  const modelPrefForTailor =
+    env.GEMINI_CV_TAILOR_MODELS ||
+    env.GEMINI_CV_FINAL_MODELS ||
+    env.GEMINI_CV_MODEL_QUALITY ||
+    (env.GEMINI_CV_MODEL ? `gemini-2.0-pro,${env.GEMINI_CV_MODEL}` : "gemini-2.0-pro,gemini-2.0-flash");
+  const modelListForTailor = parseModelList(modelPrefForTailor);
+  const primaryTailorModel = modelListForTailor[0] || "gemini-2.0-pro";
+  const modelPrefForHash = modelListForTailor.join(",");
+
   // Cache key for tailored CV
   const promptVersion = "cv_tailor_v3_structured_professional";
   const inputHash = await sha256Hex([
@@ -4517,6 +5039,7 @@ async function handleMeCvTailor(request, env) {
     strength,
     descHash || "no_desc_hash",
     baseHash,
+    modelPrefForHash || "",
   ].join("|"));
 
   // Reuse cached tailored CV (same input hash)
@@ -4531,10 +5054,18 @@ async function handleMeCvTailor(request, env) {
   const cacheSeconds = Number(env.CV_TAILOR_CACHE_SECONDS || 3600);
   const cached = cacheRows?.[0];
   if (!force && cached && (cached.status === "ok" || cached.status === "ready") && cached.cv_text) {
+    const cachedModel = String(cached.model || "").trim();
+    const wantModel = String(primaryTailorModel || "").trim();
+
     const updatedAt = cached.updated_at ? Date.parse(cached.updated_at) : 0;
     const ageSec = updatedAt ? (Date.now() - updatedAt) / 1000 : Infinity;
     if (ageSec <= cacheSeconds) {
-      return jsonResponse({
+      // If we upgraded to a higher-quality primary model, don't reuse a lower-quality cached output.
+      // This makes DB/model logs reflect the new quality setting without requiring a manual force flag.
+      if (wantModel && cachedModel && cachedModel !== wantModel) {
+        // continue to generation
+      } else {
+        return jsonResponse({
         ok: true,
         cached: true,
         cache_age_seconds: Math.round(ageSec),
@@ -4556,6 +5087,7 @@ async function handleMeCvTailor(request, env) {
           cv_structured_model: cvStructuredModel,
         },
       });
+      }
     }
   }
 
@@ -4565,31 +5097,72 @@ async function handleMeCvTailor(request, env) {
     return jsonResponse(buildCvQuotaExceededBody(cvAccess), 402, request);
   }
 
-  // Create a row to track status
+  // Create/update a row to track status.
+  // The table has a UNIQUE constraint on (customer_id, job_id, input_hash).
+  // If the user regenerates the same CV (same inputs), we must REUSE the existing row.
+  // This prevents Supabase 23505 (duplicate key) errors.
   const now = new Date().toISOString();
-  const modelPref = env.GEMINI_CV_FINAL_MODELS || env.GEMINI_CV_MODEL_QUALITY || (env.GEMINI_CV_MODEL ? `gemini-2.0-pro,${env.GEMINI_CV_MODEL}` : "gemini-2.0-pro,gemini-2.0-flash");
+  const modelPref = modelPrefForTailor;
 
-  const insRows = await supabaseFetch(env, `/rest/v1/tailored_cvs`, {
-    method: "POST",
-    headers: { Prefer: "return=representation" },
-    body: [
-      {
-        customer_id: me.customerId,
-        job_id: jobId,
-        status: "generating",
-        input_hash: inputHash,
-        language: lang,
-        model: String(modelPref).split(",")[0].trim(),
-        prompt_version: promptVersion,
-        template,
-        strength,
-        updated_at: now,
-        created_at: now,
-      },
-    ],
-  });
+  // We already queried by (customer_id, job_id, input_hash) above.
+  // If a row exists (even if status=generating/error), reuse it.
+  let recordId = cached?.id || null;
 
-  const recordId = insRows?.[0]?.id;
+  if (recordId) {
+    // Best-effort: mark it as generating for this run (and clear previous error).
+    try {
+      await supabaseFetch(env, `/rest/v1/tailored_cvs?id=eq.${encodeURIComponent(recordId)}`, {
+        method: "PATCH",
+        body: {
+          status: "generating",
+          language: lang,
+          model: String(modelPref).split(",")[0].trim(),
+          prompt_version: promptVersion,
+          template,
+          strength,
+          error: null,
+          updated_at: now,
+        },
+      });
+    } catch (_) {
+      // Ignore patch failures here; generation can still proceed.
+    }
+  } else {
+    // No existing row for this input_hash: create one.
+    // Use UPSERT to stay safe under concurrency (double-clicks, retries, etc.).
+    const insRows = await supabaseFetch(env, `/rest/v1/tailored_cvs?on_conflict=customer_id,job_id,input_hash`, {
+      method: "POST",
+      headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+      body: [
+        {
+          customer_id: me.customerId,
+          job_id: jobId,
+          status: "generating",
+          input_hash: inputHash,
+          language: lang,
+          model: String(modelPref).split(",")[0].trim(),
+          prompt_version: promptVersion,
+          template,
+          strength,
+          updated_at: now,
+          created_at: now,
+        },
+      ],
+    });
+    recordId = insRows?.[0]?.id || null;
+  }
+
+  // Last-resort: if we still don't have an id (should be rare), fetch it.
+  if (!recordId) {
+    try {
+      const existingRows = await supabaseFetch(
+        env,
+        `/rest/v1/tailored_cvs?select=id&customer_id=eq.${me.customerId}&job_id=eq.${jobId}&input_hash=eq.${inputHash}&limit=1`
+      );
+      recordId = existingRows?.[0]?.id || null;
+    } catch (_) {}
+  }
+
 
   try {
     // Build prompt (structured path preferred)
@@ -4613,7 +5186,12 @@ async function handleMeCvTailor(request, env) {
       });
     }
 
-    const maxOut = Number(env.GEMINI_CV_MAX_OUTPUT_TOKENS || 3200);
+    // Tailoring can be large (structured JSON). Use a higher default than other CV tasks.
+    const maxOut = Number(
+      env.GEMINI_CV_TAILOR_MAX_OUTPUT_TOKENS ||
+      env.GEMINI_CV_MAX_OUTPUT_TOKENS ||
+      5600
+    );
     const gen = await geminiGenerateJsonWithModels(env, {
       models: modelPref,
       promptText,
@@ -4646,7 +5224,7 @@ async function handleMeCvTailor(request, env) {
 
     const warnSet = new Set();
     const warnings = [];
-    for (const w of [...(Array.isArray(parsed?.warnings) ? parsed.warnings : []), ...cleanWarnings]) {
+    for (const w of [...(Array.isArray(parsed?.warnings) ? parsed.warnings : []), ...cleanWarnings, ...jobDescWarnings]) {
       const ww = String(w || "").trim();
       if (!ww) continue;
       if (warnSet.has(ww)) continue;
@@ -4691,11 +5269,16 @@ async function handleMeCvTailor(request, env) {
         body: rowPatch,
       });
     } else {
-      await supabaseFetch(env, `/rest/v1/tailored_cvs`, {
-        method: "POST",
-        body: [{ ...rowPatch, customer_id: me.customerId, job_id: jobId, input_hash: inputHash, created_at: now }],
-      });
+      // Extremely rare: no id available. Update by the UNIQUE key to avoid duplicate inserts.
+      await supabaseFetch(
+        env,
+        `/rest/v1/tailored_cvs?customer_id=eq.${me.customerId}&job_id=eq.${jobId}&input_hash=eq.${inputHash}`,
+        { method: "PATCH", body: rowPatch }
+      );
     }
+
+
+
 
     return jsonResponse({
       ok: true,
@@ -4726,11 +5309,22 @@ async function handleMeCvTailor(request, env) {
         method: "PATCH",
         body: { status: "error", error: msg, updated_at: now },
       });
+    } else {
+      // Best-effort: persist the error by unique key.
+      try {
+        await supabaseFetch(
+          env,
+          `/rest/v1/tailored_cvs?customer_id=eq.${me.customerId}&job_id=eq.${jobId}&input_hash=eq.${inputHash}`,
+          { method: "PATCH", body: { status: "error", error: msg, updated_at: now } }
+        );
+      } catch (_) {}
     }
     return jsonResponse({ ok: false, error: msg }, 502);
   }
 }
 
+
+  
 /* -----------------------------
   CUSTOMER: POST /me/cv/tailor_from_text
   Converts a pasted job description into a lightweight imported job and
@@ -4787,8 +5381,917 @@ async function handleMeCvTailorFromText(request, env) {
   }
 }
 
+/* -----------------------------
+  CUSTOMER: POST /me/cv/keyword_insert
+  AI-assisted keyword integration into bullets (language-aware).
+  This endpoint is used by the CV Studio keyword modal to:
+  - rewrite an existing bullet so it naturally includes a missing keyword, OR
+  - create a new bullet from a short user note
 
-  async function handleMeCvTailoredGet(request, env) {
+  Expected JSON body:
+  {
+    "mode": "rewrite" | "new",
+    "keyword": string,
+    "language": "de"|"en"|"auto" (optional),
+    "current_bullet": string (required for rewrite),
+    "note": string (required for new),
+    "context": {...} (optional)
+  }
+
+  Response examples:
+  { ok:true, rewritten_bullet:"...", language:"de", model:"..." }
+  { ok:true, new_bullet:"...", language:"en", model:"..." }
+----------------------------- */
+
+
+function prettyKeywordForCv(keyword, lang) {
+  const raw = String(keyword || "").trim();
+  if (!raw) return "";
+
+  const low = raw.toLowerCase();
+
+  // Common acronyms / tools (extend any time)
+  const map = {
+    "sql": "SQL",
+    "nosql": "NoSQL",
+    "api": "API",
+    "apis": "APIs",
+    "rest": "REST",
+    "graphql": "GraphQL",
+    "aws": "AWS",
+    "gcp": "GCP",
+    "azure": "Azure",
+    "sap": "SAP",
+    "crm": "CRM",
+    "erp": "ERP",
+    "kpi": "KPI",
+    "okrs": "OKRs",
+    "okr": "OKR",
+    "etl": "ETL",
+    "ml": "ML",
+    "ai": "AI",
+    "ui": "UI",
+    "ux": "UX",
+    "seo": "SEO",
+    "sem": "SEM",
+    "ppc": "PPC",
+    "jira": "Jira",
+    "confluence": "Confluence",
+    "scrum": "Scrum",
+    "agile": "Agile",
+    "kanban": "Kanban",
+    "ci/cd": "CI/CD",
+    "ci": "CI",
+    "cd": "CD",
+    "git": "Git",
+    "github": "GitHub",
+    "gitlab": "GitLab",
+    "docker": "Docker",
+    "kubernetes": "Kubernetes",
+    "power bi": "Power BI",
+    "powerbi": "Power BI",
+    "tableau": "Tableau",
+    "excel": "Excel",
+    "ms excel": "MS Excel",
+    "microsoft excel": "Microsoft Excel",
+    "python": "Python",
+    "javascript": "JavaScript",
+    "typescript": "TypeScript",
+    "node.js": "Node.js",
+    "react": "React",
+    "next.js": "Next.js",
+    "c++": "C++",
+    "c#": "C#",
+    "java": "Java"
+  };
+
+  if (map[low]) return map[low];
+
+  // If it's already mixed case or contains digits/symbols, keep as-is
+  if (/[A-Z]/.test(raw) || /[0-9]/.test(raw) || /[\/+#&]/.test(raw)) return raw;
+
+  // Title-case simple phrases.
+  // For German, we also capitalize words if the keyword is all-lowercase.
+  // This helps Skills display and keeps common noun-keywords readable.
+  if (lang === "de") {
+    const parts = low.split(/\s+/g).filter(Boolean).slice(0, 6);
+    const out = parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(" ");
+    return out || raw;
+  }
+
+  const stop = new Set(["and", "or", "of", "to", "in", "for", "with", "on"]);
+  const parts = low.split(/\s+/g).filter(Boolean).slice(0, 6);
+  const out = parts.map((p, i) => {
+    if (i > 0 && stop.has(p)) return p;
+    return p.charAt(0).toUpperCase() + p.slice(1);
+  }).join(" ");
+
+  return out || raw;
+}
+
+
+function isToolKeyword(keyword) {
+  const k = String(keyword || "").toLowerCase().trim();
+  if (!k) return false;
+
+  // If it contains typical tool tokens, treat as tool/tech keyword
+  const toolTokens = [
+    "sql","excel","power bi","tableau","lookr","looker","sap","workday","jira","confluence",
+    "python","r ","r/","aws","azure","gcp","google cloud","bigquery","snowflake","dbt",
+    "airflow","superset","zendesk","salesforce","hubspot","microsoft","sharepoint",
+    "figma","notion","slack","github","git","docker","kubernetes","postgres","mysql","mariadb"
+  ];
+
+  // Exact / substring checks
+  for (const t of toolTokens) {
+    const needle = t.trim();
+    if (!needle) continue;
+    if (needle.length <= 2) continue;
+    if (k === needle) return true;
+    if (k.includes(needle)) return true;
+  }
+
+  // If it looks like an acronym (e.g., "API", "KPI", "OKR") it’s likely a tool/tech term
+  if (/^[A-Z0-9]{2,8}$/.test(String(keyword || "").trim())) return true;
+
+  return false;
+}
+
+
+
+function escapeRegExp(str) {
+  return String(str || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function normalizeBulletTextLine(text) {
+  let out = String(text || "");
+  // remove common bullet markers at the start
+  out = out.replace(/^[\s\-–—•·∙●▪◦]+\s*/g, "");
+  out = out.replace(/\s+/g, " ").trim();
+  return out;
+}
+
+function keywordRegexForReplace(keyword) {
+  const k = String(keyword || "").trim();
+  if (!k) return null;
+
+  // If it is a simple word/phrase (letters/numbers/spaces), use word boundaries.
+  // This avoids replacing inside other words (e.g., "ai" inside "chair").
+  const simple = /^[A-Za-z0-9ÄÖÜäöüßẞ\s]+$/.test(k);
+  const pattern = simple ? `\\b${escapeRegExp(k)}\\b` : escapeRegExp(k);
+
+  try {
+    return new RegExp(pattern, "ig");
+  } catch {
+    return null;
+  }
+}
+
+function replaceKeywordCaseInsensitive(text, keyword, replacement) {
+  const re = keywordRegexForReplace(keyword);
+  if (!re) return text;
+  return String(text || "").replace(re, String(replacement || ""));
+}
+
+function fixAwkwardByKeywordEnglish(text, keyword, keywordForSentence) {
+  let out = String(text || "");
+  const k = String(keyword || "").trim();
+  if (!k) return out;
+
+  const kEsc = escapeRegExp(k);
+
+  // Common awkward pattern: "... by <keyword> to ..."
+  // -> "... , including <keyword>, to ..."
+  try {
+    const reTo = new RegExp(`\\s+by\\s+${kEsc}\\s+to\\s+`, "i");
+    if (reTo.test(out)) {
+      out = out.replace(reTo, `, including ${keywordForSentence}, to `);
+    }
+  } catch {}
+
+  // Fallback: "... by <keyword>" -> "... , including <keyword>"
+  try {
+    const re = new RegExp(`\\s+by\\s+${kEsc}\\b`, "i");
+    if (re.test(out)) {
+      out = out.replace(re, `, including ${keywordForSentence}`);
+    }
+  } catch {}
+
+  // cleanup commas/spaces
+  out = out.replace(/,,+/g, ",");
+  out = out.replace(/\s+,/g, ",");
+  out = out.replace(/,\s+/g, ", ");
+  out = out.replace(/\s+\./g, ".").trim();
+
+  return out;
+}
+
+function postProcessKeywordSuggestBullet(text, keyword, lang) {
+  let out = normalizeBulletTextLine(text);
+  const kRaw = String(keyword || "").trim();
+  if (!kRaw) return out;
+
+  const kwPretty = prettyKeywordForCv(kRaw, lang);
+
+  // For tools/acronyms (and for German), prefer pretty casing everywhere.
+  if (isToolKeyword(kRaw) || /^[A-Z0-9]{2,8}$/.test(kRaw.trim()) || lang === "de") {
+    out = replaceKeywordCaseInsensitive(out, kRaw, kwPretty);
+  }
+
+  // Fix a common awkward phrasing pattern in English experience bullets.
+  if (lang === "en") {
+    const kwForSentence =
+      (isToolKeyword(kRaw) || /^[A-Z0-9]{2,8}$/.test(kRaw.trim()))
+        ? kwPretty
+        : kRaw.toLowerCase();
+    out = fixAwkwardByKeywordEnglish(out, kRaw, kwForSentence);
+  }
+
+  return out;
+}
+
+function shouldPolishKeywordSuggestBullet(text, keyword, lang) {
+  const out = String(text || "").trim();
+  const k = String(keyword || "").trim();
+  if (!out || !k) return false;
+
+  const outLow = out.toLowerCase();
+  const kLow = k.toLowerCase();
+
+  // If we had to append "(Keyword)" it means it's not really integrated.
+  const kwPrettyLow = prettyKeywordForCv(k, lang).toLowerCase();
+  if (outLow.includes(`(${kLow})`) || outLow.includes(`(${kwPrettyLow})`)) return true;
+
+  // This specific awkward pattern is what we want to fix with a 2nd pass.
+  if (lang === "en") {
+    try {
+      const re = new RegExp(`\\bby\\s+${escapeRegExp(kLow)}\\b`, "i");
+      if (re.test(outLow)) return true;
+    } catch {}
+  }
+
+  // Very short or obviously broken output
+  if (out.length < 12) return true;
+
+  return false;
+}
+
+async function aiRewriteBulletWithKeyword(env, { models, lang, keyword, currentBullet, context }) {
+  const promptText = buildKeywordInsertPrompt({
+    mode: "rewrite",
+    lang,
+    keyword,
+    currentBullet: String(currentBullet || "").slice(0, 520),
+    note: "",
+    context: (context && typeof context === "object") ? context : {}
+  });
+
+  const gen = await geminiGenerateJsonWithModels(env, {
+    models,
+    promptText,
+    temperature: 0.25,
+    maxOutputTokens: 260
+  });
+
+  const parsed = gen?.parsed || {};
+  let out = String(parsed.output || parsed.text || parsed.bullet || parsed.rewritten_bullet || "").trim();
+  out = postProcessKeywordSuggestBullet(out, keyword, lang);
+
+  // Ensure keyword is present (best effort)
+  const kLow = String(keyword || "").toLowerCase();
+  if (out && kLow && !out.toLowerCase().includes(kLow)) {
+    const kwPretty = prettyKeywordForCv(keyword, lang) || keyword;
+    out = out.endsWith(".") ? out.slice(0, -1) : out;
+    out = `${out} (${kwPretty})`.trim();
+  }
+
+  // Safety cap (keep enough room for ATS + UI)
+  if (out.length > 280) {
+    out = out.slice(0, 280).trim();
+    out = out.replace(/\s+\S*$/, "").trim();
+  }
+
+  return out;
+}
+
+
+
+function buildKeywordInsertPrompt({ mode, lang, keyword, currentBullet, note, context }) {
+  const language = (lang === "de") ? "German" : "English";
+  const ctx = (context && typeof context === "object") ? context : {};
+  const ctxSlim = {
+    role_title: String(ctx.role_title || "").trim(),
+    company: String(ctx.company || "").trim(),
+    job_title: String(ctx.job_title || "").trim(),
+    job_company: String(ctx.job_company || "").trim()
+  };
+
+  const kwRaw = String(keyword || "").trim();
+  const kw = prettyKeywordForCv(kwRaw, lang);
+
+  const hard = [
+    "- Output must be ONE bullet text line (no leading dash).",
+    `- Write the output in ${language}.`,
+    "- Do NOT invent facts. No new tools, employers, dates, degrees, certifications, or metrics.",
+    "- Do NOT add numbers unless they already exist in the input bullet or in the user note.",
+    "- The keyword must appear in the output (case may be adjusted).",
+    "- Keep it concise (ideally <= 180 characters).",
+    "- Avoid generic filler like 'responsible for' when possible (use clear action verbs)."
+  ];
+
+  if (mode === "rewrite") {
+    hard.push("- REWRITE mode: keep meaning and facts identical to the input bullet; only rephrase to naturally include the keyword.");
+  } else {
+    hard.push("- NEW mode: create the bullet ONLY from the user note. Do not add details beyond the note.");
+  }
+
+  return [
+    "Return ONLY valid JSON. No markdown. No code fences. No commentary.",
+    "",
+    "Schema:",
+    '{ "output": string }',
+    "",
+    "Hard rules:",
+    ...hard,
+    "",
+    "Context (tone only, not facts):",
+    JSON.stringify(ctxSlim),
+    "",
+    "MODE:",
+    String(mode || "").toUpperCase(),
+    "KEYWORD:",
+    kw,
+    "",
+    "INPUT_BULLET:",
+    String(currentBullet || "").trim(),
+    "",
+    "USER_NOTE:",
+    String(note || "").trim(),
+    "",
+    "Now output JSON only."
+  ].join("\n");
+}
+
+
+function slimStringArray(arr, maxItems = 30, maxLen = 90) {
+  if (!Array.isArray(arr)) return [];
+  const out = [];
+  const seen = new Set();
+  for (const item of arr) {
+    const s = String(item || "").trim();
+    if (!s) continue;
+    const key = s.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(s.length > maxLen ? s.slice(0, maxLen) : s);
+    if (out.length >= maxItems) break;
+  }
+  return out;
+}
+
+function tokenizeSimpleForScore(s) {
+  const t = String(s || "").toLowerCase();
+  return t
+    .replace(/[^a-z0-9äöüß]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+function scoreForKeyword(text, keyword) {
+  const a = tokenizeSimpleForScore(text);
+  const k = tokenizeSimpleForScore(keyword);
+  if (!a.length || !k.length) return 0;
+  const set = new Set(a);
+  let score = 0;
+  for (const w of k) {
+    if (set.has(w)) score += 2;
+  }
+  const kw = String(keyword || "").toLowerCase().trim();
+  if (kw && String(text || "").toLowerCase().includes(kw)) score += 5;
+  const len = String(text || "").length;
+  if (len >= 40 && len <= 160) score += 1;
+  return score;
+}
+
+function buildKeywordSuggestPrompt({ lang, keyword, bulletCandidates, skillGroups, skillAdditional, context }) {
+  const languageName = String(lang || "").toLowerCase().startsWith("de") ? "German" : "English";
+  const kwRaw = String(keyword || "").trim();
+  const kw = prettyKeywordForCv(kwRaw, lang);
+
+  const ctx = (context && typeof context === "object") ? context : {};
+  const ctxSlim = {
+    target_language: String(ctx?.target_language || ctx?.lang || lang || "").trim(),
+    job_title: String(ctx?.job?.title || ctx?.job_title || "").trim(),
+    job_company: String(ctx?.job?.company_name || ctx?.job_company || "").trim()
+  };
+
+  const rules = [
+    "Return ONLY valid JSON. No markdown. No code fences. No commentary.",
+    `Write output in ${languageName}.`,
+    "Do NOT invent facts.",
+    "You may ONLY rewrite ONE provided bullet. Keep meaning, scope, and facts identical.",
+    "If the keyword is a tool, software, certification, methodology, or hard skill, prefer placing it under Skills.",
+    "If the keyword is a responsibility/process, prefer Experience only if it fits naturally without changing meaning.",
+    "For Experience rewrites: use natural grammar. Avoid awkward patterns like 'by <keyword>' for noun phrases; prefer 'including/with/covering' or integrate as a clause.",
+    "The keyword must appear in the rewritten bullet OR the suggested skill item.",
+    "If nothing fits well, choose Skills and suggest adding the keyword as a skill item."
+  ];
+
+  const schema = {
+    target: "experience|skills",
+    exp_index: "number|null",
+    bullet_index: "number|null",
+    rewritten_bullet: "string|null",
+    skill_group: "string|null",
+    skill_item: "string|null",
+    reason: "string",
+    confidence: "number (0..1)"
+  };
+
+  return [
+    ...rules,
+    "",
+    "Schema (types):",
+    JSON.stringify(schema),
+    "",
+    "Context:",
+    JSON.stringify(ctxSlim),
+    "",
+    "KEYWORD:",
+    kw,
+    "",
+    "Experience bullet candidates (pick at most one):",
+    JSON.stringify(bulletCandidates || []),
+    "",
+    "Skills groups:",
+    JSON.stringify(skillGroups || []),
+    "",
+    "Skills additional:",
+    JSON.stringify(skillAdditional || []),
+    "",
+    "Now output JSON only."
+  ].join("\n");
+}
+
+
+function buildKeywordSuggestForceExperiencePrompt({ lang, keyword, bulletCandidates, context }) {
+  const languageName = String(lang || "").toLowerCase().startsWith("de") ? "German" : "English";
+  const kwRaw = String(keyword || "").trim();
+  const kw = prettyKeywordForCv(kwRaw, lang);
+
+  const ctx = (context && typeof context === "object") ? context : {};
+  const ctxSlim = {
+    target_language: String(ctx.target_language || ctx.lang || "").slice(0, 8),
+    role_title: String(ctx.role_title || "").slice(0, 80),
+    company: String(ctx.company || "").slice(0, 80),
+    job_title: String(ctx.job_title || "").slice(0, 80),
+    job_company: String(ctx.job_company || "").slice(0, 80)
+  };
+
+  return [
+    `You are a CV writing assistant. You MUST recommend an EXPERIENCE bullet to rewrite (not Skills).`,
+    `Your job: integrate the keyword truthfully into an existing bullet without adding new facts.`,
+    `Language: ${languageName}.`,
+    ``,
+    `Keyword to add: "${kw}"`,
+    ``,
+    `Candidate bullets (choose ONE best):`,
+    JSON.stringify(bulletCandidates || [], null, 2),
+    ``,
+    `Context (may help; do not invent new info):`,
+    JSON.stringify(ctxSlim, null, 2),
+    ``,
+    `Rules:`,
+    `- Keep the original meaning of the chosen bullet.`,
+    `- Do NOT add new tools, numbers, achievements, employers, or responsibilities not already implied.`,
+    `- Make it sound natural and ATS-friendly.`,
+    `- Avoid awkward phrasing like "by <keyword>" for noun phrases. Prefer "including/with/covering" (EN) or "einschließlich/mit" (DE).`,
+    `- Output MUST be valid JSON only.`,
+    ``,
+    `Return JSON with keys exactly:`,
+    `{`,
+    `  "target": "experience",`,
+    `  "exp_index": number,`,
+    `  "bullet_index": number,`,
+    `  "rewritten_bullet": string,`,
+    `  "reason": string,`,
+    `  "confidence": number`,
+    `}`,
+  ].join("\n");
+}
+
+
+async function handleMeCvKeywordSuggest(request, env) {
+  const me = await requireMeCustomerId(request, env);
+  if (!me.ok) return me.res;
+
+  let body = {};
+  try { body = await request.json(); } catch { body = {}; }
+
+  const keyword = String(body.keyword || "").trim();
+  if (!keyword || keyword.length < 2) {
+    return jsonResponse({ ok: false, error: "keyword is required" }, 400);
+  }
+
+  // Language: frontend usually sends 'en'/'de'. Keep a safe fallback.
+  let lang = String(body.language || body.lang || "").trim().toLowerCase();
+  if (!lang || lang === "auto") {
+    lang = String(body?.context?.target_language || body?.context?.lang || "").trim().toLowerCase();
+  }
+  if (!lang.startsWith("de")) lang = "en";
+  if (lang.startsWith("de")) lang = "de";
+
+  const cvDoc = (body.cv_doc && typeof body.cv_doc === "object")
+    ? body.cv_doc
+    : (body.cvDoc && typeof body.cvDoc === "object")
+      ? body.cvDoc
+      : (body.cv && typeof body.cv === "object")
+        ? body.cv
+        : null;
+
+  if (!cvDoc) {
+    return jsonResponse({ ok: false, error: "cv_doc is required" }, 400);
+  }
+
+  const exp = Array.isArray(cvDoc.experience) ? cvDoc.experience : [];
+  const rawCandidates = [];
+
+  exp.forEach((e, exp_index) => {
+    const title = String(e?.title || "").trim();
+    const company = String(e?.company || "").trim();
+    const role = [title, company].filter(Boolean).join(" — ").slice(0, 120);
+
+    const bullets = Array.isArray(e?.bullets) ? e.bullets : [];
+    bullets.forEach((b, bullet_index) => {
+      const bullet = String(b || "").trim();
+      if (!bullet) return;
+      rawCandidates.push({
+        exp_index,
+        bullet_index,
+        role,
+        bullet: bullet.length > 260 ? bullet.slice(0, 260) : bullet
+      });
+    });
+  });
+
+  // Pre-filter candidates so the prompt stays small
+  const scored = rawCandidates
+    .map(c => ({ ...c, __score: scoreForKeyword(`${c.role} ${c.bullet}`, keyword) }))
+    .sort((a, b) => (b.__score || 0) - (a.__score || 0));
+
+  const bulletCandidates = scored
+    .slice(0, 28)
+    .map(({ __score, ...rest }) => rest);
+
+  const skills = (cvDoc.skills && typeof cvDoc.skills === "object") ? cvDoc.skills : {};
+  const groups = Array.isArray(skills.groups) ? skills.groups : [];
+  const skillGroups = groups.slice(0, 12).map((g, idx) => ({
+    group: `group:${idx}`,
+    label: String(g?.label || "").trim().slice(0, 60),
+    items: slimStringArray(g?.items, 18, 80)
+  }));
+  const skillAdditional = slimStringArray(skills.additional, 40, 80);
+
+  const promptText = buildKeywordSuggestPrompt({
+    lang,
+    keyword,
+    bulletCandidates,
+    skillGroups,
+    skillAdditional,
+    context: body.context || {}
+  });
+
+  const models =
+    env.GEMINI_CV_KEYWORD_MODELS ||
+    env.GEMINI_CV_FINAL_MODELS ||
+    env.GEMINI_CV_MODEL_QUALITY ||
+    (env.GEMINI_CV_MODEL ? `gemini-2.0-pro,${env.GEMINI_CV_MODEL}` : "gemini-2.0-pro,gemini-2.0-flash");
+
+  try {
+    const gen = await geminiGenerateJsonWithModels(env, {
+      models,
+      promptText,
+      temperature: 0.2,
+      maxOutputTokens: 320
+    });
+
+    const parsed = gen?.parsed || {};
+    // Accept both snake_case and camelCase
+    const target = String(parsed.target || parsed.where || parsed.section || "").toLowerCase();
+    const exp_index = parsed.exp_index ?? parsed.expIdx ?? parsed.experience_index ?? null;
+    const bullet_index = parsed.bullet_index ?? parsed.bulletIdx ?? null;
+    const rewritten_bullet = parsed.rewritten_bullet || parsed.rewrite || parsed.bullet || parsed.text || null;
+    const skill_group = parsed.skill_group || parsed.skillGroup || null;
+    const skill_item = parsed.skill_item || parsed.skillItem || null;
+    const reason = String(parsed.reason || parsed.rationale || "").trim();
+    const confidenceRaw = parsed.confidence ?? parsed.confidence_score ?? null;
+    const confidence = (typeof confidenceRaw === "number" && confidenceRaw >= 0 && confidenceRaw <= 1) ? confidenceRaw : null;
+
+    let reco = {
+      target: (target === "experience") ? "experience" : "skills",
+      exp_index: (typeof exp_index === "number") ? exp_index : null,
+      bullet_index: (typeof bullet_index === "number") ? bullet_index : null,
+      rewritten_bullet: (typeof rewritten_bullet === "string") ? rewritten_bullet.trim() : null,
+      skill_group: (typeof skill_group === "string") ? skill_group.trim() : null,
+      skill_item: (typeof skill_item === "string") ? skill_item.trim() : null,
+      reason: reason || "",
+      confidence
+    };
+
+    const kwPretty = prettyKeywordForCv(keyword, lang);
+    const kwNeedle = String(keyword || "").toLowerCase();
+
+    // Validate + normalize
+    if (reco.target === "experience") {
+      const okIdx =
+        typeof reco.exp_index === "number" &&
+        typeof reco.bullet_index === "number" &&
+        rawCandidates.some(c => c.exp_index === reco.exp_index && c.bullet_index === reco.bullet_index);
+
+      if (!okIdx || !reco.rewritten_bullet) {
+        reco.target = "skills";
+      }
+    }
+
+    if (reco.target === "experience") {
+      let out = String(reco.rewritten_bullet || "").trim();
+      if (out && !out.toLowerCase().includes(kwNeedle)) {
+        // ensure keyword appears (keep it short and honest)
+        out = out.length > 240 ? out.slice(0, 240) : out;
+        out = `${out} (${kwPretty})`;
+      }
+      reco.rewritten_bullet = out ? out.slice(0, 280) : null;
+      reco.skill_group = null;
+      reco.skill_item = null;
+    } else {
+      // Skills fallback
+      const group = String(reco.skill_group || "additional").trim();
+      reco.skill_group = (group === "additional" || group.startsWith("group:")) ? group : "additional";
+      reco.skill_item = String(reco.skill_item || kwPretty).trim().slice(0, 80) || kwPretty;
+      if (!reco.skill_item.toLowerCase().includes(kwNeedle)) {
+        reco.skill_item = kwPretty;
+      }
+      reco.exp_index = null;
+      reco.bullet_index = null;
+      reco.rewritten_bullet = null;
+    }
+
+
+    // If the model recommended "skills" but the keyword is NOT a tool/tech keyword,
+    // we strongly prefer an Experience rewrite (more natural integration).
+    if (reco.target === "skills" && !isToolKeyword(keyword) && bulletCandidates.length) {
+      try {
+        const forcedPrompt = buildKeywordSuggestForceExperiencePrompt({
+          lang,
+          keyword,
+          bulletCandidates: bulletCandidates.slice(0, 18),
+          context: body.context || {}
+        });
+
+        const forcedGen = await geminiGenerateJsonWithModels(env, {
+          models,
+          promptText: forcedPrompt,
+          temperature: 0.2,
+          maxOutputTokens: 320
+        });
+
+        const fp = forcedGen?.parsed || {};
+        const fExp = fp.exp_index ?? fp.expIdx ?? fp.experience_index ?? null;
+        const fBul = fp.bullet_index ?? fp.bulletIdx ?? null;
+        const fText = fp.rewritten_bullet || fp.rewrite || fp.bullet || fp.text || null;
+
+        const okIdx =
+          typeof fExp === "number" &&
+          typeof fBul === "number" &&
+          rawCandidates.some(c => c.exp_index === fExp && c.bullet_index === fBul);
+
+        if (okIdx && typeof fText === "string" && fText.trim()) {
+          reco = {
+            target: "experience",
+            exp_index: fExp,
+            bullet_index: fBul,
+            rewritten_bullet: fText.trim().slice(0, 280),
+            skill_group: null,
+            skill_item: null,
+            reason: String(fp.reason || fp.rationale || reco.reason || "").trim(),
+            confidence: (typeof fp.confidence === "number" && fp.confidence >= 0 && fp.confidence <= 1) ? fp.confidence : reco.confidence
+          };
+
+          const kwPretty2 = prettyKeywordForCv(keyword, lang);
+          const kwNeedle2 = String(keyword || "").toLowerCase();
+          if (reco.rewritten_bullet && !reco.rewritten_bullet.toLowerCase().includes(kwNeedle2)) {
+            reco.rewritten_bullet = `${reco.rewritten_bullet} (${kwPretty2})`.slice(0, 280);
+          }
+        }
+      } catch (_) {
+        // keep original reco
+      }
+    }
+
+    const keyword_pretty = kwPretty;
+
+    // Final polish for Experience rewrite: fix awkward phrasing (e.g., "by <keyword>")
+    // and optionally do a second AI pass for better, more natural wording.
+    if (reco.target === "experience" && typeof reco.rewritten_bullet === "string") {
+      const original =
+        rawCandidates.find(c => c.exp_index === reco.exp_index && c.bullet_index === reco.bullet_index)?.bullet || "";
+
+      let out = postProcessKeywordSuggestBullet(reco.rewritten_bullet, keyword, lang);
+
+      if (shouldPolishKeywordSuggestBullet(out, keyword, lang) && original) {
+        try {
+          const polished = await aiRewriteBulletWithKeyword(env, {
+            models,
+            lang,
+            keyword,
+            currentBullet: original,
+            context: body.context || {}
+          });
+          if (polished) out = polished;
+        } catch (_) {
+          // keep first pass
+        }
+        out = postProcessKeywordSuggestBullet(out, keyword, lang);
+      }
+
+      // Ensure keyword is present (last line of defense)
+      const kwNeedleFinal = String(keyword || "").toLowerCase();
+      if (out && !out.toLowerCase().includes(kwNeedleFinal)) {
+        out = out.length > 240 ? out.slice(0, 240) : out;
+        out = `${out} (${keyword_pretty})`;
+      }
+
+      reco.rewritten_bullet = out ? out.slice(0, 280) : null;
+      reco.skill_group = null;
+      reco.skill_item = null;
+    }
+
+    return jsonResponse({
+      ok: true,
+      language: lang,
+      keyword_pretty,
+      recommendation: reco,
+      model: gen?.model || null,
+      prompt_version: "cv_keyword_suggest_v2"
+    });
+  } catch (e) {
+    return jsonResponse({ ok: false, error: "AI suggest failed", details: String(e?.message || e) }, 500);
+  }
+}
+
+async function handleMeCvKeywordInsert(request, env) {
+  const me = await requireMeCustomerId(request, env);
+  if (!me.ok) return me.res;
+
+  let body = {};
+  try { body = await request.json(); } catch { body = {}; }
+
+  const keyword = String(body.keyword || "").trim();
+  if (!keyword || keyword.length < 2) {
+    return jsonResponse({ ok: false, error: "keyword is required" }, 400);
+  }
+  if (keyword.length > 80) {
+    return jsonResponse({ ok: false, error: "keyword is too long" }, 400);
+  }
+
+  const mode = String(body.mode || "").trim().toLowerCase();
+  const currentBullet = String(body.current_bullet || body.bullet || "").trim();
+  const note = String(body.note || "").trim();
+  const ctx = (body.context && typeof body.context === "object") ? body.context : {};
+
+  if (mode !== "rewrite" && mode !== "new") {
+    return jsonResponse({ ok: false, error: "mode must be 'rewrite' or 'new'" }, 400);
+  }
+  if (mode === "rewrite" && !currentBullet) {
+    return jsonResponse({ ok: false, error: "current_bullet is required for rewrite mode" }, 400);
+  }
+  if (mode === "new" && note.length < 4) {
+    return jsonResponse({ ok: false, error: "note is required for new mode" }, 400);
+  }
+
+  // Target language:
+  // - prefer explicit request
+  // - else prefer context.target_language if provided
+  // - else detect from bullet/note (best effort)
+  let lang = String(body.language || body.lang || "").trim().toLowerCase();
+  if (lang !== "de" && lang !== "en") lang = "auto";
+
+  const ctxTarget = String(ctx.target_language || "").trim().toLowerCase();
+  if ((lang === "auto" || !lang) && (ctxTarget === "de" || ctxTarget === "en")) {
+    lang = ctxTarget;
+  }
+
+  if (lang === "auto" || !lang) {
+    const basis = (currentBullet || note || keyword).trim();
+    lang = detectLanguageHint(basis) || "en";
+  }
+
+  // Keep payload small + safe
+  const bulletIn = currentBullet.slice(0, 500);
+  const noteIn = note.slice(0, 280);
+
+  const promptText = buildKeywordInsertPrompt({
+    mode,
+    lang,
+    keyword: keyword,
+    currentBullet: bulletIn,
+    note: noteIn,
+    context: ctx
+  });
+
+  const models =
+    env.GEMINI_CV_KEYWORD_MODELS ||
+    env.GEMINI_CV_FINAL_MODELS ||
+    env.GEMINI_CV_MODEL_QUALITY ||
+    (env.GEMINI_CV_MODEL ? `gemini-2.0-pro,${env.GEMINI_CV_MODEL}` : "gemini-2.0-pro,gemini-2.0-flash");
+
+  try {
+    const gen = await geminiGenerateJsonWithModels(env, {
+      models,
+      promptText,
+      temperature: 0.35,
+      maxOutputTokens: 240
+    });
+
+    const parsed = gen?.parsed || {};
+    let out = String(parsed.output || parsed.text || parsed.bullet || parsed.rewritten_bullet || parsed.new_bullet || "").trim();
+
+    // Sanitize common model mistakes
+    out = out.replace(/^[\-–—•·∙●▪◦]+\s*/g, "").trim(); // remove bullet markers
+    out = out.replace(/\s+/g, " ").trim();
+
+    // Ensure keyword is present (best effort)
+    const kLow = keyword.toLowerCase();
+    if (out && !out.toLowerCase().includes(kLow)) {
+      // append in a natural way without changing facts
+      out = out.endsWith(".") ? out.slice(0, -1) : out;
+      const kwPretty = prettyKeywordForCv(keyword, lang) || keyword;
+      out = out + (lang === "de" ? ` (${kwPretty})` : ` (${kwPretty})`) + ".";
+    }
+
+    if (!out || out.length < 6) {
+      throw new Error("Keyword insert model returned empty output");
+    }
+
+    // Safety cap
+    if (out.length > 260) {
+      out = out.slice(0, 260).trim();
+      // avoid dangling half-word
+      out = out.replace(/\s+\S*$/, "").trim();
+    }
+
+// Post-polish for natural phrasing (keep ATS phrase order)
+if (lang === "en") {
+  const k = keyword.toLowerCase().trim();
+
+  // Keep exact keyword phrase order for ATS (do not flip words)
+  if (k === "requirements gathering") {
+    out = out.replace(/\b(via|through|by)\s+requirements gathering\b/i, "for requirements gathering");
+    out = out.replace(/\b(via|through|by)\s+Requirements Gathering\b/g, "for requirements gathering");
+  }
+  if (k === "stakeholder management") {
+    out = out.replace(/\b(via|through|by)\s+stakeholder management\b/i, "for stakeholder management");
+    out = out.replace(/\b(via|through|by)\s+Stakeholder Management\b/g, "for stakeholder management");
+  }
+  if (k === "process mapping") {
+    out = out.replace(/\b(via|through|by)\s+process mapping\b/i, "for process mapping");
+    out = out.replace(/\b(via|through|by)\s+Process Mapping\b/g, "for process mapping");
+  }
+  if (k === "requirements analysis") {
+    out = out.replace(/\b(via|through|by)\s+requirements analysis\b/i, "for requirements analysis");
+    out = out.replace(/\b(via|through|by)\s+Requirements Analysis\b/g, "for requirements analysis");
+  }
+
+  // Avoid Title Case keyword mid-sentence unless it's an acronym/tool (handled by prettyKeywordForCv elsewhere)
+  if (k && k.length <= 50 && !/^(sql|api|aws|gcp|okr|kpi)\b/i.test(k)) {
+    const kwPretty = prettyKeywordForCv(keyword, lang) || keyword;
+    if (kwPretty && kwPretty.toLowerCase() !== k) {
+      const esc = kwPretty.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      out = out.replace(new RegExp("\\b" + esc + "\\b", "g"), k);
+    }
+  }
+}
+
+    const resp = {
+      ok: true,
+      language: lang,
+      model: gen.model || null,
+      prompt_version: "cv_keyword_insert_v2"
+    };
+
+    if (mode === "new") {
+      return jsonResponse({ ...resp, new_bullet: out });
+    }
+    return jsonResponse({ ...resp, rewritten_bullet: out });
+  } catch (err) {
+    const msg = String(err?.message || err || "Keyword insert failed");
+    return jsonResponse({ ok: false, error: msg }, 502);
+  }
+}
+
+
+async function handleMeCvTailoredGet(request, env) {
     const auth = await requireMeCustomerId(request, env);
     if (!auth.ok) return auth.res;
 
@@ -4919,6 +6422,25 @@ async function handleMeCvTailorFromText(request, env) {
   const location = (env.GCP_LOCATION || "eu").trim() || "eu";
   
   const profile = await getCustomerCvRow(env, me.customerId);
+  // Fast path: if OCR was already finalized and stored in DB, don't hit GCP again.
+  const cachedStatus = String(profile?.cv_ocr_status || "").toLowerCase();
+  const cachedText = String(profile?.cv_ocr_text || "").trim();
+  if (!opParam && !outParam && cachedStatus === "done" && cachedText) {
+    return json(
+      request,
+      {
+        ok: true,
+        me: true,
+        customer_id: me.customerId,
+        status: "done",
+        source: "db",
+        text_length: cachedText.length,
+        updated_at: profile?.cv_ocr_updated_at || null
+      },
+      200
+    );
+  }
+
   const opNameRaw = opParam || (profile?.cv_ocr_operation || "").trim();
   
   if (!opNameRaw) {
