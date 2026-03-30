@@ -2266,16 +2266,12 @@ try{
   if(navAcct) navAcct.style.display = "";
   const navSignIn = $("navSignIn");
   if(navSignIn) navSignIn.style.display = "none";
-  const navLabel = $("navAccountLabel");
-  if(navLabel){
-    const handle = String(email).split("@")[0] || "Account";
-    navLabel.textContent = handle.length > 16 ? (handle.slice(0,16) + "…") : handle;
-  }
 }catch(_){}
 
 
 await ensureCustomer(email);
 await refreshState();
+try{ window.JobMeJobShared?.hydrateAccountNav?.({ session, state }); }catch(_){}
 await loadCvStatusAndUpdateUx();
 await loadProfileIntoForm();
 await maybeFinishPendingGmailVerify();
@@ -2426,36 +2422,6 @@ $("activityModal")?.addEventListener("click", (e) => { if(e.target && e.target.i
 $("activityRefresh")?.addEventListener("click", () => loadActivityLog().catch(()=>{}));
 $("activityFilter")?.addEventListener("change", () => loadActivityLog().catch(()=>{}));
 
-$("navLogout")?.addEventListener("click", async ()=>{
-  try{
-    const auth = getAppAuth();
-    if(auth?.logout){
-      await auth.logout("./index.html");
-      return;
-    }
-  }catch(_){}
-
-  // Fallback: sign out via supabase client
-  try{ await supabaseClient?.auth?.signOut(); }catch(_){}
-
-  // Best-effort cleanup (keep sb_* keys intact if auth.js is managing them)
-  try{
-    Object.keys(localStorage).forEach(k=>{
-      if(k.startsWith("ja_") || k.startsWith("jobapplyai_") || k.startsWith("jm_") || k.startsWith("jobmejob_")){
-        localStorage.removeItem(k);
-      }
-    });
-  }catch(_){}
-  try{
-    Object.keys(sessionStorage).forEach(k=>{
-      if(k === "sb_access_token" || k.startsWith("ja_") || k.startsWith("jobapplyai_") || k.startsWith("jm_") || k.startsWith("jobmejob_")){
-        sessionStorage.removeItem(k);
-      }
-    });
-  }catch(_){}
-
-  window.location.replace("./index.html");
-});
 }catch(e){
 showTopError(e.message||String(e));
 }

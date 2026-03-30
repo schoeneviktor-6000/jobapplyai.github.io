@@ -298,6 +298,408 @@
     }
   }
 
+  function getAppAuth(){
+    try{
+      return (window.JobMeJob && window.JobMeJob.auth)
+        ? window.JobMeJob.auth
+        : ((window.JobApplyAI && window.JobApplyAI.auth) ? window.JobApplyAI.auth : null);
+    }catch(_){
+      return null;
+    }
+  }
+
+  function safeParseJson(raw){
+    try{
+      return raw ? JSON.parse(raw) : null;
+    }catch(_){
+      return null;
+    }
+  }
+
+  function toNumberOrNull(value){
+    if (value === null || typeof value === "undefined" || value === "") return null;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function firstNumber(){
+    for (const value of arguments){
+      const n = toNumberOrNull(value);
+      if (n !== null) return n;
+    }
+    return null;
+  }
+
+  function trimLower(value){
+    return String(value || "").trim().toLowerCase();
+  }
+
+  function readCachedState(){
+    try{
+      const auth = getAppAuth();
+      if (auth && typeof auth.getCachedState === "function"){
+        const cached = auth.getCachedState();
+        if (cached && typeof cached === "object") return cached;
+      }
+    }catch(_){}
+
+    const parsed = safeParseJson(safeLocalGet("jm_state_json"));
+    return parsed && typeof parsed === "object" ? parsed : null;
+  }
+
+  function readCachedCvAccess(){
+    const parsed = safeParseJson(safeLocalGet("jm_cv_access_cache_v1"));
+    return parsed && typeof parsed === "object" ? parsed : null;
+  }
+
+  function planLabelFromId(planId){
+    const pid = trimLower(planId);
+    if (!pid || pid === "free") return "Free";
+    if (pid === "cv_starter") return "Starter";
+    if (pid === "cv_plus") return "Plus";
+    if (pid === "cv_unlimited") return "Unlimited";
+    if (pid === "starter") return "Starter";
+    if (pid === "pro") return "Pro";
+    if (pid === "max") return "Max";
+    return pid.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
+  function buildAccountPlanInfo(state){
+    const cvPlanId = trimLower(
+      state?.cv_plan_id ||
+      state?.cv_studio_plan_id ||
+      state?.cvstudio_plan_id ||
+      state?.entitlements?.cv_plan_id ||
+      state?.entitlements?.cv_studio_plan_id ||
+      ""
+    );
+    const jobsPlanId = trimLower(state?.plan_id || "");
+    const cvPaid = !!(
+      state?.cv_paid === true ||
+      state?.cv_studio_paid === true ||
+      state?.entitlements?.cv_paid === true ||
+      state?.entitlements?.cv_studio_paid === true ||
+      !!cvPlanId
+    );
+
+    if (cvPaid){
+      const cvLabel = planLabelFromId(cvPlanId) || "Paid";
+      return {
+        shortLabel: cvLabel,
+        detail: `CV Studio ${cvLabel}`,
+        jobsPlanLabel: jobsPlanId && jobsPlanId !== "free" ? ("Jobs plan: " + planLabelFromId(jobsPlanId)) : "",
+        paid: true
+      };
+    }
+
+    return {
+      shortLabel: "Free",
+      detail: "CV Studio Free",
+      jobsPlanLabel: jobsPlanId && jobsPlanId !== "free" ? ("Jobs plan: " + planLabelFromId(jobsPlanId)) : "",
+      paid: false
+    };
+  }
+
+  function buildAccountUsageInfo(state){
+    const cvPlanId = trimLower(
+      state?.cv_plan_id ||
+      state?.cv_studio_plan_id ||
+      state?.cvstudio_plan_id ||
+      state?.entitlements?.cv_plan_id ||
+      state?.entitlements?.cv_studio_plan_id ||
+      ""
+    );
+    const cvPaid = !!(
+      state?.cv_paid === true ||
+      state?.cv_studio_paid === true ||
+      state?.entitlements?.cv_paid === true ||
+      state?.entitlements?.cv_studio_paid === true ||
+      !!cvPlanId
+    );
+
+    const limit = firstNumber(
+      state?.cv_quota_limit,
+      state?.entitlements?.cv_quota_limit,
+      state?.cv_free_limit,
+      state?.entitlements?.cv_free_limit
+    );
+    const used = firstNumber(
+      state?.cv_quota_used,
+      state?.entitlements?.cv_quota_used,
+      state?.cv_free_used,
+      state?.entitlements?.cv_free_used
+    );
+
+    if (cvPaid && limit === 0){
+      return { label: "Unlimited CVs", detail: "No monthly cap on CV tailoring" };
+    }
+    if (limit !== null && used !== null){
+      const remaining = Math.max(0, limit - used);
+      if (cvPaid){
+        return {
+          label: `${remaining} CVs left`,
+          detail: `${used} of ${limit} used this billing cycle`
+        };
+      }
+      return {
+        label: `${remaining} free CVs left`,
+        detail: `${used} of ${limit} used`
+      };
+    }
+
+    const cached = readCachedCvAccess();
+    const cachedLimit = firstNumber(cached?.limit);
+    const cachedUsed = firstNumber(cached?.used);
+    if (cachedLimit !== null && cachedUsed !== null){
+      const remaining = Math.max(0, cachedLimit - cachedUsed);
+      return {
+        label: cached?.paid ? `${remaining} CVs left` : `${remaining} free CVs left`,
+        detail: `${cachedUsed} of ${cachedLimit} used`
+      };
+    }
+
+    return {
+      label: cvPaid ? "Usage syncing" : "5 free CVs available",
+      detail: cvPaid ? "Usage updates after each tailored CV" : "Upgrade only when CV Studio becomes routine"
+    };
+  }
+
+  function ensureAccountNavStyles(){
+    if (document.getElementById("jmSharedNavStyles")) return;
+    const style = document.createElement("style");
+    style.id = "jmSharedNavStyles";
+    style.textContent = `
+details.navDrop,
+details[data-dd="1"]{
+  position:relative;
+  display:inline-flex;
+}
+details.navDrop > summary,
+details[data-dd="1"] > summary{
+  list-style:none;
+}
+details.navDrop > summary::-webkit-details-marker,
+details[data-dd="1"] > summary::-webkit-details-marker{
+  display:none;
+}
+.jmNavTrigger{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  min-height:40px;
+  padding:9px 12px;
+  border-radius:999px;
+  border:1px solid rgba(17,19,24,.12);
+  background:rgba(255,255,255,.78);
+  color:inherit;
+  font-weight:850;
+  font-size:13px;
+  white-space:nowrap;
+  cursor:pointer;
+  transition:.15s ease;
+}
+.jmNavTrigger:hover{
+  transform:translateY(-1px);
+  background:rgba(255,255,255,.92);
+}
+details.navDrop[open] > .jmNavTrigger,
+details[data-dd="1"][open] > .jmNavTrigger{
+  border-color:rgba(34,197,94,.40);
+  background:rgba(34,197,94,.12);
+}
+.navMenu{
+  position:absolute;
+  top:calc(100% + 10px);
+  right:0;
+  width:min(340px, calc(100vw - 24px));
+  padding:12px;
+  border-radius:18px;
+  border:1px solid rgba(17,19,24,.14);
+  background:rgba(255,255,255,.94);
+  -webkit-backdrop-filter:saturate(1.2) blur(14px);
+  backdrop-filter:saturate(1.2) blur(14px);
+  box-shadow:0 18px 50px rgba(17,19,24,.18);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  z-index:60;
+}
+details.navDrop:not([open]) .navMenu,
+details[data-dd="1"]:not([open]) .navMenu{
+  display:none;
+}
+.jmAccountCard{
+  padding:12px;
+  border-radius:16px;
+  border:1px solid rgba(17,19,24,.10);
+  background:linear-gradient(180deg, rgba(34,197,94,.08), rgba(255,255,255,.86));
+  display:grid;
+  gap:10px;
+}
+.jmAccountTop{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+.jmAccountTitle{
+  font-weight:950;
+  letter-spacing:-.02em;
+}
+.jmAccountEmail{
+  font-size:13px;
+  color:rgba(17,19,24,.72);
+  word-break:break-word;
+}
+.jmAccountMetaRow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.jmNavMetaPill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  min-height:30px;
+  padding:0 10px;
+  border-radius:999px;
+  border:1px solid rgba(17,19,24,.12);
+  background:rgba(255,255,255,.82);
+  font-size:12px;
+  font-weight:850;
+  white-space:nowrap;
+}
+.jmNavMetaPill.good{
+  border-color:rgba(34,197,94,.40);
+  background:rgba(34,197,94,.12);
+}
+.jmAccountHint{
+  font-size:12px;
+  color:rgba(17,19,24,.58);
+  line-height:1.45;
+}
+.menuLabel{
+  font-size:12px;
+  font-weight:950;
+  letter-spacing:.03em;
+  text-transform:uppercase;
+  color:rgba(17,19,24,.55);
+  padding:2px 4px 0;
+}
+.menuSep{
+  height:1px;
+  background:rgba(17,19,24,.10);
+  margin:2px 0;
+}
+.jmNavItem{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:10px;
+  min-height:40px;
+  padding:10px 12px;
+  border-radius:14px;
+  border:1px solid rgba(17,19,24,.10);
+  background:rgba(17,19,24,.03);
+  color:inherit;
+  font-weight:800;
+  font-size:13px;
+  cursor:pointer;
+  text-align:left;
+}
+.jmNavItem:hover{
+  background:rgba(17,19,24,.06);
+}
+.jmNavDanger{
+  border-color:rgba(216,27,96,.24);
+  background:rgba(216,27,96,.08);
+}
+@media (max-width: 860px){
+  .navMenu{
+    width:min(360px, calc(100vw - 20px));
+    right:-8px;
+  }
+}
+`;
+    document.head.appendChild(style);
+  }
+
+  async function hydrateAccountNav(opts = {}){
+    ensureAccountNavStyles();
+
+    const navAccount = $("navAccount");
+    const navSignIn = $("navSignIn");
+    const navStartFree = $("navStartFree");
+    const navLogout = $("navLogout");
+    const hasNav = !!(navAccount || navSignIn || navStartFree || navLogout);
+    if (!hasNav) return null;
+
+    const auth = getAppAuth();
+    let session = opts.session || null;
+    let state = opts.state || null;
+    const shouldFetchState = opts.fetchState === true || String(document.body?.dataset?.navFetchState || "") === "1";
+
+    if (!session && auth && typeof auth.getSession === "function"){
+      try { session = await auth.getSession(); } catch (_) { session = null; }
+    }
+    if (!state){
+      state = readCachedState();
+    }
+    if (!state && shouldFetchState && session && auth && typeof auth.syncStateToLocalStorage === "function"){
+      try { state = await auth.syncStateToLocalStorage(session); } catch (_) { state = null; }
+    }
+
+    const email = String(session?.user?.email || state?.email || safeLocalGet("jm_user_email") || "").trim().toLowerCase();
+    const signedIn = !!(session && session.user && email);
+
+    if (navAccount) navAccount.style.display = signedIn ? "" : "none";
+    if (navSignIn) navSignIn.style.display = signedIn ? "none" : "";
+    if (navStartFree) navStartFree.style.display = signedIn ? "none" : "";
+
+    if (!signedIn) return { signedIn:false, session:null, state:null };
+
+    const handle = (email.split("@")[0] || "Account").trim();
+    const shortHandle = handle.length > 16 ? (handle.slice(0, 16) + "...") : handle;
+    const planInfo = buildAccountPlanInfo(state || {});
+    const usageInfo = buildAccountUsageInfo(state || {});
+
+    if ($("navAccountLabel")) $("navAccountLabel").textContent = shortHandle || "Account";
+    if ($("navAccountTitle")) $("navAccountTitle").textContent = planInfo.detail || "Your account";
+    if ($("navAccountEmail")) $("navAccountEmail").textContent = email;
+    if ($("navPlanPill")){
+      $("navPlanPill").textContent = planInfo.shortLabel || "Free";
+      $("navPlanPill").classList.toggle("good", !!planInfo.paid);
+    }
+    if ($("navPlanMeta")) $("navPlanMeta").textContent = planInfo.jobsPlanLabel || planInfo.detail || "CV Studio account";
+    if ($("navUsagePill")){
+      $("navUsagePill").textContent = usageInfo.label || "Usage syncing";
+      $("navUsagePill").classList.toggle("good", !!planInfo.paid);
+    }
+    if ($("navUsageMeta")) $("navUsageMeta").textContent = usageInfo.detail || "Usage updates after each tailored CV";
+
+    if (navLogout && navLogout.dataset.jmLogoutWired !== "1"){
+      navLogout.dataset.jmLogoutWired = "1";
+      navLogout.addEventListener("click", async () => {
+        try{
+          if (navAccount) navAccount.open = false;
+          if (auth && typeof auth.logout === "function"){
+            await auth.logout("./index.html");
+            return;
+          }
+        }catch(_){}
+        window.location.href = "./index.html";
+      });
+    }
+
+    const navActivity = $("navActivity");
+    if (navActivity && !document.getElementById("activityModal") && !document.getElementById("activityWrap") && !document.getElementById("activityFilters")){
+      navActivity.style.display = "none";
+    }
+
+    return { signedIn:true, session, state, email };
+  }
+
   // ------------------------------------------------------------
   // CV Studio helper (global): setStudioMode
   // Only define if missing to avoid overriding cv.html's own implementation.
@@ -348,6 +750,7 @@
     wireNavTransitions,
     wireDetailsDropdowns,
     wireNavDropdowns,
+    hydrateAccountNav,
 
     showTopError,
     setBadge,
@@ -375,5 +778,6 @@
     wireNavTransitions();
     wireDetailsDropdowns();
     wireModalDismiss();
+    hydrateAccountNav().catch(() => {});
   });
 })();

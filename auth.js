@@ -385,6 +385,8 @@ async function syncStateToLocalStorage(session) {
 
     const state = await res.json();
 
+    try { lsSet("jm_state_json", JSON.stringify(state || null)); } catch {}
+
     if (state && state.customer_id) lsSet("jm_customer_id", String(state.customer_id));
     if (state && state.email) lsSet("jm_user_email", String(state.email).trim().toLowerCase());
 
@@ -395,6 +397,17 @@ async function syncStateToLocalStorage(session) {
     else lsRemove("jm_profile_complete");
 
     return state;
+  } catch {
+    return null;
+  }
+}
+
+function getCachedState() {
+  try {
+    const raw = lsGet("jm_state_json");
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : null;
   } catch {
     return null;
   }
@@ -428,6 +441,7 @@ app.auth = {
   consumePostAuthRedirect,
   logout,
   requireAuthAndCustomer,
-  syncStateToLocalStorage
+  syncStateToLocalStorage,
+  getCachedState
 };
 })();

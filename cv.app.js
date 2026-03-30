@@ -5408,6 +5408,7 @@ ${bodyHtml}
       try{
         lastAccountState = await auth.syncStateToLocalStorage(session);
       }catch(_){}
+      try{ H.hydrateAccountNav({ session, state: lastAccountState }); }catch(_){}
     }
 
     async function boot(){
@@ -6045,16 +6046,6 @@ $("kwApply").addEventListener("click", applyKeyword);
     $("activityModal")?.addEventListener("click", (e) => { if(e.target && e.target.id === "activityModal") closeActivityModal(); });
     $("activityRefresh")?.addEventListener("click", () => loadActivityLog().catch(()=>{}));
     $("activityFilter")?.addEventListener("change", () => loadActivityLog().catch(()=>{}));
-
-    // Logout
-    $("navLogout").addEventListener("click", async () => {
-      try{
-        const auth = getAppAuth();
-        if(auth?.logout) await auth.logout("./index.html");
-      }catch(_){
-        window.location.href = "./index.html";
-      }
-    });
 
     // Initial view
     setTabs("preview");

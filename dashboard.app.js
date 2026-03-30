@@ -1594,12 +1594,6 @@ try{
   const sign=document.getElementById("navSignIn");
   if(acc) acc.style.display="";
   if(sign) sign.style.display="none";
-
-  const lbl=document.getElementById("navAccountLabel");
-  if(lbl){
-    const base = (email && String(email).includes("@")) ? String(email).split("@")[0] : "Account";
-    lbl.textContent = base.length>14 ? (base.slice(0,14) + "…") : base;
-  }
 }catch(_){ }
 
 
@@ -1607,6 +1601,7 @@ renderAiInsightsFromCache();
 
 let state=null;
 try{ state=await apiGet("/me/state",session.access_token); }catch{ state=null; }
+try{ window.JobMeJobShared?.hydrateAccountNav?.({ session, state }); }catch(_){ }
 
 // Load profile to get persisted AI titles (server source of truth)
 try{
@@ -1802,14 +1797,6 @@ async function doLogout(){
 // Logout buttons (legacy + account dropdown)
 const btnLogout=document.getElementById("btnLogout");
 if(btnLogout){ btnLogout.addEventListener("click", doLogout); }
-
-const navLogout=document.getElementById("navLogout");
-if(navLogout){
-  navLogout.addEventListener("click", async ()=>{
-    try{ const d=document.getElementById("navAccount"); if(d) d.open=false; }catch(_){ }
-    await doLogout();
-  });
-}
 
 // Account menu: jump to activity log section
 const navActivity=document.getElementById("navActivity");

@@ -500,23 +500,33 @@ Step 2 (Matched jobs) — form facelift
       <a class="pill" href="./plan.html" data-nav="1">Pricing</a>
 
       <details class="navDrop" id="navAccount" style="display:none">
-        <summary class="pill" aria-label="Account menu">
+        <summary class="jmNavTrigger" aria-label="Account menu">
           <span id="navAccountLabel">Account</span>
           <span aria-hidden="true">▾</span>
         </summary>
 
         <div class="navMenu" role="menu" aria-label="Account menu">
-          <div class="menuLabel">Account</div>
-          <a class="pill active" href="./profile.html" data-nav="1" role="menuitem">Profile setup</a>
-          <button class="btn ghost" id="navActivity" type="button" role="menuitem">Activity log</button>
-
+          <div class="jmAccountCard">
+            <div class="jmAccountTop">
+              <div class="jmAccountTitle" id="navAccountTitle">Your account</div>
+              <span class="jmNavMetaPill" id="navPlanPill">Free</span>
+            </div>
+            <div class="jmAccountEmail" id="navAccountEmail">Sign in to continue</div>
+            <div class="jmAccountMetaRow">
+              <span class="jmNavMetaPill" id="navUsagePill">5 free CVs available</span>
+            </div>
+            <div class="jmAccountHint" id="navPlanMeta">CV Studio free plan</div>
+            <div class="jmAccountHint" id="navUsageMeta">Usage updates after each tailored CV.</div>
+          </div>
+          <div class="menuLabel">Go to</div>
+          <a class="jmNavItem" href="./dashboard.html" data-nav="1" role="menuitem">Dashboard</a>
+          <a class="jmNavItem" href="./cv.html" data-nav="1" role="menuitem">CV Studio</a>
+          <a class="jmNavItem" href="./jobs.html" data-nav="1" role="menuitem">Jobs</a>
+          <a class="jmNavItem" href="./profile.html" data-nav="1" role="menuitem">Profile</a>
+          <a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Billing & plans</a>
+          <button class="jmNavItem" id="navActivity" type="button" role="menuitem">Activity</button>
           <div class="menuSep" role="separator"></div>
-          <div class="menuLabel">More</div>
-          <a class="pill" href="./dashboard.html" data-nav="1" role="menuitem">Dashboard</a>
-          <span class="pill menuDisabled" role="menuitem" aria-disabled="true">Auto-apply (coming soon)</span>
-
-          <div class="menuSep" role="separator"></div>
-          <button class="btn danger" id="navLogout" type="button" role="menuitem">Logout</button>
+          <button class="jmNavItem jmNavDanger" id="navLogout" type="button" role="menuitem">Logout</button>
         </div>
       </details>
 
