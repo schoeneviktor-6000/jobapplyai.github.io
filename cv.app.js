@@ -47,12 +47,23 @@
     let selectedApplyUrl = "";
     const EXT_IMPORT_KEY = "cvstudio_extension_import_v1";
     const EXT_IMPORT_MAX_DESC = 20000;
+    const CV_FREE_LIMIT_DEFAULT = 5;
+    const CV_ACCESS_CACHE_KEY = "jm_cv_access_cache_v1";
 
     // Job source: queue (your saved jobs) vs paste (manual job description)
     let jobSource = "queue"; // "queue" | "paste"
     let pasteDraft = { title:"", company:"", apply:"", lang_hint:"auto", desc:"" };
 let pasteCacheKey = "";
 let pendingExtensionImport = null;
+let lastAccountState = null;
+let cvStudioAccess = {
+  paid: false,
+  planId: "",
+  limit: CV_FREE_LIMIT_DEFAULT,
+  used: 0,
+  remaining: CV_FREE_LIMIT_DEFAULT,
+  source: "default"
+};
 
 // UI: collapsible Setup panel (focus mode)
 let setupCollapsed = false;
@@ -314,6 +325,7 @@ let genStepsState = "idle";
         const newLbl = (uiLang==="de") ? "Neuer CV" : "New CV";
         $("btnNewCv") && ($("btnNewCv").textContent = newLbl);
         $("btnNewCv") && ($("btnNewCv").title = (uiLang==="de") ? "Neuen Tailoring-Flow starten" : "Start a new tailoring flow");
+        $("btnUpgradeCv") && ($("btnUpgradeCv").textContent = (uiLang==="de") ? "Upgrade" : "Upgrade");
       }catch(_){}
 
       // Step 1 chooser cards (Gate)
@@ -432,6 +444,222 @@ let genStepsState = "idle";
       $("kwPreviewNote").textContent = t("kwPreviewNote");
       $("kwCancel").textContent = t("kwCancel");
       $("kwApply").textContent = t("kwApply");
+    }
+
+    function toNumberOrNull(v){
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function normalizeCvAccess(raw){
+      const planId = String(raw?.planId || "").trim().toLowerCase();
+      const paid = !!raw?.paid;
+      const explicitLimit = toNumberOrNull(raw?.limit);
+      const used = Math.max(0, toNumberOrNull(raw?.used) || 0);
+      const limit = explicitLimit !== null
+        ? Math.max(0, explicitLimit)
+        : (paid ? 0 : CV_FREE_LIMIT_DEFAULT);
+      const remaining = limit > 0 ? Math.max(0, limit - used) : null;
+      return {
+        paid,
+        planId,
+        limit,
+        used,
+        remaining,
+        source: String(raw?.source || "default")
+      };
+    }
+
+    function hasCvStudioAccess(){
+      return cvStudioAccess.limit > 0 ? (cvStudioAccess.remaining > 0) : true;
+    }
+
+    function cvUsageLabel(){
+      if(cvStudioAccess.paid){
+        if(cvStudioAccess.limit > 0){
+          const left = Math.max(0, Number(cvStudioAccess.remaining || 0));
+          const total = Math.max(0, Number(cvStudioAccess.limit || 0));
+          return uiLang === "de"
+            ? (`${left} / ${total} diesen Monat übrig`)
+            : (`${left} / ${total} left this month`);
+        }
+        return uiLang === "de" ? "CV Studio Plan aktiv" : "CV Studio plan active";
+      }
+
+      const left = Math.max(0, Number(cvStudioAccess.remaining || 0));
+      if(left <= 0){
+        return uiLang === "de" ? "5 Gratis-CVs verbraucht" : "5 free CVs used";
+      }
+      return uiLang === "de"
+        ? (`${left} Gratis-CVs übrig`)
+        : (`${left} free CV${left === 1 ? "" : "s"} left`);
+    }
+
+    function cvAccessBlockedMessage(){
+      if(cvStudioAccess.paid && cvStudioAccess.limit > 0){
+        return uiLang === "de"
+          ? "Du hast dein monatliches CV-Studio-Kontingent erreicht. Passe deinen Plan an, um weiter zu generieren."
+          : "You've reached your monthly CV Studio quota. Update your plan to keep generating.";
+      }
+      return uiLang === "de"
+        ? "Du hast deine 5 kostenlosen CVs verbraucht. Upgrade auf einen CV-Studio-Plan, um weiter zu generieren."
+        : "You've used your 5 free CVs. Upgrade to a CV Studio plan to keep generating.";
+    }
+
+    function updateCvUsageUi(){
+      const pill = $("cvUsagePill");
+      const upgradeBtn = $("btnUpgradeCv");
+      if(pill){
+        pill.style.display = "";
+        pill.textContent = cvUsageLabel();
+        pill.className = "pill mini";
+        if(!hasCvStudioAccess()) pill.classList.add("warn");
+        else if(cvStudioAccess.paid) pill.classList.add("good");
+      }
+      if(upgradeBtn){
+        upgradeBtn.style.display = hasCvStudioAccess() ? "none" : "inline-flex";
+      }
+    }
+
+    function readCachedCvAccess(){
+      try{
+        const raw = localStorage.getItem(CV_ACCESS_CACHE_KEY);
+        if(!raw) return null;
+        return normalizeCvAccess(JSON.parse(raw));
+      }catch(_){
+        return null;
+      }
+    }
+
+    function writeCachedCvAccess(access){
+      try{
+        localStorage.setItem(CV_ACCESS_CACHE_KEY, JSON.stringify({
+          paid: !!access?.paid,
+          planId: String(access?.planId || ""),
+          limit: access?.limit,
+          used: access?.used,
+          source: String(access?.source || "cache"),
+          at: Date.now()
+        }));
+      }catch(_){}
+    }
+
+    function extractCvAccessFromState(st){
+      if(!st || typeof st !== "object") return null;
+
+      const planId = String(
+        st.cv_plan_id ||
+        st.cv_studio_plan_id ||
+        st.cvstudio_plan_id ||
+        st?.entitlements?.cv_plan_id ||
+        st?.entitlements?.cv_studio_plan_id ||
+        ""
+      ).trim().toLowerCase();
+
+      const paid = !!(
+        st.cv_paid === true ||
+        st.cv_studio_paid === true ||
+        st?.entitlements?.cv_paid === true ||
+        st?.entitlements?.cv_studio_paid === true ||
+        (typeof st.cv_subscription_status === "string" && st.cv_subscription_status.toLowerCase() === "active") ||
+        (typeof st.subscription_status === "string" && st.subscription_status.toLowerCase() === "active" && !!planId) ||
+        !!planId
+      );
+
+      const limit = [
+        st.cv_quota_limit,
+        st.cv_limit,
+        st.cv_free_limit,
+        st.cv_trial_limit,
+        st.trial_cv_limit,
+        st?.entitlements?.cv_quota_limit,
+        st?.entitlements?.cv_free_limit
+      ].map(toNumberOrNull).find((n) => n !== null);
+
+      const used = [
+        st.cv_quota_used,
+        st.cv_used,
+        st.cv_free_used,
+        st.cv_trial_used,
+        st.trial_cv_used,
+        st?.entitlements?.cv_quota_used,
+        st?.entitlements?.cv_free_used
+      ].map(toNumberOrNull).find((n) => n !== null);
+
+      if(!paid && limit === undefined && used === undefined) return null;
+      return normalizeCvAccess({ paid, planId, limit, used, source:"state" });
+    }
+
+    async function fetchCvUsageFromHistory(){
+      try{
+        const res = await apiGet("/me/cv/tailored?limit=" + encodeURIComponent(String(CV_FREE_LIMIT_DEFAULT + 1)));
+        const count = toNumberOrNull(res?.count);
+        if(count !== null) return count;
+        const rows = Array.isArray(res?.data) ? res.data : [];
+        return rows.length;
+      }catch(_){
+        return null;
+      }
+    }
+
+    async function refreshCvStudioAccess(){
+      const stateAccess = extractCvAccessFromState(lastAccountState);
+      if(stateAccess){
+        cvStudioAccess = stateAccess;
+        writeCachedCvAccess(cvStudioAccess);
+        updateCvUsageUi();
+        try{ refreshModeUi(); }catch(_){}
+        return cvStudioAccess;
+      }
+
+      const historyCount = await fetchCvUsageFromHistory();
+      if(historyCount !== null){
+        const usedCount = Math.max(historyCount, Number(cvStudioAccess.used || 0));
+        cvStudioAccess = normalizeCvAccess({
+          paid: false,
+          limit: CV_FREE_LIMIT_DEFAULT,
+          used: usedCount,
+          source: "history"
+        });
+        writeCachedCvAccess(cvStudioAccess);
+        updateCvUsageUi();
+        try{ refreshModeUi(); }catch(_){}
+        return cvStudioAccess;
+      }
+
+      const cached = readCachedCvAccess();
+      cvStudioAccess = cached || normalizeCvAccess({ paid:false, limit: CV_FREE_LIMIT_DEFAULT, used:0, source:"cache" });
+      updateCvUsageUi();
+      try{ refreshModeUi(); }catch(_){}
+      return cvStudioAccess;
+    }
+
+    function optimisticCvUsageIncrement(){
+      if(cvStudioAccess.paid && cvStudioAccess.limit === 0) return;
+      cvStudioAccess = normalizeCvAccess({
+        ...cvStudioAccess,
+        used: Number(cvStudioAccess.used || 0) + 1,
+        source: "local"
+      });
+      writeCachedCvAccess(cvStudioAccess);
+      updateCvUsageUi();
+    }
+
+    function blockCvGenerationIfNeeded(){
+      if(hasCvStudioAccess()) return false;
+      const msg = cvAccessBlockedMessage();
+      showError(msg);
+      try{
+        const cta = $("ctaHint");
+        if(cta){
+          cta.style.display = "block";
+          cta.textContent = msg;
+        }
+      }catch(_){}
+      try{ setText("outHint", msg); }catch(_){}
+      try{ window.JobMeJobShared?.toast?.(msg, { kind:"warn", title:"CV Studio" }); }catch(_){}
+      try{ updateCvUsageUi(); }catch(_){}
+      return true;
     }
 
     /* -------------------------
@@ -1136,10 +1364,11 @@ function loadJobSource(){
     }
 
     function refreshModeUi(){
+      const accessOk = hasCvStudioAccess();
       if(jobSource === "queue"){
         const ok = !!selectedJob;
-        $("btnGenerate").disabled = !ok;
-        $("btnGenerateAgain").disabled = !ok;
+        $("btnGenerate").disabled = !ok || !accessOk;
+        $("btnGenerateAgain").disabled = !ok || !accessOk;
         $("btnViewDesc").disabled = !ok;
         $("btnCopyDesc").disabled = !ok;
         try{ updateCtaHint(); }catch(_){ }
@@ -1154,8 +1383,8 @@ function loadJobSource(){
       // allow generation at >=120 chars, recommend >=200
       const ok = len >= 120;
 
-      $("btnGenerate").disabled = !ok;
-      $("btnGenerateAgain").disabled = !ok;
+      $("btnGenerate").disabled = !ok || !accessOk;
+      $("btnGenerateAgain").disabled = !ok || !accessOk;
 
       const hasAny = len > 0;
       $("btnViewDesc").disabled = !hasAny;
@@ -1176,6 +1405,11 @@ function loadJobSource(){
       }
 
       cta.style.display = "block";
+
+      if(!hasCvStudioAccess()){
+        cta.textContent = cvAccessBlockedMessage();
+        return;
+      }
 
       if(jobSource === "queue"){
         if(!selectedJob){
@@ -3112,6 +3346,8 @@ ${bodyHtml}
         return;
       }
 
+      if(blockCvGenerationIfNeeded()) return;
+
       // Leaving Step 1 gate (if active) opens the full studio view
       exitGate();
 
@@ -3208,6 +3444,11 @@ ${bodyHtml}
             debug: lastDebug
           }));
         }catch(_){}
+
+        if(!res.cached){
+          optimisticCvUsageIncrement();
+          try{ setTimeout(() => { refreshCvStudioAccess().then(()=>{ try{ refreshModeUi(); }catch(_){ } }).catch(()=>{}); }, 0); }catch(_){}
+        }
       }catch(e){
         markSteps("error");
         setBadge("outStatus","bad", uiLang==="de" ? "Fehler" : "Failed");
@@ -3231,8 +3472,7 @@ ${bodyHtml}
 
         setText("outHint", hint);
       }finally{
-        $("btnGenerate").disabled = false;
-        $("btnGenerateAgain").disabled = false;
+        refreshModeUi();
       }
     }
 
@@ -3278,6 +3518,8 @@ ${bodyHtml}
         showError(t("pasteTooShort"));
         return;
       }
+
+      if(blockCvGenerationIfNeeded()) return;
 
       // Leaving Step 1 gate (if active) opens the full studio view
       exitGate();
@@ -3431,6 +3673,11 @@ ${bodyHtml}
             debug: lastDebug
           }));
         }catch(_){}
+
+        if(!res.cached){
+          optimisticCvUsageIncrement();
+          try{ setTimeout(() => { refreshCvStudioAccess().then(()=>{ try{ refreshModeUi(); }catch(_){ } }).catch(()=>{}); }, 0); }catch(_){}
+        }
       }catch(e){
         markSteps("error");
         setBadge("outStatus","bad", uiLang==="de" ? "Fehler" : "Failed");
@@ -5095,11 +5342,11 @@ function openKwModal(keywordRaw){
 
       // Ensure customer exists (best effort)
       try{
-        await auth.requireAuthAndCustomer({ redirectTo: "./signup.html" });
+        await auth.requireAuthAndCustomer({ redirectTo: "./signup.html?entry=cv-studio" });
       }catch(_){}
 
       try{
-        await auth.syncStateToLocalStorage(session);
+        lastAccountState = await auth.syncStateToLocalStorage(session);
       }catch(_){}
     }
 
@@ -5129,6 +5376,7 @@ function openKwModal(keywordRaw){
       }
 
       await loadStateAndNav();
+      try{ await refreshCvStudioAccess(); }catch(_){ updateCvUsageUi(); }
 
       // restore saved template/strength
       try{
