@@ -121,20 +121,20 @@ let genStepsState = "idle";
        ------------------------- */
     const I18N = {
       de: {
-        subTitle: "Passe deinen CV pro Rolle an – ATS-sicher formatiert. Funktioniert mit eingefuegten Stellenanzeigen und der Chrome-Erweiterung.",
+        subTitle: "Fuege einen Job ein oder waehle ihn aus Jobs. Wir passen deinen CV an, zeigen ATS-Luecken und bringen dich schnell zum Export.",
         setupTitle: "Setup",
         jobToTailorLbl: "Job auswählen",
         openJobsBtn: "Jobs öffnen",
         btnViewDesc: "Beschreibung ansehen",
         btnCopyDesc: "Beschreibung kopieren",
-        templateLbl: "Template",
-        atsHintLine: "ATS-sicher = einfache Überschriften, keine Tabellen/Spalten, leicht zu parsen.",
+        templateLbl: "Format",
+        atsHintLine: "Einfache Ueberschriften und klare Struktur, damit ATS-Systeme deinen CV sauber lesen koennen.",
         tailorStrengthLbl: "Tailoring-Stärke",
         light: "Leicht",
         balanced: "Balanced",
         aggressive: "Aggressiv",
-        gen: "Tailored CV generieren",
-        genAgain: "Neu generieren",
+        gen: "CV anpassen",
+        genAgain: "Erneut anpassen",
         stepsTitle: "So funktioniert’s",
         stepsIntro: "Das passiert, wenn du auf „Generieren“ klickst:",
         s1: "Job-Keywords extrahieren",
@@ -145,32 +145,33 @@ let genStepsState = "idle";
         truthHint: "Wir bleiben ehrlich: Wir erfinden keine Erfahrung oder Zertifikate. Wir formulieren nur um / sortieren um – basierend auf deinem hochgeladenen CV + Profil.",
         pipelineTitle: "Pipeline-Status",
 
-        tailoredTitle: "Tailored CV",
-        outHint: "Generiere einen CV, um Preview und ATS Match zu sehen.",
+        tailoredTitle: "Angepasster CV",
+        outHint: "Starte mit einem Job, um deinen angepassten CV zu erstellen.",
         kpiAts: "ATS Match",
-        atsHint: "Berechnet aus Keyword-Abdeckung (used vs missing).",
-        kpiUsed: "Keywords gefunden",
-        kpiUsedHint: "Im CV gefunden.",
-        kpiMissing: "Keywords fehlen",
-        kpiMissingHint: "Klicke ein fehlendes Keyword, um es (ehrlich) einzufügen.",
+        atsHint: "Praktischer Fit-Score basierend auf abgedeckten Job-Begriffen.",
+        kpiUsed: "Abgedeckte Begriffe",
+        kpiUsedHint: "Schon in deinem angepassten CV vorhanden.",
+        kpiMissing: "Begriffe zum Hinzufuegen",
+        kpiMissingHint: "Klicke einen echten fehlenden Begriff, um ihn schnell hinzuzufuegen.",
         tabPreview: "Preview",
-        tabText: "Text",
+        tabText: "Manuell bearbeiten",
+        tabChanges: "Was sich geaendert hat",
         copy: "Kopieren",
         download: "Download .txt",
-        print: "Drucken / PDF",
+        print: "PDF exportieren",
 
-        atsKwTitle: "ATS Keywords",
+        atsKwTitle: "ATS Verbesserungen",
         undo: "Undo",
         reset: "Reset",
         copyMissing: "Fehlende kopieren",
-        atsKwHint: "Diese Keywords kommen aus der Jobbeschreibung. Klicke ein fehlendes Keyword, um es (ehrlich) einzufügen und dein ATS Match zu verbessern.",
-        usedLbl: "Used",
-        missingLbl: "Missing",
+        atsKwHint: "Fuege unten nur die Begriffe hinzu, die wirklich stimmen. Das ist der schnellste ATS-Gewinn.",
+        usedLbl: "Schon abgedeckt",
+        missingLbl: "Als Nächstes hinzufügen",
         debugTitle: "Debug Details",
 
         // Keyword modal
         kwH: "Add keyword",
-        kwSub: "Add missing keywords — only if it's truly accurate for you.",
+        kwSub: "Schnellster Gewinn: echte fehlende Begriffe hinzufuegen. Erweiterte Platzierung nur nutzen, wenn du etwas in Erfahrung platzieren willst.",
         close: "Schließen",
         kwTruthLbl: "I confirm this keyword is true for me.",
         kwTruthNote: "We never invent experience. If it's not true, don’t add it.",
@@ -179,8 +180,8 @@ let genStepsState = "idle";
         kwLangLbl: "Language",
         kwLangNote: "Auto passt zur Sprache deines CV. Wähle Deutsch, wenn dein CV auf Deutsch ist.",
         kwModeLbl: "Insertion mode",
-        kwModeAi: "AI rewrite",
-        kwModeQuick: "Quick (no AI)",
+        kwModeAi: "KI Formulierung",
+        kwModeQuick: "Schnell hinzufuegen",
         kwModeNote: "KI integriert das Keyword natürlich. Falls dein Backend keinen KI-Endpunkt hat, nutzen wir automatisch Smart-Templates.",
         kwSkillsGroupLbl: "Which skill area?",
         kwSkillsGroupNote: "We add the keyword with clean casing and consistent style.",
@@ -193,7 +194,7 @@ let genStepsState = "idle";
         kwPreviewLbl: "Preview",
         kwPreviewNote: "You can always use Undo/Reset.",
         kwCancel: "Cancel",
-        kwApply: "Apply",
+        kwApply: "Begriff hinzufuegen",
 
         // errors
         pickJob: "Bitte wähle zuerst einen Job.",
@@ -206,7 +207,7 @@ let genStepsState = "idle";
         copied: "Kopiert ✓"
       },
       en: {
-        subTitle: "Tailor your CV per role with ATS-safe formatting. Works with pasted job descriptions and the Chrome extension.",
+        subTitle: "Paste a job or pick one from Jobs. We tailor your CV, show the ATS gaps, and get you ready to send.",
         setupTitle: "Setup",
         jobSourceLbl: "Job source",
         sourceJobs: "From my Jobs",
@@ -228,14 +229,14 @@ let genStepsState = "idle";
         openJobsBtn: "Open Jobs",
         btnViewDesc: "View description",
         btnCopyDesc: "Copy description",
-        templateLbl: "Template",
-        atsHintLine: "ATS-safe formatting = simple headings, no tables/columns, easy-to-parse structure.",
+        templateLbl: "Format",
+        atsHintLine: "Simple headings and clean structure so ATS systems can read your CV reliably.",
         tailorStrengthLbl: "Tailoring strength",
         light: "Light",
         balanced: "Balanced",
         aggressive: "Aggressive",
-        gen: "Generate tailored CV",
-        genAgain: "Generate again",
+        gen: "Tailor CV",
+        genAgain: "Tailor again",
         stepsTitle: "How it works",
         stepsIntro: "This is what happens when you click “Generate”:",
         s1: "Extract job keywords",
@@ -247,30 +248,31 @@ let genStepsState = "idle";
         pipelineTitle: "Pipeline status",
 
         tailoredTitle: "Tailored CV",
-        outHint: "Generate a CV to see preview and ATS match.",
+        outHint: "Start with a job to create your tailored CV.",
         kpiAts: "ATS match",
-        atsHint: "Calculated from keyword coverage (used vs missing).",
-        kpiUsed: "Keywords used",
-        kpiUsedHint: "Found in your tailored CV.",
-        kpiMissing: "Keywords missing",
-        kpiMissingHint: "Click a missing keyword to add it (truthfully).",
+        atsHint: "A practical ATS fit score based on which job terms your CV already covers.",
+        kpiUsed: "Covered terms",
+        kpiUsedHint: "Already present in your tailored CV.",
+        kpiMissing: "Terms to add",
+        kpiMissingHint: "Click a true missing term to add it quickly.",
         tabPreview: "Preview",
-        tabText: "Text",
+        tabText: "Manual edit",
+        tabChanges: "What changed",
         copy: "Copy",
         download: "Download .txt",
-        print: "Print / PDF",
+        print: "Export PDF",
 
-        atsKwTitle: "ATS keywords",
+        atsKwTitle: "ATS improvements",
         undo: "Undo",
         reset: "Reset",
         copyMissing: "Copy missing",
-        atsKwHint: "These keywords are extracted from the job description. Click a missing keyword to add it to your CV (truthfully) and improve your ATS match.",
-        usedLbl: "Used",
-        missingLbl: "Missing",
+        atsKwHint: "Add only the true missing terms below. This is the fastest way to lift your ATS match.",
+        usedLbl: "Already covered",
+        missingLbl: "Add next",
         debugTitle: "Debug details",
 
         kwH: "Add keyword",
-        kwSub: "Add missing keywords — only if they are truly accurate.",
+        kwSub: "Fastest win: add true missing terms. Open advanced placement only if you want to place one inside experience.",
         close: "Close",
         kwTruthLbl: "I confirm this keyword is true for me.",
         kwTruthNote: "We don’t invent experience. If it’s not true, don’t add it.",
@@ -280,7 +282,7 @@ let genStepsState = "idle";
         kwLangNote: "Auto matches your CV language. Choose German if your CV is in German.",
         kwModeLbl: "Insert mode",
         kwModeAi: "AI wording",
-        kwModeQuick: "Quick (no AI)",
+        kwModeQuick: "Quick add",
         kwModeNote: "AI tries to integrate the keyword naturally. If your backend has no AI endpoint, we automatically fall back to smart templates.",
         kwSkillsGroupLbl: "Which skill area?",
         kwSkillsGroupNote: "We add the keyword in consistent casing and style.",
@@ -293,7 +295,7 @@ let genStepsState = "idle";
         kwPreviewLbl: "Preview",
         kwPreviewNote: "You can always use Undo/Reset.",
         kwCancel: "Cancel",
-        kwApply: "Apply",
+        kwApply: "Add term",
 
         pickJob: "Pick a job first.",
         needCv: "Generate a CV first.",
@@ -405,6 +407,7 @@ let genStepsState = "idle";
 
       $("tabPreview").textContent = t("tabPreview");
       $("tabText").textContent = t("tabText");
+      $("tabChanges").textContent = t("tabChanges");
       $("btnCopy").textContent = t("copy");
       $("btnDownload").textContent = t("download");
       $("btnPrint").textContent = t("print");
@@ -414,8 +417,8 @@ let genStepsState = "idle";
       $("btnResetEdits").textContent = t("reset");
       $("btnCopyMissing").textContent = t("copyMissing");
       $("atsKwHint").textContent = t("atsKwHint");
-      $("usedLbl").textContent = t("usedLbl");
       $("missingLbl").textContent = t("missingLbl");
+      setText("usedKeywordsSummary", t("usedLbl"));
       $("debugTitle").textContent = t("debugTitle");
 
       // Keyword modal
@@ -662,6 +665,17 @@ let genStepsState = "idle";
       return true;
     }
 
+    function syncCvAccessFromApiError(err){
+      const body = err && typeof err === "object" ? err.body : null;
+      const access = extractCvAccessFromState(body);
+      if(!access) return false;
+      cvStudioAccess = access;
+      writeCachedCvAccess(cvStudioAccess);
+      updateCvUsageUi();
+      try{ refreshModeUi(); }catch(_){}
+      return true;
+    }
+
     /* -------------------------
        Helpers
        ------------------------- */
@@ -818,7 +832,7 @@ function cancelAutoStart(userInitiated = true){
   clearAutoStartTimer();
   showAutoStartBar(false);
   if(userInitiated){
-    try{ window.JobMeJobShared?.toast?.("Tip hidden. You can tweak settings and click Generate.", { kind:"warn", title:"CV Studio" }); }catch(_){}
+    try{ window.JobMeJobShared?.toast?.("Tip hidden. You can tweak the settings and click Tailor CV.", { kind:"warn", title:"CV Studio" }); }catch(_){}
   }
 }
 
@@ -882,8 +896,8 @@ function armAutoStartFromJobs(){
   try{ $("settingsDetails").open = true; }catch(_){}
 
   showAutoStartBar(true, uiLang==="de"
-    ? "Vorlage & Stärke auswählen – dann „Generate tailored CV“ klicken."
-    : "Choose template & strength — then click “Generate tailored CV”."
+    ? "Waehle die Intensitaet und klicke dann auf „CV anpassen“."
+    : "Choose the strength, then click “Tailor CV”."
   );
 
   try{ setGuidedSettingsGlow(true); }catch(_){ }
@@ -907,10 +921,16 @@ function setGateView(view){
   const formWrap = $("gateFormWrap");
   const backRow = $("gateBackRow");
   const backBadge = $("gateBackBadge");
+  const sourceLbl = $("jobSourceLbl");
+  const sourcePills = $("sourcePills");
+  const sourceHint = $("jobSourceHint");
 
   if(chooser) chooser.style.display = (gateActive && gateView === "choose") ? "" : "none";
   if(formWrap) formWrap.style.display = (!gateActive || gateView === "form") ? "" : "none";
   if(backRow) backRow.style.display = (gateActive && gateView === "form") ? "flex" : "none";
+  if(sourceLbl) sourceLbl.style.display = (gateView === "form") ? "none" : "";
+  if(sourcePills) sourcePills.style.display = (gateView === "form") ? "none" : "";
+  if(sourceHint) sourceHint.style.display = (gateView === "form") ? "none" : "";
 
   // Update step header copy (keeps the flow obvious)
   const st = $("setupTitle");
@@ -930,8 +950,8 @@ function setGateView(view){
       ? "Job-Quelle wählen"
       : "Choose your job source";
     if(hint) hint.textContent = (uiLang==="de")
-      ? "Wähle eine Option. Danach ergänzt du die Details und startest das Tailoring."
-      : "Choose one option. Next you’ll add the details and start tailoring.";
+      ? "Wähle den schnellsten Weg zu deinem angepassten CV."
+      : "Choose the fastest path to your tailored CV.";
     try{ renderGateStepper(1); }catch(_){ }
     return;
   }
@@ -948,11 +968,11 @@ function setGateView(view){
   if(hint){
     hint.textContent = (jobSource === "paste")
       ? ((uiLang==="de")
-          ? "Füge die Stellenbeschreibung ein (am besten das komplette Posting) und starte dann das Tailoring."
-          : "Paste the job description (full posting is best), then start tailoring.")
+          ? "Füge die Stellenbeschreibung ein. Das komplette Posting liefert die besten ATS-Hinweise."
+          : "Paste the job description. The full posting gives the best ATS guidance.")
       : ((uiLang==="de")
-          ? "Wähle einen Job aus deiner Queue und starte dann das Tailoring."
-          : "Pick a job from your queue, then start tailoring.");
+          ? "Wähle den Job aus, den du jetzt anpassen willst."
+          : "Pick the job you want to tailor right now.");
   }
   try{ renderGateStepper(2); }catch(_){ }
   try{ updateCtaHint(); }catch(_){ }
@@ -1042,7 +1062,7 @@ function setGateActive(on){
   // Make the primary action clear
   const genBtn = $("btnGenerate");
   if(genBtn){
-    genBtn.textContent = gateActive ? "Start tailoring →" : "Generate tailored CV";
+    genBtn.textContent = gateActive ? "Tailor CV →" : t("gen");
   }
 
   // Keep second button hidden to reduce confusion
@@ -1415,18 +1435,18 @@ function loadJobSource(){
         if(!selectedJob){
           if(jobs && jobs.length === 0){
             cta.textContent = (uiLang==="de")
-              ? "Deine Job-Queue ist leer. Öffne die Jobs-Seite und lade zuerst passende Jobs."
-              : "Your job queue is empty. Open the Jobs page and fetch jobs first.";
+              ? "Deine Job-Liste ist leer. Hole zuerst Jobs auf der Jobs-Seite."
+              : "Your Jobs list is empty. Fetch jobs first on the Jobs page.";
           }else{
             cta.textContent = (uiLang==="de")
-              ? "Wähle zuerst einen Job aus, um „Start tailoring“ zu aktivieren."
-              : "Choose a job to enable Start tailoring.";
+              ? "Wähle einen Job, um „CV anpassen“ zu aktivieren."
+              : "Choose a job to unlock Tailor CV.";
           }
           return;
         }
         cta.textContent = (uiLang==="de")
-          ? "Bereit — wähle Template & Stärke (optional) und klicke dann „Start tailoring“."
-          : "Ready — review template & strength (optional), then click Start tailoring.";
+          ? "Bereit. Wähle die Intensität und klicke auf „CV anpassen“."
+          : "Ready. Choose the strength, then click Tailor CV.";
         return;
       }
 
@@ -1435,19 +1455,19 @@ function loadJobSource(){
       const len = desc.length;
       if(len < 120){
         cta.textContent = (uiLang==="de")
-          ? "Füge mindestens ca. 120 Zeichen ein, um „Start tailoring“ zu aktivieren."
-          : "Paste at least ~120 characters to enable Start tailoring.";
+          ? "Füge die vollständige Stellenbeschreibung ein, um „CV anpassen“ zu aktivieren."
+          : "Paste the full job description to unlock Tailor CV.";
         return;
       }
       if(len < 200){
         cta.textContent = (uiLang==="de")
-          ? "Du kannst starten. Für bessere Resultate: mehr Kontext (Aufgaben + Anforderungen)."
-          : "You can start. For best results, include Responsibilities + Requirements.";
+          ? "Fast fertig. Mehr Aufgaben und Anforderungen ergeben bessere ATS-Hinweise."
+          : "Almost there. Add responsibilities and requirements for better ATS guidance.";
         return;
       }
       cta.textContent = (uiLang==="de")
-        ? "Bereit — wähle Template & Stärke (optional) und klicke dann „Start tailoring“."
-        : "Ready — review template & strength (optional), then click Start tailoring.";
+        ? "Bereit. Wähle die Intensität und klicke auf „CV anpassen“."
+        : "Ready. Choose the strength, then click Tailor CV.";
     }
 
 function updatePasteQuality(){
@@ -1469,16 +1489,16 @@ function updatePasteQuality(){
       if(len < 50){
         msg = "Paste the full job posting for best results.";
       }else if(len < 200){
-        msg = `Looks short (${len} chars). Include Responsibilities + Requirements for best tailoring.`;
+        msg = `Looks short (${len} chars). Add responsibilities and requirements for a better match.`;
       }else{
         status = "good";
-        msg = `Looks good: ${len} chars · ${words} words · ${lines} lines` + ((hasReq || hasResp) ? "" : " (Tip: include requirements/tasks)");
+        msg = `Looks good: ${len} chars · ${words} words · ${lines} lines` + ((hasReq || hasResp) ? "" : " (Tip: include requirements and tasks)");
       }
 
       if(pill){
         pill.classList.toggle("good", status === "good");
         pill.classList.toggle("warn", status !== "good");
-        pill.textContent = status === "good" ? "Good" : "Needs more";
+        pill.textContent = status === "good" ? "Ready" : "Needs more";
       }
       if(label) label.textContent = msg;
 
@@ -2101,9 +2121,10 @@ function markSteps(state){
       try{
         const genBtn = $("btnGenerate");
         if(genBtn && !gateActive){
-          genBtn.textContent = enabled ? "Regenerate tailored CV" : "Generate tailored CV";
+          genBtn.textContent = enabled ? "Tailor again" : t("gen");
         }
       }catch(_){}
+      updateStudioFlowUi();
     }
 
     function updateUndoResetButtons(){
@@ -2138,7 +2159,7 @@ function markSteps(state){
               <span class="chipPlus" aria-hidden="true">＋</span>
             </button>`;
           }).join("")
-        : `<span class="hint">—</span>`;
+        : `<span class="hint">No key gaps left. Nice work.</span>`;
 
       setText("kwUsedCount", used.length ? String(used.length) : "0");
       setText("kwMissCount", miss.length ? String(miss.length) : "0");
@@ -2151,6 +2172,7 @@ function markSteps(state){
         setText("atsScore", score + "%");
         $("atsBar").style.width = score + "%";
       }
+      updateStudioFlowUi();
     }
 
     function recomputeCoverageFromCurrentText(){
@@ -2502,6 +2524,31 @@ ${bodyHtml}
       }
     }
 
+    function hasGeneratedOutput(){
+      return !!String($("cvText")?.value || "").trim();
+    }
+
+    function updateStudioFlowUi(){
+      const hasOutput = hasGeneratedOutput();
+      const modeEdit = $("modeEdit");
+      const modeReview = $("modeReview");
+      [modeEdit, modeReview].forEach((btn) => {
+        if(!btn) return;
+        btn.style.display = hasOutput ? "" : "none";
+        btn.disabled = !hasOutput;
+      });
+
+      if(!hasOutput && studioMode !== "tailor"){
+        setStudioMode("tailor");
+        return;
+      }
+
+      const usedDetails = $("usedKeywordsDetails");
+      const usedCount = Array.isArray(lastUsed) ? lastUsed.length : 0;
+      if(usedDetails) usedDetails.style.display = usedCount ? "" : "none";
+      setText("usedKeywordsSummary", usedCount ? `Already covered (${usedCount})` : "Already covered");
+    }
+
     /* -------------------------
        Studio modes (Resume.io-inspired)
        - Tailor: keep UI calm (Preview only)
@@ -2512,7 +2559,7 @@ ${bodyHtml}
     let studioMode = "tailor";
 
     function setModeButton(activeId){
-      const ids = ["modeEdit","modeCustomize","modeReview","modeTailor"];
+      const ids = ["modeEdit","modeReview","modeTailor"];
       ids.forEach((id) => {
         const b = $(id);
         if(!b) return;
@@ -2523,18 +2570,19 @@ ${bodyHtml}
     }
 
     function setStudioMode(mode){
-      studioMode = mode || "tailor";
+      const hasOutput = hasGeneratedOutput();
+      let nextMode = mode || "tailor";
+      if(nextMode === "customize") nextMode = hasOutput ? "edit" : "tailor";
+      if((nextMode === "edit" || nextMode === "review") && !hasOutput) nextMode = "tailor";
+      studioMode = nextMode;
       if(studioRoot) studioRoot.setAttribute("data-mode", studioMode);
 
       if(studioMode === "edit"){
         setModeButton("modeEdit");
-        // Default to Text editor for editing
-        setTabs("text");
+        // Start with a high-signal view of what changed.
+        setTabs("changes");
       }else if(studioMode === "review"){
         setModeButton("modeReview");
-        setTabs("preview");
-      }else if(studioMode === "customize"){
-        setModeButton("modeCustomize");
         setTabs("preview");
       }else{
         setModeButton("modeTailor");
@@ -2543,13 +2591,13 @@ ${bodyHtml}
 
       // Inspector header copy
       if(studioMode === "review"){
-        $("inspectorTitle").textContent = "AI Review";
-        $("inspectorHint").textContent = "Quick quality checks before you send or export. Open the full report for details.";
-        $("inspectorBadge").textContent = "Review";
+        $("inspectorTitle").textContent = "Final check";
+        $("inspectorHint").textContent = "Run one last check before export. We flag the highest-impact fixes first.";
+        $("inspectorBadge").textContent = "Final";
       }else{
         $("inspectorTitle").textContent = "Inspector";
-        $("inspectorHint").textContent = "Your CV stays centered. Use this panel to improve ATS match and polish wording without getting overwhelmed.";
-        $("inspectorBadge").textContent = "Live";
+        $("inspectorHint").textContent = "Start with the missing ATS terms. When the match looks good, run the final check and export.";
+        $("inspectorBadge").textContent = hasOutput ? "Next" : "Live";
       }
 
       // Close the download dropdown if it's open (keeps things tidy)
@@ -2557,6 +2605,7 @@ ${bodyHtml}
       if(dl) dl.open = false;
 
       try { localStorage.setItem("jmj_cv_mode", studioMode); } catch(_) {}
+      updateStudioFlowUi();
     }
 
     /* -------------------------
@@ -3299,11 +3348,11 @@ ${bodyHtml}
             renderKeywords();
 
             setCvOutput({ text: obj.cv_text || "", doc: obj.cv_doc || null, lang: obj.lang || obj.language || "en" });
-            setBadge("outStatus","good", uiLang==="de" ? "Bereit (lokal)" : "Ready (local)");
+            setBadge("outStatus","good", uiLang==="de" ? "Bereit" : "Ready");
             setText("outModel","Model: —");
             setText("outHint", uiLang==="de"
-              ? "Letzten CV von diesem Gerät geladen. Generiere neu für ein frisches Ergebnis."
-              : "Loaded your last tailored CV from this device. Generate to refresh from server."
+              ? "Letzten angepassten CV von diesem Gerät geladen. Passe erneut an, wenn du ein frisches Ergebnis willst."
+              : "Loaded your last tailored CV from this device. Tailor again if you want a fresh result."
             );
 
             baseSnapshot = snapshotCurrent();
@@ -3354,8 +3403,8 @@ ${bodyHtml}
       setSetupCollapsed(true, { persist:false });
       openGenModal(true);
       markSteps("running");
-      setBadge("outStatus", "warn", uiLang==="de" ? "Generiere…" : "Generating…");
-      setText("outHint", uiLang==="de" ? "Dein CV wird erstellt…" : "Generating your tailored CV…");
+      setBadge("outStatus", "warn", uiLang==="de" ? "Passe an…" : "Tailoring…");
+      setText("outHint", uiLang==="de" ? "Wir gleichen deinen CV mit dem Job ab und bereiten eine ATS-freundliche Version vor…" : "We’re matching your CV to the job and preparing an ATS-friendly version…");
       setText("debugBox", "—");
       setBadge("pipeBadge", "warn", uiLang==="de" ? "Arbeite…" : "Working…");
 
@@ -3406,15 +3455,15 @@ ${bodyHtml}
         historyStack = [];
         updateUndoResetButtons();
 
-        setBadge("outStatus", "good", res.cached ? (uiLang==="de" ? "Bereit (cached)" : "Ready (cached)") : (uiLang==="de" ? "Bereit" : "Ready"));
+        setBadge("outStatus", "good", res.cached ? (uiLang==="de" ? "Bereit" : "Ready") : (uiLang==="de" ? "Bereit" : "Ready"));
         setText("outModel", "Model: " + (r.model || "—"));
         setText("outHint", res.cached
           ? (uiLang==="de"
-            ? "Cached Ergebnis geladen. Ändere die Stärke, um eine neue Version zu erstellen."
-            : "Loaded cached result. Change strength to create a different version.")
+            ? "Dein angepasster CV ist bereit. Wenn du einen anderen Winkel testen willst, ändere die Intensität und passe ihn erneut an."
+            : "Your tailored CV is ready. If you want a different angle, change the strength and tailor again.")
           : (uiLang==="de"
-            ? "Neuer Tailored CV erstellt. Bitte prüfen und exportieren."
-            : "Generated a new tailored CV. Review and export below.")
+            ? "Dein angepasster CV ist bereit. Fuege echte fehlende Begriffe hinzu und exportiere dann."
+            : "Your tailored CV is ready. Add any true missing terms, then export.")
         );
         markSteps("done");
 
@@ -3450,6 +3499,7 @@ ${bodyHtml}
           try{ setTimeout(() => { refreshCvStudioAccess().then(()=>{ try{ refreshModeUi(); }catch(_){ } }).catch(()=>{}); }, 0); }catch(_){}
         }
       }catch(e){
+        const syncedQuota = syncCvAccessFromApiError(e);
         markSteps("error");
         setBadge("outStatus","bad", uiLang==="de" ? "Fehler" : "Failed");
         setBadge("pipeBadge","bad", uiLang==="de" ? "Fehler" : "Failed");
@@ -3457,17 +3507,19 @@ ${bodyHtml}
         $("debugBox").textContent = JSON.stringify({ ok:false, kind: e?.kind || null, timeoutMs: e?.timeoutMs || null, error: e?.message || String(e) }, null, 2);
 
         let hint = uiLang==="de"
-          ? "Generierung fehlgeschlagen. Prüfe CV Upload und Jobbeschreibung."
-          : "Failed to generate. Check your CV upload and job description availability.";
+          ? "Anpassen fehlgeschlagen. Prüfe CV-Upload und Jobbeschreibung."
+          : "Tailoring failed. Check your CV upload and job description.";
 
         if(e && e.kind === "timeout"){
           hint = uiLang==="de"
-            ? "Zeitüberschreitung. Die Generierung läuft möglicherweise noch - klicke \"Generate again\", um das Ergebnis (cached) abzurufen."
-            : "Timed out. The server may still be finishing - click \"Generate again\" to fetch the cached result.";
+            ? "Zeitüberschreitung. Der Server arbeitet eventuell noch - klicke „Erneut anpassen“, um das gecachte Ergebnis zu laden."
+            : "Timed out. The server may still be finishing. Click “Tailor again” to fetch the cached result.";
         }else if(e && e.kind === "network"){
           hint = uiLang==="de"
             ? "Netzwerkfehler. Prüfe deine Verbindung (VPN/Ad-Blocker) und versuche es erneut."
             : "Network error. Check your connection (VPN/ad blockers) and try again.";
+        }else if(syncedQuota && e && Number(e.status) === 402){
+          hint = cvAccessBlockedMessage();
         }
 
         setText("outHint", hint);
@@ -3527,8 +3579,8 @@ ${bodyHtml}
       setSetupCollapsed(true, { persist:false });
       openGenModal(true);
       markSteps("running");
-      setBadge("outStatus", "warn", uiLang==="de" ? "Generiere…" : "Generating…");
-      setText("outHint", uiLang==="de" ? "Dein CV wird erstellt…" : "Generating your tailored CV…");
+      setBadge("outStatus", "warn", uiLang==="de" ? "Passe an…" : "Tailoring…");
+      setText("outHint", uiLang==="de" ? "Wir gleichen deinen CV mit dem Job ab und bereiten eine ATS-freundliche Version vor…" : "We’re matching your CV to the job and preparing an ATS-friendly version…");
       setText("debugBox", "—");
       setBadge("pipeBadge", "warn", uiLang==="de" ? "Arbeite…" : "Working…");
 
@@ -3634,15 +3686,15 @@ ${bodyHtml}
         historyStack = [];
         updateUndoResetButtons();
 
-        setBadge("outStatus", "good", res.cached ? (uiLang==="de" ? "Bereit (cached)" : "Ready (cached)") : (uiLang==="de" ? "Bereit" : "Ready"));
+        setBadge("outStatus", "good", res.cached ? (uiLang==="de" ? "Bereit" : "Ready") : (uiLang==="de" ? "Bereit" : "Ready"));
         setText("outModel", "Model: " + (r.model || "—"));
         setText("outHint", res.cached
           ? (uiLang==="de"
-            ? "Cached Ergebnis geladen. Ändere die Stärke, um eine neue Version zu erstellen."
-            : "Loaded cached result. Change strength to create a different version.")
+            ? "Dein angepasster CV ist bereit. Wenn du einen anderen Winkel testen willst, ändere die Intensität und passe ihn erneut an."
+            : "Your tailored CV is ready. If you want a different angle, change the strength and tailor again.")
           : (uiLang==="de"
-            ? "Neuer Tailored CV erstellt. Bitte prüfen und exportieren."
-            : "Generated a new tailored CV. Review and export below.")
+            ? "Dein angepasster CV ist bereit. Fuege echte fehlende Begriffe hinzu und exportiere dann."
+            : "Your tailored CV is ready. Add any true missing terms, then export.")
         );
         markSteps("done");
 
@@ -3679,12 +3731,18 @@ ${bodyHtml}
           try{ setTimeout(() => { refreshCvStudioAccess().then(()=>{ try{ refreshModeUi(); }catch(_){ } }).catch(()=>{}); }, 0); }catch(_){}
         }
       }catch(e){
+        const syncedQuota = syncCvAccessFromApiError(e);
         markSteps("error");
         setBadge("outStatus","bad", uiLang==="de" ? "Fehler" : "Failed");
         setBadge("pipeBadge","bad", uiLang==="de" ? "Fehler" : "Failed");
         showError(e?.message || String(e));
         $("debugBox").textContent = JSON.stringify({ ok:false, error: e?.message || String(e) }, null, 2);
-        setText("outHint", uiLang==="de" ? "Generierung fehlgeschlagen. Prüfe Jobbeschreibung." : "Failed to generate. Check your pasted job description.");
+        setText(
+          "outHint",
+          (syncedQuota && e && Number(e.status) === 402)
+            ? cvAccessBlockedMessage()
+            : (uiLang==="de" ? "Anpassen fehlgeschlagen. Prüfe die eingefügte Jobbeschreibung." : "Tailoring failed. Check the pasted job description.")
+        );
       }finally{
         refreshModeUi();
       }
@@ -3866,9 +3924,9 @@ ${bodyHtml}
 
       const cont = $("qaContinue");
       if(cont){
-        if(qaPendingAction === "print"){
-          cont.style.display = "";
-          cont.textContent = uiLang==="de" ? "Weiter zu Print / PDF" : "Continue to Print / PDF";
+	        if(qaPendingAction === "print"){
+	          cont.style.display = "";
+	          cont.textContent = uiLang==="de" ? "Weiter zu PDF-Export" : "Continue to Export PDF";
         }else if(qaPendingAction === "download"){
           cont.style.display = "";
           cont.textContent = uiLang==="de" ? "Weiter zu Download" : "Continue to Download";
@@ -4222,24 +4280,28 @@ ${bodyHtml}
       setTimeout(()=>{ $("btnCopyMissing").textContent = t("copyMissing"); }, 900);
     }
 
-    /* -------------------------
-       Keyword booster (modal)
-       ------------------------- */
-    function setKwMode(mode){
-      kwMode = mode === "quick" ? "quick" : "ai";
-      const btns = $("kwModeToggle").querySelectorAll("button");
-      btns.forEach(b => b.classList.toggle("active", b.getAttribute("data-mode") === kwMode));
+	    /* -------------------------
+	       Keyword booster (modal)
+	       ------------------------- */
+	    function isKwAdvancedOpen(){
+	      try{ return !!$("kwAdvancedDetails")?.open; }catch(_){ return false; }
+	    }
+
+	    function setKwMode(mode){
+	      kwMode = mode === "quick" ? "quick" : "ai";
+	      const btns = $("kwModeToggle").querySelectorAll("button");
+	      btns.forEach(b => b.classList.toggle("active", b.getAttribute("data-mode") === kwMode));
 
       // Show/hide AI recommendation box
       const recoBox = $("kwAiRecoBox");
       if(recoBox) recoBox.style.display = (kwMode === "ai") ? "" : "none";
 
       // If user switches to AI while modal is open, refresh recommendation (non-blocking)
-      if(kwMode === "ai" && activeKeywordRaw && lastCvDoc){
-        const ready = (($("kwSkillGroup")?.options?.length || 0) > 0) || (($("kwExpRole")?.options?.length || 0) > 0);
-        if(ready){
-          try{ aiRecommendPlacement({ force:false, source:"mode" }); }catch(_){}
-        }
+	      if(kwMode === "ai" && activeKeywordRaw && lastCvDoc && isKwAdvancedOpen()){
+	        const ready = (($("kwSkillGroup")?.options?.length || 0) > 0) || (($("kwExpRole")?.options?.length || 0) > 0);
+	        if(ready){
+	          try{ aiRecommendPlacement({ force:false, source:"mode" }); }catch(_){}
+	        }
       }
 
       try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ }
@@ -4588,11 +4650,11 @@ ${bodyHtml}
       }
     }
 
-function openKwModal(keywordRaw){
-      showError("");
-      if(!lastCvDoc && !($("cvText").value || "").trim()){
-        showError(t("needCv"));
-        return;
+	function openKwModal(keywordRaw){
+	      showError("");
+	      if(!lastCvDoc && !($("cvText").value || "").trim()){
+	        showError(t("needCv"));
+	        return;
       }
 
       activeKeywordRaw = String(keywordRaw || "").trim();
@@ -4603,20 +4665,16 @@ function openKwModal(keywordRaw){
       // Reset AI recommendation for this keyword
       try{ clearKwAiReco(); }catch(_){ }
 
-      // Default language: auto (match CV language unless user overrides)
-      $("kwLang").value = "auto";
+	      // Default language: auto (match CV language unless user overrides)
+	      $("kwLang").value = "auto";
 
-      // Default mode: AI (best quality)
-      setKwMode("ai");
+	      // Default mode: quick add. Advanced AI wording stays available if needed.
+	      setKwMode("quick");
 
-      // Smart default target:
-      // - Tool-like keywords (SQL/Excel/etc.) → Skills
-      // - Otherwise → Experience (rewrite a bullet) if possible
-      let recommendedTarget = "skills";
-      if(lastCvDoc){
-        recommendedTarget = isToolLikeKeyword(activeKeywordRaw) ? "skills" : "experience";
-      }
-      $("kwTarget").value = recommendedTarget;
+	      // Default to the safest ATS improvement. Advanced placement can move it into experience.
+	      let recommendedTarget = "skills";
+	      $("kwTarget").value = recommendedTarget;
+	      try{ $("kwAdvancedDetails").open = false; }catch(_){}
 
       // Populate role/groups if doc available
       if(lastCvDoc){
@@ -4650,11 +4708,7 @@ function openKwModal(keywordRaw){
 
       H.showModal("kwModal");
 
-      // AI recommends best placement + draft rewrite (non-blocking)
-      if(kwMode === "ai" && lastCvDoc){
-        try{ aiRecommendPlacement({ force:false, source:"open" }); }catch(_){ }
-      }
-    }
+	    }
 
     function closeKwModal(){
       H.hideModal("kwModal");
@@ -5134,11 +5188,14 @@ function openKwModal(keywordRaw){
             $("cvText").value = cvDocToPlainText(lastCvDoc, lastLang);
           }
 
-          recomputeCoverageFromCurrentText();
-          try{ updateQaDot(); }catch(_){ }
-          updateKwPreview();
-          closeKwModal();
-          return;
+	          recomputeCoverageFromCurrentText();
+	          try{ updateQaDot(); }catch(_){ }
+	          setText("outHint", (Array.isArray(lastMissing) && lastMissing.length)
+	            ? "Great. Keep adding only the true missing terms, then export."
+	            : "Nice. Your ATS gaps are covered. Run the final check and export.");
+	          updateKwPreview();
+	          closeKwModal();
+	          return;
         }
 
         // Experience
@@ -5271,12 +5328,15 @@ function openKwModal(keywordRaw){
           $("cvText").value = cvDocToPlainText(lastCvDoc, lastLang);
           recomputeCoverageFromCurrentText();
 
-          if(aiNote){
-            // non-blocking: show as top info
-            showError(aiNote);
-          }
-          closeKwModal();
-        }
+	          if(aiNote){
+	            // non-blocking: show as top info
+	            showError(aiNote);
+	          }
+	          setText("outHint", (Array.isArray(lastMissing) && lastMissing.length)
+	            ? "Great. Keep adding only the true missing terms, then export."
+	            : "Nice. Your ATS gaps are covered. Run the final check and export.");
+	          closeKwModal();
+	        }
       }catch(e){
         // rollback snapshot
         const snap = historyStack.pop();
@@ -5420,8 +5480,8 @@ function openKwModal(keywordRaw){
         try{
           const host = pendingExtensionImport.source_host || "";
           const msg = host
-            ? ("Imported job description from " + host + ". Review and click Generate.")
-            : "Imported job description from your browser extension. Review and click Generate.";
+            ? ("Imported job description from " + host + ". Review it, then click Tailor CV.")
+            : "Imported job description from your browser extension. Review it, then click Tailor CV.";
           window.JobMeJobShared?.toast?.(msg, { kind:"good", title:"CV Studio" });
           setText("jobHint", msg);
           $("settingsDetails").open = true;
@@ -5748,14 +5808,21 @@ $("tabPreview").addEventListener("click", () => setTabs("preview"));
     $("kwCancel").addEventListener("click", closeKwModal);
     $("kwModal").addEventListener("click", (e) => { if(e.target && e.target.id === "kwModal") closeKwModal(); });
 
-    $("kwTarget").addEventListener("change", () => { updateKwTargetUi(); try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ } updateKwPreview(); });
-    $("kwLang").addEventListener("change", () => {
-      try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ }
-      updateKwPreview();
-      if(kwMode === "ai" && activeKeywordRaw && lastCvDoc){
-        try{ aiRecommendPlacement({ force:true, source:"lang" }); }catch(_){ }
-      }
-    });
+	    $("kwTarget").addEventListener("change", () => {
+	      updateKwTargetUi();
+	      try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ }
+	      updateKwPreview();
+	      if(kwMode === "ai" && activeKeywordRaw && lastCvDoc && isKwAdvancedOpen()){
+	        try{ aiRecommendPlacement({ force:true, source:"target" }); }catch(_){ }
+	      }
+	    });
+	    $("kwLang").addEventListener("change", () => {
+	      try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ }
+	      updateKwPreview();
+	      if(kwMode === "ai" && activeKeywordRaw && lastCvDoc && isKwAdvancedOpen()){
+	        try{ aiRecommendPlacement({ force:true, source:"lang" }); }catch(_){ }
+	      }
+	    });
 
     $("kwAiRecoRefresh").addEventListener("click", () => {
       if(kwMode === "ai" && activeKeywordRaw && lastCvDoc){
@@ -5763,11 +5830,16 @@ $("tabPreview").addEventListener("click", () => setTabs("preview"));
       }
     });
 
-    $("kwModeToggle").addEventListener("click", (e) => {
-      const b = e.target.closest("button[data-mode]");
-      if(!b) return;
-      setKwMode(b.getAttribute("data-mode"));
-    });
+	    $("kwModeToggle").addEventListener("click", (e) => {
+	      const b = e.target.closest("button[data-mode]");
+	      if(!b) return;
+	      setKwMode(b.getAttribute("data-mode"));
+	    });
+	    $("kwAdvancedDetails")?.addEventListener("toggle", () => {
+	      if($("kwAdvancedDetails")?.open && kwMode === "ai" && activeKeywordRaw && lastCvDoc){
+	        try{ aiRecommendPlacement({ force:false, source:"advanced" }); }catch(_){ }
+	      }
+	    });
 
     $("kwSkillGroup").addEventListener("change", updateKwPreview);
     $("kwExpRole").addEventListener("change", () => { fillBulletsForSelectedRole(); try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ } updateKwPreview(); });

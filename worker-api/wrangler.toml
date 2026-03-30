@@ -1,0 +1,45 @@
+# Example wrangler.toml for the JobMeJob Edge Worker
+#
+# Deploy this Worker on jobmejob.com (route: jobmejob.com/*)
+# and bind it to your existing API worker.
+#
+# You can deploy with:
+#   wrangler deploy
+
+name = "jobmejob-edge"
+main = "jobmejob-worker.js"
+compatibility_date = "2026-01-18"
+
+# Optional: for local dev
+# [dev]
+# port = 8787
+
+[vars]
+# Strongly recommended
+CANONICAL_HOST = "jobmejob.com"
+FORCE_HTTPS = "true"
+REDIRECT_WWW_TO_APEX = "true"
+
+# Public pages you actually want indexed (must exist and return 200)
+PUBLIC_PAGES = "/,/signup,/login"
+
+# Paths you want robots to avoid
+ROBOTS_DISALLOW = "/api/,/me/,/admin/,/customers/,/jobs/search,/ingest/"
+
+# If you do not use Service Bindings, set these origins instead:
+# API_ORIGIN = "https://api.jobmejob.com"
+# SITE_ORIGIN = "https://your-site.pages.dev"
+
+# Optional
+SECURITY_CONTACT = "mailto:security@jobmejob.com"
+
+# If you use Service Bindings (recommended), configure in Cloudflare dashboard
+# or via wrangler environments like this:
+#
+# [[services]]
+# binding = "API"
+# service = "jobapplyai-api"
+#
+# [[services]]
+# binding = "SITE"
+# service = "jobmejob-frontend"
