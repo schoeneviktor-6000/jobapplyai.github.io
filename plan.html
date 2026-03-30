@@ -284,6 +284,40 @@
       background:rgba(17,19,24,.025);
     }
 
+    .miniLabel{
+      font-size:12px;
+      font-weight:950;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--muted2);
+    }
+
+    .faqStack{
+      display:grid;
+      gap:12px;
+      margin-top:16px;
+    }
+
+    .faqItem{
+      border:1px solid rgba(17,19,24,.08);
+      border-radius:18px;
+      padding:14px;
+      background:rgba(17,19,24,.025);
+    }
+
+    .faqItem strong{
+      display:block;
+      margin-bottom:6px;
+      color:var(--text);
+    }
+
+    .actionHint{
+      margin-top:10px;
+      color:var(--muted2);
+      font-size:12px;
+      line-height:1.55;
+    }
+
     @media (max-width:980px){
       .heroGrid,
       .pricingGrid,
@@ -356,8 +390,8 @@
       </article>
 
       <aside class="infoCard">
-        <h3>What this page does now</h3>
-        <p>This page no longer writes an Auto-apply plan into the backend. It is now your pricing hub for CV Studio and your request funnel for Auto-apply beta.</p>
+        <h3>Billing and access</h3>
+        <p>CV Studio should feel lightweight to buy: monthly plans, one shared quota across extension and paste mode, and a clean path to manage billing later.</p>
 
         <div class="statusStrip">
           <span class="badge warn" id="authBadge">Checking...</span>
@@ -365,12 +399,13 @@
         </div>
 
         <div class="requestBox" style="margin-top:18px">
-          <div class="small" style="margin-bottom:8px">Need help later?</div>
-          <div class="featureList">
-            <span>Billing portal support</span>
-            <span>Stripe checkout links</span>
-            <span>Request-based beta access</span>
+          <div class="miniLabel">Customer-friendly billing</div>
+          <div class="featureList" id="billingFeatureList" style="margin-top:10px">
+            <span>Secure Stripe checkout</span>
+            <span>Self-serve billing portal</span>
+            <span>Auto-apply reviewed on request</span>
           </div>
+          <p class="footNote" id="billingSummary" style="margin:12px 0 0">Paid CV Studio plans open in Stripe checkout. Signed-in customers can later manage or cancel in the billing portal.</p>
         </div>
       </aside>
     </section>
@@ -446,7 +481,7 @@
           </ul>
 
           <div class="priceActions">
-            <button class="btn primary" data-cv-plan="starter" type="button">Choose Starter</button>
+            <button class="btn primary" data-cv-plan="starter" data-live-label="Choose Starter" data-fallback-label="Request Starter access" type="button">Choose Starter</button>
           </div>
         </article>
 
@@ -476,12 +511,44 @@
           </ul>
 
           <div class="priceActions">
-            <button class="btn ghost" data-cv-plan="plus" type="button">Choose Plus</button>
+            <button class="btn ghost" data-cv-plan="plus" data-live-label="Choose Plus" data-fallback-label="Request Plus access" type="button">Choose Plus</button>
           </div>
         </article>
       </div>
 
-      <p class="footNote" id="checkoutNote" style="margin:14px 0 0">Paid plans are meant to open in Stripe checkout. If checkout is not live yet, we fall back to support so nobody hits a dead end.</p>
+      <p class="footNote" id="checkoutNote" style="margin:14px 0 0">Free includes 5 tailored CVs. Paid plans bill monthly and use one shared quota across the extension and manual paste flow.</p>
+    </section>
+
+    <section class="infoGrid" style="margin-top:18px">
+      <article class="infoCard">
+        <div class="tag">Billing basics</div>
+        <h3 style="margin-top:14px">Make pricing feel simple</h3>
+        <ul class="planFeatures" style="margin-top:18px">
+          <li>Monthly plans instead of daily caps or market-specific complexity</li>
+          <li>One quota covers both Chrome extension imports and pasted job descriptions</li>
+          <li>Start free, then upgrade only when CV Studio becomes part of the weekly routine</li>
+          <li>Auto-apply stays separate so international users are not forced into a Germany-first workflow</li>
+        </ul>
+      </article>
+
+      <aside class="infoCard">
+        <div class="tag">Before someone pays</div>
+        <h3 style="margin-top:14px">Questions customers usually have</h3>
+        <div class="faqStack">
+          <div class="faqItem">
+            <strong>What counts toward the quota?</strong>
+            <div class="small">Each successful tailored CV generation counts once, whether it starts from the extension or from pasted job text.</div>
+          </div>
+          <div class="faqItem">
+            <strong>Can I upgrade later?</strong>
+            <div class="small">Yes. Users can begin on Free, move into Starter or Plus when needed, and keep Auto-apply as a separate request step.</div>
+          </div>
+          <div class="faqItem">
+            <strong>What if billing is not fully self-serve yet?</strong>
+            <div class="small">The page should still give a clean fallback so interested users can request access instead of hitting a dead end.</div>
+          </div>
+        </div>
+      </aside>
     </section>
 
     <section class="infoGrid" id="auto-apply-request" style="margin-top:18px">
@@ -537,6 +604,7 @@
     };
     const BILLING_PORTAL = String(LINKS.CV_STUDIO_PORTAL_URL || "").trim();
     const AUTO_APPLY_REQUEST_URL = String(LINKS.AUTO_APPLY_REQUEST_URL || "").trim() || "mailto:team@jobmejob.com?subject=Auto-apply%20beta%20request";
+    const SUPPORT_EMAIL = "team@jobmejob.com";
 
     function setBadge(id, cls, text) {
       const el = $(id);
@@ -545,14 +613,66 @@
       el.textContent = String(text || "");
     }
 
+    function setText(id, text) {
+      const el = $(id);
+      if (!el) return;
+      el.textContent = String(text || "");
+    }
+
     function go(url) {
       if (S && S.go) return S.go(url);
       window.location.href = url;
     }
 
-    function supportFallback(subject) {
-      const s = encodeURIComponent(String(subject || "jobmejob support"));
-      return "mailto:team@jobmejob.com?subject=" + s;
+    function supportFallback(subject, body) {
+      const params = new URLSearchParams();
+      params.set("subject", String(subject || "jobmejob support"));
+      if (body) params.set("body", String(body));
+      return "mailto:" + SUPPORT_EMAIL + "?" + params.toString();
+    }
+
+    function setBillingPresentation() {
+      const starterReady = !!CHECKOUTS.starter;
+      const plusReady = !!CHECKOUTS.plus;
+      const portalReady = !!BILLING_PORTAL;
+      const chips = [];
+
+      chips.push(starterReady || plusReady ? "Secure Stripe checkout" : "Guided billing handoff");
+      chips.push(portalReady ? "Self-serve billing portal" : "Direct billing support");
+      chips.push("Auto-apply reviewed on request");
+
+      const featureWrap = $("billingFeatureList");
+      if (featureWrap) {
+        featureWrap.innerHTML = chips.map((label) => `<span>${label}</span>`).join("");
+      }
+
+      document.querySelectorAll("button[data-cv-plan='starter'], button[data-cv-plan='plus']").forEach((btn) => {
+        const pid = String(btn.getAttribute("data-cv-plan") || "").trim().toLowerCase();
+        const ready = pid === "starter" ? starterReady : plusReady;
+        btn.textContent = ready
+          ? String(btn.getAttribute("data-live-label") || btn.textContent || "")
+          : String(btn.getAttribute("data-fallback-label") || btn.textContent || "");
+      });
+
+      const manageBtn = $("btnManageBilling");
+      if (manageBtn) {
+        manageBtn.textContent = portalReady ? "Manage billing" : "Billing help";
+      }
+
+      if (starterReady && plusReady && portalReady) {
+        setText("billingSummary", "Paid CV Studio plans open in secure Stripe checkout. Signed-in customers can manage or cancel later in the billing portal.");
+        setText("checkoutNote", "Free includes 5 tailored CVs. Starter and Plus are monthly CV Studio plans with one shared quota across extension and paste mode.");
+        return;
+      }
+
+      if (starterReady || plusReady) {
+        setText("billingSummary", "Checkout is available for paid CV Studio plans. If a specific billing action is not self-serve yet, the page falls back to direct support.");
+        setText("checkoutNote", "Paid plans are monthly. If a checkout or billing action is still being finalized, users are routed into a billing request instead of hitting a dead end.");
+        return;
+      }
+
+      setText("billingSummary", "Pricing is live, but direct checkout is still being finalized. Paid plan buttons currently route into a guided billing request.");
+      setText("checkoutNote", "Keep the pricing public and simple even before checkout is fully live: users should still be able to express buying intent and get a response.");
     }
 
     function openCvPlan(plan) {
@@ -567,7 +687,10 @@
         return;
       }
 
-      const target = CHECKOUTS[pid] || supportFallback(pid === "starter" ? "CV Studio Starter plan" : "CV Studio Plus plan");
+      const target = CHECKOUTS[pid] || supportFallback(
+        pid === "starter" ? "CV Studio Starter plan" : "CV Studio Plus plan",
+        "Hi jobmejob team,\n\nI would like help activating the " + (pid === "starter" ? "Starter" : "Plus") + " CV Studio plan.\n\nThanks."
+      );
       window.location.href = target;
     }
 
@@ -576,7 +699,10 @@
         go("./signup.html?entry=cv-studio&next=plan");
         return;
       }
-      window.location.href = BILLING_PORTAL || supportFallback("CV Studio billing support");
+      window.location.href = BILLING_PORTAL || supportFallback(
+        "CV Studio billing support",
+        "Hi jobmejob team,\n\nI need help with billing for my CV Studio subscription.\n\nThanks."
+      );
     }
 
     async function boot() {
@@ -596,6 +722,8 @@
         setBadge("authBadge", "warn", "Signed out");
         setBadge("sessionBadge", "", "Session: sign in to subscribe");
       }
+
+      setBillingPresentation();
 
       document.querySelectorAll("button[data-cv-plan]").forEach((btn) => {
         btn.addEventListener("click", () => openCvPlan(btn.getAttribute("data-cv-plan")));
