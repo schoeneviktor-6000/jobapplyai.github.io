@@ -8,5 +8,10 @@ routes = [
   { pattern = "api.jobmejob.com", zone_name = "jobmejob.com", custom_domain = true }
 ]
 
+[vars]
+SITE_ORIGIN = "https://jobmejob.com"
+STRIPE_CV_STARTER_PRICE_ID = "price_1TGeulEFGlBEGstVPCGzlHMi"
+STRIPE_CV_PLUS_PRICE_ID = "price_1TGevXEFGlBEGstV8CJ8TdVH"
+
 [triggers]
 crons = ["0 */4 * * *"]
