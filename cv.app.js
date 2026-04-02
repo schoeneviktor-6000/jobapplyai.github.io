@@ -128,7 +128,7 @@ let genStepsState = "idle";
         btnViewDesc: "Beschreibung ansehen",
         btnCopyDesc: "Beschreibung kopieren",
         templateLbl: "Format",
-        atsHintLine: "Einfache Ueberschriften und klare Struktur, damit ATS-Systeme deinen CV sauber lesen koennen.",
+        atsHintLine: "Klare Struktur, damit ATS-Systeme deinen CV sauber lesen koennen.",
         tailorStrengthLbl: "Tailoring-Stärke",
         light: "Leicht",
         balanced: "Balanced",
@@ -230,7 +230,7 @@ let genStepsState = "idle";
         btnViewDesc: "View description",
         btnCopyDesc: "Copy description",
         templateLbl: "Format",
-        atsHintLine: "Simple headings and clean structure so ATS systems can read your CV reliably.",
+        atsHintLine: "Clean structure so ATS systems can read your CV reliably.",
         tailorStrengthLbl: "Tailoring strength",
         light: "Light",
         balanced: "Balanced",
@@ -832,7 +832,7 @@ function cancelAutoStart(userInitiated = true){
   clearAutoStartTimer();
   showAutoStartBar(false);
   if(userInitiated){
-    try{ window.JobMeJobShared?.toast?.("Tip hidden. You can tweak the settings and click Tailor CV.", { kind:"warn", title:"CV Studio" }); }catch(_){}
+    try{ window.JobMeJobShared?.toast?.("Tip hidden. Adjust the settings and click Tailor CV.", { kind:"warn", title:"CV Studio" }); }catch(_){}
   }
 }
 
@@ -896,8 +896,8 @@ function armAutoStartFromJobs(){
   try{ $("settingsDetails").open = true; }catch(_){}
 
   showAutoStartBar(true, uiLang==="de"
-    ? "Waehle die Intensitaet und klicke dann auf „CV anpassen“."
-    : "Choose the strength, then click “Tailor CV”."
+    ? "Waehle die Staerke, dann passe den CV an."
+    : "Pick a strength, then tailor."
   );
 
   try{ setGuidedSettingsGlow(true); }catch(_){ }
@@ -2014,14 +2014,14 @@ function updatePasteQuality(){
     function strengthValue(){
       const v = Number($("strengthRange").value);
       if (v === 0) return { key:"light", label:t("light"), help: uiLang==="de"
-        ? "Kleine Verbesserungen, nah an deinem Original."
-        : "Small improvements, keeps wording close to your original." };
+        ? "Kleine Anpassungen, nah an deinem Original."
+        : "Light edits that stay close to your original." };
       if (v === 2) return { key:"strong", label:t("aggressive"), help: uiLang==="de"
-        ? "Stärkeres Rewriting für besseren Fit (immer noch wahrheitsgemäß)."
-        : "Rewrites more strongly to highlight fit and align with job language (still truthful)." };
+        ? "Staerkeres Rewriting fuer mehr Fit, bleibt aber wahr."
+        : "Stronger rewrite for fit, still truthful." };
       return { key:"balanced", label:t("balanced"), help: uiLang==="de"
-        ? "Verbessert Summary & Bullets ohne zu viel umzuschreiben."
-        : "Improves summary and bullets to match the job, without over-rewriting." };
+        ? "Klarerer Fit ohne starkes Umschreiben."
+        : "Clearer fit without heavy rewriting." };
     }
 
     function setStrengthUi(){
@@ -5621,12 +5621,7 @@ $("genModal")?.addEventListener("click", (e) => { if(e.target && e.target.id ===
     // “New CV” returns to Step 1 (chooser)
     $("btnNewCv")?.addEventListener("click", openGateForNewCv);
 
-    // Auto-start controls (when arriving from Jobs)
-    $("btnStartNow")?.addEventListener("click", async () => {
-      clearAutoStartTimer();
-      showAutoStartBar(false);
-      try{ await generate(); }catch(_){}
-    });
+    // Jobs-entry hint controls
     $("btnCancelAuto")?.addEventListener("click", () => cancelAutoStart(true));
 
 
