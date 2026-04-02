@@ -127,7 +127,7 @@ let genStepsState = "idle";
         openJobsBtn: "Jobs öffnen",
         btnViewDesc: "Beschreibung ansehen",
         btnCopyDesc: "Beschreibung kopieren",
-        templateLbl: "Format",
+        templateLbl: "Vorlage",
         atsHintLine: "Klare Struktur, damit ATS-Systeme deinen CV sauber lesen koennen.",
         tailorStrengthLbl: "Tailoring-Stärke",
         light: "Leicht",
@@ -135,6 +135,12 @@ let genStepsState = "idle";
         aggressive: "Aggressiv",
         gen: "CV anpassen",
         genAgain: "Erneut anpassen",
+        strengthModalTitle: "Tailoring-Staerke waehlen",
+        strengthModalIntro: "Waehle eine Option. Danach startet die Anpassung direkt.",
+        strengthModalReady: "Bereit. Klicke auf „CV anpassen“ und waehle dann die Staerke.",
+        startLightDesc: "Leichte Anpassungen, nah an deinem Original.",
+        startBalancedDesc: "Klarerer Fit ohne starkes Umschreiben.",
+        startAggressiveDesc: "Staerkeres Rewriting fuer mehr Fit, bleibt aber wahr.",
         stepsTitle: "So funktioniert’s",
         stepsIntro: "Das passiert, wenn du auf „Generieren“ klickst:",
         s1: "Job-Keywords extrahieren",
@@ -229,7 +235,7 @@ let genStepsState = "idle";
         openJobsBtn: "Open Jobs",
         btnViewDesc: "View description",
         btnCopyDesc: "Copy description",
-        templateLbl: "Format",
+        templateLbl: "Template",
         atsHintLine: "Clean structure so ATS systems can read your CV reliably.",
         tailorStrengthLbl: "Tailoring strength",
         light: "Light",
@@ -237,6 +243,12 @@ let genStepsState = "idle";
         aggressive: "Aggressive",
         gen: "Tailor CV",
         genAgain: "Tailor again",
+        strengthModalTitle: "Choose tailoring strength",
+        strengthModalIntro: "Pick one option. Tailoring starts right away.",
+        strengthModalReady: "Ready. Click Tailor CV, then choose the strength.",
+        startLightDesc: "Light edits that stay close to your original.",
+        startBalancedDesc: "Clearer fit without heavy rewriting.",
+        startAggressiveDesc: "Stronger rewrite for fit, still truthful.",
         stepsTitle: "How it works",
         stepsIntro: "This is what happens when you click “Generate”:",
         s1: "Extract job keywords",
@@ -383,6 +395,15 @@ let genStepsState = "idle";
       $("pillLight").textContent = t("light");
       $("pillBalanced").textContent = t("balanced");
       $("pillAggressive").textContent = t("aggressive");
+      setText("strengthModalTitle", t("strengthModalTitle"));
+      setText("strengthModalIntro", t("strengthModalIntro"));
+      setText("startLightTitle", t("light"));
+      setText("startBalancedTitle", t("balanced"));
+      setText("startAggressiveTitle", t("aggressive"));
+      setText("startLightDesc", t("startLightDesc"));
+      setText("startBalancedDesc", t("startBalancedDesc"));
+      setText("startAggressiveDesc", t("startAggressiveDesc"));
+      setText("strengthClose", t("close"));
       $("btnGenerate").textContent = t("gen");
       $("btnGenerateAgain").textContent = t("genAgain");
 
@@ -766,6 +787,26 @@ function closeGenModal(){
   H.hideModal("genModal");
 }
 
+function openStrengthModal(){
+  const btn = $("btnGenerate");
+  if(btn && btn.disabled) return;
+  H.showModal("strengthModal");
+}
+
+function closeStrengthModal(){
+  H.hideModal("strengthModal");
+}
+
+async function startWithStrength(level){
+  try{
+    $("strengthRange").value = String(level);
+    setStrengthUi();
+  }catch(_){}
+
+  closeStrengthModal();
+  await generate();
+}
+
     function qs(name){
       try{ return new URL(window.location.href).searchParams.get(name); }
       catch{ return null; }
@@ -1062,7 +1103,7 @@ function setGateActive(on){
   // Make the primary action clear
   const genBtn = $("btnGenerate");
   if(genBtn){
-    genBtn.textContent = gateActive ? "Tailor CV →" : t("gen");
+    genBtn.textContent = t("gen");
   }
 
   // Keep second button hidden to reduce confusion
@@ -1444,9 +1485,7 @@ function loadJobSource(){
           }
           return;
         }
-        cta.textContent = (uiLang==="de")
-          ? "Bereit. Wähle die Intensität und klicke auf „CV anpassen“."
-          : "Ready. Choose the strength, then click Tailor CV.";
+        cta.textContent = t("strengthModalReady");
         return;
       }
 
@@ -1465,9 +1504,7 @@ function loadJobSource(){
           : "Almost there. Add responsibilities and requirements for better ATS guidance.";
         return;
       }
-      cta.textContent = (uiLang==="de")
-        ? "Bereit. Wähle die Intensität und klicke auf „CV anpassen“."
-        : "Ready. Choose the strength, then click Tailor CV.";
+      cta.textContent = t("strengthModalReady");
     }
 
 function updatePasteQuality(){
@@ -5538,6 +5575,15 @@ $("btnHowItWorks")?.addEventListener("click", () => openGenModal(false));
 $("genClose")?.addEventListener("click", closeGenModal);
 $("genOk")?.addEventListener("click", closeGenModal);
 $("genModal")?.addEventListener("click", (e) => { if(e.target && e.target.id === "genModal") closeGenModal(); });
+$("strengthClose")?.addEventListener("click", closeStrengthModal);
+$("strengthModal")?.addEventListener("click", (e) => { if(e.target && e.target.id === "strengthModal") closeStrengthModal(); });
+$("startStrengthList")?.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-s]");
+  if(!btn) return;
+  const level = Number(btn.getAttribute("data-s"));
+  if(Number.isNaN(level)) return;
+  await startWithStrength(level);
+});
 
 
     // Job source (queue vs paste)
@@ -5606,6 +5652,7 @@ $("genModal")?.addEventListener("click", (e) => { if(e.target && e.target.id ===
 
     document.addEventListener("keydown", (e) => {
       if(e.key === "Escape"){
+        closeStrengthModal();
         H.hideModal("atsModal");
         H.hideModal("descModal");
         H.hideModal("kwModal");
@@ -5615,8 +5662,8 @@ $("genModal")?.addEventListener("click", (e) => { if(e.target && e.target.id ===
       }
     });
 
-    $("btnGenerate").addEventListener("click", generate);
-    $("btnGenerateAgain").addEventListener("click", generate);
+    $("btnGenerate").addEventListener("click", openStrengthModal);
+    $("btnGenerateAgain").addEventListener("click", openStrengthModal);
 
     // “New CV” returns to Step 1 (chooser)
     $("btnNewCv")?.addEventListener("click", openGateForNewCv);
