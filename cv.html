@@ -2506,6 +2506,48 @@ body.cvGate.cvGateForm #jobSourceHint{
 
 .modeTab[disabled]{opacity:.55;cursor:not-allowed;transform:none;}
 
+/* Nudge users toward Improve when ATS terms are still missing. */
+.modeTab.needsAttention{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  border-color:rgba(34,197,94,.42);
+  background:linear-gradient(135deg, rgba(34,197,94,.18), rgba(255,255,255,.88));
+  color:rgba(10,70,35,.96);
+  box-shadow:
+    0 0 0 1px rgba(34,197,94,.12),
+    0 12px 28px rgba(34,197,94,.16);
+}
+.modeTab.needsAttention:hover{
+  background:linear-gradient(135deg, rgba(34,197,94,.22), rgba(255,255,255,.92));
+  box-shadow:
+    0 0 0 1px rgba(34,197,94,.16),
+    0 16px 34px rgba(34,197,94,.20);
+}
+.modeTab.needsAttention::before{
+  content:"";
+  position:absolute;
+  top:-60%;
+  left:-45%;
+  width:45%;
+  height:220%;
+  border-radius:inherit;
+  background:linear-gradient(
+    90deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,.55) 50%,
+    rgba(255,255,255,0) 100%
+  );
+  transform:translateX(-180%) rotate(18deg);
+  opacity:0;
+  pointer-events:none;
+  will-change:transform, opacity;
+  animation:jm_btn_shine 4.8s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce){
+  .modeTab.needsAttention::before{ animation:none; opacity:0; }
+}
+
 /* ============================================================
    Coming from Jobs: focus on tailoring settings (hide job-source selection)
    ============================================================ */
@@ -3917,6 +3959,6 @@ body.fromJobsLink #settingsDetails{
   <script src="./auth.js?v=202603301635"></script>
   <script src="./shared.js?v=202603311215"></script>
 
-  <script src="./cv.app.js?v=202604031600"></script>
+  <script src="./cv.app.js?v=202604031615"></script>
 </body>
 </html>

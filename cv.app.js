@@ -4315,6 +4315,7 @@ ${bodyHtml}
         return;
       }
 
+      updateImproveModeAttention();
       updateSettingsSurfaceUi();
 
       const usedDetails = $("usedKeywordsDetails");
@@ -4332,6 +4333,36 @@ ${bodyHtml}
        ------------------------- */
     const studioRoot = $("studioRoot");
     let studioMode = "tailor";
+
+    function updateImproveModeAttention(){
+      const btn = $("modeEdit");
+      if(!btn) return;
+
+      const defaultTitle = btn.getAttribute("data-default-title") || btn.getAttribute("title") || "";
+      const defaultAria = btn.getAttribute("data-default-aria-label") || btn.getAttribute("aria-label") || btn.textContent.trim();
+      if(!btn.getAttribute("data-default-title")) btn.setAttribute("data-default-title", defaultTitle);
+      if(!btn.getAttribute("data-default-aria-label")) btn.setAttribute("data-default-aria-label", defaultAria);
+
+      const missingCount = Array.isArray(lastMissing) ? lastMissing.length : 0;
+      const shouldPrompt = hasGeneratedOutput() && !gateActive && missingCount > 0 && studioMode !== "edit";
+
+      btn.classList.toggle("needsAttention", shouldPrompt);
+
+      if(shouldPrompt){
+        const msg = isLikelyGerman(uiLang)
+          ? (missingCount === 1
+            ? "1 fehlendes Keyword vor dem Export hinzufügen"
+            : `${missingCount} fehlende Keywords vor dem Export hinzufügen`)
+          : (missingCount === 1
+            ? "Add 1 missing keyword before export"
+            : `Add ${missingCount} missing keywords before export`);
+        btn.title = msg;
+        btn.setAttribute("aria-label", `2. Improve. ${msg}`);
+      }else{
+        btn.title = defaultTitle;
+        btn.setAttribute("aria-label", defaultAria);
+      }
+    }
 
     function setModeButton(activeId){
       const ids = ["modeTailor","modeCustomize","modeEdit","modeReview"];
