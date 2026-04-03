@@ -4311,7 +4311,7 @@ ${bodyHtml}
       }
 
       if(showPostGenerateStages && studioMode === "tailor"){
-        setStudioMode("customize");
+        setStudioMode(isKwInlineOpen() ? "edit" : "customize");
         return;
       }
 
@@ -7251,7 +7251,8 @@ ${bodyHtml}
       const best = getKwRecommendedBullet();
       setKwSelectedBullet(best.expIdx || 0, best.bulletIdx || 0);
 
-      setStudioMode("tailor");
+      // Opening inline keyword placement is part of the Improve workspace.
+      setStudioMode("edit");
       setTabs("preview");
       updateKwPreview();
       scrollKwSelectedBulletIntoView();
