@@ -412,115 +412,62 @@ gap:10px;
 flex-wrap:wrap;
 margin-top:14px;
 }
-.installFlow{
+.heroStatus{
 margin-top:18px;
-padding:16px;
-border-radius:22px;
+padding:14px 16px;
+border-radius:20px;
 border:1px solid rgba(215,218,220,.95);
-background:rgba(255,255,255,.86);
+background:linear-gradient(180deg, rgba(255,255,255,.96), rgba(246,247,248,.90));
 box-shadow:0 10px 22px rgba(0,0,0,.05);
 display:grid;
-gap:14px;
+gap:10px;
 }
-.installFlowHead{
-display:grid;
-gap:6px;
+.heroStatusTop{
+display:flex;
+align-items:center;
+gap:10px;
+flex-wrap:wrap;
 }
-.installFlowTitle{
-font-size:13px;
+.heroStatusPill{
+display:inline-flex;
+align-items:center;
+padding:8px 12px;
+border-radius:999px;
+background:#e9f7ee;
+border:1px solid rgba(0,166,63,.28);
+color:#0a3a1c;
+font-size:12px;
 font-weight:1000;
-letter-spacing:.08em;
+letter-spacing:.04em;
 text-transform:uppercase;
+}
+.heroStatusMeta{
+font-size:13px;
+font-weight:900;
 color:var(--muted2);
 }
-.installFlowCopy{
+.heroStatusCopy{
 margin:0;
 color:var(--muted);
 font-size:14px;
 line-height:1.55;
-max-width:64ch;
+max-width:60ch;
 }
-.installStrip{
-display:grid;
-grid-template-columns:repeat(3,minmax(0,1fr));
+.heroStatusLinks{
+display:flex;
+align-items:center;
 gap:10px;
-}
-.installStepCard{
-display:grid;
-gap:8px;
-padding:14px;
-border-radius:18px;
-border:1px solid rgba(215,218,220,.9);
-background:linear-gradient(180deg, rgba(255,255,255,.96), rgba(246,247,248,.92));
-}
-.installStepTop{
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:10px;
-}
-.installStepNum{
-width:28px;
-height:28px;
-border-radius:10px;
-display:flex;
-align-items:center;
-justify-content:center;
-background:#e9f7ee;
-border:1px solid rgba(0,166,63,.24);
-color:#0a3a1c;
-font-size:13px;
-font-weight:1000;
-}
-.installStepLabel{
-display:inline-flex;
-align-items:center;
-min-height:24px;
-padding:0 10px;
-border-radius:999px;
-background:rgba(15,23,42,.05);
-border:1px solid rgba(15,23,42,.08);
-color:var(--muted2);
-font-size:11px;
-font-weight:950;
-letter-spacing:.04em;
-text-transform:uppercase;
-white-space:nowrap;
-}
-.installStepCard strong{
-font-size:14px;
-font-weight:950;
-letter-spacing:-.12px;
-}
-.installStepCard span{
-display:block;
-font-size:13px;
-line-height:1.5;
-color:var(--muted2);
-}
-.installFlowFoot{
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:12px;
 flex-wrap:wrap;
-padding-top:2px;
 }
-.installFlowFoot p{
-margin:0;
-font-size:13px;
-line-height:1.5;
-color:var(--muted);
-}
-.installFlowFoot strong{
-color:var(--text);
-}
-.installMiniLink{
+.heroStatusLink{
 display:inline-flex;
 align-items:center;
 gap:8px;
 font-size:13px;
 font-weight:950;
+color:var(--ink2);
+}
+.heroStatusLink.lime{
 color:#0a3a1c;
 }
 
@@ -2709,7 +2656,8 @@ color:var(--text);
 <a class="jmNavItem" href="./cv.html" data-nav="1" role="menuitem">CV Studio</a>
 <a class="jmNavItem" href="./jobs.html" data-nav="1" role="menuitem">Jobs</a>
 <a class="jmNavItem" href="./profile.html" data-nav="1" role="menuitem">Profile</a>
-<a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Billing & plans</a>
+<a class="jmNavItem" href="./profile.html#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Manage billing</a>
+<a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Plans & pricing</a>
 <div class="menuSep" role="separator"></div>
 <button class="jmNavItem jmNavDanger" id="navLogout" type="button" role="menuitem">Logout</button>
 </div>
@@ -2731,20 +2679,20 @@ color:var(--text);
 <p class="subtitle">Paste a job description or import one from the Chrome extension. CV Studio tailors against your stored base CV, improves ATS coverage, and gets you to an export-ready draft fast.</p>
 
 <div class="hero-actions">
-<a class="btn lime" data-extension-link data-extension-disabled-label="Get extension updates" data-extension-ready-label="Add to Chrome" href="cv-studio.html#manual">
-<span class="btnLabel">
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-<rect x="4" y="5" width="16" height="14" rx="3"></rect><path d="M9 3v4"></path><path d="M15 3v4"></path><path d="M8 11h8"></path><path d="M12 8v8"></path>
-</svg>
-<span data-extension-label>Add to Chrome</span>
-</span>
-</a>
 <a class="btn primary" href="signup.html?entry=cv-studio">
 <span class="btnLabel">
 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
 <path d="M12 5v14"></path><path d="M5 12h14"></path>
 </svg>
 <span>Start with 5 free CVs</span>
+</span>
+</a>
+<a class="btn" href="#how">
+<span class="btnLabel">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+<path d="M12 5v14"></path><path d="M5 12h14"></path>
+</svg>
+<span>See how it works</span>
 </span>
 </a>
 </div>
@@ -2754,43 +2702,18 @@ color:var(--text);
 <span class="proofDot" aria-hidden="true"></span>
 <span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Tailored per role</span>
 <span class="proofDot" aria-hidden="true"></span>
-<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Extension launch soon</span>
+<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>ATS review built in</span>
 </div>
 
-<div class="installFlow" aria-label="First-run setup">
-<div class="installFlowHead">
-<div class="installFlowTitle">Extension launch soon</div>
-<p class="installFlowCopy">The Chrome extension is currently in review. Start with manual paste today, then click the notify button if you want the Chrome Web Store link as soon as it goes live.</p>
+<div class="heroStatus" aria-label="Current availability">
+<div class="heroStatusTop">
+<span class="heroStatusPill">Available now</span>
+<span class="heroStatusMeta">Start with manual paste today</span>
 </div>
-<div class="installStrip">
-<article class="installStepCard">
-<div class="installStepTop">
-<span class="installStepNum">1</span>
-<span class="installStepLabel">Today</span>
-</div>
-<strong>Start free on jobmejob</strong>
-<span>Sign in with Google and create your CV Studio account on the website.</span>
-</article>
-<article class="installStepCard">
-<div class="installStepTop">
-<span class="installStepNum">2</span>
-<span class="installStepLabel">One time</span>
-</div>
-<strong>Upload your base CV</strong>
-<span>Keep your source CV here once so every tailored version can build from it.</span>
-</article>
-<article class="installStepCard">
-<div class="installStepTop">
-<span class="installStepNum">3</span>
-<span class="installStepLabel">Soon</span>
-</div>
-<strong>Get notified when it is live</strong>
-<span>The extension will plug into the same account later for faster imports from job pages.</span>
-</article>
-</div>
-<div class="installFlowFoot">
-<p><strong>You can use CV Studio right now.</strong> Paste any job description manually today, or leave your email via the notify button for the extension launch.</p>
-<a class="installMiniLink" href="cv-studio.html#manual">Use manual paste now</a>
+<p class="heroStatusCopy">Create your account, upload your base CV once, and tailor against real job descriptions right away. If you want the extension later, you can use the same account when it goes live.</p>
+<div class="heroStatusLinks">
+<a class="heroStatusLink lime" href="cv-studio.html#manual">Use manual paste now</a>
+<a class="heroStatusLink" data-extension-link data-extension-disabled-label="Notify me when it launches" data-extension-ready-label="Add to Chrome" href="cv-studio.html#manual"><span data-extension-label>Notify me when it launches</span></a>
 </div>
 </div>
 </div>
@@ -3596,6 +3519,6 @@ Last 7 days
 </footer>
 <script src="./vendor/supabase-js-2.100.1.js"></script>
 <script src="./auth.js?v=202603310940"></script>
-<script src="./shared.js?v=202603310940"></script>
+<script src="./shared.js?v=202603311215"></script>
 </body>
 </html>

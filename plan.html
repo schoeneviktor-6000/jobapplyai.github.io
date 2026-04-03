@@ -374,6 +374,14 @@
       line-height:1.55;
     }
 
+    .requestBox.emphasis{
+      border-style:solid;
+      border-color:rgba(34,197,94,.18);
+      background:
+        radial-gradient(160px 90px at 100% 0%, rgba(34,197,94,.16), transparent 70%),
+        rgba(17,19,24,.025);
+    }
+
     @media (max-width:980px){
       .heroGrid,
       .pricingGrid,
@@ -431,7 +439,8 @@
             <a class="jmNavItem" href="./cv.html" data-nav="1" role="menuitem">CV Studio</a>
             <a class="jmNavItem" href="./jobs.html" data-nav="1" role="menuitem">Jobs</a>
             <a class="jmNavItem" href="./profile.html" data-nav="1" role="menuitem">Profile</a>
-            <a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Billing & plans</a>
+            <a class="jmNavItem" href="./profile.html#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Manage billing</a>
+            <a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Plans & pricing</a>
             <button class="jmNavItem" id="navActivity" type="button" role="menuitem">Activity</button>
             <div class="menuSep" role="separator"></div>
             <button class="jmNavItem jmNavDanger" id="navLogout" type="button" role="menuitem">Logout</button>
@@ -445,22 +454,22 @@
   <main class="main">
     <section class="heroGrid">
       <article class="heroCard heroCopy">
-        <div class="eyebrow">CV Studio pricing</div>
-        <h1>Start free. Upgrade when CV tailoring becomes part of your weekly search.</h1>
-        <p class="sub">Use one monthly CV quota across the Chrome extension and pasted job descriptions. CV Studio stays simple to buy and easy to understand. Auto-apply remains a separate, request-only beta for users who need more than tailoring.</p>
+        <div class="eyebrow" id="heroEyebrow">CV Studio pricing</div>
+        <h1 id="heroTitle">Start free. Upgrade when CV tailoring becomes part of your weekly search.</h1>
+        <p class="sub" id="heroSub">Use one monthly CV quota across the Chrome extension and pasted job descriptions. CV Studio stays simple to buy and easy to understand. Auto-apply remains a separate, request-only beta for users who need more than tailoring.</p>
 
         <div class="heroActions">
-          <a class="btn primary" href="./signup.html?entry=cv-studio" data-nav="1">Start free</a>
-          <a class="btn ghost" href="#cv-pricing">Compare plans</a>
+          <a class="btn primary" href="./signup.html?entry=cv-studio" data-nav="1" id="heroPrimaryAction">Start free</a>
+          <a class="btn ghost" href="#cv-pricing" data-nav="1" id="heroSecondaryAction">Compare plans</a>
         </div>
 
-        <div class="proofRow" aria-label="Product positioning">
+        <div class="proofRow" id="heroProofRow" aria-label="Product positioning">
           <span>5 tailored CVs free</span>
           <span>One shared monthly quota</span>
           <span>Manage billing later</span>
         </div>
 
-        <p class="heroSupport">Best for job seekers who want a cleaner CV workflow first and only want sourcing or Auto-apply if it actually becomes necessary.</p>
+        <p class="heroSupport" id="heroSupport">Best for job seekers who want a cleaner CV workflow first and only want sourcing or Auto-apply if it actually becomes necessary.</p>
 
         <div class="cardBullets">
           <div class="bulletCard">
@@ -488,16 +497,16 @@
       </article>
 
       <aside class="infoCard">
-        <h3>What happens when you upgrade</h3>
-        <p>Pick the monthly quota that matches your search volume. If checkout is live you go straight into billing. If a billing path is still being finalized, you still get a guided fallback instead of a dead end.</p>
+        <h3 id="upgradeInfoTitle">What happens when you upgrade</h3>
+        <p id="upgradeInfoIntro">Pick the monthly quota that matches your search volume. If checkout is live you go straight into billing. If a billing path is still being finalized, you still get a guided fallback instead of a dead end.</p>
 
         <div class="statusStrip">
           <span class="badge warn" id="authBadge">Checking...</span>
           <span class="badge" id="sessionBadge">Session: --</span>
         </div>
 
-        <div class="requestBox" style="margin-top:18px">
-          <div class="miniLabel">Customer-friendly billing</div>
+        <div class="requestBox" id="billingSummaryBox" style="margin-top:18px">
+          <div class="miniLabel" id="billingBoxLabel">Customer-friendly billing</div>
           <div class="featureList" id="billingFeatureList" style="margin-top:10px">
             <span>Secure Stripe checkout</span>
             <span>Self-serve billing portal</span>
@@ -506,13 +515,14 @@
           <p class="footNote" id="billingSummary" style="margin:12px 0 0">Paid CV Studio plans open in Stripe checkout. Signed-in customers can later manage or cancel in the billing portal.</p>
         </div>
 
-        <div class="requestBox" style="margin-top:14px">
-          <div class="miniLabel">Best if you want</div>
-          <ul class="planFeatures" style="margin-top:12px">
+        <div class="requestBox" id="nextStepsBox" style="margin-top:14px">
+          <div class="miniLabel" id="nextStepsLabel">Best if you want</div>
+          <ul class="planFeatures" id="nextStepsList" style="margin-top:12px">
             <li>A clear start with no commitment</li>
             <li>A paid plan that matches real application volume</li>
             <li>A separate path for Auto-apply instead of hidden complexity</li>
           </ul>
+          <p class="footNote" id="nextStepsNote" style="margin:12px 0 0;display:none"></p>
         </div>
       </aside>
     </section>
@@ -696,7 +706,7 @@
 
   <script src="./vendor/supabase-js-2.100.1.js"></script>
   <script src="./auth.js?v=202603301635"></script>
-  <script src="./shared.js?v=202603301635"></script>
+  <script src="./shared.js?v=202603311215"></script>
   <script>
   (() => {
     "use strict";
@@ -712,6 +722,7 @@
 
     let session = null;
     let billingState = null;
+    let accountState = auth && typeof auth.getCachedState === "function" ? auth.getCachedState() : null;
 
     const CHECKOUTS = {
       starter: String(LINKS.CV_STUDIO_STARTER_URL || "").trim(),
@@ -720,6 +731,12 @@
     const BILLING_PORTAL = String(LINKS.CV_STUDIO_PORTAL_URL || "").trim();
     const AUTO_APPLY_REQUEST_URL = String(LINKS.AUTO_APPLY_REQUEST_URL || "").trim() || "mailto:team@jobmejob.com?subject=Auto-apply%20beta%20request";
     const SUPPORT_EMAIL = "team@jobmejob.com";
+    const PLAN_META = Object.freeze({
+      free: { label: "Free", limit: 5, quotaLabel: "5 free CVs" },
+      cv_starter: { label: "Starter", limit: 10, quotaLabel: "10 CVs / month" },
+      cv_plus: { label: "Plus", limit: 50, quotaLabel: "50 CVs / month" }
+    });
+    const BILLING_RETURN = readBillingReturnContext();
 
     function setBadge(id, cls, text) {
       const el = $(id);
@@ -732,6 +749,178 @@
       const el = $(id);
       if (!el) return;
       el.textContent = String(text || "");
+    }
+
+    function normalizePlanId(value) {
+      const raw = String(value || "").trim().toLowerCase();
+      if (!raw) return "";
+      if (raw === "starter" || raw === "cv_starter") return "cv_starter";
+      if (raw === "plus" || raw === "cv_plus") return "cv_plus";
+      if (raw === "free") return "free";
+      return raw;
+    }
+
+    function currentPlanIdFromState(state) {
+      return normalizePlanId(
+        state?.cv_plan_id ||
+        state?.cv_studio_plan_id ||
+        state?.cvstudio_plan_id ||
+        state?.entitlements?.cv_plan_id ||
+        state?.entitlements?.cv_studio_plan_id ||
+        state?.plan_id ||
+        ""
+      );
+    }
+
+    function isPaidState(state) {
+      const planId = currentPlanIdFromState(state);
+      return !!(
+        (planId && planId !== "free") ||
+        state?.cv_paid === true ||
+        state?.cv_studio_paid === true ||
+        state?.entitlements?.cv_paid === true ||
+        state?.entitlements?.cv_studio_paid === true
+      );
+    }
+
+    function toNumberOrNull(value) {
+      if (value === null || typeof value === "undefined" || value === "") return null;
+      const n = Number(value);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function firstNumber() {
+      for (const value of arguments) {
+        const n = toNumberOrNull(value);
+        if (n !== null) return n;
+      }
+      return null;
+    }
+
+    function getPlanMeta(planId) {
+      return PLAN_META[normalizePlanId(planId)] || null;
+    }
+
+    function planLabel(planId) {
+      return getPlanMeta(planId)?.label || "Paid";
+    }
+
+    function readBillingReturnContext() {
+      try {
+        const url = new URL(window.location.href);
+        const status = String(url.searchParams.get("billing") || "").trim().toLowerCase();
+        if (status !== "success" && status !== "cancelled") return null;
+        return {
+          status,
+          planId: normalizePlanId(url.searchParams.get("plan")),
+          sessionId: String(url.searchParams.get("session_id") || "").trim()
+        };
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function matchesExpectedPlan(state, expectedPlanId) {
+      if (!state || typeof state !== "object") return false;
+      const expected = normalizePlanId(expectedPlanId);
+      const actual = currentPlanIdFromState(state);
+      if (!expected) return isPaidState(state);
+      return actual === expected;
+    }
+
+    function buildUsageSnapshot(state, fallbackPlanId, optimisticPaid = false) {
+      const statePlanId = currentPlanIdFromState(state);
+      const activePlanId = statePlanId || normalizePlanId(fallbackPlanId) || "free";
+      const meta = getPlanMeta(activePlanId);
+      const paid = isPaidState(state) || (optimisticPaid && activePlanId !== "free");
+      const limit = firstNumber(
+        state?.cv_quota_limit,
+        state?.entitlements?.cv_quota_limit,
+        paid ? meta?.limit : state?.cv_free_limit,
+        paid ? null : meta?.limit
+      );
+      const used = firstNumber(
+        state?.cv_quota_used,
+        state?.entitlements?.cv_quota_used,
+        paid ? 0 : state?.cv_free_used,
+        paid ? 0 : state?.entitlements?.cv_free_used
+      );
+      const remaining = limit !== null && used !== null ? Math.max(0, limit - used) : null;
+      const quotaChip = limit === 0
+        ? "Unlimited CVs"
+        : (meta?.quotaLabel || (paid ? "Monthly plan" : "5 free CVs"));
+      const remainingChip = remaining !== null
+        ? `${remaining} CVs ready`
+        : (paid ? "Ready to tailor" : "5 free CVs");
+      const detailText = (() => {
+        if (limit === 0) return "No monthly cap on CV tailoring";
+        if (remaining !== null && used !== null) {
+          return paid
+            ? `${used} of ${limit} used this billing cycle`
+            : `${used} of ${limit} used`;
+        }
+        return paid
+          ? "Usage updates after each tailored CV"
+          : "Upgrade only when CV Studio becomes routine";
+      })();
+
+      return {
+        planId: activePlanId,
+        planLabel: meta?.label || planLabel(activePlanId),
+        paid,
+        limit,
+        used,
+        remaining,
+        quotaChip,
+        remainingChip,
+        detailText
+      };
+    }
+
+    function renderChipList(id, labels) {
+      const wrap = $(id);
+      if (!wrap) return;
+      wrap.innerHTML = "";
+      (Array.isArray(labels) ? labels : []).filter(Boolean).forEach((label) => {
+        const span = document.createElement("span");
+        span.textContent = String(label);
+        wrap.appendChild(span);
+      });
+    }
+
+    function renderFeatureList(id, items) {
+      const wrap = $(id);
+      if (!wrap) return;
+      wrap.innerHTML = "";
+      (Array.isArray(items) ? items : []).filter(Boolean).forEach((label) => {
+        const li = document.createElement("li");
+        li.textContent = String(label);
+        wrap.appendChild(li);
+      });
+    }
+
+    function setAction(id, label, href) {
+      const el = $(id);
+      if (!el) return;
+      el.textContent = String(label || "");
+      if (href) el.setAttribute("href", String(href));
+    }
+
+    function updateCurrentPlanButton(activePlanId) {
+      const normalized = normalizePlanId(activePlanId);
+      document.querySelectorAll("button[data-cv-plan='starter'], button[data-cv-plan='plus']").forEach((btn) => {
+        const pid = normalizePlanId(btn.getAttribute("data-cv-plan"));
+        if (normalized && pid === normalized) {
+          btn.disabled = true;
+          btn.textContent = "Current plan";
+          btn.classList.remove("primary");
+          btn.classList.add("ghost");
+          btn.setAttribute("aria-disabled", "true");
+          return;
+        }
+        btn.disabled = false;
+        btn.removeAttribute("aria-disabled");
+      });
     }
 
     function go(url) {
@@ -750,6 +939,10 @@
       params.set("subject", String(subject || "jobmejob support"));
       if (body) params.set("body", String(body));
       return "mailto:" + SUPPORT_EMAIL + "?" + params.toString();
+    }
+
+    function wait(ms) {
+      return new Promise((resolve) => window.setTimeout(resolve, ms));
     }
 
     async function fetchBillingConfig() {
@@ -805,6 +998,35 @@
       return data || {};
     }
 
+    async function confirmBillingCheckout(sessionId) {
+      if (!sessionId) return null;
+      return await apiPostAuthed("/me/billing/confirm", { session_id: sessionId });
+    }
+
+    async function syncPaidStateAfterCheckout() {
+      if (!BILLING_RETURN || BILLING_RETURN.status !== "success") return accountState;
+      if (!session || !auth || typeof auth.syncStateToLocalStorage !== "function") return accountState;
+
+      if (BILLING_RETURN.sessionId) {
+        try {
+          await confirmBillingCheckout(BILLING_RETURN.sessionId);
+        } catch (err) {
+          console.warn("[plan] billing confirm failed", err);
+        }
+      }
+
+      let latest = accountState;
+      for (const delay of [0, 700, 1500, 2600]) {
+        if (delay) await wait(delay);
+        try {
+          const next = await auth.syncStateToLocalStorage(session);
+          if (next && typeof next === "object") latest = next;
+        } catch (_) {}
+        if (matchesExpectedPlan(latest, BILLING_RETURN.planId)) break;
+      }
+      return latest;
+    }
+
     function setBillingPresentation() {
       const state = billingState || {
         starterEnabled: !!CHECKOUTS.starter,
@@ -855,17 +1077,118 @@
       setText("checkoutNote", "If checkout is not live yet, you can still request access and get a response instead of losing your place.");
     }
 
-    function applyBillingReturnState() {
-      try {
-        const url = new URL(window.location.href);
-        const state = String(url.searchParams.get("billing") || "").trim().toLowerCase();
-        if (state === "success") {
-          setBadge("authBadge", "good", "Checkout complete");
-          setText("checkoutNote", "Thanks. Your billing flow completed successfully. If your plan status does not refresh immediately, reopen CV Studio in a moment.");
-        } else if (state === "cancelled") {
-          setText("checkoutNote", "Checkout was cancelled. You can retry any time or stay on the free plan.");
-        }
-      } catch (_) {}
+    function applyBillingReturnExperience() {
+      if (!BILLING_RETURN) return;
+
+      if (BILLING_RETURN.status === "cancelled") {
+        setBadge("authBadge", "warn", "Checkout cancelled");
+        setText("checkoutNote", "Checkout was cancelled. You can retry any time or stay on the free plan.");
+        return;
+      }
+
+      const signedIn = !!(session && session.user && session.user.email);
+      const snapshot = buildUsageSnapshot(accountState, BILLING_RETURN.planId, true);
+      const synced = matchesExpectedPlan(accountState, BILLING_RETURN.planId);
+      const purchasedPlanId = normalizePlanId(BILLING_RETURN.planId) || snapshot.planId;
+      const purchasedPlanLabel = planLabel(purchasedPlanId);
+
+      setText("heroEyebrow", synced ? "Checkout complete" : "Payment received");
+      setText(
+        "heroTitle",
+        signedIn
+          ? `${purchasedPlanLabel} unlocked. Start tailoring your next CV now.`
+          : `Payment received. Sign in to start using ${purchasedPlanLabel}.`
+      );
+      setText(
+        "heroSub",
+        signedIn
+          ? (
+              synced
+                ? "Your paid CV Studio plan is active, so you can move straight from checkout into tailoring."
+                : "Your payment went through. We are finishing the plan sync now so your quota is ready across CV Studio and the extension."
+            )
+          : "Your payment went through. Sign back into the same jobmejob account so we can attach the purchase and open CV Studio."
+      );
+      setAction("heroPrimaryAction", signedIn ? "Start tailoring now" : "Sign in to continue", signedIn ? "./cv.html" : "./signup.html?entry=cv-studio&next=cv");
+      setAction("heroSecondaryAction", signedIn ? "Open dashboard" : "Back to plans", signedIn ? "./dashboard.html" : "#cv-pricing");
+      renderChipList("heroProofRow", [
+        synced ? snapshot.remainingChip : `${purchasedPlanLabel} plan syncing`,
+        "Extension + pasted job flow",
+        "Manage billing anytime"
+      ]);
+      setText(
+        "heroSupport",
+        signedIn
+          ? (
+              synced
+                ? `${snapshot.detailText}. Your stored base CV and the tailoring flow stay exactly the same.`
+                : "This usually finishes in a moment. If the quota still looks stale, open CV Studio once and we will refresh it there too."
+            )
+          : "Use the same email you just paid with so the subscription lands on the right account."
+      );
+
+      setText("upgradeInfoTitle", "You're all set");
+      setText(
+        "upgradeInfoIntro",
+        signedIn
+          ? "We turned your checkout into a ready-to-use CV Studio account so the next click can be tailoring, not more pricing."
+          : "Your checkout is complete. Sign back into jobmejob with the purchased account to unlock the paid quota."
+      );
+      setBadge("authBadge", synced ? "good" : "warn", signedIn ? (synced ? "Plan active" : "Finishing checkout...") : "Sign in to unlock");
+      if (signedIn && session?.user?.email) {
+        setBadge("sessionBadge", "", String(session.user.email));
+      }
+
+      $("billingSummaryBox")?.classList.add("emphasis");
+      $("nextStepsBox")?.classList.add("emphasis");
+      setText("billingBoxLabel", "Your subscription");
+      renderChipList("billingFeatureList", [
+        purchasedPlanLabel,
+        snapshot.quotaChip,
+        signedIn ? (synced ? "Active now" : "Activating now") : "Awaiting sign-in"
+      ]);
+      setText(
+        "billingSummary",
+        signedIn
+          ? (
+              synced
+                ? `${snapshot.remainingChip} this cycle. Open CV Studio to tailor against a job description right away.`
+                : "Checkout succeeded. We are finishing the plan sync now so your paid quota appears correctly."
+            )
+          : "Sign in with the purchased account to attach this checkout and start tailoring."
+      );
+
+      setText("nextStepsLabel", "Do this next");
+      renderFeatureList(
+        "nextStepsList",
+        signedIn
+          ? [
+              "Open CV Studio and paste a job description or import one from the extension.",
+              "Generate your first tailored CV with your paid quota.",
+              "Come back here later only if you want to manage billing or compare plans."
+            ]
+          : [
+              "Sign in with the same email used during checkout.",
+              "Open CV Studio and tailor your first job application.",
+              "Manage billing later from your account menu."
+            ]
+      );
+
+      const nextStepsNote = $("nextStepsNote");
+      if (nextStepsNote) {
+        nextStepsNote.style.display = "block";
+        nextStepsNote.textContent = signedIn
+          ? "You can manage or cancel later in the Stripe billing portal."
+          : "Once you sign in, your paid plan will open directly into CV Studio.";
+      }
+
+      setText(
+        "checkoutNote",
+        synced
+          ? `${purchasedPlanLabel} is active. Go straight into CV Studio and generate your next tailored CV.`
+          : "Payment confirmed. We are syncing your paid plan now so your quota is ready."
+      );
+      updateCurrentPlanButton(purchasedPlanId);
     }
 
     async function openCvPlan(plan) {
@@ -935,15 +1258,32 @@
       }
 
       if (session && session.user && session.user.email) {
-        setBadge("authBadge", "good", "Signed in");
+        setBadge("authBadge", BILLING_RETURN?.status === "success" ? "warn" : "good", BILLING_RETURN?.status === "success" ? "Finishing checkout..." : "Signed in");
         setBadge("sessionBadge", "", String(session.user.email));
       } else {
         setBadge("authBadge", "warn", "Ready to start free");
         setBadge("sessionBadge", "", "Create an account when you want to upgrade");
       }
 
+      if (BILLING_RETURN?.status === "success") {
+        applyBillingReturnExperience();
+        accountState = await syncPaidStateAfterCheckout();
+      } else if (session && auth && typeof auth.syncStateToLocalStorage === "function") {
+        try {
+          accountState = await auth.syncStateToLocalStorage(session);
+        } catch (_) {}
+      }
+
+      if (S && typeof S.hydrateAccountNav === "function") {
+        try { await S.hydrateAccountNav({ session, state: accountState }); } catch (_) {}
+      }
+
       setBillingPresentation();
-      applyBillingReturnState();
+      applyBillingReturnExperience();
+
+      if (matchesExpectedPlan(accountState, BILLING_RETURN?.planId || "")) {
+        updateCurrentPlanButton(currentPlanIdFromState(accountState) || BILLING_RETURN?.planId || "");
+      }
 
       document.querySelectorAll("button[data-cv-plan]").forEach((btn) => {
         btn.addEventListener("click", async () => {

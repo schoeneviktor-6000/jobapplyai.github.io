@@ -704,6 +704,129 @@ details[data-dd="1"]:not([open]) .navMenu{
     document.head.appendChild(style);
   }
 
+  function buildBillingSettingsHref(navAccount){
+    try{
+      const profileLink = navAccount?.querySelector("a.jmNavItem[href*='profile.html']");
+      const rawHref = String(profileLink?.getAttribute("href") || "./profile.html").trim() || "./profile.html";
+      const url = new URL(rawHref, window.location.href);
+      url.hash = "billingBox";
+      return `${url.pathname}${url.search}${url.hash}`;
+    }catch(_){
+      return "./profile.html#billingBox";
+    }
+  }
+
+  function getBillingPortalFallback(navAccount){
+    const links = getAppLinks();
+    const directPortal = String(links.CV_STUDIO_PORTAL_URL || "").trim();
+    return directPortal || buildBillingSettingsHref(navAccount);
+  }
+
+  async function openBillingPortalFromNav(navAccount, triggerEl){
+    const fallback = getBillingPortalFallback(navAccount);
+    const auth = getAppAuth();
+    let session = null;
+    try{
+      session = auth && typeof auth.getSession === "function"
+        ? await auth.getSession()
+        : null;
+    }catch(_){
+      session = null;
+    }
+
+    const token = String(session?.access_token || "").trim();
+    const apiBase = resolveApiBase("https://jobmejob.schoene-viktor.workers.dev");
+    if (!token || !apiBase){
+      go(fallback);
+      return;
+    }
+
+    let shouldFallback = false;
+    if (triggerEl) triggerEl.disabled = true;
+
+    try{
+      const res = await fetch(`${apiBase}/me/billing/portal`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "content-type": "application/json"
+        },
+        body: "{}"
+      });
+
+      const text = await res.text().catch(() => "");
+      let data = null;
+      try{ data = text ? JSON.parse(text) : null; }catch(_){ data = null; }
+
+      if (res.ok && data?.url){
+        if (navAccount) navAccount.open = false;
+        window.location.href = String(data.url);
+        return;
+      }
+
+      shouldFallback = true;
+      toast(
+        (data && (data.error || data.message)) ? String(data.error || data.message) : "Billing portal unavailable right now.",
+        { kind:"warn", title:"Billing" }
+      );
+    }catch(_){
+      shouldFallback = true;
+      toast("Billing portal unavailable right now.", { kind:"warn", title:"Billing" });
+    }finally{
+      if (triggerEl) triggerEl.disabled = false;
+      if (navAccount) navAccount.open = false;
+    }
+
+    if (shouldFallback){
+      go(fallback);
+    }
+  }
+
+  function ensureAccountBillingNav(navAccount){
+    const menu = navAccount?.querySelector(".navMenu");
+    if (!menu) return;
+
+    const pricingLink = menu.querySelector("a.jmNavItem[href*='plan.html']");
+    const profileLink = menu.querySelector("a.jmNavItem[href*='profile.html']");
+    let billingButton = menu.querySelector("[data-jm-nav='subscription-billing']");
+
+    if (!billingButton){
+      billingButton = document.createElement("a");
+      billingButton.className = "jmNavItem";
+      billingButton.setAttribute("data-nav", "1");
+      billingButton.setAttribute("href", buildBillingSettingsHref(navAccount));
+      billingButton.setAttribute("role", "menuitem");
+      billingButton.setAttribute("data-jm-nav", "subscription-billing");
+      billingButton.textContent = "Manage billing";
+
+      if (profileLink && profileLink.nextSibling){
+        menu.insertBefore(billingButton, profileLink.nextSibling);
+      } else if (pricingLink){
+        menu.insertBefore(billingButton, pricingLink);
+      } else {
+        menu.appendChild(billingButton);
+      }
+    }
+
+    if (String(billingButton.tagName || "").toLowerCase() === "a"){
+      billingButton.setAttribute("href", buildBillingSettingsHref(navAccount));
+    }
+
+    if (billingButton.dataset.jmPortalWired !== "1"){
+      billingButton.dataset.jmPortalWired = "1";
+      billingButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        openBillingPortalFromNav(navAccount, billingButton).catch(() => {
+          go(getBillingPortalFallback(navAccount));
+        });
+      });
+    }
+
+    if (pricingLink){
+      pricingLink.textContent = "Plans & pricing";
+    }
+  }
+
   async function hydrateAccountNav(opts = {}){
     ensureAccountNavStyles();
 
@@ -737,6 +860,8 @@ details[data-dd="1"]:not([open]) .navMenu{
     if (navStartFree) navStartFree.style.display = signedIn ? "none" : "";
 
     if (!signedIn) return { signedIn:false, session:null, state:null };
+
+    if (navAccount) ensureAccountBillingNav(navAccount);
 
     const handle = (email.split("@")[0] || "Account").trim();
     const shortHandle = handle.length > 16 ? (handle.slice(0, 16) + "...") : handle;

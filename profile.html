@@ -136,6 +136,80 @@
   border:1px solid rgba(17,19,24,.10);
   background:rgba(17,19,24,.03);
 }
+.billingBox{
+  display:grid;
+  gap:12px;
+}
+.billingStats{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+@media (max-width:560px){
+  .billingStats{grid-template-columns:1fr}
+}
+.billingStat{
+  padding:12px;
+  border-radius:14px;
+  border:1px solid rgba(17,19,24,.10);
+  background:rgba(255,255,255,.72);
+  display:grid;
+  gap:4px;
+}
+.billingStatLabel{
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:rgba(17,19,24,.52);
+}
+.billingStatValue{
+  font-size:14px;
+  font-weight:950;
+  color:var(--text);
+}
+.billingInvoices{
+  display:grid;
+  gap:8px;
+}
+.invoiceList{
+  display:grid;
+  gap:8px;
+}
+.invoiceItem{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px;
+  border-radius:14px;
+  border:1px solid rgba(17,19,24,.10);
+  background:rgba(255,255,255,.72);
+}
+@media (max-width:560px){
+  .invoiceItem{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+}
+.invoiceCopy{
+  display:grid;
+  gap:4px;
+  min-width:0;
+}
+.invoiceTitle{
+  font-size:13px;
+  font-weight:900;
+  color:var(--text);
+}
+.invoiceMeta{
+  font-size:12px;
+  color:rgba(17,19,24,.58);
+  line-height:1.45;
+}
+.invoiceAction{
+  white-space:nowrap;
+}
 .journeyBox{
   padding:14px;
   border-radius:18px;
@@ -545,6 +619,834 @@ Step 2 (Matched jobs) — form facelift
 #prefsCard #autosaveHint,
 #prefsCard #continueHint{ max-width: 720px; }
 
+/* ============================================================
+Profile simplification pass
+============================================================ */
+.profileMain{ padding-top:22px; }
+.profileIntro{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:18px;
+  flex-wrap:wrap;
+}
+.profileIntroMain{
+  display:grid;
+  gap:8px;
+}
+.profileEyebrow,
+.sectionEyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  width:max-content;
+  padding:7px 12px;
+  border-radius:999px;
+  border:1px solid rgba(34,197,94,.24);
+  background:rgba(34,197,94,.10);
+  color:#0a5a2a;
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.profileEyebrow::before,
+.sectionEyebrow::before{
+  content:"";
+  width:8px;
+  height:8px;
+  border-radius:999px;
+  background:rgba(34,197,94,.92);
+  box-shadow:0 0 0 4px rgba(34,197,94,.14);
+}
+.profileIntro .h1{ margin:0; }
+.profileIntroNote{
+  max-width:320px;
+  padding:14px 16px;
+  border-radius:18px;
+  border:1px solid rgba(17,19,24,.08);
+  background:rgba(255,255,255,.72);
+  box-shadow:0 12px 30px rgba(17,19,24,.06);
+}
+.profileIntroNote strong{
+  display:block;
+  margin-bottom:4px;
+  font-size:13px;
+  font-weight:950;
+}
+
+.grid{
+  grid-template-columns:minmax(0,1.45fr) minmax(300px,.75fr);
+  gap:18px;
+}
+@media (max-width:1100px){
+  .grid{grid-template-columns:1fr}
+}
+
+#step1Card,
+#prefsCard,
+.profileRail{
+  overflow:hidden;
+}
+#step1Card{
+  border:1px solid rgba(17,19,24,.08);
+  background:
+    radial-gradient(820px 240px at 0% 0%, rgba(34,197,94,.12), transparent 55%),
+    linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.92));
+}
+#prefsCard{
+  background:
+    radial-gradient(560px 200px at 0% 0%, rgba(34,197,94,.08), transparent 55%),
+    linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.94));
+}
+.profileRail{
+  background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.92));
+}
+#step1Card .sectionHeader,
+#prefsCard .sectionHeader,
+.profileRail .sectionHeader{
+  padding:18px 18px 10px;
+}
+#step1Card .sectionBody,
+#prefsCard .sectionBody,
+.profileRail .sectionBody{
+  padding:18px;
+}
+#step1Card .sectionBody{
+  display:grid;
+  gap:14px;
+}
+.titleBlock{
+  display:grid;
+  gap:8px;
+  min-width:0;
+}
+.sectionLead{
+  margin:0;
+  max-width:680px;
+  font-size:14px;
+  line-height:1.6;
+  color:rgba(17,19,24,.68);
+  font-weight:700;
+}
+.setupPills{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:12px;
+}
+.setupPill{
+  display:inline-flex;
+  align-items:center;
+  min-height:34px;
+  padding:0 12px;
+  border-radius:999px;
+  border:1px solid rgba(17,19,24,.08);
+  background:rgba(255,255,255,.76);
+  color:rgba(17,19,24,.68);
+  font-size:12px;
+  font-weight:900;
+}
+.setupMeta{
+  display:grid;
+  grid-template-columns:minmax(0,1.05fr) minmax(260px,.95fr);
+  gap:12px;
+}
+.setupNote{
+  display:grid;
+  align-content:start;
+  gap:8px;
+  min-height:100%;
+  padding:14px 16px;
+  background:rgba(17,19,24,.025);
+}
+.setupNoteLabel,
+.sideLabel{
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:rgba(17,19,24,.48);
+}
+.setupHintStack{
+  display:grid;
+  gap:4px;
+}
+.sectionDivider{
+  height:1px;
+  background:rgba(17,19,24,.08);
+  margin:2px 0;
+}
+
+.dropzone{
+  padding:18px;
+  border-radius:22px;
+  background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(246,247,251,.84));
+}
+.dzTop{ align-items:center; }
+.dzTitle{
+  font-size:18px;
+  letter-spacing:-.3px;
+}
+.dzSub{
+  max-width:440px;
+  font-size:14px;
+}
+.dzMeta{ margin-top:12px; }
+.progressWrap{
+  margin-top:0;
+  border-radius:20px;
+  padding:14px;
+  background:rgba(255,255,255,.84);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6);
+}
+
+#aiBox{
+  padding:18px;
+  border-radius:22px;
+  border:1px solid rgba(34,197,94,.22);
+  background:
+    radial-gradient(600px 180px at 0% 0%, rgba(34,197,94,.16), transparent 58%),
+    linear-gradient(180deg, rgba(255,255,255,.96), rgba(250,252,255,.92));
+  box-shadow:none;
+}
+#aiBox .stepTitle{ align-items:flex-start; }
+.aiHeaderActions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.quietNote{
+  padding:12px 14px;
+  border-radius:16px;
+  border:1px solid rgba(17,19,24,.08);
+  background:rgba(17,19,24,.03);
+  font-size:13px;
+  line-height:1.5;
+  color:rgba(17,19,24,.64);
+  font-weight:700;
+}
+
+.railStack{
+  display:grid;
+  gap:12px;
+}
+.sideCard{
+  padding:14px;
+  border-radius:20px;
+  border:1px solid rgba(17,19,24,.08);
+  background:rgba(17,19,24,.025);
+  display:grid;
+  gap:12px;
+}
+.sideCard.primary{
+  background:
+    radial-gradient(360px 150px at 0% 0%, rgba(34,197,94,.12), transparent 70%),
+    linear-gradient(180deg, rgba(255,255,255,.96), rgba(250,252,255,.92));
+}
+.sideTitleRow{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.sideCard h3{
+  margin:4px 0 0;
+  font-size:18px;
+  font-weight:950;
+  letter-spacing:-.25px;
+}
+.inlineAction{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  width:max-content;
+  font-size:13px;
+  font-weight:900;
+  color:#0a5a2a;
+}
+.inlineAction:hover{ text-decoration:underline; }
+
+.snapshotGrid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+.snapshotTile{
+  min-height:84px;
+  padding:12px;
+  border-radius:16px;
+  border:1px solid rgba(17,19,24,.08);
+  background:rgba(255,255,255,.84);
+  display:grid;
+  gap:6px;
+}
+.snapshotLabel{
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:rgba(17,19,24,.48);
+}
+.snapshotTile .snapshotValue,
+.snapshotTile .kpiVal{
+  font-size:16px;
+  font-weight:950;
+  color:var(--text);
+}
+.snapshotTile .kpiVal.ok,
+.metaRow .kpiVal.ok{ color:#0a5a2a; }
+.snapshotTile .kpiVal.warn,
+.metaRow .kpiVal.warn{ color:#7a3f00; }
+.snapshotTile .kpiVal.bad,
+.metaRow .kpiVal.bad{ color:#7a123c; }
+.metaList{
+  display:grid;
+  gap:8px;
+}
+.metaRow{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  padding-top:8px;
+  border-top:1px solid rgba(17,19,24,.08);
+  font-size:13px;
+  color:rgba(17,19,24,.70);
+}
+.metaRow:first-child{
+  padding-top:0;
+  border-top:0;
+}
+.metaRow .kpiVal{
+  font-size:13px;
+  font-weight:950;
+}
+.metaRow .mono{
+  text-align:right;
+  max-width:180px;
+}
+
+#billingBox,
+#gmailVerifyBox{
+  padding:16px;
+  border-radius:20px;
+}
+#billingBox{
+  background:
+    radial-gradient(320px 140px at 100% 0%, rgba(34,197,94,.10), transparent 68%),
+    rgba(255,255,255,.76);
+}
+#gmailVerifyBox{
+  background:rgba(17,19,24,.025);
+}
+#billingBox .stepTitle,
+#gmailVerifyBox .stepTitle{
+  align-items:flex-start;
+}
+
+#prefsCard .formGroup{
+  background:rgba(255,255,255,.70);
+  border-radius:22px;
+  padding:14px;
+}
+#prefsCard .fieldCard{
+  border-radius:20px;
+  background:rgba(248,250,253,.86);
+}
+#prefsCard .prefsFooter{
+  margin-top:18px;
+  padding-top:14px;
+}
+
+@media (max-width:760px){
+  .setupMeta{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .profileIntroNote{
+    width:100%;
+    max-width:none;
+  }
+  .snapshotGrid,
+  .billingStats{
+    grid-template-columns:1fr;
+  }
+}
+
+/* ============================================================
+Profile reduction pass
+============================================================ */
+.profileMain{ padding-top:18px; }
+.profileTop{ margin-bottom:14px; }
+.profileTop .h1{ margin:0; }
+.profileTop .sub{ margin:6px 0 0; }
+.profileIntro,
+.profileIntroNote,
+.profileEyebrow,
+.sectionEyebrow,
+.setupPills,
+.quietNote,
+.profileRail .sectionHeader,
+.formGroupSub,
+#prefsCard .helper{
+  display:none !important;
+}
+
+.grid{
+  grid-template-columns:minmax(0,1.45fr) minmax(360px,.88fr);
+  gap:18px;
+}
+#step1Card,
+.profileRail,
+#prefsCard{
+  border:1px solid rgba(17,19,24,.08);
+  background:rgba(255,255,255,.92);
+}
+#step1Card .sectionHeader{
+  padding:18px 18px 8px;
+}
+#step1Card .sectionBody{
+  gap:12px;
+}
+.sectionLead{
+  max-width:520px;
+  font-size:13px;
+  line-height:1.45;
+}
+.dropzone{
+  padding:16px;
+  border-radius:20px;
+}
+.dzTitle{
+  font-size:16px;
+  font-weight:950;
+}
+.dzSub{
+  font-size:13px;
+  max-width:none;
+}
+.dzMeta{
+  margin-top:10px;
+  font-size:11px;
+}
+.progressWrap{
+  padding:12px;
+  border-radius:16px;
+}
+.statusStrip{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+.compactStatus{
+  min-height:84px;
+  padding:12px;
+  border:1px solid rgba(17,19,24,.08);
+  border-radius:16px;
+  background:rgba(17,19,24,.025);
+  display:grid;
+  align-content:start;
+  gap:6px;
+}
+.compactLabel{
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:rgba(17,19,24,.48);
+}
+.slimAi{
+  padding:16px;
+  border-radius:20px;
+}
+.slimAi .small{
+  max-width:520px;
+}
+
+.profileRail .sectionBody{
+  padding:18px;
+}
+.railTight{
+  gap:10px;
+}
+.quickActionRow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.quickActionRow .btn{
+  flex:1 1 120px;
+  min-width:0;
+}
+.sideCardCompact{
+  gap:10px;
+  padding:14px;
+}
+.compactHeadingRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.compactHeadingRow h2{
+  margin:0;
+  font-size:16px;
+  font-weight:950;
+  letter-spacing:-.2px;
+}
+.compactSnapshot .snapshotTile{
+  min-height:72px;
+  padding:10px 12px;
+  gap:4px;
+}
+.compactSnapshot .snapshotLabel{
+  font-size:10px;
+}
+.compactBilling{
+  gap:10px;
+}
+.compactBilling .billingStats{
+  gap:8px;
+}
+.compactBilling .billingStat{
+  padding:10px 12px;
+}
+.compactBilling .billingStatValue{
+  font-size:13px;
+}
+
+.slimDetails{
+  padding:0;
+  overflow:hidden;
+  background:rgba(17,19,24,.025);
+}
+.slimDetails > summary{
+  list-style:none;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:14px 42px 14px 16px;
+  font-size:13px;
+  font-weight:950;
+}
+.slimDetails > summary::-webkit-details-marker,
+.prefsShell > summary::-webkit-details-marker{
+  display:none;
+}
+.slimSummary::after,
+.prefsSummary::after{
+  content:"▾";
+  color:rgba(17,19,24,.42);
+  font-size:12px;
+  position:absolute;
+  right:20px;
+  top:50%;
+  transform:translateY(-50%);
+}
+.slimDetails[open] .slimSummary::after,
+.prefsShell[open] .prefsSummary::after{
+  transform:translateY(-50%) rotate(180deg);
+}
+.slimDetails .metaList{
+  padding:0 16px 12px;
+}
+.slimPanel{
+  padding:0 16px 16px;
+  display:grid;
+  gap:10px;
+}
+.slimPanel .actions:last-child{
+  margin-top:2px;
+}
+
+#gmailVerifyBox{
+  padding:0;
+  border-radius:0;
+  background:transparent;
+}
+#gmailVerifyBox .mono{
+  margin-top:0;
+}
+
+#prefsCard{
+  overflow:hidden;
+}
+.prefsShell{
+  display:block;
+}
+.prefsShell > summary{
+  list-style:none;
+  position:relative;
+  padding:16px 48px 16px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  cursor:pointer;
+}
+.prefsShell > .sectionBody{
+  padding-top:4px;
+  border-top:1px solid rgba(17,19,24,.08);
+}
+#prefsCard .prefsForm{
+  margin-top:0;
+}
+#prefsCard .formGroup{
+  padding:12px;
+  border-radius:18px;
+}
+#prefsCard .fieldCard{
+  padding:10px 12px;
+  border-radius:16px;
+}
+#prefsCard textarea{
+  min-height:82px;
+}
+#prefsCard .prefsFooter{
+  margin-top:14px;
+}
+#prefsCard #continueHint{
+  max-width:420px;
+}
+
+@media (max-width:900px){
+  .quickActionRow{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+}
+@media (max-width:760px){
+  .statusStrip{
+    grid-template-columns:1fr;
+  }
+}
+@media (max-width:1320px){
+  .compactSnapshot,
+  .compactBilling .billingStats{
+    grid-template-columns:1fr;
+  }
+}
+
+/* ============================================================
+Matched jobs premium polish
+============================================================ */
+#prefsCard{
+  background:
+    radial-gradient(960px 260px at 0% 0%, rgba(34,197,94,.12), transparent 58%),
+    radial-gradient(860px 240px at 100% 0%, rgba(17,19,24,.04), transparent 62%),
+    linear-gradient(180deg, rgba(255,255,255,.98), rgba(250,252,255,.96));
+  box-shadow:0 22px 54px rgba(17,19,24,.08);
+}
+.prefsShell > summary{
+  padding:22px 58px 18px 24px;
+  background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(247,249,254,.90));
+}
+.prefsSummaryMain{
+  display:grid;
+  gap:10px;
+  min-width:0;
+}
+.prefsSummaryTag,
+.prefsSummaryChip{
+  display:inline-flex;
+  align-items:center;
+  min-height:32px;
+  padding:0 12px;
+  border-radius:999px;
+  border:1px solid rgba(17,19,24,.08);
+  background:rgba(255,255,255,.82);
+  font-size:12px;
+  font-weight:950;
+  color:rgba(17,19,24,.64);
+  white-space:nowrap;
+}
+.prefsSummaryTag{
+  width:max-content;
+  border-color:rgba(34,197,94,.24);
+  background:rgba(34,197,94,.11);
+  color:#0a5a2a;
+}
+.prefsSummaryLead{
+  font-size:13px;
+  font-weight:750;
+  color:rgba(17,19,24,.60);
+}
+.prefsSummaryMeta{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-left:auto;
+}
+.prefsSummary .titleBlock{
+  gap:6px;
+}
+.prefsSummary .titleBlock h2{
+  margin:0;
+  font-size:42px;
+  line-height:1;
+  font-weight:1000;
+  letter-spacing:-.06em;
+}
+.prefsShell > .sectionBody{
+  padding:18px;
+  border-top:1px solid rgba(17,19,24,.06);
+}
+.prefsCanvas{
+  padding:16px;
+  border-radius:28px;
+  border:1px solid rgba(17,19,24,.08);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.92), rgba(247,249,253,.96));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.72),
+    0 10px 24px rgba(17,19,24,.04);
+}
+#prefsCard .prefsForm{
+  gap:16px;
+}
+#prefsCard .prefsForm > .formGroup:first-child{
+  background:
+    radial-gradient(240px 120px at 0% 0%, rgba(17,19,24,.04), transparent 72%),
+    linear-gradient(180deg, rgba(255,255,255,.96), rgba(248,249,252,.94));
+}
+#prefsCard .prefsForm > .formGroup:last-child{
+  background:
+    radial-gradient(360px 180px at 100% 0%, rgba(34,197,94,.12), transparent 72%),
+    linear-gradient(180deg, rgba(255,255,255,.96), rgba(246,250,248,.95));
+}
+#prefsCard .formGroup{
+  padding:16px;
+  border:1px solid rgba(17,19,24,.08);
+  border-radius:26px;
+  box-shadow:0 18px 36px rgba(17,19,24,.06);
+}
+#prefsCard .formGroupHeader{
+  margin-bottom:14px;
+  padding:0 2px;
+}
+#prefsCard .formGroupTitle{
+  font-size:18px;
+  font-weight:950;
+  letter-spacing:-.03em;
+}
+#prefsCard .fieldCard{
+  padding:14px;
+  border-radius:22px;
+  border:1px solid rgba(17,19,24,.08);
+  background:rgba(255,255,255,.82);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.78),
+    0 8px 18px rgba(17,19,24,.03);
+}
+#prefsCard .fieldCard:focus-within{
+  border-color:rgba(34,197,94,.42);
+  background:rgba(248,255,250,.96);
+  box-shadow:
+    0 0 0 4px rgba(34,197,94,.10),
+    0 16px 30px rgba(17,19,24,.06);
+  transform:translateY(-2px);
+}
+#prefsCard .labelRow label{
+  font-size:14px;
+  font-weight:950;
+  color:rgba(17,19,24,.82);
+}
+#prefsCard .fieldTag{
+  border-color:rgba(17,19,24,.08);
+  background:rgba(255,255,255,.92);
+  box-shadow:0 6px 14px rgba(17,19,24,.04);
+}
+#prefsCard .fieldTag.req{
+  border-color:rgba(34,197,94,.30);
+  background:linear-gradient(180deg, rgba(34,197,94,.16), rgba(34,197,94,.08));
+}
+#prefsCard input,
+#prefsCard textarea,
+#prefsCard select{
+  border-radius:16px;
+  border-color:rgba(17,19,24,.10);
+  background:rgba(255,255,255,.95);
+  padding:13px 14px;
+}
+#prefsCard textarea{
+  min-height:108px;
+  font-size:15px;
+  line-height:1.4;
+}
+#prefsCard #jobTitles{
+  font-weight:900;
+}
+#prefsCard select{
+  min-height:56px;
+}
+#prefsCard #aiAppliedWrap,
+#prefsCard #locSuggestWrap,
+#prefsCard #locQuickWrap{
+  margin-top:14px !important;
+  padding-top:12px;
+  border-top:1px solid rgba(17,19,24,.08);
+}
+#prefsCard .chip.quick{
+  padding:10px 14px;
+  border-radius:999px;
+  border:1px solid rgba(17,19,24,.08);
+  background:rgba(255,255,255,.92);
+  box-shadow:0 12px 24px rgba(17,19,24,.05);
+}
+#prefsCard .chip.quick:hover{
+  border-color:rgba(34,197,94,.30);
+  background:rgba(243,253,246,.98);
+  box-shadow:0 16px 28px rgba(34,197,94,.12);
+}
+#prefsCard .prefsFooter{
+  margin-top:18px;
+  padding-top:18px;
+  border-top:1px solid rgba(17,19,24,.08);
+  align-items:center;
+}
+#prefsCard .prefsFooter .actions{
+  flex-wrap:wrap;
+}
+#prefsCard .prefsFooter .btn.primary{
+  min-height:48px;
+  padding:0 18px;
+}
+#prefsCard #autosaveHint,
+#prefsCard #continueHint{
+  font-size:13px;
+  font-weight:750;
+}
+
+@media (max-width:900px){
+  .prefsSummary{
+    align-items:flex-start;
+  }
+  .prefsSummaryMeta{
+    margin-left:0;
+  }
+}
+@media (max-width:700px){
+  .prefsSummary .titleBlock h2{
+    font-size:32px;
+  }
+  .prefsCanvas{
+    padding:12px;
+    border-radius:22px;
+  }
+  #prefsCard .formGroup{
+    padding:12px;
+    border-radius:20px;
+  }
+}
+
 </style>
 </head>
 
@@ -587,7 +1489,8 @@ Step 2 (Matched jobs) — form facelift
           <a class="jmNavItem" href="./cv.html" data-nav="1" role="menuitem">CV Studio</a>
           <a class="jmNavItem" href="./jobs.html" data-nav="1" role="menuitem">Jobs</a>
           <a class="jmNavItem" href="./profile.html" data-nav="1" role="menuitem">Profile</a>
-          <a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Billing & plans</a>
+          <a class="jmNavItem" href="./profile.html#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Manage billing</a>
+          <a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Plans &amp; pricing</a>
           <button class="jmNavItem" id="navActivity" type="button" role="menuitem">Activity</button>
           <div class="menuSep" role="separator"></div>
           <button class="jmNavItem jmNavDanger" id="navLogout" type="button" role="menuitem">Logout</button>
@@ -598,202 +1501,214 @@ Step 2 (Matched jobs) — form facelift
     </div>
   </nav>
 </header>
-<main class="main">
-<h1 class="h1">Profile</h1>
-<p class="sub" id="subLine">Loading…</p>
+<main class="main profileMain">
+<div class="profileTop">
+  <h1 class="h1">Profile</h1>
+  <p class="sub" id="subLine">Loading…</p>
+</div>
 <div class="errorTop" id="errorTop"></div>
 <div class="grid">
 <section class="card cardNoPad" id="step1Card">
 <div class="sectionHeader">
-<div class="stepTitle">
-<h2>Step 1: Upload your CV</h2>
-<span class="badge" id="cvStatusBadge">Loading</span>
-</div>
-<p class="small">Upload your CV to unlock tailoring. We’ll extract text (OCR for PDF) and generate job title suggestions automatically in the background. Add location later only if you also want matched jobs.</p>
+  <div class="stepTitle">
+    <div class="titleBlock">
+      <h2>Base CV</h2>
+      <p class="sectionLead">Upload once. Everything else can wait.</p>
+    </div>
+    <span class="badge" id="cvStatusBadge">Loading</span>
+  </div>
 </div>
 <div class="sectionBody">
-<div class="dropzone" id="cvDropzone" tabindex="0" role="button" aria-label="Upload CV">
-  <div class="dzTop">
-    <div style="min-width:0">
-      <div class="dzTitle">Drop your CV here</div>
-      <div class="dzSub">PDF recommended for best results (OCR + AI).</div>
+  <div class="dropzone" id="cvDropzone" tabindex="0" role="button" aria-label="Upload CV">
+    <div class="dzTop">
+      <div style="min-width:0">
+        <div class="dzTitle">Upload your CV</div>
+        <div class="dzSub">PDF works best.</div>
+      </div>
+      <button class="btn primary" id="browseCvBtn" type="button">Choose file</button>
     </div>
-    <button class="btn primary" id="browseCvBtn" type="button">Choose file</button>
+    <div class="dzMeta">PDF, DOC, DOCX · 9MB max</div>
   </div>
-  <div class="dzMeta">Supported: PDF/DOC/DOCX · Max 9MB · Stored securely for tailoring + job matching.</div>
-</div>
-<input accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" id="cvFile" type="file" style="display:none"/>
+  <input accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" id="cvFile" type="file" style="display:none"/>
 
-<div class="progressWrap" id="cvProgressWrap" style="display:none">
-<div class="small" id="cvProgressText">Preparing…</div>
-<div aria-label="Upload progress" class="progressBar">
-<div id="cvProgressFill"></div>
-</div>
-<div class="small" id="cvProgressHint" style="margin-top:8px"></div>
-</div>
-<div class="helpBox" style="margin-top:12px">
-<div class="small" id="cvHint">No CV uploaded yet.</div>
-<div class="small" id="ocrHint" style="margin-top:6px"></div>
-<div class="actions" style="margin-top:10px">
-  <button class="btn" id="retryOcrBtn" type="button" style="display:none">Retry OCR</button>
-</div>
-</div>
-<div class="hr"></div>
-<div class="helpBox aiCard aiGlow" id="aiBox">
-<div class="stepTitle">
-<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-<h2 style="margin:0;font-size:16px">AI job title suggestions (auto)</h2>
-<button class="linkBtn" id="aiRegenerateLink" style="display:none" type="button">Regenerate</button>
-</div>
-<span class="badge" id="aiStatusBadge">Locked</span>
-</div>
-<div class="small" id="aiHint" style="margin-top:6px">We generate suggestions automatically once your CV text is ready (and save them to your account for job matching). You can regenerate anytime.</div>
-<div class="actions" style="margin-top:12px">
-<button class="btn cta" disabled="" id="aiGenerateBtn" type="button">Generate now</button>
-<button class="btn" disabled="" id="aiApplyBtn" type="button">Update job titles below</button>
-</div>
-<div id="aiTitlesWrap" style="margin-top:12px;display:none"></div>
-<div class="hr"></div>
-<div id="aiAltWrap" style="display:none">
-<div class="small" style="font-weight:850">Alternative roles based on your skills</div>
-<div class="chips" id="aiAltChips" style="margin-top:10px"></div>
-</div>
-<div id="aiSkillsWrap" style="display:none;margin-top:14px">
-<div class="small" style="font-weight:850">Top skills (core + tools)</div>
-<div class="chips" id="aiSkillsChips" style="margin-top:10px"></div>
-</div>
-</div>
-<div class="hr"></div>
-<div class="helpBox">
-<div class="small"><strong>Tip:</strong> If you upload DOC/DOCX, OCR might not run. A PDF gives the best results.</div>
-</div>
+  <div class="progressWrap" id="cvProgressWrap" style="display:none">
+    <div class="small" id="cvProgressText">Preparing…</div>
+    <div aria-label="Upload progress" class="progressBar">
+      <div id="cvProgressFill"></div>
+    </div>
+    <div class="small" id="cvProgressHint" style="margin-top:8px"></div>
+  </div>
+
+  <div class="statusStrip">
+    <div class="compactStatus">
+      <div class="compactLabel">File</div>
+      <div class="small" id="cvHint">No CV uploaded yet.</div>
+    </div>
+    <div class="compactStatus">
+      <div class="compactLabel">OCR</div>
+      <div class="small" id="ocrHint"></div>
+      <button class="btn" id="retryOcrBtn" type="button" style="display:none;margin-top:4px">Retry OCR</button>
+    </div>
+  </div>
+
+  <div class="helpBox aiCard slimAi" id="aiBox">
+    <div class="stepTitle">
+      <h2 style="margin:0;font-size:18px">Suggested roles</h2>
+      <div class="aiHeaderActions">
+        <button class="linkBtn" id="aiRegenerateLink" style="display:none" type="button">Regenerate</button>
+        <span class="badge" id="aiStatusBadge">Locked</span>
+      </div>
+    </div>
+    <div class="small" id="aiHint">We suggest roles after your CV is ready.</div>
+    <div class="actions" style="margin-top:12px">
+      <button class="btn cta" disabled="" id="aiGenerateBtn" type="button">Generate roles</button>
+      <button class="btn" disabled="" id="aiApplyBtn" type="button">Use below</button>
+    </div>
+    <div id="aiTitlesWrap" style="margin-top:12px;display:none"></div>
+    <div class="hr"></div>
+    <div id="aiAltWrap" style="display:none">
+      <div class="small" style="font-weight:850">Alternative roles</div>
+      <div class="chips" id="aiAltChips" style="margin-top:10px"></div>
+    </div>
+    <div id="aiSkillsWrap" style="display:none;margin-top:14px">
+      <div class="small" style="font-weight:850">Top skills</div>
+      <div class="chips" id="aiSkillsChips" style="margin-top:10px"></div>
+    </div>
+  </div>
 </div>
 </section>
-<aside class="card">
-<div class="sectionHeader">
-<div class="stepTitle">
-<h2>Onboarding status</h2>
-<span class="badge" id="signedInBadge">Checking…</span>
-</div>
-<p class="small">Finish your CV Studio setup here, then use the extension for one-click imports from job pages.</p>
-</div>
-<div class="sectionBody">
-<div class="journeyBox">
-  <div class="stepTitle">
-    <h2>Recommended next step</h2>
-    <span class="badge warn">Soon</span>
+<aside class="card profileRail">
+<div class="sectionBody railStack railTight">
+  <div class="actions quickActionRow">
+    <button class="btn primary" id="openCvBtn" type="button">Open CV Studio</button>
+    <a class="btn" data-nav="1" href="./jobs.html">Jobs</a>
+    <a class="btn" data-extension-link data-extension-disabled-label="Notify me" data-extension-ready-label="Add extension" href="./cv-studio.html#manual"><span data-extension-label>Notify me</span></a>
   </div>
-  <div class="small" style="margin-top:8px">The Chrome extension is still in review. Finish your base CV setup now and use manual paste today. If you want the install link as soon as it is live, use the notify button below.</div>
-  <div class="journeyList">
-    <div class="journeyItem">
-      <div class="journeyNum">1</div>
-      <div class="journeyCopy">
-        <span class="journeyTag">Today</span>
-        <strong>Upload your base CV</strong>
-        <span>Keep your source CV here once so every tailored version can build from it.</span>
-      </div>
-    </div>
-    <div class="journeyItem">
-      <div class="journeyNum">2</div>
-      <div class="journeyCopy">
-        <span class="journeyTag">Now</span>
-        <strong>Use manual paste in CV Studio</strong>
-        <span>You can tailor immediately without waiting for the extension to go live.</span>
-      </div>
-    </div>
-    <div class="journeyItem">
-      <div class="journeyNum">3</div>
-      <div class="journeyCopy">
-        <span class="journeyTag">Soon</span>
-        <strong>Add the extension when approved</strong>
-        <span>Once the Chrome Web Store listing is live, it will send job pages into this same CV Studio setup.</span>
-      </div>
-    </div>
-  </div>
-  <div class="actions" style="margin-top:12px">
-    <a class="btn primary" data-nav="1" href="./cv.html">Use manual paste now</a>
-    <a class="btn" data-extension-link data-extension-disabled-label="Notify me" data-extension-ready-label="Add to Chrome" href="./cv-studio.html#manual"><span data-extension-label">Add to Chrome</span></a>
-  </div>
-</div>
-<div class="hr"></div>
-<div class="kpiCol">
-<div class="kpiRow">
-<div class="kpiName">Signed in</div>
-<div class="kpiVal" id="kSigned">…</div>
-</div>
-<div class="kpiRow">
-<div class="kpiName">Customer ID</div>
-<div class="kpiVal mono" id="kCustomerId">—</div>
-</div>
-<div class="kpiRow">
-<div class="kpiName">Profile complete</div>
-<div class="kpiVal" id="kProfile">…</div>
-</div>
-<div class="kpiRow">
-<div class="kpiName">Auto-apply plan</div>
-<div class="kpiVal" id="kPlan">…</div>
-</div>
-<div class="kpiRow">
-<div class="kpiName">CV uploaded</div>
-<div class="kpiVal" id="kCv">…</div>
-</div>
-<div class="kpiRow">
-<div class="kpiName">OCR status</div>
-<div class="kpiVal" id="kOcr">…</div>
-</div>
-</div>
-<div class="hr"></div>
-<div class="actions">
-<button class="btn primary" id="openCvBtn" type="button">Open CV Studio</button>
-<a class="btn" data-nav="1" href="./jobs.html">Open Jobs</a>
-</div>
 
-<div class="hr"></div>
-<div class="helpBox" id="gmailVerifyBox">
-  <div class="stepTitle">
-    <h2>Gmail sending check</h2>
-    <span class="badge" id="gmailStatusBadge">Not checked</span>
+  <div class="sideCard sideCardCompact">
+    <div class="compactHeadingRow">
+      <h2>Account</h2>
+      <span class="badge" id="signedInBadge">Checking…</span>
+    </div>
+    <div class="snapshotGrid compactSnapshot">
+      <div class="snapshotTile">
+        <div class="snapshotLabel">Signed in</div>
+        <div class="snapshotValue" id="kSigned">…</div>
+      </div>
+      <div class="snapshotTile">
+        <div class="snapshotLabel">Plan</div>
+        <div class="kpiVal" id="kPlan">…</div>
+      </div>
+      <div class="snapshotTile">
+        <div class="snapshotLabel">CV uploaded</div>
+        <div class="kpiVal" id="kCv">…</div>
+      </div>
+      <div class="snapshotTile">
+        <div class="snapshotLabel">OCR</div>
+        <div class="kpiVal" id="kOcr">…</div>
+      </div>
+    </div>
   </div>
-  <div class="small" id="gmailHint" style="margin-top:8px">Connect Gmail and send a test email to yourself. This confirms Gmail delivery end-to-end before you rely on it.</div>
-  <div class="mono" id="gmailMeta" style="margin-top:8px;display:none"></div>
-  <div class="actions" style="margin-top:10px">
-    <button class="btn primary" id="gmailVerifyBtn" type="button">Connect Gmail &amp; send test</button>
-    <button class="btn" id="gmailSendAgainBtn" type="button" style="display:none">Send another test</button>
-  </div>
-</div>
 
-<details class="helpBox" style="margin-top:12px">
-  <summary class="small" style="cursor:pointer;font-weight:850">More links</summary>
-  <div class="actions" style="margin-top:10px">
-    <a class="btn" data-nav="1" href="./plan.html">Pricing</a>
-    <a class="btn" data-nav="1" href="./dashboard.html">Dashboard</a>
+  <div class="helpBox billingBox compactBilling" id="billingBox">
+    <div class="compactHeadingRow">
+      <h2>Billing</h2>
+      <span class="badge warn" id="billingStatusBadge">Checking…</span>
+    </div>
+    <div class="small" id="billingSummaryText">Plan and invoices.</div>
+    <div class="billingStats">
+      <div class="billingStat">
+        <div class="billingStatLabel">Plan</div>
+        <div class="billingStatValue" id="billingPlanValue">—</div>
+      </div>
+      <div class="billingStat">
+        <div class="billingStatLabel">Usage</div>
+        <div class="billingStatValue" id="billingUsageValue">—</div>
+      </div>
+      <div class="billingStat">
+        <div class="billingStatLabel">Status</div>
+        <div class="billingStatValue" id="billingCycleValue">—</div>
+      </div>
+      <div class="billingStat">
+        <div class="billingStatLabel">Invoices</div>
+        <div class="billingStatValue" id="billingInvoiceValue">—</div>
+      </div>
+    </div>
+    <div class="billingInvoices" id="billingInvoicesSection" style="display:none">
+      <div class="small" style="font-weight:850;color:var(--text)">Recent invoices</div>
+      <div class="invoiceList" id="billingInvoicesList"></div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="billingManageBtn" type="button">Manage billing</button>
+      <a class="btn" data-nav="1" href="./plan.html#cv-pricing" id="billingPlansBtn">View plans</a>
+    </div>
+    <div class="small" id="billingFooterHint">Open Stripe billing.</div>
   </div>
-</details>
+
+  <details class="helpBox slimDetails">
+    <summary class="slimSummary">
+      <span>Advanced</span>
+    </summary>
+    <div class="metaList">
+      <div class="metaRow">
+        <span>Profile complete</span>
+        <span class="kpiVal" id="kProfile">…</span>
+      </div>
+      <div class="metaRow">
+        <span>Customer ID</span>
+        <span class="mono" id="kCustomerId">—</span>
+      </div>
+    </div>
+    <div class="slimPanel" id="gmailVerifyBox">
+      <div class="compactHeadingRow">
+        <h2>Gmail test</h2>
+        <span class="badge" id="gmailStatusBadge">Not checked</span>
+      </div>
+      <div class="small" id="gmailHint">Send one test email.</div>
+      <div class="mono" id="gmailMeta" style="display:none"></div>
+      <div class="actions" style="margin-top:10px">
+        <button class="btn primary" id="gmailVerifyBtn" type="button">Connect Gmail</button>
+        <button class="btn" id="gmailSendAgainBtn" type="button" style="display:none">Send again</button>
+      </div>
+      <div class="actions">
+        <a class="btn" data-nav="1" href="./plan.html">Pricing</a>
+        <a class="btn" data-nav="1" href="./dashboard.html">Dashboard</a>
+      </div>
+    </div>
+  </details>
 </div>
 </aside>
 <section class="card cardNoPad" id="prefsCard" style="grid-column:1/-1">
-<div class="sectionHeader">
-<div class="stepTitle">
-<h2>Step 2 (optional): Enable matched jobs</h2>
-<div class="row" style="gap:8px">
-<span class="badge" id="jobsPrefetchBadge" style="display:none">Fetching jobs…</span>
-<span class="badge" id="saveStatusBadge">Not saved</span>
-</div>
-</div>
-<p class="small">We already store your AI job titles in the background. Add your location and preferences only if you want matched jobs later. CV Studio itself works without this step.</p>
-<div class="row" id="jobsPrefetchRow" style="display:none; gap:10px; margin-top:10px">
-  <div class="spinner" aria-hidden="true"></div>
-  <div class="small" id="jobsPrefetchText">Fetching matched jobs in the background…</div>
-</div>
-</div>
-<div class="sectionBody">
+<details class="prefsShell" id="prefsToggle">
+  <summary class="prefsSummary">
+    <div class="prefsSummaryMain">
+      <span class="prefsSummaryTag">Optional</span>
+      <div class="titleBlock">
+        <h2>Matched jobs</h2>
+        <div class="prefsSummaryLead">Shape your search profile.</div>
+      </div>
+    </div>
+    <div class="prefsSummaryMeta">
+      <span class="prefsSummaryChip">Auto-save on</span>
+      <div class="row" style="gap:8px">
+        <span class="badge" id="jobsPrefetchBadge" style="display:none">Fetching jobs…</span>
+        <span class="badge" id="saveStatusBadge">Not saved</span>
+      </div>
+    </div>
+  </summary>
+  <div class="sectionBody">
+  <div class="prefsCanvas">
+
+    <div class="row" id="jobsPrefetchRow" style="display:none; gap:10px; margin-bottom:10px">
+      <div class="spinner" aria-hidden="true"></div>
+      <div class="small" id="jobsPrefetchText">Fetching matched jobs in the background…</div>
+    </div>
 
   <div class="prefsForm" role="form" aria-label="Matched jobs preferences">
     <!-- Left column: what roles -->
     <div class="formGroup">
       <div class="formGroupHeader">
         <div class="formGroupTitle">Role preferences</div>
-        <div class="formGroupSub">What kinds of jobs should we match you with?</div>
       </div>
 
       <div class="field fieldCard">
@@ -802,7 +1717,6 @@ Step 2 (Matched jobs) — form facelift
           <span class="fieldTag req">Required</span>
         </div>
         <textarea id="jobTitles" placeholder="Receptionist, Front Desk Agent, Rezeption"></textarea>
-        <div class="small helper">Tip: add 3–5 variations to avoid “0 jobs found”.</div>
 
         <div id="aiAppliedWrap" style="display:none;margin-top:10px">
           <div class="small"><strong>AI-added titles</strong></div>
@@ -816,7 +1730,6 @@ Step 2 (Matched jobs) — form facelift
           <span class="fieldTag opt">Optional</span>
         </div>
         <input id="industries" placeholder="Healthtech, Hospitality, Wellness"/>
-        <div class="small helper">Leave blank if you want broad matches across industries.</div>
       </div>
     </div>
 
@@ -824,7 +1737,6 @@ Step 2 (Matched jobs) — form facelift
     <div class="formGroup">
       <div class="formGroupHeader">
         <div class="formGroupTitle">Location &amp; radius</div>
-        <div class="formGroupSub">Where should we search (and how far are you willing to travel)?</div>
       </div>
 
       <div class="fieldRow">
@@ -882,12 +1794,14 @@ Step 2 (Matched jobs) — form facelift
       <button class="btn primary" id="continueBtn" type="button">Open CV Studio</button>
     </div>
     <div style="display:grid; gap:8px; min-width:260px">
-      <div class="small" id="autosaveHint">Auto‑save is on. Preferences are saved as you type (and when you open CV Studio).</div>
+      <div class="small" id="autosaveHint">Auto-save is on.</div>
       <div class="small" id="continueHint"></div>
     </div>
   </div>
 
 </div>
+</div>
+</details>
 </section>
 </div>
 </main>
@@ -938,8 +1852,8 @@ Step 2 (Matched jobs) — form facelift
   <!-- Scripts: order matters -->
   <script src="./vendor/supabase-js-2.100.1.js"></script>
   <script src="./auth.js?v=202603310940"></script>
-  <script src="./shared.js?v=202603310940"></script>
+  <script src="./shared.js?v=202603311215"></script>
 
-  <script src="./profile.app.js?v=202603302355"></script>
+  <script src="./profile.app.js?v=202604011950"></script>
 </body>
 </html>

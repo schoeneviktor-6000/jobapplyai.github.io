@@ -44,6 +44,23 @@
 .showWhenSetupCollapsed{ display:none !important; }
 .studio.setupCollapsed .showWhenSetupCollapsed{ display:inline-flex !important; }
 
+/* Once a tailored CV is visible, switch to a focused two-column workspace. */
+.studio.fullTailorMode{
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+  grid-template-areas:"canvas right";
+}
+.studio.fullTailorMode .studioLeft{ display:none; }
+.studio.fullTailorMode .showWhenSetupCollapsed,
+.studio.fullTailorMode #btnCollapseSetup{ display:none !important; }
+
+/* Formatting mode: reopen the formatting controls while keeping the CV in view. */
+#studioRoot[data-mode="customize"]{
+  grid-template-columns: minmax(340px, 430px) minmax(0, 1fr);
+  grid-template-areas:"left canvas";
+}
+#studioRoot[data-mode="customize"] .studioLeft{ display:block; }
+#studioRoot[data-mode="customize"] .studioRight{ display:none; }
+
 /* ============================================================
    Step 1 Gate (entry flow)
    - If user did NOT come from Jobs, we start with job selection/paste as the main screen.
@@ -63,6 +80,7 @@ body.cvGate .studioLeft{
 body.cvGate #btnCollapseSetup{ display:none !important; }
 body.cvGate #gateIntro{ display:block !important; }
 body.cvGate #btnGenerateAgain{ display:none !important; }
+body.cvGate #formatOptionsBlock{ display:none !important; }
 
 /* Gate header cleanup: remove redundant labels in Step 1/2 */
 body.cvGate .sectionTitleTop{ display:none !important; }
@@ -464,7 +482,7 @@ body.cvGate.cvGateForm #jobSourceHint{
 .infoButton:hover{ transform:translateY(-1px); background:rgba(255,255,255,.80); }
 
     /* Make left/right panels scroll independently on desktop so the CV stays centered */
-    @media (min-width: 1181px){
+@media (min-width: 1181px){
       .studioLeft,
       .studioRight{
         position: sticky;
@@ -482,6 +500,17 @@ body.cvGate.cvGateForm #jobSourceHint{
           "left"
           "canvas"
           "right";
+      }
+      .studio.fullTailorMode{
+        grid-template-areas:
+          "canvas"
+          "right";
+      }
+      #studioRoot[data-mode="customize"]{
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "left"
+          "canvas";
       }
       .studioLeft,
       .studioRight{
@@ -700,6 +729,373 @@ body.cvGate.cvGateForm #jobSourceHint{
       background:transparent;
       color:rgba(17,19,24,.82);
     }
+    .fontPicker{
+      margin-top:10px;
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:8px;
+    }
+    .fontOption{
+      border:1px solid rgba(17,19,24,.10);
+      border-radius:16px;
+      background:rgba(255,255,255,.86);
+      padding:10px 12px;
+      text-align:left;
+      display:grid;
+      gap:6px;
+      cursor:pointer;
+      transition:.16s ease;
+    }
+    .fontOption:hover{
+      transform:translateY(-1px);
+      border-color:rgba(17,19,24,.16);
+      background:rgba(255,255,255,.96);
+    }
+    .fontOption.active{
+      border-color:rgba(34,197,94,.38);
+      background:rgba(34,197,94,.10);
+      box-shadow:0 10px 24px rgba(34,197,94,.10);
+    }
+    .fontOptionLabel{
+      font-size:12px;
+      font-weight:900;
+      color:rgba(17,19,24,.84);
+      letter-spacing:-.01em;
+    }
+    .fontOptionPreview{
+      font-size:20px;
+      line-height:1;
+      color:rgba(17,19,24,.84);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .fontOptionPreview.serif{
+      font-family:"Georgia","Times New Roman",serif;
+      font-weight:700;
+    }
+    .fontOptionPreview.sans{
+      font-family:"Helvetica Neue",Arial,"Segoe UI",sans-serif;
+      font-weight:800;
+      letter-spacing:-.03em;
+    }
+    .sectionManager{
+      display:grid;
+      gap:8px;
+      margin-top:10px;
+    }
+    .sectionToolsRow{
+      margin-top:10px;
+      justify-content:space-between;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .sectionToolsRow .btn{
+      flex:1 1 140px;
+    }
+    .sectionRow{
+      display:grid;
+      grid-template-columns:minmax(0, 1fr) auto;
+      gap:10px;
+      align-items:center;
+      border:1px solid rgba(17,19,24,.08);
+      background:rgba(17,19,24,.03);
+      border-radius:14px;
+      padding:10px 12px;
+      cursor:pointer;
+      transition:border-color .16s ease, background-color .16s ease, box-shadow .16s ease, transform .16s ease;
+    }
+    .sectionRow:hover{
+      border-color:rgba(17,19,24,.14);
+      background:rgba(17,19,24,.05);
+      transform:translateY(-1px);
+    }
+    .sectionRow:focus-visible{
+      outline:none;
+      border-color:rgba(34,197,94,.36);
+      box-shadow:0 0 0 4px rgba(34,197,94,.10);
+    }
+    .sectionRow.isHidden{
+      opacity:.62;
+    }
+    .sectionRow.isEditing{
+      border-color:rgba(34,197,94,.28);
+      background:rgba(34,197,94,.08);
+      box-shadow:0 8px 24px rgba(34,197,94,.08);
+    }
+    .sectionRowMain{
+      min-width:0;
+    }
+    .sectionRowLabel{
+      font-size:13px;
+      font-weight:900;
+      color:rgba(17,19,24,.84);
+      letter-spacing:-.02em;
+    }
+    .sectionRowMeta{
+      margin-top:4px;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      font-size:11.5px;
+      font-weight:800;
+      color:rgba(17,19,24,.56);
+    }
+    .sectionRowActions{
+      display:flex;
+      gap:6px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      position:relative;
+      z-index:1;
+    }
+    .sectionMiniBtn{
+      width:34px;
+      height:34px;
+      border-radius:999px;
+      border:1px solid rgba(17,19,24,.12);
+      background:rgba(255,255,255,.88);
+      color:rgba(17,19,24,.82);
+      font-size:14px;
+      font-weight:950;
+      line-height:1;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+    }
+    .sectionMiniBtn:hover{
+      transform:translateY(-1px);
+      border-color:rgba(17,19,24,.18);
+    }
+    .sectionMiniBtn:disabled{
+      opacity:.38;
+      cursor:default;
+      transform:none;
+    }
+    .sectionToggle{
+      min-width:86px;
+      padding:8px 11px;
+      border-radius:999px;
+      border:1px solid rgba(17,19,24,.12);
+      background:rgba(255,255,255,.88);
+      color:rgba(17,19,24,.78);
+      font-size:11.5px;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .sectionToggle.isActive{
+      border-color:rgba(34,197,94,.42);
+      background:rgba(34,197,94,.12);
+      color:#0a3d1f;
+    }
+    .sectionEditorPanel{
+      margin-top:12px;
+      border:1px solid rgba(17,19,24,.10);
+      border-radius:16px;
+      background:rgba(255,255,255,.78);
+      padding:12px;
+      display:grid;
+      gap:12px;
+    }
+    .sectionWorkspace{
+      display:none;
+      margin-bottom:14px;
+    }
+    .sectionEditorEmpty{
+      font-size:12.5px;
+      line-height:1.5;
+      color:rgba(17,19,24,.62);
+      font-weight:760;
+    }
+    .sectionEditorEyebrow{
+      font-size:11px;
+      font-weight:950;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+      color:rgba(34,197,94,.72);
+    }
+    .sectionEditorTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .sectionEditorTopActions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .sectionEditorTitle{
+      margin-top:4px;
+      font-size:20px;
+      font-weight:950;
+      color:rgba(17,19,24,.86);
+      letter-spacing:-.02em;
+    }
+    .sectionEditorHint{
+      margin-top:4px;
+      font-size:12px;
+      line-height:1.45;
+      color:rgba(17,19,24,.58);
+      font-weight:760;
+      max-width:720px;
+    }
+    .sectionEditorBody,
+    .sectionEditorStack,
+    .sectionEditorSubsection{
+      display:grid;
+      gap:10px;
+    }
+    .sectionEditorGrid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:10px;
+    }
+    .sectionEditorField{
+      display:grid;
+      gap:6px;
+      min-width:0;
+    }
+    .sectionEditorField.isWide{
+      grid-column:1 / -1;
+    }
+    .sectionEditorLabel,
+    .sectionEditorLabelRow{
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:rgba(17,19,24,.50);
+    }
+    .sectionEditorLabelRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .sectionEditorCheck{
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(17,19,24,.10);
+      background:rgba(255,255,255,.82);
+      color:rgba(17,19,24,.82);
+      font-size:13px;
+      font-weight:780;
+    }
+    .sectionEditorCheck input{
+      margin-top:3px;
+      flex:0 0 auto;
+    }
+    .sectionEditorCheck strong{
+      display:block;
+      font-size:13px;
+      font-weight:900;
+      color:rgba(17,19,24,.86);
+    }
+    .sectionEditorCheckHint{
+      display:block;
+      margin-top:4px;
+      font-size:11.5px;
+      line-height:1.45;
+      color:rgba(17,19,24,.56);
+      font-weight:760;
+    }
+    .contactStylePicker{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+      gap:8px;
+    }
+    .contactStyleOption{
+      display:grid;
+      gap:6px;
+      text-align:left;
+      border:1px solid rgba(17,19,24,.10);
+      background:rgba(255,255,255,.92);
+      border-radius:14px;
+      padding:10px 12px;
+      transition:border-color .16s ease, background-color .16s ease, transform .16s ease, box-shadow .16s ease;
+    }
+    .contactStyleOption:hover{
+      transform:translateY(-1px);
+      border-color:rgba(17,19,24,.16);
+    }
+    .contactStyleOption.active{
+      border-color:rgba(34,197,94,.34);
+      background:rgba(34,197,94,.10);
+      box-shadow:0 10px 24px rgba(34,197,94,.08);
+    }
+    .contactStyleOptionLabel{
+      font-size:12px;
+      font-weight:900;
+      color:rgba(17,19,24,.84);
+      letter-spacing:-.01em;
+    }
+    .contactStyleOptionSample{
+      font-size:11px;
+      line-height:1.45;
+      color:rgba(17,19,24,.58);
+      font-weight:760;
+    }
+    .sectionEditorTextarea{
+      width:100%;
+      min-height:92px;
+      resize:vertical;
+      border:1px solid rgba(17,19,24,.12);
+      border-radius:12px;
+      background:#fff;
+      padding:10px 12px;
+      font:inherit;
+      color:rgba(17,19,24,.86);
+    }
+    .sectionEditorCardBlock{
+      border:1px solid rgba(17,19,24,.08);
+      border-radius:14px;
+      background:rgba(17,19,24,.03);
+      padding:10px;
+      display:grid;
+      gap:10px;
+    }
+    .sectionEditorListRow{
+      display:grid;
+      grid-template-columns:minmax(0, 1fr) auto;
+      gap:8px;
+      align-items:start;
+    }
+    .sectionEditorCardActions{
+      display:flex;
+      justify-content:flex-end;
+    }
+    .sectionEditorMicrocopy{
+      font-size:11.5px;
+      line-height:1.45;
+      color:rgba(17,19,24,.56);
+      font-weight:760;
+    }
+    @media (max-width: 1280px){
+      .fontPicker{
+        grid-template-columns:1fr;
+      }
+      .contactStylePicker{
+        grid-template-columns:1fr;
+      }
+      .sectionEditorGrid{
+        grid-template-columns:1fr;
+      }
+      .sectionEditorListRow{
+        grid-template-columns:1fr;
+      }
+      .sectionToolsRow .btn{
+        flex:1 1 100%;
+      }
+    }
     .startStrengthModal .modalCard{
       width:min(460px, 94vw);
     }
@@ -749,47 +1145,394 @@ body.cvGate.cvGateForm #jobSourceHint{
 
     /* Preview rendering (HTML) */
     .cvPreview:not(.paperA4){
-      background: rgba(255,255,255,.72);
+      background: rgba(255,255,255,.92);
       border: 1px solid rgba(17,19,24,.10);
       border-radius: 14px;
-      padding: 14px 14px;
+      padding: 18px 22px 20px;
+    }
+    .cvPreview.cvFontSerif{
+      font-family: "Georgia", "Times New Roman", serif;
+    }
+    .cvPreview.cvFontSans{
+      font-family: "Helvetica Neue", Arial, "Segoe UI", sans-serif;
+    }
+    .cvHeaderBlock{
+      border-radius:18px;
+      padding:4px 10px 2px;
+      margin:0 -10px 10px;
+      transition:background-color .18s ease, box-shadow .18s ease;
+    }
+    .cvHeaderBlock.isHeaderFocus{
+      background:rgba(34,197,94,.08);
+      box-shadow:0 10px 28px rgba(34,197,94,.10);
     }
     .cvName{
-      font-size:30px;
-      font-weight:950;
-      letter-spacing:-.6px;
+      font-size:31px;
+      font-weight:700;
+      letter-spacing:0;
       color: rgba(17,19,24,.86);
+      text-align:center;
+    }
+    .cvPreview.cvFontSans .cvName{
+      font-weight:800;
+      letter-spacing:-.04em;
     }
     .cvRole{
       margin-top:4px;
       font-size:13px;
-      font-weight:850;
-      color: rgba(17,19,24,.58);
+      font-weight:600;
+      color: rgba(17,19,24,.54);
+      text-align:center;
     }
     .cvContact{
+      margin-top:7px;
+      font-size:11.8px;
+      color: rgba(17,19,24,.62);
+      font-weight:600;
+      text-align:center;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-wrap:wrap;
+      gap:7px;
+    }
+    .cvContactSecondary{
+      margin-top:4px;
+    }
+    .cvContactItem{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      min-width:0;
+    }
+    .cvContactIcon{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:16px;
+      height:16px;
+      color:rgba(17,19,24,.70);
+      font-size:11px;
+      font-weight:900;
+      line-height:1;
+    }
+    .cvContactIcon.isTag{
+      min-width:auto;
+      height:auto;
+      padding:2px 6px;
+      border-radius:999px;
+      background:rgba(17,19,24,.07);
+      border:1px solid rgba(17,19,24,.10);
+      color:rgba(17,19,24,.66);
+      font-size:9.5px;
+      letter-spacing:.06em;
+    }
+    .cvContactSep{
+      color:rgba(17,19,24,.32);
+      font-size:10px;
+      line-height:1;
+    }
+    .cvSection{ margin-top:18px; }
+    .cvSection.isSectionFocus{
+      position:relative;
+      margin-left:-10px;
+      margin-right:-10px;
+      padding:10px 10px 2px;
+      border-radius:16px;
+      background:rgba(34,197,94,.08);
+      box-shadow:0 10px 28px rgba(34,197,94,.10);
+    }
+    .cvSectionTitle{
+      font-size:13px;
+      font-weight:700;
+      letter-spacing:0;
+      text-transform:none;
+      border-bottom:1px solid rgba(17,19,24,.42);
+      padding-bottom:6px;
+      margin:0 0 9px 0;
+    }
+    .cvPreview.cvFontSans .cvSectionTitle{
+      font-weight:800;
+      letter-spacing:-.01em;
+    }
+    .cvItem{ margin-top:11px; }
+    .cvItemHead{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+    }
+    .cvItemHeadMain{ min-width:0; }
+    .cvItemTitle{ font-size:13.6px; font-weight:700; }
+    .cvItemSub{
+      margin-top:2px;
+      font-size:11.8px;
+      font-style:italic;
+      color:rgba(17,19,24,.58);
+    }
+    .cvMetaLine{
+      margin-top:1px;
+      font-size:11.8px;
+      color:rgba(17,19,24,.56);
+      font-style:italic;
+      white-space:nowrap;
+    }
+    .cvUl{ margin:6px 0 0 18px; padding:0; }
+    .cvUl li{ margin:0 0 3px 0; font-size:12.4px; line-height:1.42; }
+    .cvPara{ font-size:12.5px; line-height:1.54; margin:0; }
+    .cvSkillLine{ font-size:12.4px; line-height:1.48; margin:2px 0; }
+
+    .pageStage{
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      gap:18px;
+    }
+    .pageStageMain{
+      flex:1 1 auto;
+      min-width:0;
+      display:flex;
+      justify-content:center;
+    }
+    .pageStage.hasKwInspector{
+      display:grid;
+      grid-template-columns:minmax(0, 1fr) minmax(296px, 320px);
+      align-items:flex-start;
+      gap:12px;
+    }
+    .kwInspectorWrap{
+      width:min(320px, 100%);
+      align-self:start;
+      position:relative;
+      --kw-inline-offset: 0px;
+      --kw-inline-pointer: 30px;
+      --kw-inline-connector: 22px;
+    }
+    .kwInspectorWrap[hidden]{
+      display:none !important;
+    }
+
+    .cvExpBullets{ margin-top:8px; }
+    .cvBulletItem{
+      position:relative;
+      border-radius:16px;
+      transition: background-color .16s ease, box-shadow .16s ease, transform .16s ease;
+    }
+    .cvBulletText{ display:block; }
+    .cvPreview.keywordPlacementMode .cvBulletItem{
+      cursor:pointer;
+      margin:6px -10px 0 -14px;
+      padding:8px 10px 10px 10px;
+    }
+    .cvPreview.keywordPlacementMode .cvBulletItem:hover{
+      background:rgba(17,19,24,.04);
+      transform:translateY(-1px);
+    }
+    .cvPreview.keywordPlacementMode .cvBulletItem::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:16px;
+      border:1px solid transparent;
+      pointer-events:none;
+    }
+    .cvPreview.keywordPlacementMode .cvBulletItem.is-kw-selected{
+      background:rgba(34,197,94,.12);
+      box-shadow:0 10px 26px rgba(34,197,94,.12);
+    }
+    .cvPreview.keywordPlacementMode .cvBulletItem.is-kw-selected::after{
+      border-color:rgba(34,197,94,.34);
+    }
+
+    .kwInlineCard{
+      position:relative;
+      border:1px solid rgba(17,19,24,.10);
+      border-radius:22px;
+      background:rgba(255,255,255,.88);
+      backdrop-filter:saturate(180%) blur(18px);
+      box-shadow:0 18px 38px rgba(17,19,24,.10);
+      padding:14px;
+      transform:translateY(var(--kw-inline-offset));
+      transition:transform .22s ease, box-shadow .18s ease;
+    }
+    .kwInlineCard::before{
+      content:"";
+      position:absolute;
+      left:calc(-1 * var(--kw-inline-connector));
+      top:var(--kw-inline-pointer);
+      width:var(--kw-inline-connector);
+      height:2px;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(34,197,94,.24), rgba(34,197,94,.40));
+      pointer-events:none;
+    }
+    .kwInlineCard::after{
+      content:"";
+      position:absolute;
+      left:calc(-1 * var(--kw-inline-connector) - 8px);
+      top:calc(var(--kw-inline-pointer) - 5px);
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      border:2px solid rgba(34,197,94,.28);
+      background:#fff;
+      box-shadow:0 0 0 4px rgba(34,197,94,.10);
+      pointer-events:none;
+    }
+    .kwInlineTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .kwInlineHead{ min-width:0; }
+    .kwInlineTitle{
+      font-size:14px;
+      font-weight:980;
+      letter-spacing:-.2px;
+      color:rgba(17,19,24,.88);
+    }
+    .kwInlineStatus{
+      margin-top:8px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(17,19,24,.05);
+      border:1px solid rgba(17,19,24,.08);
+      color:rgba(17,19,24,.72);
+      font-size:12px;
+      font-weight:850;
+    }
+    .kwInlineStatus.isLoading::before{
+      content:"";
+      width:12px;
+      height:12px;
+      border-radius:999px;
+      border:2px solid rgba(17,19,24,.18);
+      border-top-color:rgba(34,197,94,.78);
+      animation:kwInlineSpin .78s linear infinite;
+      flex:0 0 auto;
+    }
+    .kwInlineStatus.isSuccess{
+      background:rgba(34,197,94,.12);
+      border-color:rgba(34,197,94,.18);
+      color:rgba(17,19,24,.76);
+    }
+    .kwInlineCompare{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+    .kwInlineBlock{
+      border:1px solid rgba(17,19,24,.08);
+      border-radius:14px;
+      background:rgba(17,19,24,.03);
+      padding:10px 12px;
+    }
+    .kwInlineLabel{
+      font-size:11px;
+      font-weight:950;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:rgba(17,19,24,.52);
+    }
+    .kwInlineLabelRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .kwInlineDiffHint{
+      font-size:11px;
+      font-weight:800;
+      color:rgba(34,197,94,.74);
+      letter-spacing:-.01em;
+    }
+    .kwInlineText{
       margin-top:8px;
       font-size:12.5px;
-      color: rgba(17,19,24,.62);
-      font-weight:700;
+      line-height:1.5;
+      color:rgba(17,19,24,.84);
+      white-space:pre-wrap;
     }
-    .cvSection{ margin-top:16px; }
-    .cvSectionTitle{
-      font-size:14px;
-      font-weight:950;
-      letter-spacing:.04em;
-      text-transform:uppercase;
-      border-bottom:3px solid rgba(17,19,24,.86);
-      padding-bottom:6px;
-      margin:0 0 10px 0;
+    .kwInlineTextDiff{
+      position:relative;
     }
-    .cvItem{ margin-top:10px; }
-    .cvItemTitle{ font-size:13.5px; font-weight:950; }
-    .cvItemSub{ margin-top:2px; font-size:12.5px; font-weight:850; color:rgba(17,19,24,.62); }
-    .cvMetaLine{ margin-top:2px; font-size:12.5px; color:rgba(17,19,24,.62); }
-    .cvUl{ margin:6px 0 0 18px; padding:0; }
-    .cvUl li{ margin:0 0 3px 0; font-size:13px; line-height:1.45; }
-    .cvPara{ font-size:13px; line-height:1.5; margin:0; }
-    .cvSkillLine{ font-size:13px; line-height:1.5; margin:2px 0; }
+    .kwInlineDiffAdd{
+      display:inline;
+      padding:.04em .18em;
+      border-radius:.45em;
+      background:linear-gradient(180deg, rgba(231,249,237,.98), rgba(212,244,221,.96));
+      box-shadow:inset 0 0 0 1px rgba(34,197,94,.18), 0 1px 0 rgba(255,255,255,.72);
+      color:rgba(17,19,24,.92);
+      font-weight:780;
+      box-decoration-break:clone;
+      -webkit-box-decoration-break:clone;
+    }
+    .kwInlineActions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+    .kwInlineActions .btn{
+      flex:1 1 140px;
+    }
+    .kwInlineActions .btn.primary{
+      flex:1 1 160px;
+    }
+    .kwInlineActions .btn.isLoading::before,
+    #kwRewriteAgain.isLoading::before{
+      content:"";
+      display:inline-block;
+      width:12px;
+      height:12px;
+      margin-right:8px;
+      border-radius:999px;
+      border:2px solid rgba(17,19,24,.18);
+      border-top-color:rgba(34,197,94,.78);
+      animation:kwInlineSpin .78s linear infinite;
+      vertical-align:-2px;
+    }
+    #btnPrint.isLoading::before{
+      content:"";
+      display:inline-block;
+      width:12px;
+      height:12px;
+      margin-right:8px;
+      border-radius:999px;
+      border:2px solid rgba(255,255,255,.42);
+      border-top-color:rgba(17,19,24,.92);
+      animation:kwInlineSpin .78s linear infinite;
+      vertical-align:-2px;
+    }
+
+    @keyframes kwInlineSpin{
+      to{ transform:rotate(360deg); }
+    }
+
+    @media (max-width: 920px){
+      .pageStage.hasKwInspector{
+        grid-template-columns:1fr;
+      }
+      .kwInspectorWrap{
+        width:min(640px, 100%);
+        margin:0 auto;
+        position:static;
+      }
+      .kwInlineCard{
+        transform:none;
+      }
+      .kwInlineCard::before,
+      .kwInlineCard::after{
+        display:none;
+      }
+    }
 
     /* Text view */
     textarea.cvText{
@@ -1300,6 +2043,18 @@ body.cvGate.cvGateForm #jobSourceHint{
   box-shadow: 0 10px 30px rgba(17,19,24,.08);
   overflow:hidden;
 }
+.genStatusRow{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.genStatusDetail{
+  color: rgba(17,19,24,.62);
+  font-size:13px;
+  font-weight:800;
+  line-height:1.45;
+}
 .genVizInner{ padding:12px; }
 .genVizTop{
   display:flex;
@@ -1427,6 +2182,44 @@ body.cvGate.cvGateForm #jobSourceHint{
   font-weight:750;
   font-size:12px;
   color: rgba(17,19,24,.55);
+}
+.genFocus{
+  margin-top:12px;
+  border:1px solid rgba(17,19,24,.08);
+  border-radius:14px;
+  background: rgba(17,19,24,.03);
+  padding:12px 14px;
+  display:grid;
+  gap:10px;
+}
+.genFocusTitle{
+  font-weight:980;
+  font-size:12px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color: rgba(17,19,24,.48);
+}
+.genFocusTags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.genFocusTag{
+  display:inline-flex;
+  align-items:center;
+  padding:7px 10px;
+  border-radius:999px;
+  border:1px solid rgba(17,19,24,.08);
+  background: rgba(255,255,255,.92);
+  color: rgba(17,19,24,.74);
+  font-size:12px;
+  font-weight:850;
+}
+.genFinePrint{
+  color: rgba(17,19,24,.60);
+  font-size:13px;
+  font-weight:750;
+  line-height:1.45;
 }
 
 /* Animated “merge” state */
@@ -1586,10 +2379,57 @@ body.cvGate.cvGateForm #jobSourceHint{
     #studioRoot[data-mode="review"] #inspectorKeywords{ display:none !important; }
     #studioRoot[data-mode="review"] #inspectorReview{ display:block !important; }
 
-    #studioRoot[data-mode="edit"] #canvasTabs{ display:flex; }
+    /* Edit mode keeps the preview visible by default, without extra tab noise. */
+    #studioRoot[data-mode="edit"] #canvasTabs{ display:none; }
+    #tabChanges,
+    #cvChangesWrap{ display:none !important; }
+    #studioRoot[data-mode="tailor"] #sectionWorkspace,
+    #studioRoot[data-mode="edit"] #sectionWorkspace,
+    #studioRoot[data-mode="review"] #sectionWorkspace{ display:none !important; }
+    #studioRoot[data-mode="tailor"] #formatOptionsBlock,
+    #studioRoot[data-mode="edit"] #formatOptionsBlock,
+    #studioRoot[data-mode="review"] #formatOptionsBlock{ display:none !important; }
     #studioRoot[data-mode="edit"] #inspectorReview{ display:none !important; }
+    #studioRoot[data-mode="tailor"] #sectionEditorPanel,
+    #studioRoot[data-mode="tailor"] .sectionEditBtn,
+    #studioRoot[data-mode="edit"] #sectionEditorPanel,
+    #studioRoot[data-mode="edit"] .sectionEditBtn,
+    #studioRoot[data-mode="review"] #sectionEditorPanel,
+    #studioRoot[data-mode="review"] .sectionEditBtn{ display:none !important; }
 
+    #studioRoot[data-mode="customize"] #canvasTabs{ display:none; }
+    #studioRoot[data-mode="customize"] #cvTextWrap,
+    #studioRoot[data-mode="customize"] #cvChangesWrap{ display:none !important; }
+    #studioRoot[data-mode="customize"] #cvPreviewWrap{ display:block !important; }
     #studioRoot[data-mode="customize"] #inspectorReview{ display:none !important; }
+    #studioRoot[data-mode="customize"] #sectionWorkspace{ display:block; }
+    #studioRoot[data-mode="customize"] #sectionEditorPanel{
+      margin-top:0;
+      border-radius:22px;
+      border-color:rgba(34,197,94,.18);
+      background:linear-gradient(180deg, rgba(246,255,249,.98), rgba(255,255,255,.98));
+      box-shadow:0 18px 40px rgba(17,19,24,.08);
+      padding:18px;
+    }
+    #studioRoot[data-mode="customize"] #cvBox{
+      display:grid;
+      gap:14px;
+    }
+    #studioRoot[data-mode="customize"] #jobSourceLbl,
+    #studioRoot[data-mode="customize"] #sourcePills,
+    #studioRoot[data-mode="customize"] #jobSourceHint,
+    #studioRoot[data-mode="customize"] #queueBox,
+    #studioRoot[data-mode="customize"] #pasteBox,
+    #studioRoot[data-mode="customize"] #jobToolsDetails,
+    #studioRoot[data-mode="customize"] #autoStartBar,
+    #studioRoot[data-mode="customize"] #jobSetupDivider,
+    #studioRoot[data-mode="customize"] #generateDivider,
+    #studioRoot[data-mode="customize"] #generateRow,
+    #studioRoot[data-mode="customize"] #ctaHint,
+    #studioRoot[data-mode="customize"] #genHint,
+    #studioRoot[data-mode="customize"] #btnHowItWorks,
+    #studioRoot[data-mode="customize"] #stepsMiniHint,
+    #studioRoot[data-mode="customize"] #pipelineDetails{ display:none !important; }
 
     /* Resume-like “page preview” feel + zoom HUD */
     .iconBtn{
@@ -1656,7 +2496,10 @@ body.cvGate.cvGateForm #jobSourceHint{
   .topbar, .studioBar, .studioLeft, .studioRight, .zoomHud{ display:none !important; }
   .studio{ display:block !important; }
   .studioCanvas{ border:none !important; box-shadow:none !important; padding:0 !important; }
+  #sectionWorkspace{ display:none !important; }
+  .pageStage{ display:block !important; }
   .paperWrap{ padding:0 !important; overflow:visible !important; }
+  .kwInspectorWrap{ display:none !important; }
   #pageZoom{ transform:none !important; }
   .paperA4{ box-shadow:none !important; border:none !important; margin:0 !important; width:210mm !important; min-height:297mm !important; }
 }
@@ -1725,6 +2568,272 @@ body.fromJobsLink #settingsDetails{
     @media (prefers-reduced-motion: reduce){
       .guidedGlow.guidedPulse{ animation:none; }
     }
+
+    /* ---------------------------------------------------------
+       Upgrade flow (free CV limit)
+       - Inline banner keeps the path obvious on the page
+       - Modal adds a smoother, higher-intent checkout handoff
+       --------------------------------------------------------- */
+    .upgradeBanner{
+      display:none;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      flex-wrap:wrap;
+      margin:12px 0 18px;
+      padding:16px 18px;
+      border-radius:22px;
+      border:1px solid rgba(17,19,24,.10);
+      background:
+        radial-gradient(circle at top right, rgba(34,197,94,.18), transparent 36%),
+        linear-gradient(135deg, rgba(255,255,255,.97), rgba(240,253,244,.94));
+      box-shadow: 0 18px 44px rgba(17,19,24,.08);
+    }
+    .upgradeBannerCopy{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width:0;
+      flex:1 1 420px;
+    }
+    .upgradeBannerEyebrow{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .upgradeBannerTitle{
+      font-size:20px;
+      line-height:1.05;
+      font-weight:980;
+      letter-spacing:-.02em;
+      color:rgba(17,19,24,.94);
+    }
+    .upgradeBannerText{
+      color:rgba(17,19,24,.66);
+      font-weight:700;
+      line-height:1.5;
+      max-width:760px;
+    }
+    .upgradeBannerActions{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      flex:0 0 auto;
+    }
+    .upgradeModal .modalCard{
+      width:min(1040px, 96vw);
+    }
+    .upgradeModal .modalHeader{
+      border-bottom:none;
+      padding-bottom:0;
+    }
+    .upgradeModal .modalScroll{
+      padding-bottom:18px;
+    }
+    .upgradeModalTitle{
+      font-size:clamp(26px, 3.2vw, 38px);
+      line-height:1.04;
+      letter-spacing:-.03em;
+      margin:0;
+    }
+    .upgradeModalKicker{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:7px 12px;
+      border-radius:999px;
+      border:1px solid rgba(34,197,94,.24);
+      background:rgba(34,197,94,.10);
+      color:#0a5a2a;
+      font-size:11px;
+      font-weight:950;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+    .upgradeModalSub{
+      margin-top:12px;
+      color:rgba(17,19,24,.66);
+      font-weight:700;
+      line-height:1.6;
+      max-width:760px;
+    }
+    .upgradeModalHero{
+      margin-top:18px;
+      padding:18px;
+      border-radius:22px;
+      border:1px solid rgba(17,19,24,.08);
+      background:
+        radial-gradient(circle at top left, rgba(34,197,94,.16), transparent 32%),
+        linear-gradient(140deg, rgba(17,19,24,.02), rgba(255,255,255,.96));
+    }
+    .upgradeRoleHint{
+      font-size:15px;
+      line-height:1.55;
+      font-weight:760;
+      color:rgba(17,19,24,.76);
+    }
+    .upgradeTrustRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:14px;
+    }
+    .upgradeTrustPill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid rgba(17,19,24,.10);
+      background:rgba(255,255,255,.78);
+      color:rgba(17,19,24,.72);
+      font-size:12px;
+      font-weight:850;
+    }
+    .upgradePlanGrid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:14px;
+      margin-top:16px;
+    }
+    .upgradePlanCard{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      min-height:100%;
+      padding:18px;
+      border-radius:24px;
+      border:1px solid rgba(17,19,24,.10);
+      background:rgba(255,255,255,.92);
+      box-shadow: 0 16px 42px rgba(17,19,24,.08);
+    }
+    .upgradePlanCard.recommended{
+      border-color:rgba(34,197,94,.24);
+      background:
+        linear-gradient(180deg, rgba(34,197,94,.08), rgba(255,255,255,.96));
+      box-shadow: 0 18px 48px rgba(34,197,94,.12);
+    }
+    .upgradePlanTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .upgradePlanName{
+      margin:0;
+      font-size:22px;
+      font-weight:980;
+      letter-spacing:-.02em;
+      color:rgba(17,19,24,.94);
+    }
+    .upgradePlanLead{
+      margin-top:6px;
+      color:rgba(17,19,24,.62);
+      font-size:13px;
+      font-weight:700;
+      line-height:1.55;
+    }
+    .upgradePlanPrice{
+      display:flex;
+      align-items:flex-end;
+      gap:8px;
+    }
+    .upgradePlanPrice strong{
+      font-size:42px;
+      line-height:.95;
+      letter-spacing:-.04em;
+      color:rgba(17,19,24,.95);
+    }
+    .upgradePlanPrice span{
+      color:rgba(17,19,24,.60);
+      font-weight:800;
+    }
+    .upgradePlanQuota{
+      padding:14px 16px;
+      border-radius:18px;
+      border:1px solid rgba(17,19,24,.08);
+      background:rgba(17,19,24,.03);
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .upgradePlanQuota strong{
+      font-size:16px;
+      letter-spacing:-.02em;
+      color:rgba(17,19,24,.90);
+    }
+    .upgradePlanQuota span{
+      color:rgba(17,19,24,.62);
+      font-size:12px;
+      font-weight:700;
+      line-height:1.5;
+    }
+    .upgradePlanList{
+      margin:0 0 0 18px;
+      padding:0;
+      color:rgba(17,19,24,.74);
+      font-weight:760;
+      line-height:1.55;
+      font-size:13px;
+    }
+    .upgradePlanList li + li{
+      margin-top:8px;
+    }
+    .upgradePlanActions{
+      margin-top:auto;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .upgradePlanActions .btn{
+      width:100%;
+      min-height:46px;
+    }
+    .upgradeModalFooter{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:16px;
+      padding-top:16px;
+      border-top:1px solid rgba(17,19,24,.08);
+    }
+    .upgradeModalFootnote{
+      color:rgba(17,19,24,.60);
+      font-size:13px;
+      font-weight:700;
+      line-height:1.55;
+      max-width:640px;
+    }
+    @media (max-width: 860px){
+      .upgradeBanner{
+        padding:14px;
+      }
+      .upgradeBannerActions{
+        width:100%;
+      }
+      .upgradeBannerActions .btn{
+        flex:1 1 100%;
+      }
+      .upgradePlanGrid{
+        grid-template-columns:1fr;
+      }
+      .upgradePlanCard{
+        padding:16px;
+      }
+      .upgradePlanPrice strong{
+        font-size:36px;
+      }
+      .upgradeModalFooterActions{
+        width:100%;
+      }
+      .upgradeModalFooterActions .btn{
+        width:100%;
+      }
+    }
 </style>
 </head>
 
@@ -1767,7 +2876,8 @@ body.fromJobsLink #settingsDetails{
             <a class="jmNavItem" href="./cv.html" data-nav="1" role="menuitem">CV Studio</a>
             <a class="jmNavItem" href="./jobs.html" data-nav="1" role="menuitem">Jobs</a>
             <a class="jmNavItem" href="./profile.html" data-nav="1" role="menuitem">Profile</a>
-            <a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Billing & plans</a>
+            <a class="jmNavItem" href="./profile.html#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Manage billing</a>
+            <a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Plans & pricing</a>
             <button class="jmNavItem" id="navActivity" type="button" role="menuitem">Activity</button>
             <div class="menuSep" role="separator"></div>
             <button class="jmNavItem jmNavDanger" id="navLogout" type="button" role="menuitem">Logout</button>
@@ -1784,11 +2894,26 @@ body.fromJobsLink #settingsDetails{
     <p class="sub" id="subTitle">Paste a job or pick one from Jobs. We tailor your CV, show the ATS gaps, and get you ready to send.</p>
 
     <div class="errorTop" id="errorTop"></div>
+    <div class="upgradeBanner" id="cvUpgradeBanner" style="display:none" role="status" aria-live="polite">
+      <div class="upgradeBannerCopy">
+        <div class="upgradeBannerEyebrow">
+          <span class="badge warn" id="cvUpgradeBannerBadge">Free plan complete</span>
+          <span class="upgradeTrustPill" id="cvUpgradeBannerTrust">Secure checkout</span>
+        </div>
+        <div class="upgradeBannerTitle" id="cvUpgradeBannerTitle">You've used your 5 free CVs.</div>
+        <div class="upgradeBannerText" id="cvUpgradeBannerText">Unlock Starter or Plus to keep tailoring this job without losing your current setup.</div>
+      </div>
+      <div class="upgradeBannerActions">
+        <button class="btn primary cta" id="btnUpgradeBanner" type="button">Unlock plan</button>
+        <a class="btn ghost" id="cvUpgradeBannerPricing" href="./plan.html#cv-pricing" data-nav="1">See full pricing</a>
+      </div>
+    </div>
 
     <div class="studioBar" aria-label="CV Studio modes">
       <div class="studioTabsTop" role="tablist" aria-label="Studio modes">
-        <button class="modeTab active" id="modeTailor" type="button" role="tab" aria-selected="true" title="Tailor your CV and improve ATS coverage">1. Tailor</button>
-        <button class="modeTab" id="modeEdit" type="button" role="tab" aria-selected="false" title="Review changes or edit the CV manually" style="display:none">2. Improve</button>
+        <button class="modeTab active" id="modeTailor" type="button" role="tab" aria-selected="true" title="Start tailoring and generate your CV">1. Tailor</button>
+        <button class="modeTab" id="modeCustomize" type="button" role="tab" aria-selected="false" title="Adjust sections, edit content, and format the CV while keeping it visible" style="display:none">1. Content</button>
+        <button class="modeTab" id="modeEdit" type="button" role="tab" aria-selected="false" title="Add missing keywords and refine wording directly in the CV preview" style="display:none">2. Improve</button>
         <button class="modeTab" id="modeReview" type="button" role="tab" aria-selected="false" title="Run the final check before export" style="display:none">3. Final check</button>
       </div>
 
@@ -1987,7 +3112,7 @@ body.fromJobsLink #settingsDetails{
   </div>
 </details>
 
-        <div class="hr"></div>
+        <div class="hr" id="jobSetupDivider"></div>
 
         
         <!-- Auto-start (when coming from Jobs) -->
@@ -2035,13 +3160,36 @@ body.fromJobsLink #settingsDetails{
             Improves summary and bullets to match the job, without over-rewriting.
           </div>
         </div>
+
+        <div id="formatOptionsBlock" hidden>
+          <div class="label" style="margin-top:14px" id="fontLbl">Font style</div>
+          <div class="hint" id="fontHint">Applied to the preview and PDF export.</div>
+          <div class="fontPicker" id="fontPicker" role="group" aria-label="Font style">
+            <button class="fontOption active" type="button" data-font-theme="serif" aria-pressed="true">
+              <span class="fontOptionLabel" id="fontSerifLbl">Classic serif</span>
+              <span class="fontOptionPreview serif">Viktor Schöne</span>
+            </button>
+            <button class="fontOption" type="button" data-font-theme="sans" aria-pressed="false">
+              <span class="fontOptionLabel" id="fontSansLbl">Clean sans</span>
+              <span class="fontOptionPreview sans">Viktor Schöne</span>
+            </button>
+          </div>
+
+          <div class="label" style="margin-top:14px" id="sectionsTitle">Sections</div>
+          <div class="hint" id="sectionsHint">Hide optional blocks or move sections up and down.</div>
+          <div class="row sectionToolsRow">
+            <button class="btn small primary" id="btnAddSection" type="button">Add section</button>
+            <button class="btn small ghost" id="btnResetSections" type="button">Reset order</button>
+          </div>
+          <div class="sectionManager" id="sectionManager"></div>
+        </div>
           </div>
         </details>
 
 
-        <div class="hr"></div>
+        <div class="hr" id="generateDivider"></div>
 
-        <div class="row">
+        <div class="row" id="generateRow">
           <button class="btn primary cta" id="btnGenerate" type="button" disabled>Tailor CV</button>
           <button class="btn" id="btnGenerateAgain" type="button" disabled style="display:none">Generate again</button>
         </div>
@@ -2084,19 +3232,24 @@ body.fromJobsLink #settingsDetails{
         <div class="hr"></div>
 
         <div class="tabs" id="canvasTabs" role="tablist" aria-label="Output view">
-          <button class="tabBtn active" id="tabPreview" type="button">Preview</button>
-          <button class="tabBtn" id="tabText" type="button">Manual edit</button>
-          <button class="tabBtn" id="tabChanges" type="button">What changed</button>
+          <button class="tabBtn" id="tabChanges" type="button" aria-hidden="true" tabindex="-1">What changed</button>
+        </div>
+
+        <div class="sectionWorkspace" id="sectionWorkspace">
+          <div class="sectionEditorPanel" id="sectionEditorPanel"></div>
         </div>
 
         <div class="cvBox" id="cvBox">
           <div id="cvPreviewWrap" style="display:block;">
-            <div class="pageStage paperWrap">
-              <div class="pageZoom paperZoom" id="pageZoom">
-                <div id="cvPreview" class="cvPreview page paperA4">
-              <div class="hint">No tailored CV yet.</div>
-            </div>
+            <div class="pageStage paperWrap" id="pageStage">
+              <div class="pageStageMain" id="pageStageMain">
+                <div class="pageZoom paperZoom" id="pageZoom">
+                  <div id="cvPreview" class="cvPreview page paperA4">
+                    <div class="hint">No tailored CV yet.</div>
+                  </div>
+                </div>
               </div>
+              <aside class="kwInspectorWrap" id="kwInlineHost" hidden aria-live="polite"></aside>
             </div>
 
             <div class="zoomHud" aria-label="Preview zoom controls">
@@ -2258,23 +3411,22 @@ body.fromJobsLink #settingsDetails{
       <div class="modalHeader">
         <div>
           <h3 class="modalTitle" id="genTitle">Tailoring your CV</h3>
-          <div class="hint" id="genSub" style="margin-top:6px">Aligning your CV to the job — truthful and ATS-safe.</div>
+          <div class="hint" id="genSub" style="margin-top:6px">Only what is already in your CV, ATS-safe.</div>
         </div>
         <button class="btn small" id="genClose" type="button">Hide</button>
       </div>
 
       <div class="hr"></div>
 
-      <div class="row" style="justify-content:space-between; align-items:center">
+      <div class="genStatusRow">
         <span class="badge warn" id="genBadge">Generating…</span>
-        <span class="badge" id="genJobBadge">—</span>
+        <div class="genStatusDetail" id="genStatusDetail">Matching your current CV to this role.</div>
       </div>
 
       <div class="genViz" id="genViz" aria-label="Tailoring visual">
         <div class="genVizInner">
           <div class="genVizTop">
-            <div class="genVizLabel" id="genVizLabel">Merge preview</div>
-            <span class="badge warn" id="genVizChip">Working…</span>
+            <div class="genVizLabel" id="genVizLabel">Tailoring preview</div>
           </div>
 
           <div class="genVizCols">
@@ -2282,7 +3434,7 @@ body.fromJobsLink #settingsDetails{
               <div class="genVizMiniCard">
                 <div class="genVizMiniHead">
                   <span class="genVizDot jd" aria-hidden="true"></span>
-                  <span id="genVizJdTitle">Job description</span>
+                  <span id="genVizJdTitle">Role requirements</span>
                 </div>
                 <div class="genVizLines" aria-hidden="true">
                   <span class="genVizLine w90"></span>
@@ -2312,7 +3464,7 @@ body.fromJobsLink #settingsDetails{
               <div class="genVizMiniHead">
                 <span style="display:flex;align-items:center;gap:8px">
                   <span class="genVizDot out" aria-hidden="true"></span>
-                  <span id="genVizOutTitle">Tailored CV</span>
+                  <span id="genVizOutTitle">Tailored draft</span>
                 </span>
               </div>
 
@@ -2329,20 +3481,16 @@ body.fromJobsLink #settingsDetails{
         </div>
       </div>
 
-      <div class="hint" style="margin-top:10px" id="stepsIntro">
-        This is what happens when you click “Generate”:
-      </div>
-
-      <ul style="margin:10px 0 0 18px; color:rgba(17,19,24,.70); font-weight:750; line-height:1.55" id="stepsList">
-        <li><span id="s1">Extract job keywords</span></li>
-        <li><span id="s2">Align summary & bullets</span></li>
-        <li><span id="s3">Keep ATS-safe structure</span></li>
-        <li><span id="s4">Compute ATS match</span></li>
-        <li><span id="s5">Prepare preview & export</span></li>
-      </ul>
-
-      <div class="hint" style="margin-top:10px" id="truthHint">
-        We stay truthful: we never invent experience or certifications. We only rephrase / reorder based on your uploaded CV + profile.
+      <div class="genFocus" aria-label="Tailoring focus">
+        <div class="genFocusTitle" id="genFocusTitle">Focus for this draft</div>
+        <div class="genFocusTags">
+          <span class="genFocusTag" id="genFocusTag1">Role keywords</span>
+          <span class="genFocusTag" id="genFocusTag2">Stronger bullets</span>
+          <span class="genFocusTag" id="genFocusTag3">ATS-safe layout</span>
+        </div>
+        <div class="genFinePrint" id="truthHint">
+          Only details already in your CV are used.
+        </div>
       </div>
     </div>
 
@@ -2376,6 +3524,99 @@ body.fromJobsLink #settingsDetails{
           <span class="startStrengthBtnTitle" id="startLightTitle">Light</span>
           <span class="startStrengthBtnDesc" id="startLightDesc">Light edits that stay close to your original.</span>
         </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modalBackdrop upgradeModal" id="upgradeModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="upgradeModalTitle">
+  <div class="modalCard">
+    <div class="modalScroll">
+      <div class="modalHeader">
+        <div>
+          <div class="upgradeModalKicker" id="upgradeModalKicker">Free plan complete</div>
+          <h3 class="modalTitle upgradeModalTitle" id="upgradeModalTitle">You've used your 5 free CVs</h3>
+          <div class="hint upgradeModalSub" id="upgradeModalSub">Pick a plan and go straight to secure checkout. Your quota syncs back to this account after purchase.</div>
+        </div>
+        <button class="btn small" id="upgradeModalClose" type="button">Close</button>
+      </div>
+
+      <div class="upgradeModalHero">
+        <div class="upgradeRoleHint" id="upgradeRoleHint">Keep this role and your current setup ready while you unlock more tailored CVs.</div>
+        <div class="upgradeTrustRow">
+          <span class="upgradeTrustPill" id="upgradeTrust1">Secure Stripe checkout</span>
+          <span class="upgradeTrustPill" id="upgradeTrust2">Quota syncs to this account</span>
+          <span class="upgradeTrustPill" id="upgradeTrust3">Manage or cancel later</span>
+        </div>
+      </div>
+
+      <div class="upgradePlanGrid" aria-label="Upgrade plans">
+        <article class="upgradePlanCard recommended">
+          <div class="upgradePlanTop">
+            <div>
+              <h4 class="upgradePlanName">Starter</h4>
+              <div class="upgradePlanLead" id="upgradeStarterLead">The fastest low-friction upgrade for active weekly applications.</div>
+            </div>
+            <span class="tag good" id="upgradeStarterTag">Recommended</span>
+          </div>
+
+          <div class="upgradePlanPrice">
+            <strong>€3</strong>
+            <span id="upgradeStarterPriceMeta">/ month</span>
+          </div>
+
+          <div class="upgradePlanQuota">
+            <strong id="upgradeStarterQuota">10 tailored CVs / month</strong>
+            <span id="upgradeStarterQuotaSub">Keeps your search moving without overbuying extra volume.</span>
+          </div>
+
+          <ul class="upgradePlanList" id="upgradeStarterList">
+            <li>Best for a focused weekly search</li>
+            <li>Same quota across pasted jobs and extension imports</li>
+            <li>Checkout opens right away in Stripe</li>
+          </ul>
+
+          <div class="upgradePlanActions">
+            <button class="btn primary cta" id="upgradeStarterBtn" type="button">Checkout Starter</button>
+          </div>
+        </article>
+
+        <article class="upgradePlanCard">
+          <div class="upgradePlanTop">
+            <div>
+              <h4 class="upgradePlanName">Plus</h4>
+              <div class="upgradePlanLead" id="upgradePlusLead">For broader searches, more experiments, and heavier tailoring volume.</div>
+            </div>
+            <span class="tag" id="upgradePlusTag">Higher volume</span>
+          </div>
+
+          <div class="upgradePlanPrice">
+            <strong>€9</strong>
+            <span id="upgradePlusPriceMeta">/ month</span>
+          </div>
+
+          <div class="upgradePlanQuota">
+            <strong id="upgradePlusQuota">50 tailored CVs / month</strong>
+            <span id="upgradePlusQuotaSub">Built for daily use across more roles, companies, and markets.</span>
+          </div>
+
+          <ul class="upgradePlanList" id="upgradePlusList">
+            <li>Best for heavier weekly application volume</li>
+            <li>More room for A/B testing and broader role coverage</li>
+            <li>One upgrade covers both studio entry paths</li>
+          </ul>
+
+          <div class="upgradePlanActions">
+            <button class="btn ghost" id="upgradePlusBtn" type="button">Checkout Plus</button>
+          </div>
+        </article>
+      </div>
+
+      <div class="upgradeModalFooter">
+        <div class="upgradeModalFootnote" id="upgradeModalFootnote">Starter is the quickest upgrade if you tailor a few roles each week. Plus is there when your search gets broader or more intense.</div>
+        <div class="upgradeModalFooterActions">
+          <a class="btn ghost" id="upgradePricingLink" href="./plan.html#cv-pricing" data-nav="1">Compare all plan details</a>
+        </div>
       </div>
     </div>
   </div>
@@ -2455,14 +3696,6 @@ body.fromJobsLink #settingsDetails{
             <div class="fieldLabel" id="kwFieldLbl">Keyword</div>
             <div class="chips" style="margin-top:0">
               <span class="chip warn" id="kwChip">—</span>
-            </div>
-
-          <div class="checkLine" style="margin-top:10px">
-            <input type="checkbox" id="kwTruth"/>
-            <div>
-              <div id="kwTruthLbl">I confirm this keyword is true for me.</div>
-              <div class="tinyNote" id="kwTruthNote">We never invent experience. If it's not true, don’t add it.</div>
-              </div>
             </div>
           </div>
 
@@ -2680,9 +3913,10 @@ body.fromJobsLink #settingsDetails{
 
 <!-- Scripts -->
   <script src="./vendor/supabase-js-2.100.1.js"></script>
+  <script src="./vendor/pdf-lib-1.17.1.min.js"></script>
   <script src="./auth.js?v=202603301635"></script>
-  <script src="./shared.js?v=202603301635"></script>
+  <script src="./shared.js?v=202603311215"></script>
 
-  <script src="./cv.app.js?v=202603301635"></script>
+  <script src="./cv.app.js?v=202604031532"></script>
 </body>
 </html>

@@ -3,6 +3,9 @@
 
     const S = window.JobMeJobShared || null;
     const APP_CONFIG = window.JobMeJob?.config || window.JobApplyAI?.config || null;
+    const APP_LINKS = (APP_CONFIG && APP_CONFIG.LINKS && typeof APP_CONFIG.LINKS === "object")
+      ? APP_CONFIG.LINKS
+      : {};
     function getAppAuth(){
       return window.JobMeJob?.auth || window.JobApplyAI?.auth || null;
     }
@@ -49,6 +52,42 @@
     const EXT_IMPORT_MAX_DESC = 20000;
     const CV_FREE_LIMIT_DEFAULT = 5;
     const CV_ACCESS_CACHE_KEY = "jm_cv_access_cache_v1";
+    const CV_UPSELL_AUTO_KEY = "jm_cv_upsell_auto_v1";
+    const CV_FONT_KEY = "jmj_cv_font_v1";
+    const CV_SECTION_PREFS_KEY = "jmj_cv_section_prefs_v1";
+    const CV_CUSTOM_SECTION_PREFIX = "custom:";
+    const HEADER_EDITOR_KEY = "__header__";
+    const PLAN_CHECKOUT_LINKS = Object.freeze({
+      starter: String(APP_LINKS.CV_STUDIO_STARTER_URL || "").trim(),
+      plus: String(APP_LINKS.CV_STUDIO_PLUS_URL || "").trim()
+    });
+    const CONTACT_STYLE_THEMES = Object.freeze({
+      plain: {
+        kind: "plain",
+        preview: { phone:"", email:"", location:"", linkedin:"", portfolio:"" },
+        pdf: { phone:"", email:"", location:"", linkedin:"", portfolio:"" }
+      },
+      classic: {
+        kind: "symbol",
+        preview: { phone:"☎", email:"✉", location:"⌂", linkedin:"in", portfolio:"↗" },
+        pdf: { phone:"tel", email:"mail", location:"loc", linkedin:"in", portfolio:"web" }
+      },
+      tags: {
+        kind: "tag",
+        preview: { phone:"TEL", email:"MAIL", location:"LOC", linkedin:"IN", portfolio:"WEB" },
+        pdf: { phone:"tel", email:"mail", location:"loc", linkedin:"in", portfolio:"web" }
+      }
+    });
+    const CV_SECTION_KEYS = [
+      "summary",
+      "experience",
+      "education",
+      "achievements",
+      "skills",
+      "courses",
+      "interests",
+      "languages"
+    ];
 
     // Job source: queue (your saved jobs) vs paste (manual job description)
     let jobSource = "queue"; // "queue" | "paste"
@@ -56,6 +95,8 @@
 let pasteCacheKey = "";
 let pendingExtensionImport = null;
 let lastAccountState = null;
+let upgradeCheckoutPlan = "";
+let upgradeModalAutoTimer = 0;
 let cvStudioAccess = {
   paid: false,
   planId: "",
@@ -78,6 +119,7 @@ let genStepsState = "idle";
     let lastCvText = "";
     let lastCvDoc = null;
     let lastLang = "en";
+    let cvFontTheme = "serif";
 
     // Keyword tracking
     let atsKeywordsAll = [];     // full list from server (union)
@@ -106,10 +148,21 @@ let genStepsState = "idle";
     let kwRewriteSelected = "reco"; // "reco" or "v:<index>"
     let kwRewriteKey = "";
     let kwRewriteToken = 0;
+    let kwRewriteLoading = false;
+
+    // Preview-native keyword placement layer
+    let kwSurface = "";
+    let kwInlinePickMode = false;
+    let kwInlineDraftLoading = false;
+    let kwInlineDraftToken = 0;
+    const kwInlineDraftCache = new Map();
 
     // Final QA state (local checks)
     let qaLastRunAt = 0;
     let qaLastHash = "";
+    let pdfExportLoading = false;
+    let cvSectionPrefs = null;
+    let activeSectionEditorKey = "";
     let qaLastReport = null;
     let qaPendingAction = ""; // "", "print", "download"
 
@@ -148,7 +201,12 @@ let genStepsState = "idle";
         s3: "ATS-sichere Struktur beibehalten",
         s4: "ATS Match berechnen",
         s5: "Preview & Export vorbereiten",
-        truthHint: "Wir bleiben ehrlich: Wir erfinden keine Erfahrung oder Zertifikate. Wir formulieren nur um / sortieren um – basierend auf deinem hochgeladenen CV + Profil.",
+        truthHint: "Nur Inhalte, die bereits in deinem CV stehen, werden verwendet.",
+        genStatusDetail: "Wir gleichen deinen aktuellen CV mit dieser Rolle ab.",
+        genFocusTitle: "Fokus für diesen Entwurf",
+        genFocusTag1: "Rollen-Keywords",
+        genFocusTag2: "Stärkere Bullets",
+        genFocusTag3: "ATS-sicheres Layout",
         pipelineTitle: "Pipeline-Status",
 
         tailoredTitle: "Angepasster CV",
@@ -158,19 +216,37 @@ let genStepsState = "idle";
         kpiUsed: "Abgedeckte Begriffe",
         kpiUsedHint: "Schon in deinem angepassten CV vorhanden.",
         kpiMissing: "Begriffe zum Hinzufuegen",
-        kpiMissingHint: "Klicke einen echten fehlenden Begriff, um ihn schnell hinzuzufuegen.",
+        kpiMissingHint: "Klicke einen echten fehlenden Begriff, um ihn direkt im Preview zu platzieren.",
         tabPreview: "Preview",
         tabText: "Manuell bearbeiten",
         tabChanges: "Was sich geaendert hat",
         copy: "Kopieren",
         download: "Download .txt",
         print: "PDF exportieren",
+        printBusy: "PDF wird erstellt...",
+        printDone: "PDF heruntergeladen.",
+        printFallback: "PDF-Download nicht verfuegbar. Druckdialog wird geoeffnet.",
+        printFailed: "PDF-Export fehlgeschlagen. Druckdialog wird stattdessen geoeffnet.",
+        sectionsTitle: "Abschnitte",
+        sectionsHint: "Bearbeite Inhalte, fuege eigene Abschnitte hinzu, blende optionale Bereiche aus oder verschiebe Abschnitte nach oben und unten.",
+        sectionsReset: "Standardreihenfolge",
+        sectionsAdd: "Abschnitt hinzufuegen",
+        fontLbl: "Schriftstil",
+        fontHint: "Wird auf Preview und PDF-Export angewendet.",
+        fontSerif: "Classic Serif",
+        fontSans: "Clean Sans",
+        sectionShown: "Anzeigen",
+        sectionHidden: "Ausblenden",
+        sectionMoveUp: "Nach oben",
+        sectionMoveDown: "Nach unten",
+        sectionEmpty: "Leer",
+        templateProfessional: "Classic Executive",
 
         atsKwTitle: "ATS Verbesserungen",
         undo: "Undo",
         reset: "Reset",
         copyMissing: "Fehlende kopieren",
-        atsKwHint: "Fuege unten nur die Begriffe hinzu, die wirklich stimmen. Das ist der schnellste ATS-Gewinn.",
+        atsKwHint: "Klicke unten nur Begriffe an, die wirklich stimmen. Wir platzieren sie direkt im passenden Bullet im Preview.",
         usedLbl: "Schon abgedeckt",
         missingLbl: "Als Nächstes hinzufügen",
         debugTitle: "Debug Details",
@@ -201,6 +277,26 @@ let genStepsState = "idle";
         kwPreviewNote: "You can always use Undo/Reset.",
         kwCancel: "Cancel",
         kwApply: "Begriff hinzufuegen",
+        kwInlineHint: "Wir starten mit dem empfohlenen Bullet. Klicke im Preview ein anderes Bullet an, wenn du den Begriff woanders platzieren willst.",
+        kwInlinePickHint: "Waehle jetzt ein anderes Bullet direkt im Preview aus.",
+        kwInlineCurrent: "Aktuelles Bullet",
+        kwInlineSuggested: "Vorgeschlagene Formulierung",
+        kwInlineChange: "Formulierung aendern",
+        kwInlinePick: "Anderes Bullet waehlen",
+        kwInlinePickActive: "Bullet anklicken",
+        kwInlineBestFit: "Best fit",
+        kwInlineBestFitMarked: "Best fit markiert",
+        kwInlineSelected: "Ausgewaehltes Bullet",
+        kwInlineAiLoading: "Formulierung wird verfeinert...",
+        kwInlineRewriteLoading: "Neue Formulierung wird erstellt...",
+        kwInlineAiReady: "KI-Entwurf bereit",
+        kwInlineAltReady: "Alternative bereit",
+        kwInlineTemplate: "Template-Entwurf",
+        kwInlineDiffHint: "Neue Formulierung markiert",
+        kwInlineChangeLoading: "Generiere…",
+        kwRewriteAgain: "Neu formulieren",
+        kwRewriteHelp: "Erstellt eine wirklich andere Formulierung fuer das ausgewaehlte Bullet. Waehle danach die beste Variante und klicke auf Anwenden.",
+        kwRewriteNoFresh: "Diesmal konnte keine wirklich neue Formulierung erzeugt werden. Bitte versuche es erneut.",
 
         // errors
         pickJob: "Bitte wähle zuerst einen Job.",
@@ -256,7 +352,12 @@ let genStepsState = "idle";
         s3: "Keep ATS-safe structure",
         s4: "Compute ATS match",
         s5: "Prepare preview & export",
-        truthHint: "We stay truthful: we never invent experience or certifications. We only rephrase / reorder based on your uploaded CV + profile.",
+        truthHint: "Only details already in your CV are used.",
+        genStatusDetail: "Matching your current CV to this role.",
+        genFocusTitle: "Focus for this draft",
+        genFocusTag1: "Role keywords",
+        genFocusTag2: "Stronger bullets",
+        genFocusTag3: "ATS-safe layout",
         pipelineTitle: "Pipeline status",
 
         tailoredTitle: "Tailored CV",
@@ -266,19 +367,37 @@ let genStepsState = "idle";
         kpiUsed: "Covered terms",
         kpiUsedHint: "Already present in your tailored CV.",
         kpiMissing: "Terms to add",
-        kpiMissingHint: "Click a true missing term to add it quickly.",
+        kpiMissingHint: "Click a true missing term to place it directly in the preview.",
         tabPreview: "Preview",
         tabText: "Manual edit",
         tabChanges: "What changed",
         copy: "Copy",
         download: "Download .txt",
         print: "Export PDF",
+        printBusy: "Exporting PDF...",
+        printDone: "PDF downloaded.",
+        printFallback: "Direct PDF download is unavailable. Opening the print dialog instead.",
+        printFailed: "PDF export failed. Opening the print dialog instead.",
+        sectionsTitle: "Sections",
+        sectionsHint: "Edit content, add custom sections, hide optional blocks, or move sections up and down.",
+        sectionsReset: "Reset order",
+        sectionsAdd: "Add section",
+        fontLbl: "Font style",
+        fontHint: "Applied to the preview and PDF export.",
+        fontSerif: "Classic serif",
+        fontSans: "Clean sans",
+        sectionShown: "Shown",
+        sectionHidden: "Hidden",
+        sectionMoveUp: "Move up",
+        sectionMoveDown: "Move down",
+        sectionEmpty: "Empty",
+        templateProfessional: "Classic Executive",
 
         atsKwTitle: "ATS improvements",
         undo: "Undo",
         reset: "Reset",
         copyMissing: "Copy missing",
-        atsKwHint: "Add only the true missing terms below. This is the fastest way to lift your ATS match.",
+        atsKwHint: "Click only the true missing terms below. We place them straight into the best matching bullet in your preview.",
         usedLbl: "Already covered",
         missingLbl: "Add next",
         debugTitle: "Debug details",
@@ -308,6 +427,26 @@ let genStepsState = "idle";
         kwPreviewNote: "You can always use Undo/Reset.",
         kwCancel: "Cancel",
         kwApply: "Add term",
+        kwInlineHint: "We start with the recommended bullet. Click another bullet in the preview if you want to place the term elsewhere.",
+        kwInlinePickHint: "Selection mode is on. Click another bullet directly in the preview.",
+        kwInlineCurrent: "Current bullet",
+        kwInlineSuggested: "Suggested wording",
+        kwInlineChange: "Change wording",
+        kwInlinePick: "Select other bullet",
+        kwInlinePickActive: "Click a bullet",
+        kwInlineBestFit: "Best fit",
+        kwInlineBestFitMarked: "Best fit highlighted",
+        kwInlineSelected: "Selected bullet",
+        kwInlineAiLoading: "Polishing wording...",
+        kwInlineRewriteLoading: "Generating a new wording...",
+        kwInlineAiReady: "AI draft ready",
+        kwInlineAltReady: "Alternative ready",
+        kwInlineTemplate: "Template draft",
+        kwInlineDiffHint: "New wording highlighted",
+        kwInlineChangeLoading: "Generating…",
+        kwRewriteAgain: "Rewrite again",
+        kwRewriteHelp: "Generates a genuinely different rewrite for the selected bullet. Pick the best one, then click Apply.",
+        kwRewriteNoFresh: "Couldn’t generate a genuinely different wording this time. Please try again.",
 
         pickJob: "Pick a job first.",
         needCv: "Generate a CV first.",
@@ -407,18 +546,24 @@ let genStepsState = "idle";
       $("btnGenerate").textContent = t("gen");
       $("btnGenerateAgain").textContent = t("genAgain");
 
-      $("stepsTitle").textContent = t("stepsTitle");
-      $("stepsIntro").textContent = t("stepsIntro");
-      $("s1").textContent = t("s1");
-      $("s2").textContent = t("s2");
-      $("s3").textContent = t("s3");
-      $("s4").textContent = t("s4");
-      $("s5").textContent = t("s5");
-      $("truthHint").textContent = t("truthHint");
-      $("pipelineTitle").textContent = t("pipelineTitle");
+      setText("stepsTitle", t("stepsTitle"));
+      setText("stepsIntro", t("stepsIntro"));
+      setText("s1", t("s1"));
+      setText("s2", t("s2"));
+      setText("s3", t("s3"));
+      setText("s4", t("s4"));
+      setText("s5", t("s5"));
+      setText("truthHint", t("truthHint"));
+      setText("genStatusDetail", t("genStatusDetail"));
+      setText("genFocusTitle", t("genFocusTitle"));
+      setText("genFocusTag1", t("genFocusTag1"));
+      setText("genFocusTag2", t("genFocusTag2"));
+      setText("genFocusTag3", t("genFocusTag3"));
+      setText("pipelineTitle", t("pipelineTitle"));
 
       $("tailoredTitle").textContent = t("tailoredTitle");
       // outHint is dynamic, leave default value for now
+      setText("templateValuePill", t("templateProfessional"));
       $("kpiAts").textContent = t("kpiAts");
       $("atsHint").textContent = t("atsHint");
       $("kpiUsed").textContent = t("kpiUsed");
@@ -426,12 +571,21 @@ let genStepsState = "idle";
       $("kpiMissing").textContent = t("kpiMissing");
       $("kpiMissingHint").textContent = t("kpiMissingHint");
 
-      $("tabPreview").textContent = t("tabPreview");
-      $("tabText").textContent = t("tabText");
+      setText("tabPreview", t("tabPreview"));
+      setText("tabText", t("tabText"));
       $("tabChanges").textContent = t("tabChanges");
       $("btnCopy").textContent = t("copy");
       $("btnDownload").textContent = t("download");
-      $("btnPrint").textContent = t("print");
+      $("btnPrint").textContent = pdfExportLoading ? t("printBusy") : t("print");
+      setText("sectionsTitle", t("sectionsTitle"));
+      setText("sectionsHint", t("sectionsHint"));
+      setText("btnAddSection", t("sectionsAdd"));
+      setText("btnResetSections", t("sectionsReset"));
+      setText("fontLbl", t("fontLbl"));
+      setText("fontHint", t("fontHint"));
+      setText("fontSerifLbl", t("fontSerif"));
+      setText("fontSansLbl", t("fontSans"));
+      applyCvFontUi();
 
       $("atsKwTitle").textContent = t("atsKwTitle");
       $("btnUndoEdit").textContent = t("undo");
@@ -446,8 +600,8 @@ let genStepsState = "idle";
       $("kwH").textContent = t("kwH");
       $("kwSub").textContent = t("kwSub");
       $("kwClose").textContent = t("close");
-      $("kwTruthLbl").textContent = t("kwTruthLbl");
-      $("kwTruthNote").textContent = t("kwTruthNote");
+      setText("kwTruthLbl", t("kwTruthLbl"));
+      setText("kwTruthNote", t("kwTruthNote"));
       $("kwWhereLbl").textContent = t("kwWhereLbl");
       $("kwWhereNote").textContent = t("kwWhereNote");
       $("kwLangLbl").textContent = t("kwLangLbl");
@@ -468,6 +622,9 @@ let genStepsState = "idle";
       $("kwPreviewNote").textContent = t("kwPreviewNote");
       $("kwCancel").textContent = t("kwCancel");
       $("kwApply").textContent = t("kwApply");
+      setText("kwRewriteAgain", t("kwRewriteAgain"));
+      setText("kwRewriteHelp", t("kwRewriteHelp"));
+      try{ updateSettingsSurfaceUi(); }catch(_){ }
     }
 
     function toNumberOrNull(v){
@@ -475,8 +632,16 @@ let genStepsState = "idle";
       return Number.isFinite(n) ? n : null;
     }
 
+    function normalizeCvPlanId(value){
+      const raw = String(value || "").trim().toLowerCase();
+      if(raw === "starter" || raw === "cv_starter") return "cv_starter";
+      if(raw === "plus" || raw === "cv_plus") return "cv_plus";
+      if(raw === "free") return "free";
+      return raw;
+    }
+
     function normalizeCvAccess(raw){
-      const planId = String(raw?.planId || "").trim().toLowerCase();
+      const planId = normalizeCvPlanId(raw?.planId || "");
       const paid = !!raw?.paid;
       const explicitLimit = toNumberOrNull(raw?.limit);
       const used = Math.max(0, toNumberOrNull(raw?.used) || 0);
@@ -496,6 +661,10 @@ let genStepsState = "idle";
 
     function hasCvStudioAccess(){
       return cvStudioAccess.limit > 0 ? (cvStudioAccess.remaining > 0) : true;
+    }
+
+    function isFreeCvLimitReached(){
+      return !cvStudioAccess.paid && !hasCvStudioAccess();
     }
 
     function cvUsageLabel(){
@@ -543,6 +712,8 @@ let genStepsState = "idle";
       if(upgradeBtn){
         upgradeBtn.style.display = hasCvStudioAccess() ? "none" : "inline-flex";
       }
+      try{ renderUpgradeUi(); }catch(_){}
+      try{ maybeAutoOpenUpgradeModal(); }catch(_){}
     }
 
     function readCachedCvAccess(){
@@ -626,6 +797,174 @@ let genStepsState = "idle";
       }
     }
 
+    function buildCustomSectionKey(id){
+      const clean = String(id || "").trim();
+      return clean ? (CV_CUSTOM_SECTION_PREFIX + clean) : "";
+    }
+
+    function isCustomSectionKey(key){
+      return String(key || "").trim().startsWith(CV_CUSTOM_SECTION_PREFIX);
+    }
+
+    function getCustomSectionIdFromKey(key){
+      return isCustomSectionKey(key) ? String(key || "").trim().slice(CV_CUSTOM_SECTION_PREFIX.length) : "";
+    }
+
+    function createCustomSectionId(){
+      return "section_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    }
+
+    function normalizeCustomSection(section, index = 0){
+      const raw = (section && typeof section === "object") ? section : {};
+      const id = String(raw.id || ("section_" + (index + 1))).trim() || ("section_" + (index + 1));
+      const title = String(raw.title || "").trim();
+      const styleRaw = String(raw.style || "").trim().toLowerCase();
+      const style = styleRaw === "bullets" ? "bullets" : "paragraph";
+      const items = (Array.isArray(raw.items) ? raw.items : asStringArr(raw.items, 120))
+        .map((item) => String(item || "").trim())
+        .filter(Boolean);
+      return { id, title, style, items };
+    }
+
+    function ensureDocCustomSections(doc){
+      if(!doc || typeof doc !== "object") return [];
+      const raw = Array.isArray(doc.custom_sections) ? doc.custom_sections : [];
+      doc.custom_sections = raw.map((section, index) => normalizeCustomSection(section, index));
+      return doc.custom_sections;
+    }
+
+    function getDocCustomSectionKeys(doc){
+      return ensureDocCustomSections(doc)
+        .map((section) => buildCustomSectionKey(section.id))
+        .filter(Boolean);
+    }
+
+    function getRawCustomSectionKeys(raw){
+      const hiddenRaw = (raw && typeof raw.hidden === "object" && raw.hidden) ? raw.hidden : {};
+      const orderRaw = Array.isArray(raw?.order) ? raw.order.map((x) => String(x || "").trim()) : [];
+      const keys = [];
+      orderRaw.concat(Object.keys(hiddenRaw || {})).forEach((key) => {
+        if(!isCustomSectionKey(key) || keys.includes(key)) return;
+        keys.push(key);
+      });
+      return keys;
+    }
+
+    function getAvailableSectionKeys(doc = lastCvDoc, raw = null){
+      const keys = [...CV_SECTION_KEYS];
+      const customKeys = doc ? getDocCustomSectionKeys(doc) : getRawCustomSectionKeys(raw);
+      customKeys.forEach((key) => {
+        if(!keys.includes(key)) keys.push(key);
+      });
+      return keys;
+    }
+
+    function isValidSectionKey(key, doc = lastCvDoc){
+      if(String(key || "").trim() === HEADER_EDITOR_KEY) return true;
+      return getAvailableSectionKeys(doc).includes(String(key || "").trim());
+    }
+
+    function defaultCvSectionPrefs(doc = lastCvDoc, raw = null){
+      const hidden = {};
+      const keys = getAvailableSectionKeys(doc, raw);
+      keys.forEach((key) => { hidden[key] = false; });
+      return { order: [...keys], hidden };
+    }
+
+    function getCustomSectionByKey(doc, key){
+      const id = getCustomSectionIdFromKey(key);
+      if(!id) return null;
+      return ensureDocCustomSections(doc).find((section) => String(section.id) === id) || null;
+    }
+
+    function normalizeCvSectionPrefs(raw, doc = lastCvDoc){
+      const base = defaultCvSectionPrefs(doc, raw);
+      const allowedKeys = getAvailableSectionKeys(doc, raw);
+      const allowed = new Set(allowedKeys);
+      const hiddenRaw = (raw && typeof raw.hidden === "object" && raw.hidden) ? raw.hidden : {};
+      const orderRaw = Array.isArray(raw?.order) ? raw.order.map((x) => String(x || "").trim()) : [];
+      const order = [];
+      orderRaw.forEach((key) => {
+        if(!allowed.has(key) || order.includes(key)) return;
+        order.push(key);
+      });
+      allowedKeys.forEach((key) => {
+        if(!order.includes(key)) order.push(key);
+        base.hidden[key] = !!hiddenRaw[key];
+      });
+      base.order = order.filter((key) => allowed.has(key));
+      return base;
+    }
+
+    function ensureCvSectionPrefs(doc = lastCvDoc){
+      if(!cvSectionPrefs) cvSectionPrefs = defaultCvSectionPrefs(doc);
+      cvSectionPrefs = normalizeCvSectionPrefs(cvSectionPrefs, doc);
+      return cvSectionPrefs;
+    }
+
+    function readCvSectionPrefs(doc = null){
+      try{
+        const raw = localStorage.getItem(CV_SECTION_PREFS_KEY);
+        return raw ? normalizeCvSectionPrefs(JSON.parse(raw), doc) : defaultCvSectionPrefs(doc);
+      }catch(_){
+        return defaultCvSectionPrefs(doc);
+      }
+    }
+
+    function writeCvSectionPrefs(){
+      try{
+        localStorage.setItem(CV_SECTION_PREFS_KEY, JSON.stringify(ensureCvSectionPrefs(lastCvDoc)));
+      }catch(_){}
+    }
+
+    function getCvSectionPrefsSnapshot(){
+      return deepCopy(ensureCvSectionPrefs(lastCvDoc));
+    }
+
+    function normalizeCvFontTheme(raw){
+      return String(raw || "").trim().toLowerCase() === "sans" ? "sans" : "serif";
+    }
+
+    function getCvFontPreviewClass(theme = cvFontTheme){
+      return normalizeCvFontTheme(theme) === "sans" ? "cvFontSans" : "cvFontSerif";
+    }
+
+    function readCvFontTheme(){
+      try{
+        return normalizeCvFontTheme(localStorage.getItem(CV_FONT_KEY));
+      }catch(_){
+        return "serif";
+      }
+    }
+
+    function writeCvFontTheme(){
+      try{
+        localStorage.setItem(CV_FONT_KEY, normalizeCvFontTheme(cvFontTheme));
+      }catch(_){}
+    }
+
+    function applyCvFontUi(){
+      document.querySelectorAll("[data-font-theme]").forEach((btn) => {
+        const theme = normalizeCvFontTheme(btn.getAttribute("data-font-theme"));
+        btn.classList.toggle("active", theme === normalizeCvFontTheme(cvFontTheme));
+        btn.setAttribute("aria-pressed", theme === normalizeCvFontTheme(cvFontTheme) ? "true" : "false");
+      });
+    }
+
+    function setCvFontTheme(theme, opts = {}){
+      const next = normalizeCvFontTheme(theme);
+      const changed = next !== normalizeCvFontTheme(cvFontTheme);
+      cvFontTheme = next;
+      writeCvFontTheme();
+      applyCvFontUi();
+      if(changed && opts.render !== false){
+        if(lastCvDoc){
+          renderCvPreviewFromDoc(lastCvDoc, lastLang);
+        }
+        persistCurrentCvLocally();
+      }
+    }
+
     async function refreshCvStudioAccess(){
       const stateAccess = extractCvAccessFromState(lastAccountState);
       if(stateAccess){
@@ -672,7 +1011,11 @@ let genStepsState = "idle";
     function blockCvGenerationIfNeeded(){
       if(hasCvStudioAccess()) return false;
       const msg = cvAccessBlockedMessage();
-      showError(msg);
+      if(!isFreeCvLimitReached()){
+        showError(msg);
+      }else{
+        showError("");
+      }
       try{
         const cta = $("ctaHint");
         if(cta){
@@ -681,7 +1024,11 @@ let genStepsState = "idle";
         }
       }catch(_){}
       try{ setText("outHint", msg); }catch(_){}
-      try{ window.JobMeJobShared?.toast?.(msg, { kind:"warn", title:"CV Studio" }); }catch(_){}
+      if(!isFreeCvLimitReached()){
+        try{ window.JobMeJobShared?.toast?.(msg, { kind:"warn", title:"CV Studio" }); }catch(_){}
+      }else{
+        try{ openUpgradeModal({ source:"blocked-generate" }); }catch(_){}
+      }
       try{ updateCvUsageUi(); }catch(_){}
       return true;
     }
@@ -693,6 +1040,9 @@ let genStepsState = "idle";
       cvStudioAccess = access;
       writeCachedCvAccess(cvStudioAccess);
       updateCvUsageUi();
+      if(isFreeCvLimitReached()){
+        try{ openUpgradeModal({ source:"quota-api" }); }catch(_){}
+      }
       try{ refreshModeUi(); }catch(_){}
       return true;
     }
@@ -707,6 +1057,234 @@ let genStepsState = "idle";
       if(id === "authBadge") H.setBadge("authBadgeTop", cls, txt);
     }
     function setText(id, txt){ const el = $(id); if (el) el.textContent = (txt == null) ? "" : String(txt); }
+
+    function fallbackPlanHref(plan){
+      const pid = String(plan || "").trim().toLowerCase();
+      if(pid === "starter" && PLAN_CHECKOUT_LINKS.starter) return PLAN_CHECKOUT_LINKS.starter;
+      if(pid === "plus" && PLAN_CHECKOUT_LINKS.plus) return PLAN_CHECKOUT_LINKS.plus;
+      return "./plan.html#cv-pricing";
+    }
+
+    function markUpgradePromptSeen(){
+      try{ sessionStorage.setItem(CV_UPSELL_AUTO_KEY, "1"); }catch(_){}
+    }
+
+    function buildUpgradeBannerText(){
+      let meta = null;
+      try{ meta = getActiveJobMeta(); }catch(_){ meta = null; }
+      const title = shortText(meta?.title || "", 58);
+      const company = shortText(meta?.company_name || "", 34);
+      if(title && company){
+        return uiLang === "de"
+          ? (`Entsperre Starter oder Plus und mache direkt mit ${title} bei ${company} weiter.`)
+          : (`Unlock Starter or Plus and keep tailoring ${title} at ${company} without losing your setup.`);
+      }
+      if(title){
+        return uiLang === "de"
+          ? (`Entsperre Starter oder Plus und mache direkt mit ${title} weiter.`)
+          : (`Unlock Starter or Plus and keep tailoring ${title} without losing your setup.`);
+      }
+      return uiLang === "de"
+        ? "Entsperre Starter oder Plus und mache direkt mit deinem nächsten zugeschnittenen CV weiter."
+        : "Unlock Starter or Plus and keep tailoring your next CV without losing your current setup.";
+    }
+
+    function buildUpgradeRoleHint(){
+      let meta = null;
+      try{ meta = getActiveJobMeta(); }catch(_){ meta = null; }
+      const title = shortText(meta?.title || "", 64);
+      const company = shortText(meta?.company_name || "", 36);
+      if(title && company){
+        return uiLang === "de"
+          ? (`Behalte ${title} bei ${company} griffbereit. Der Checkout startet direkt und dein bezahltes Kontingent wird danach diesem Account zugeordnet.`)
+          : (`Keep ${title} at ${company} ready to send. Checkout opens right away, then the paid quota syncs back to this same account.`);
+      }
+      if(title){
+        return uiLang === "de"
+          ? (`Behalte ${title} griffbereit. Der Checkout startet direkt und dein bezahltes Kontingent wird danach diesem Account zugeordnet.`)
+          : (`Keep ${title} ready to send. Checkout opens right away, then the paid quota syncs back to this same account.`);
+      }
+      return uiLang === "de"
+        ? "Checkout startet direkt in Stripe und dein bezahltes Kontingent wird danach diesem Account zugeordnet."
+        : "Checkout opens directly in Stripe, then the paid quota syncs back to this same account.";
+    }
+
+    function setUpgradeCheckoutLoading(plan, loading){
+      upgradeCheckoutPlan = loading ? String(plan || "").trim().toLowerCase() : "";
+      const starterBusy = loading && upgradeCheckoutPlan === "starter";
+      const plusBusy = loading && upgradeCheckoutPlan === "plus";
+
+      const starterBtn = $("upgradeStarterBtn");
+      if(starterBtn){
+        starterBtn.disabled = starterBusy;
+        starterBtn.textContent = starterBusy
+          ? (uiLang === "de" ? "Checkout wird geoeffnet…" : "Opening checkout…")
+          : (uiLang === "de" ? "Starter kaufen" : "Checkout Starter");
+      }
+
+      const plusBtn = $("upgradePlusBtn");
+      if(plusBtn){
+        plusBtn.disabled = plusBusy;
+        plusBtn.textContent = plusBusy
+          ? (uiLang === "de" ? "Checkout wird geoeffnet…" : "Opening checkout…")
+          : (uiLang === "de" ? "Plus kaufen" : "Checkout Plus");
+      }
+    }
+
+    function renderUpgradeUi(){
+      const show = isFreeCvLimitReached();
+      const banner = $("cvUpgradeBanner");
+      if(banner) banner.style.display = show ? "" : "none";
+
+      const topUpgradeBtn = $("btnUpgradeCv");
+      if(topUpgradeBtn){
+        topUpgradeBtn.style.display = hasCvStudioAccess() ? "none" : "inline-flex";
+        topUpgradeBtn.textContent = show
+          ? (uiLang === "de" ? "Plan entsperren" : "Unlock plan")
+          : (uiLang === "de" ? "Upgrade" : "Upgrade");
+      }
+
+      if(!show){
+        try{ closeUpgradeModal(); }catch(_){}
+        return;
+      }
+
+      const bannerText = buildUpgradeBannerText();
+      const roleHint = buildUpgradeRoleHint();
+
+      setText("cvUpgradeBannerBadge", uiLang === "de" ? "Gratislimit erreicht" : "Free plan complete");
+      setText("cvUpgradeBannerTrust", uiLang === "de" ? "Sicherer Checkout" : "Secure checkout");
+      setText("cvUpgradeBannerTitle", uiLang === "de" ? "Du hast deine 5 Gratis-CVs verbraucht." : "You've used your 5 free CVs.");
+      setText("cvUpgradeBannerText", bannerText);
+      setText("btnUpgradeBanner", uiLang === "de" ? "Plan entsperren" : "Unlock plan");
+      setText("cvUpgradeBannerPricing", uiLang === "de" ? "Alle Preise ansehen" : "See full pricing");
+
+      setText("upgradeModalKicker", uiLang === "de" ? "Gratislimit erreicht" : "Free plan complete");
+      setText("upgradeModalTitle", uiLang === "de" ? "Du hast deine 5 Gratis-CVs verbraucht" : "You've used your 5 free CVs");
+      setText(
+        "upgradeModalSub",
+        uiLang === "de"
+          ? "Waehle einen Plan und gehe direkt in den sicheren Checkout. Danach wird dein bezahltes Kontingent diesem Account zugeordnet."
+          : "Pick a plan and go straight to secure checkout. Your paid quota syncs back to this account after purchase."
+      );
+      setText("upgradeRoleHint", roleHint);
+      setText("upgradeTrust1", uiLang === "de" ? "Sicherer Stripe Checkout" : "Secure Stripe checkout");
+      setText("upgradeTrust2", uiLang === "de" ? "Kontingent fuer diesen Account" : "Quota syncs to this account");
+      setText("upgradeTrust3", uiLang === "de" ? "Spaeter verwalten oder kuendigen" : "Manage or cancel later");
+      setText("upgradeModalClose", t("close"));
+
+      setText("upgradeStarterLead", uiLang === "de" ? "Der schnellste, reibungsarme Upgrade-Schritt fuer aktive woechentliche Bewerbungen." : "The fastest low-friction upgrade for active weekly applications.");
+      setText("upgradeStarterTag", uiLang === "de" ? "Empfohlen" : "Recommended");
+      setText("upgradeStarterPriceMeta", uiLang === "de" ? "/ Monat" : "/ month");
+      setText("upgradeStarterQuota", uiLang === "de" ? "10 zugeschnittene CVs / Monat" : "10 tailored CVs / month");
+      setText("upgradeStarterQuotaSub", uiLang === "de" ? "Haelt deine Suche in Bewegung, ohne unnoetig viel Volumen zu kaufen." : "Keeps your search moving without overbuying extra volume.");
+
+      const starterList = $("upgradeStarterList");
+      if(starterList){
+        starterList.innerHTML = [
+          uiLang === "de" ? "Ideal fuer eine fokussierte woechentliche Suche" : "Best for a focused weekly search",
+          uiLang === "de" ? "Ein Kontingent fuer Paste-Flow und Extension-Importe" : "Same quota across pasted jobs and extension imports",
+          uiLang === "de" ? "Checkout startet sofort in Stripe" : "Checkout opens right away in Stripe"
+        ].map((item) => `<li>${H.escapeHtml(item)}</li>`).join("");
+      }
+
+      setText("upgradePlusLead", uiLang === "de" ? "Fuer breitere Suchen, mehr Tests und deutlich hoeheres Tailoring-Volumen." : "For broader searches, more experiments, and heavier tailoring volume.");
+      setText("upgradePlusTag", uiLang === "de" ? "Mehr Volumen" : "Higher volume");
+      setText("upgradePlusPriceMeta", uiLang === "de" ? "/ Monat" : "/ month");
+      setText("upgradePlusQuota", uiLang === "de" ? "50 zugeschnittene CVs / Monat" : "50 tailored CVs / month");
+      setText("upgradePlusQuotaSub", uiLang === "de" ? "Gedacht fuer taegliche Nutzung ueber mehr Rollen, Firmen und Maerkte hinweg." : "Built for daily use across more roles, companies, and markets.");
+
+      const plusList = $("upgradePlusList");
+      if(plusList){
+        plusList.innerHTML = [
+          uiLang === "de" ? "Ideal fuer hoeheres woechentliches Bewerbungsvolumen" : "Best for heavier weekly application volume",
+          uiLang === "de" ? "Mehr Spielraum fuer Tests und breitere Rollenabdeckung" : "More room for A/B testing and broader role coverage",
+          uiLang === "de" ? "Ein Upgrade deckt beide Studio-Einstiege ab" : "One upgrade covers both studio entry paths"
+        ].map((item) => `<li>${H.escapeHtml(item)}</li>`).join("");
+      }
+
+      setText(
+        "upgradeModalFootnote",
+        uiLang === "de"
+          ? "Starter ist das schnellste Upgrade, wenn du jede Woche einige Rollen tailorst. Plus passt besser zu breiteren Suchen und mehr Volumen."
+          : "Starter is the quickest upgrade if you tailor a few roles each week. Plus fits broader searches, more experiments, and heavier volume."
+      );
+      setText("upgradePricingLink", uiLang === "de" ? "Alle Plan-Details vergleichen" : "Compare all plan details");
+
+      setUpgradeCheckoutLoading(upgradeCheckoutPlan, !!upgradeCheckoutPlan);
+    }
+
+    function maybeAutoOpenUpgradeModal(){
+      if(!isFreeCvLimitReached()) return;
+      let alreadySeen = false;
+      try{ alreadySeen = sessionStorage.getItem(CV_UPSELL_AUTO_KEY) === "1"; }catch(_){}
+      if(alreadySeen) return;
+      markUpgradePromptSeen();
+      try{ window.clearTimeout(upgradeModalAutoTimer); }catch(_){}
+      upgradeModalAutoTimer = window.setTimeout(() => {
+        if(isFreeCvLimitReached()){
+          try{ openUpgradeModal({ auto:true, source:"quota-auto" }); }catch(_){}
+        }
+      }, 420);
+    }
+
+    function openUpgradeModal(_opts = {}){
+      if(!isFreeCvLimitReached()) return;
+      markUpgradePromptSeen();
+      renderUpgradeUi();
+      H.showModal("upgradeModal");
+      window.setTimeout(() => {
+        try{ $("upgradeStarterBtn")?.focus(); }catch(_){}
+      }, 40);
+    }
+
+    function closeUpgradeModal(){
+      H.hideModal("upgradeModal");
+    }
+
+    async function openUpgradeCheckout(plan){
+      const pid = String(plan || "").trim().toLowerCase();
+      if(pid !== "starter" && pid !== "plus") return;
+
+      markUpgradePromptSeen();
+      setUpgradeCheckoutLoading(pid, true);
+
+      try{
+        const auth = getAppAuth();
+        const activeSession = await getSessionFresh(false);
+        if(!activeSession || !activeSession.user || !activeSession.user.email){
+          try{ auth?.rememberPostAuthRedirect?.(window.location.pathname + window.location.search + window.location.hash); }catch(_){}
+          window.location.href = "./signup.html?entry=cv-studio";
+          return;
+        }
+
+        const data = await apiPostJson("/me/billing/checkout", { plan_id: pid });
+        const target = String(data?.url || "").trim();
+        if(target){
+          window.location.href = target;
+          return;
+        }
+      }catch(err){
+        try{
+          window.JobMeJobShared?.toast?.(
+            uiLang === "de"
+              ? "Checkout wird ueber die Preisseite geoeffnet."
+              : "Opening checkout via the pricing page.",
+            { kind:"warn", title:"CV Studio" }
+          );
+        }catch(_){}
+      }finally{
+        try{
+          window.setTimeout(() => {
+            if(document.visibilityState !== "hidden"){
+              setUpgradeCheckoutLoading("", false);
+            }
+          }, 180);
+        }catch(_){}
+      }
+
+      window.location.href = fallbackPlanHref(pid);
+    }
 
 /* -------------------------
    Focus mode: collapsible Setup panel + “How it works” modal
@@ -756,20 +1334,32 @@ function openGenModal(auto = false){
   genModalAuto = !!auto;
 
   // Ensure labels are localized (light touch; no refactor)
-  setText("genVizLabel", uiLang==="de" ? "Vorschau" : "Merge preview");
-  setText("genVizJdTitle", uiLang==="de" ? "Jobbeschreibung" : "Job description");
+  setText("genVizLabel", uiLang==="de" ? "Tailoring-Vorschau" : "Tailoring preview");
+  setText("genVizJdTitle", uiLang==="de" ? "Anforderungen" : "Role requirements");
   setText("genVizCvTitle", uiLang==="de" ? "Dein CV" : "Your CV");
-  setText("genVizOutTitle", uiLang==="de" ? "Angepasster CV" : "Tailored CV");
+  setText("genVizOutTitle", uiLang==="de" ? "Angepasster Entwurf" : "Tailored draft");
 
   const jm = getActiveJobMeta();
   const title = (jm && jm.title) ? String(jm.title).trim() : "";
   const company = (jm && jm.company_name) ? String(jm.company_name).trim() : "";
+  const titleLabel = title
+    ? (uiLang==="de" ? ("Anpassung für " + shortText(title, 58)) : ("Tailoring for " + shortText(title, 58)))
+    : (uiLang==="de" ? "CV wird angepasst" : "Tailoring your CV");
+  const subParts = [];
+  if(company) subParts.push(company);
+  subParts.push(uiLang==="de" ? "Nur vorhandene Inhalte, ATS-sicher." : "Only what is already in your CV, ATS-safe.");
+  const roleLabel = title && company
+    ? (title + (uiLang==="de" ? " bei " : " at ") + company)
+    : (title || company || "");
+  const statusDetail = roleLabel
+    ? (uiLang==="de"
+        ? ("Wir gleichen deinen aktuellen CV mit " + shortText(roleLabel, 86) + " ab.")
+        : ("Matching your current CV to " + shortText(roleLabel, 86) + "."))
+    : t("genStatusDetail");
 
-  const label = title
-    ? (title + (company ? (" · " + company) : ""))
-    : "—";
-
-  setText("genJobBadge", label);
+  setText("genTitle", titleLabel);
+  setText("genSub", subParts.join(" · "));
+  setText("genStatusDetail", statusDetail);
 
   // Show the job title at the top of the “Tailored CV” card
   setText("genVizJobTitle", title || "—");
@@ -790,6 +1380,10 @@ function closeGenModal(){
 function openStrengthModal(){
   const btn = $("btnGenerate");
   if(btn && btn.disabled) return;
+  if(isFreeCvLimitReached()){
+    openUpgradeModal({ source:"generate-cta" });
+    return;
+  }
   H.showModal("strengthModal");
 }
 
@@ -1112,6 +1706,8 @@ function setGateActive(on){
   // Default gate view when entering
   if(gateActive) setGateView("choose");
   else setGateView("form");
+
+  try{ updateStudioFlowUi(); }catch(_){ }
 }
 
 function exitGate(){
@@ -1208,6 +1804,7 @@ function getPasteDesc(){
 function openGateForNewCv(){
   try{ cancelAutoStart(false); }catch(_){ }
   try{ pendingExtensionImport = null; }catch(_){}
+  try{ setStudioMode("tailor", { persist:false }); }catch(_){ }
 
       // Opens the Step 1 chooser (clean start)
       try{
@@ -1245,6 +1842,7 @@ function openGateForNewCv(){
       try{
         sessionStorage.removeItem("cvstudio_started");
       }catch(_){}
+      try{ setStudioMode("tailor", { persist:false }); }catch(_){ }
 
       try{
         setGateActive(true);
@@ -1426,10 +2024,16 @@ function loadJobSource(){
 
     function refreshModeUi(){
       const accessOk = hasCvStudioAccess();
+      const freeBlocked = isFreeCvLimitReached();
+
+      setText("btnGenerate", freeBlocked ? (uiLang === "de" ? "Upgrade zum Fortfahren" : "Upgrade to continue") : t("gen"));
+      setText("btnGenerateAgain", freeBlocked ? (uiLang === "de" ? "Upgrade zum Fortfahren" : "Upgrade to continue") : t("genAgain"));
+      try{ renderUpgradeUi(); }catch(_){ }
+
       if(jobSource === "queue"){
         const ok = !!selectedJob;
-        $("btnGenerate").disabled = !ok || !accessOk;
-        $("btnGenerateAgain").disabled = !ok || !accessOk;
+        $("btnGenerate").disabled = !ok || (!accessOk && !freeBlocked);
+        $("btnGenerateAgain").disabled = !ok || (!accessOk && !freeBlocked);
         $("btnViewDesc").disabled = !ok;
         $("btnCopyDesc").disabled = !ok;
         try{ updateCtaHint(); }catch(_){ }
@@ -1444,8 +2048,8 @@ function loadJobSource(){
       // allow generation at >=120 chars, recommend >=200
       const ok = len >= 120;
 
-      $("btnGenerate").disabled = !ok || !accessOk;
-      $("btnGenerateAgain").disabled = !ok || !accessOk;
+      $("btnGenerate").disabled = !ok || (!accessOk && !freeBlocked);
+      $("btnGenerateAgain").disabled = !ok || (!accessOk && !freeBlocked);
 
       const hasAny = len > 0;
       $("btnViewDesc").disabled = !hasAny;
@@ -1697,68 +2301,80 @@ function updatePasteQuality(){
       return arr[i];
     }
 
+    function isAudienceLikeKeyword(keyword){
+      const k = normForMatch(keyword);
+      if(!k) return false;
+      return /\b(stakeholder|stakeholders|leadership|executive|executives|client|clients|customer|customers|partner|partners|supplier|suppliers|investor|investors|founder|founders|manager|managers|team|teams)\b/.test(k);
+    }
+
+    function isProcessLikeKeyword(keyword){
+      const k = normForMatch(keyword);
+      if(!k) return false;
+      return /\b(requirements gathering|requirements analysis|process mapping|process improvement|forecasting|planning|governance|documentation|facilitation|storytelling|communication|workshop facilitation|change management|prioritization|prioritisation|collaboration|coordination|stakeholder management|data governance|scenario planning|demand planning|root cause analysis|financial modeling|financial modelling|cost modeling|cost modelling)\b/.test(k);
+    }
+
+    function localKeywordClause(keyword, lang){
+      const kw = prettyKeyword(keyword, lang);
+      const de = isLikelyGerman(lang);
+      const k = normForMatch(keyword);
+      if(isToolLikeKeyword(keyword)){
+        return de ? ("unter Einsatz von " + kw) : ("using " + kw);
+      }
+      if(isProcessLikeKeyword(keyword)){
+        const throughish = /\b(management|governance|collaboration|coordination)\b/.test(k);
+        return de
+          ? (throughish ? ("durch " + kw) : ("für " + kw))
+          : (throughish ? ("through " + String(keyword || "").trim().toLowerCase()) : ("for " + String(keyword || "").trim().toLowerCase()));
+      }
+      if(isAudienceLikeKeyword(keyword)){
+        if(!de && /\bstakeholders?\b/.test(k)) return "for key stakeholders";
+        if(de && /\bstakeholders?\b/.test(k)) return "für relevante Stakeholder";
+        return de ? ("für " + kw) : ("for " + String(keyword || "").trim().toLowerCase());
+      }
+      return de ? ("mit Fokus auf " + kw) : ("with a focus on " + String(keyword || "").trim().toLowerCase());
+    }
+
+    function insertClauseBeforeResult(base, clause){
+      const b = String(base || "").trim();
+      const c = String(clause || "").trim();
+      if(!b || !c) return "";
+      const resultRe = /^(.*?)(,\s*(?:resulting in|leading to|driving|delivering|creating)\b.*)$/i;
+      if(!resultRe.test(b)) return "";
+      return b.replace(resultRe, (_m, main, result) => {
+        const lead = String(main || "").trim().replace(/[,\s]+$/, "");
+        const joiner = /^(for|with|through)\b/i.test(c) ? " " : ", ";
+        return `${lead}${joiner}${c}${String(result || "")}`;
+      });
+    }
+
+    function localEnsureKeywordPresentNaturally(text, keyword, lang){
+      const raw = String(text || "").trim();
+      const kw = prettyKeyword(keyword, lang);
+      if(!raw) return kw;
+      if(keywordInText(keyword, raw) || keywordInText(kw, raw)) return raw;
+      const clause = localKeywordClause(keyword, lang);
+      const base = /[.!?]$/.test(raw) ? raw.slice(0, -1) : raw;
+      const beforeResult = insertClauseBeforeResult(base, clause);
+      if(beforeResult) return beforeResult + ".";
+      const joiner = /^(for|with|through)\b/i.test(clause) ? " " : ", ";
+      return base + joiner + clause + ".";
+    }
+
     function localRewriteBullet(bullet, keyword, lang){
       const b = String(bullet||"").trim();
       const kw = prettyKeyword(keyword, lang);
       if(!b) return kw;
       if(keywordInText(keyword, b) || keywordInText(kw, b)) return b;
 
-      const de = isLikelyGerman(lang);
-      const seed = hashString(keyword + "|" + b + "|" + lang);
-
-      const phrasesDe = [
-        "mit Fokus auf " + kw,
-        "unter Einsatz von " + kw,
-        "unter Anwendung von " + kw,
-        "inklusive " + kw,
-        "in Bezug auf " + kw
-      ];
-      const phrasesEn = [
-        "with a focus on " + kw,
-        "using " + kw,
-        "leveraging " + kw,
-        "including " + kw,
-        "related to " + kw
-      ];
-      const phrase = pick(de ? phrasesDe : phrasesEn, seed);
-
-      // Choose joiner
-      const joinersDe = [" – ", "; ", ", "];
-      const joinersEn = [" – ", "; ", ", "];
-      const joiner = pick(de ? joinersDe : joinersEn, seed + 7);
-
-      // If bullet ends with punctuation, keep
-      const end = b.slice(-1);
-      const base = /[.!?]$/.test(end) ? b.slice(0,-1) : b;
-
-      return base + joiner + phrase + ".";
+      return localEnsureKeywordPresentNaturally(b, keyword, lang);
     }
 
     function localAppendKeyword(bullet, keyword, lang){
-      // Append (smaller change than rewrite)
       const b = String(bullet||"").trim();
       const kw = prettyKeyword(keyword, lang);
       if(!b) return kw;
       if(keywordInText(keyword, b) || keywordInText(kw, b)) return b;
-
-      const de = isLikelyGerman(lang);
-      const seed = hashString(keyword + "|" + b + "|" + lang);
-
-      const tailsDe = [
-        "(inkl. " + kw + ")",
-        "(Fokus: " + kw + ")",
-        "(mit " + kw + ")"
-      ];
-      const tailsEn = [
-        "(incl. " + kw + ")",
-        "(focus: " + kw + ")",
-        "(with " + kw + ")"
-      ];
-      const tail = pick(de ? tailsDe : tailsEn, seed);
-
-      // If already ends with punctuation, add space then tail, else add " " then tail.
-      if(/[.!?]$/.test(b)) return b + " " + tail;
-      return b + " " + tail;
+      return localEnsureKeywordPresentNaturally(b, keyword, lang);
     }
 
     function localNewBullet(keyword, note, lang){
@@ -2080,6 +2696,7 @@ function updatePasteQuality(){
 
     function setTemplateUi(){
       try{ localStorage.setItem("cv_template", String($("tplSelect").value || "professional")); }catch{}
+      setText("templateValuePill", t("templateProfessional"));
       if(jobSource === "paste"){
         try{ updatePasteQuality(); }catch(_){ }
       }
@@ -2184,6 +2801,13 @@ function markSteps(state){
       const used = Array.isArray(lastUsed) ? lastUsed : [];
       const miss = Array.isArray(lastMissing) ? lastMissing : [];
 
+      if(isKwInlineOpen() && activeKeywordRaw){
+        const stillMissing = miss.some(k => normForMatch(k) === normForMatch(activeKeywordRaw));
+        if(!stillMissing){
+          closeKwModal();
+        }
+      }
+
       $("chipsUsed").innerHTML = used.length
         ? used.slice(0, 120).map(k => `<span class="chip good" title="${H.escapeHtml(k)}">${H.escapeHtml(prettyKeyword(k,lastLang))}</span>`).join("")
         : `<span class="hint">—</span>`;
@@ -2236,16 +2860,16 @@ function markSteps(state){
       const de = isLikelyGerman(lang);
       return de ? {
         summary: "Profil",
-        experience: "Experience",
+        experience: "Berufserfahrung",
         education: "Ausbildung",
         achievements: "Erfolge",
-        skills: "Skills",
+        skills: "Kompetenzen",
         courses: "Kurse",
         interests: "Interessen",
-        languages: "Languagen"
+        languages: "Sprachen"
       } : {
         summary: "Profile",
-        experience: "Experience",
+        experience: "Work experience",
         education: "Education",
         achievements: "Key achievements",
         skills: "Skills",
@@ -2255,15 +2879,320 @@ function markSteps(state){
       };
     }
 
+    function sectionEditorCopy(){
+      const de = isLikelyGerman(uiLang);
+      return de ? {
+        edit: "Bearbeiten",
+        editing: "Wird bearbeitet",
+        custom: "Eigener Abschnitt",
+        header: "Header",
+        headerMeta: "Name, Rolle, Kontakt",
+        headerHint: "Bearbeite hier Name, Kontaktdaten, Rollentitel und den Stil der Kontaktsymbole.",
+        empty: "Wähle oben einen Abschnitt aus, um seinen Inhalt zu bearbeiten.",
+        hint: "Aenderungen erscheinen direkt in der CV-Vorschau.",
+        workspace: "Abschnitt bearbeiten",
+        workspaceHint: "Waehle links einen Abschnitt oder fuege einen eigenen Block wie Projekte, Zertifikate oder Awards hinzu.",
+        addSection: "Abschnitt hinzufuegen",
+        addItem: "Eintrag hinzufügen",
+        addRole: "Rolle hinzufügen",
+        addEducation: "Ausbildung hinzufügen",
+        addBullet: "Bullet hinzufügen",
+        addGroup: "Gruppe hinzufügen",
+        removeSection: "Abschnitt löschen",
+        remove: "Entfernen",
+        removeRole: "Rolle löschen",
+        removeEducation: "Ausbildung löschen",
+        removeGroup: "Gruppe löschen",
+        customDefaultTitle: "Neuer Abschnitt",
+        customTitle: "Abschnittstitel",
+        customType: "Inhaltstyp",
+        customParagraph: "Freitext",
+        customBullets: "Bullets",
+        customContent: "Inhalt",
+        customParagraphPlaceholder: "Schreibe hier den Abschnitt. Nutze Leerzeilen fuer mehrere Absätze.",
+        customBulletsPlaceholder: "Ein Punkt pro Zeile, zum Beispiel Projekte oder Zertifikate.",
+        customContentHintParagraph: "Ideal für Projekte, Zertifikate oder einen kurzen Zusatzblock.",
+        customContentHintBullets: "Jede Zeile wird als eigener Bullet in der CV-Vorschau angezeigt.",
+        fullName: "Vollständiger Name",
+        roleTitle: "Rollentitel",
+        rolePlaceholder: "z. B. Senior BI Analyst",
+        showRole: "Rollentitel anzeigen",
+        showRoleHint: "Deaktiviere das, wenn du den CV bewusst allgemeiner verwenden möchtest.",
+        contactStyle: "Kontaktsymbole",
+        contactStyleHint: "Wird in Vorschau, Druckansicht und PDF verwendet.",
+        contactStylePlain: "Ohne Symbole",
+        contactStyleClassic: "Klassische Symbole",
+        contactStyleTags: "Label-Tags",
+        phone: "Telefon",
+        email: "E-Mail",
+        linkedin: "LinkedIn",
+        portfolio: "Website / Portfolio",
+        summaryLabel: "Text",
+        summaryPlaceholder: "Beschreibe dein Profil in 2 bis 4 klaren Sätzen.",
+        title: "Titel",
+        company: "Unternehmen",
+        school: "Schule",
+        degree: "Abschluss",
+        field: "Fach",
+        location: "Standort",
+        start: "Start",
+        end: "Ende",
+        bullets: "Bullets",
+        bulletPlaceholder: "Beschreibe Verantwortung, Ergebnis oder Wirkung.",
+        itemPlaceholder: "Eintrag",
+        groupLabel: "Gruppentitel",
+        groupItems: "Items",
+        groupItemsPlaceholder: "z. B. SQL, Tableau, Forecasting",
+        groupItemsHint: "Trenne Skills mit Kommas oder neuen Zeilen.",
+        additionalSkills: "Weitere Skills",
+        additionalSkillsPlaceholder: "z. B. Stakeholder Management, Storytelling"
+      } : {
+        edit: "Edit",
+        editing: "Editing",
+        custom: "Custom section",
+        header: "Header",
+        headerMeta: "Name, role, contact",
+        headerHint: "Edit the name, contact details, role title, and contact symbol style here.",
+        empty: "Select a section above to edit its content.",
+        hint: "Changes appear in the CV preview right away.",
+        workspace: "Section workspace",
+        workspaceHint: "Pick a section on the left or add a custom block like Projects, Certifications, or Awards.",
+        addSection: "Add section",
+        addItem: "Add item",
+        addRole: "Add role",
+        addEducation: "Add education",
+        addBullet: "Add bullet",
+        addGroup: "Add group",
+        removeSection: "Remove section",
+        remove: "Remove",
+        removeRole: "Remove role",
+        removeEducation: "Remove education",
+        removeGroup: "Remove group",
+        customDefaultTitle: "New section",
+        customTitle: "Section title",
+        customType: "Content type",
+        customParagraph: "Free text",
+        customBullets: "Bullets",
+        customContent: "Content",
+        customParagraphPlaceholder: "Write the section here. Use empty lines to create multiple paragraphs.",
+        customBulletsPlaceholder: "One bullet per line, for example projects or certifications.",
+        customContentHintParagraph: "Best for projects, certifications, awards, or any custom note block.",
+        customContentHintBullets: "Each line becomes its own bullet in the CV preview.",
+        fullName: "Full name",
+        roleTitle: "Role title",
+        rolePlaceholder: "e.g. Senior BI Analyst",
+        showRole: "Show role title",
+        showRoleHint: "Turn this off if you want to use the CV for a more general purpose.",
+        contactStyle: "Contact symbols",
+        contactStyleHint: "Used in the preview, print view, and PDF export.",
+        contactStylePlain: "Plain text",
+        contactStyleClassic: "Classic symbols",
+        contactStyleTags: "Label tags",
+        phone: "Phone",
+        email: "Email",
+        linkedin: "LinkedIn",
+        portfolio: "Website / portfolio",
+        summaryLabel: "Text",
+        summaryPlaceholder: "Write a clear 2 to 4 sentence profile summary.",
+        title: "Title",
+        company: "Company",
+        school: "School",
+        degree: "Degree",
+        field: "Field",
+        location: "Location",
+        start: "Start",
+        end: "End",
+        bullets: "Bullets",
+        bulletPlaceholder: "Describe the responsibility, result, or impact.",
+        itemPlaceholder: "Entry",
+        groupLabel: "Group label",
+        groupItems: "Items",
+        groupItemsPlaceholder: "e.g. SQL, Tableau, Forecasting",
+        groupItemsHint: "Separate skills with commas or new lines.",
+        additionalSkills: "Additional skills",
+        additionalSkillsPlaceholder: "e.g. Stakeholder management, Storytelling"
+      };
+    }
+
+    function getSectionTitleByKey(key, lang = lastLang, doc = lastCvDoc){
+      if(String(key || "") === HEADER_EDITOR_KEY){
+        return sectionEditorCopy().header;
+      }
+      if(isCustomSectionKey(key)){
+        const custom = getCustomSectionByKey(doc, key);
+        return String(custom?.title || "").trim() || sectionEditorCopy().customDefaultTitle;
+      }
+      return cvLabels(lang)?.[key] || String(key || "").trim();
+    }
+
+    function normalizeParagraphEditorText(value){
+      return String(value || "")
+        .split(/\n\s*\n/g)
+        .map((part) => String(part || "").trim())
+        .filter(Boolean);
+    }
+
+    function normalizeTokenEditorText(value){
+      return String(value || "")
+        .split(/[\n,]+/g)
+        .map((part) => String(part || "").trim())
+        .filter(Boolean);
+    }
+
+    function normalizeContactStyle(raw){
+      const key = String(raw || "").trim().toLowerCase();
+      return CONTACT_STYLE_THEMES[key] ? key : "plain";
+    }
+
+    function ensureDocHeader(doc){
+      if(!doc || typeof doc !== "object") return { show_role: true, contact_style: "plain" };
+      doc.contact = (doc.contact && typeof doc.contact === "object") ? doc.contact : {};
+      const fallbacks = {
+        phone: doc.phone,
+        email: doc.email,
+        location: doc.location,
+        linkedin: doc.linkedin,
+        portfolio: doc.portfolio || doc.website || doc.url
+      };
+      ["phone","email","location","linkedin","portfolio"].forEach((field) => {
+        const raw = doc.contact[field] != null && String(doc.contact[field]).trim()
+          ? doc.contact[field]
+          : fallbacks[field];
+        doc.contact[field] = String(raw || "").trim();
+      });
+      doc.header = (doc.header && typeof doc.header === "object") ? doc.header : {};
+      doc.header.show_role = doc.header.show_role !== false;
+      doc.header.contact_style = normalizeContactStyle(doc.header.contact_style);
+      return doc.header;
+    }
+
+    function getHeaderRole(doc, fallback = ""){
+      const header = ensureDocHeader(doc);
+      if(header.show_role === false) return "";
+      return String(doc?.target_role || fallback || "").trim();
+    }
+
+    function getContactTheme(style){
+      return CONTACT_STYLE_THEMES[normalizeContactStyle(style)] || CONTACT_STYLE_THEMES.plain;
+    }
+
+    function getHeaderContactStyle(doc){
+      return getContactTheme(ensureDocHeader(doc).contact_style);
+    }
+
+    function renderHeaderContactItemHtml(field, value, style){
+      const text = String(value || "").trim();
+      if(!text) return "";
+      const theme = getContactTheme(style);
+      const icon = String(theme.preview?.[field] || "").trim();
+      if(!icon) return `<span class="cvContactItem"><span>${H.escapeHtml(text)}</span></span>`;
+      const iconCls = "cvContactIcon" + (theme.kind === "tag" ? " isTag" : "");
+      return `<span class="cvContactItem"><span class="${iconCls}">${H.escapeHtml(icon)}</span><span>${H.escapeHtml(text)}</span></span>`;
+    }
+
+    function renderHeaderContactLineHtml(entries, style){
+      const items = entries
+        .map(([field, value]) => renderHeaderContactItemHtml(field, value, style))
+        .filter(Boolean);
+      if(!items.length) return "";
+      return items.map((item, idx) => idx ? `<span class="cvContactSep" aria-hidden="true">•</span>${item}` : item).join("");
+    }
+
+    function formatHeaderContactLine(entries, doc, mode = "plain"){
+      const contactStyle = ensureDocHeader(doc).contact_style;
+      if(mode === "plain"){
+        return entries.map(([, value]) => String(value || "").trim()).filter(Boolean).join(" · ");
+      }
+      const theme = getContactTheme(contactStyle);
+      return entries.map(([field, value]) => {
+        const text = String(value || "").trim();
+        if(!text) return "";
+        const label = String(theme.pdf?.[field] || "").trim();
+        return label ? `${label} ${text}` : text;
+      }).filter(Boolean).join(" · ");
+    }
+
+    function hasExperienceEntryContent(entry){
+      if(!entry || typeof entry !== "object") return false;
+      return !!(
+        String(entry.title || "").trim() ||
+        String(entry.company || "").trim() ||
+        String(entry.location || "").trim() ||
+        String(entry.start || "").trim() ||
+        String(entry.end || "").trim() ||
+        asStringArr(entry.bullets, 20).length
+      );
+    }
+
+    function hasEducationEntryContent(entry){
+      if(!entry || typeof entry !== "object") return false;
+      return !!(
+        String(entry.degree || "").trim() ||
+        String(entry.field || "").trim() ||
+        String(entry.school || "").trim() ||
+        String(entry.location || "").trim() ||
+        String(entry.start || "").trim() ||
+        String(entry.end || "").trim() ||
+        asStringArr(entry.bullets, 20).length
+      );
+    }
+
+    function createEmptyExperienceEntry(){
+      return { title:"", company:"", location:"", start:"", end:"", bullets:[""] };
+    }
+
+    function createEmptyEducationEntry(){
+      return { degree:"", field:"", school:"", location:"", start:"", end:"", bullets:[] };
+    }
+
+    function createEmptySkillGroup(){
+      return { label:"", items:[""] };
+    }
+
+    function ensureDocListSection(doc, key){
+      if(!doc || typeof doc !== "object") return [];
+      const prop = key === "achievements" ? "key_achievements" : key;
+      const arr = Array.isArray(doc[prop]) ? doc[prop] : asStringArr(doc[prop], 120);
+      doc[prop] = arr;
+      return doc[prop];
+    }
+
+    function ensureDocExperience(doc){
+      if(!doc || typeof doc !== "object") return [];
+      doc.experience = Array.isArray(doc.experience) ? doc.experience : [];
+      return doc.experience;
+    }
+
+    function ensureDocEducation(doc){
+      if(!doc || typeof doc !== "object") return [];
+      doc.education = Array.isArray(doc.education) ? doc.education : [];
+      return doc.education;
+    }
+
+    function ensureDocSkills(doc){
+      if(!doc || typeof doc !== "object") return { groups: [], additional: [] };
+      doc.skills = (doc.skills && typeof doc.skills === "object") ? doc.skills : {};
+      doc.skills.groups = Array.isArray(doc.skills.groups) ? doc.skills.groups : [];
+      doc.skills.additional = Array.isArray(doc.skills.additional) ? doc.skills.additional : asStringArr(doc.skills.additional, 120);
+      return doc.skills;
+    }
+
+    function hasCustomSectionContent(section){
+      if(!section || typeof section !== "object") return false;
+      return Array.isArray(section.items) && section.items.some((item) => String(item || "").trim());
+    }
+
     function ul(items){
       const arr = asStringArr(items, 999);
       if(!arr.length) return "";
       return `<ul class="cvUl">${arr.map(x => `<li>${H.escapeHtml(x)}</li>`).join("")}</ul>`;
     }
 
-    function sec(title, inner){
+    function sec(title, inner, key = ""){
       if(!inner || !String(inner).trim()) return "";
-      return `<div class="cvSection"><div class="cvSectionTitle">${H.escapeHtml(title)}</div>${inner}</div>`;
+      const active = (studioMode === "customize" && key && String(key) === String(activeSectionEditorKey || "")) ? " isSectionFocus" : "";
+      const attr = key ? ` data-section-key="${H.escapeHtml(String(key))}"` : "";
+      return `<div class="cvSection${active}"${attr}><div class="cvSectionTitle">${H.escapeHtml(title)}</div>${inner}</div>`;
     }
 
     function item(title, sub, meta, bullets){
@@ -2282,171 +3211,954 @@ function markSteps(state){
       return parts.join("");
     }
 
-    function cvDocToPreviewHtml(doc, lang){
+    function experienceItem(e, expIdx){
+      const title = String(e?.title || "").trim();
+      const sub = joinNonEmpty([e?.company, e?.location], ", ");
+      const meta = joinNonEmpty([e?.start, e?.end], " – ");
+      const bullets = asStringArr(e?.bullets, 12);
+
+      const parts = [];
+      parts.push(`<div class="cvItem cvExpItem" data-exp-index="${expIdx}">`);
+      parts.push(`<div class="cvItemHead">`);
+      parts.push(`<div class="cvItemHeadMain">`);
+      if(title) parts.push(`<div class="cvItemTitle">${H.escapeHtml(title)}</div>`);
+      if(sub) parts.push(`<div class="cvItemSub">${H.escapeHtml(sub)}</div>`);
+      parts.push(`</div>`);
+      if(meta) parts.push(`<div class="cvMetaLine">${H.escapeHtml(meta)}</div>`);
+      parts.push(`</div>`);
+      if(bullets.length){
+        parts.push(`<ul class="cvUl cvExpBullets">`);
+        bullets.forEach((bullet, bulletIdx) => {
+          parts.push(
+            `<li class="cvBulletItem" data-exp-index="${expIdx}" data-bullet-index="${bulletIdx}" tabindex="-1">` +
+              `<span class="cvBulletText">${H.escapeHtml(bullet)}</span>` +
+            `</li>`
+          );
+        });
+        parts.push(`</ul>`);
+      }
+      parts.push(`</div>`);
+      return parts.join("");
+    }
+
+    function educationItem(e){
+      const title = joinNonEmpty([e?.degree, e?.field], " · ");
+      const sub = joinNonEmpty([e?.school, e?.location], ", ");
+      const meta = joinNonEmpty([e?.start, e?.end], " – ");
+      return item(title, sub, meta, e?.bullets);
+    }
+
+    function getCvSectionEntries(doc, lang){
       const L = cvLabels(lang);
-      const name = String(doc?.name || "YOUR NAME");
-      const role = String(doc?.target_role || (isLikelyGerman(lang) ? "Die Rolle, auf die du dich bewirbst" : "The role you are applying for"));
-
-      const c = doc?.contact || {};
-      const contactLine = joinNonEmpty([c.phone, c.email, c.linkedin, c.portfolio, c.location], " · ");
-
       const summary = asStringArr(doc?.summary, 8);
-      const exp = Array.isArray(doc?.experience) ? doc.experience : [];
-      const edu = Array.isArray(doc?.education) ? doc.education : [];
+      const exp = (Array.isArray(doc?.experience) ? doc.experience : []).filter(hasExperienceEntryContent);
+      const edu = (Array.isArray(doc?.education) ? doc.education : []).filter(hasEducationEntryContent);
       const ach = asStringArr(doc?.key_achievements, 10);
-
       const skills = doc?.skills || {};
       const skillGroups = Array.isArray(skills?.groups) ? skills.groups : [];
       const addSkills = asStringArr(skills?.additional, 24);
-
       const courses = asStringArr(doc?.courses, 12);
       const interests = asStringArr(doc?.interests, 12);
       const langs = asStringArr(doc?.languages, 12);
 
-      const summaryHtml = summary.length ? `<p class="cvPara">${H.escapeHtml(summary.join(" "))}</p>` : "";
+      const skillLines = [];
+      skillGroups.forEach((g) => {
+        const label = String(g?.label || "").trim();
+        const items = asStringArr(g?.items, 30);
+        if(!items.length) return;
+        skillLines.push(label ? (label + ": " + items.join(", ")) : items.join(", "));
+      });
+      if(addSkills.length) skillLines.push(addSkills.join(", "));
 
-      const expHtml = exp.map(e => {
-        const title = e?.title || "";
-        const sub = joinNonEmpty([e?.company, e?.location], " · ");
-        const meta = joinNonEmpty([e?.start, e?.end], " – ");
-        return item(title, sub, meta, e?.bullets);
-      }).join("");
-
-      const eduHtml = edu.map(e => {
-        const title = joinNonEmpty([e?.degree, e?.field], " · ");
-        const sub = joinNonEmpty([e?.school, e?.location], " · ");
-        const meta = joinNonEmpty([e?.start, e?.end], " – ");
-        return item(title, sub, meta, e?.bullets);
-      }).join("");
-
-      const skillsInner = [
-        skillGroups.map(g => {
-          const label = String(g?.label || "").trim();
-          const items = asStringArr(g?.items, 30);
-          if(!items.length) return "";
-          const line = label ? `${H.escapeHtml(label)}: ${H.escapeHtml(items.join(", "))}` : H.escapeHtml(items.join(", "));
-          return `<div class="cvSkillLine">${line}</div>`;
-        }).join(""),
-        addSkills.length ? `<div class="cvSkillLine">${H.escapeHtml(addSkills.join(", "))}</div>` : ""
-      ].join("");
-
-      const coursesInner = courses.length ? `<div class="cvPara">${H.escapeHtml(courses.join(" · "))}</div>` : "";
-      const interestsInner = interests.length ? `<div class="cvPara">${H.escapeHtml(interests.join(" · "))}</div>` : "";
-      const langsInner = langs.length ? `<div class="cvPara">${H.escapeHtml(langs.join(" · "))}</div>` : "";
+      const customSections = ensureDocCustomSections(doc).map((section) => {
+        const items = Array.isArray(section.items) ? section.items.map((item) => String(item || "").trim()).filter(Boolean) : [];
+        const title = String(section.title || "").trim() || sectionEditorCopy().customDefaultTitle;
+        return {
+          key: buildCustomSectionKey(section.id),
+          title,
+          kind: section.style === "bullets" ? "bullets" : "paragraph",
+          hasContent: items.length > 0,
+          isCustom: true,
+          paragraphs: section.style === "bullets" ? [] : items,
+          items: section.style === "bullets" ? items : []
+        };
+      });
 
       return [
-        `<div class="cvPreview">`,
+        {
+          key: "summary",
+          title: L.summary,
+          kind: "paragraph",
+          hasContent: summary.length > 0,
+          paragraphs: summary.length ? [summary.join(" ")] : []
+        },
+        {
+          key: "experience",
+          title: L.experience,
+          kind: "experience",
+          hasContent: exp.length > 0,
+          items: exp
+        },
+        {
+          key: "education",
+          title: L.education,
+          kind: "education",
+          hasContent: edu.length > 0,
+          items: edu
+        },
+        {
+          key: "achievements",
+          title: L.achievements,
+          kind: "bullets",
+          hasContent: ach.length > 0,
+          items: ach
+        },
+        {
+          key: "skills",
+          title: L.skills,
+          kind: "lines",
+          hasContent: skillLines.length > 0,
+          items: skillLines
+        },
+        {
+          key: "courses",
+          title: L.courses,
+          kind: "paragraph",
+          hasContent: courses.length > 0,
+          paragraphs: courses.length ? [courses.join(" · ")] : []
+        },
+        {
+          key: "interests",
+          title: L.interests,
+          kind: "paragraph",
+          hasContent: interests.length > 0,
+          paragraphs: interests.length ? [interests.join(" · ")] : []
+        },
+        {
+          key: "languages",
+          title: L.languages,
+          kind: "paragraph",
+          hasContent: langs.length > 0,
+          paragraphs: langs.length ? [langs.join(" · ")] : []
+        },
+        ...customSections
+      ];
+    }
+
+    function getOrderedCvSections(doc, lang){
+      const defs = getCvSectionEntries(doc, lang);
+      const byKey = new Map(defs.map((entry) => [entry.key, entry]));
+      const prefs = ensureCvSectionPrefs(doc);
+      return prefs.order
+        .map((key) => byKey.get(key))
+        .filter((entry) => entry && entry.hasContent && !prefs.hidden[entry.key]);
+    }
+
+    function renderCvSectionInner(section){
+      if(!section || !section.hasContent) return "";
+      if(section.kind === "paragraph"){
+        return section.paragraphs.map((text) => `<p class="cvPara">${H.escapeHtml(text)}</p>`).join("");
+      }
+      if(section.kind === "experience"){
+        return (Array.isArray(section.items) ? section.items : []).map((e, expIdx) => experienceItem(e, expIdx)).join("");
+      }
+      if(section.kind === "education"){
+        return (Array.isArray(section.items) ? section.items : []).map((e) => educationItem(e)).join("");
+      }
+      if(section.kind === "bullets"){
+        return ul(section.items);
+      }
+      if(section.kind === "lines"){
+        return (Array.isArray(section.items) ? section.items : []).map((line) => `<div class="cvSkillLine">${H.escapeHtml(line)}</div>`).join("");
+      }
+      return "";
+    }
+
+    function getSectionManagerEntries(doc, lang){
+      const defs = getCvSectionEntries(doc || {}, lang || lastLang);
+      const byKey = new Map(defs.map((entry) => [entry.key, entry]));
+      const prefs = ensureCvSectionPrefs(doc || lastCvDoc);
+      const copy = sectionEditorCopy();
+      const maxIndex = Math.max(0, prefs.order.length - 1);
+      const bodyEntries = prefs.order.map((key, idx) => {
+        const entry = byKey.get(key) || { key, title: key, hasContent:false };
+        return {
+          key,
+          index: idx,
+          maxIndex,
+          title: entry.title || key,
+          hasContent: !!entry.hasContent,
+          hidden: !!prefs.hidden[key],
+          isCustom: !!entry.isCustom
+        };
+      });
+      return [{
+        key: HEADER_EDITOR_KEY,
+        index: -1,
+        title: copy.header,
+        hasContent: true,
+        hidden: false,
+        isCustom: false,
+        isFixed: true,
+        meta: copy.headerMeta
+      }, ...bodyEntries];
+    }
+
+    function scrollSectionEditorIntoView(behavior = "smooth"){
+      try{
+        requestAnimationFrame(() => {
+          const target = $("sectionWorkspace") || $("sectionEditorPanel") || document.querySelector(".studioCanvas");
+          target?.scrollIntoView({ behavior, block:"start" });
+        });
+      }catch(_){}
+    }
+
+    function setActiveSectionEditor(key, opts = {}){
+      activeSectionEditorKey = isValidSectionKey(key, lastCvDoc) ? key : "";
+      renderCvPreviewFromDoc(lastCvDoc, lastLang);
+      renderSectionManager();
+      renderSectionEditor();
+      if(opts.scroll !== false) scrollSectionEditorIntoView(opts.behavior || "smooth");
+    }
+
+    function ensureActiveSectionEditorKey(){
+      if(isValidSectionKey(activeSectionEditorKey, lastCvDoc)) return activeSectionEditorKey;
+      activeSectionEditorKey = (ensureCvSectionPrefs(lastCvDoc).order || []).find((key) => isValidSectionKey(key, lastCvDoc)) || "";
+      return activeSectionEditorKey;
+    }
+
+    function syncSectionDocEdit(opts = {}){
+      cvSectionPrefs = normalizeCvSectionPrefs(cvSectionPrefs, lastCvDoc);
+      writeCvSectionPrefs();
+      renderCvPreviewFromDoc(lastCvDoc, lastLang);
+      $("cvText").value = lastCvDoc ? cvDocToPlainText(lastCvDoc, lastLang) : (lastCvText || "");
+      recomputeCoverageFromCurrentText();
+      renderSectionManager();
+      if(opts.renderEditor !== false) renderSectionEditor();
+      updateUndoResetButtons();
+      if($("tabChanges")?.classList?.contains("active")){ try{ renderChangesView(); }catch(_){ } }
+      persistCurrentCvLocally();
+    }
+
+    function beginSectionEditorHistory(target){
+      if(!target || target.dataset.historyOpen === "1") return;
+      historyStack.push(snapshotCurrent());
+      target.dataset.historyOpen = "1";
+      updateUndoResetButtons();
+    }
+
+    function endSectionEditorHistory(target){
+      if(!target) return;
+      delete target.dataset.historyOpen;
+    }
+
+    function renderSectionEditorField(label, controlHtml, wide = false){
+      return `
+        <label class="sectionEditorField${wide ? " isWide" : ""}">
+          <span class="sectionEditorLabel">${H.escapeHtml(label)}</span>
+          ${controlHtml}
+        </label>
+      `;
+    }
+
+    function renderHeaderContactStyleOption(styleKey, currentStyle, copy){
+      const labels = {
+        plain: copy.contactStylePlain,
+        classic: copy.contactStyleClassic,
+        tags: copy.contactStyleTags
+      };
+      const samples = {
+        plain: "+49 157 0000000 • name@email.com • Berlin",
+        classic: "☎ +49 157 0000000 • ✉ name@email.com • ⌂ Berlin",
+        tags: "TEL +49 157 0000000 • MAIL name@email.com • LOC Berlin"
+      };
+      const isActive = normalizeContactStyle(currentStyle) === styleKey;
+      return `
+        <button
+          class="contactStyleOption${isActive ? " active" : ""}"
+          type="button"
+          data-section-editor-action="header-contact-style"
+          data-style="${H.escapeHtml(styleKey)}"
+          aria-pressed="${isActive ? "true" : "false"}"
+        >
+          <span class="contactStyleOptionLabel">${H.escapeHtml(labels[styleKey] || styleKey)}</span>
+          <span class="contactStyleOptionSample">${H.escapeHtml(samples[styleKey] || "")}</span>
+        </button>
+      `;
+    }
+
+    function renderHeaderSectionEditor(doc){
+      const copy = sectionEditorCopy();
+      const header = ensureDocHeader(doc);
+      const contact = doc?.contact || {};
+      const showRole = header.show_role !== false;
+      const contactStyle = normalizeContactStyle(header.contact_style);
+
+      return `
+        <div class="sectionEditorStack">
+          <div class="sectionEditorGrid">
+            ${renderSectionEditorField(copy.fullName, `<input class="textInput" type="text" value="${H.escapeHtml(doc?.name || "")}" data-editor-kind="header-field" data-field="name" />`, true)}
+            <div class="sectionEditorField isWide">
+              <span class="sectionEditorLabel">${H.escapeHtml(copy.roleTitle)}</span>
+              <label class="sectionEditorCheck">
+                <input type="checkbox" data-editor-kind="header-setting" data-setting="show_role" ${showRole ? "checked" : ""} />
+                <span>
+                  <strong>${H.escapeHtml(copy.showRole)}</strong>
+                  <span class="sectionEditorCheckHint">${H.escapeHtml(copy.showRoleHint)}</span>
+                </span>
+              </label>
+              <input class="textInput" type="text" value="${H.escapeHtml(doc?.target_role || "")}" placeholder="${H.escapeHtml(copy.rolePlaceholder)}" data-editor-kind="header-field" data-field="target_role" ${showRole ? "" : "disabled"} />
+            </div>
+            <div class="sectionEditorField isWide">
+              <span class="sectionEditorLabel">${H.escapeHtml(copy.contactStyle)}</span>
+              <div class="contactStylePicker" role="group" aria-label="${H.escapeHtml(copy.contactStyle)}">
+                ${renderHeaderContactStyleOption("plain", contactStyle, copy)}
+                ${renderHeaderContactStyleOption("classic", contactStyle, copy)}
+                ${renderHeaderContactStyleOption("tags", contactStyle, copy)}
+              </div>
+              <div class="sectionEditorMicrocopy">${H.escapeHtml(copy.contactStyleHint)}</div>
+            </div>
+            ${renderSectionEditorField(copy.phone, `<input class="textInput" type="text" value="${H.escapeHtml(contact.phone || "")}" data-editor-kind="header-contact" data-field="phone" />`)}
+            ${renderSectionEditorField(copy.email, `<input class="textInput" type="email" value="${H.escapeHtml(contact.email || "")}" data-editor-kind="header-contact" data-field="email" />`)}
+            ${renderSectionEditorField(copy.location, `<input class="textInput" type="text" value="${H.escapeHtml(contact.location || "")}" data-editor-kind="header-contact" data-field="location" />`)}
+            ${renderSectionEditorField(copy.linkedin, `<input class="textInput" type="text" value="${H.escapeHtml(contact.linkedin || "")}" data-editor-kind="header-contact" data-field="linkedin" />`)}
+            ${renderSectionEditorField(copy.portfolio, `<input class="textInput" type="text" value="${H.escapeHtml(contact.portfolio || "")}" data-editor-kind="header-contact" data-field="portfolio" />`, true)}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSimpleListSectionEditor(key, items){
+      const copy = sectionEditorCopy();
+      const arr = Array.isArray(items) ? items : [];
+      return `
+        <div class="sectionEditorStack">
+          ${arr.map((item, index) => `
+            <div class="sectionEditorListRow">
+              <input
+                class="textInput"
+                type="text"
+                value="${H.escapeHtml(item || "")}"
+                placeholder="${H.escapeHtml(copy.itemPlaceholder)}"
+                data-editor-kind="list-item"
+                data-section-key="${H.escapeHtml(key)}"
+                data-index="${index}"
+              />
+              <button class="btn small ghost" type="button" data-section-editor-action="remove-item" data-section-key="${H.escapeHtml(key)}" data-index="${index}">${H.escapeHtml(copy.remove)}</button>
+            </div>
+          `).join("")}
+        </div>
+        <button class="btn small ghost" type="button" data-section-editor-action="add-item" data-section-key="${H.escapeHtml(key)}">${H.escapeHtml(copy.addItem)}</button>
+      `;
+    }
+
+    function renderExperienceSectionEditor(items){
+      const copy = sectionEditorCopy();
+      const arr = Array.isArray(items) ? items : [];
+      return `
+        <div class="sectionEditorStack">
+          ${arr.map((entry, entryIdx) => {
+            const bullets = Array.isArray(entry?.bullets) ? entry.bullets : [];
+            return `
+              <div class="sectionEditorCardBlock">
+                <div class="sectionEditorGrid">
+                  ${renderSectionEditorField(copy.title, `<input class="textInput" type="text" value="${H.escapeHtml(entry?.title || "")}" data-editor-kind="entry-field" data-section-key="experience" data-entry-index="${entryIdx}" data-field="title" />`)}
+                  ${renderSectionEditorField(copy.company, `<input class="textInput" type="text" value="${H.escapeHtml(entry?.company || "")}" data-editor-kind="entry-field" data-section-key="experience" data-entry-index="${entryIdx}" data-field="company" />`)}
+                  ${renderSectionEditorField(copy.location, `<input class="textInput" type="text" value="${H.escapeHtml(entry?.location || "")}" data-editor-kind="entry-field" data-section-key="experience" data-entry-index="${entryIdx}" data-field="location" />`)}
+                  ${renderSectionEditorField(copy.start, `<input class="textInput" type="text" value="${H.escapeHtml(entry?.start || "")}" data-editor-kind="entry-field" data-section-key="experience" data-entry-index="${entryIdx}" data-field="start" />`)}
+                  ${renderSectionEditorField(copy.end, `<input class="textInput" type="text" value="${H.escapeHtml(entry?.end || "")}" data-editor-kind="entry-field" data-section-key="experience" data-entry-index="${entryIdx}" data-field="end" />`)}
+                </div>
+                <div class="sectionEditorSubsection">
+                  <div class="sectionEditorLabelRow">
+                    <div class="sectionEditorLabel">${H.escapeHtml(copy.bullets)}</div>
+                    <button class="btn small ghost" type="button" data-section-editor-action="add-bullet" data-section-key="experience" data-entry-index="${entryIdx}">${H.escapeHtml(copy.addBullet)}</button>
+                  </div>
+                  <div class="sectionEditorStack">
+                    ${bullets.map((bullet, bulletIdx) => `
+                      <div class="sectionEditorListRow">
+                        <input
+                          class="textInput"
+                          type="text"
+                          value="${H.escapeHtml(bullet || "")}"
+                          placeholder="${H.escapeHtml(copy.bulletPlaceholder)}"
+                          data-editor-kind="entry-bullet"
+                          data-section-key="experience"
+                          data-entry-index="${entryIdx}"
+                          data-bullet-index="${bulletIdx}"
+                        />
+                        <button class="btn small ghost" type="button" data-section-editor-action="remove-bullet" data-section-key="experience" data-entry-index="${entryIdx}" data-bullet-index="${bulletIdx}">${H.escapeHtml(copy.remove)}</button>
+                      </div>
+                    `).join("")}
+                  </div>
+                </div>
+                <div class="sectionEditorCardActions">
+                  <button class="btn small ghost" type="button" data-section-editor-action="remove-entry" data-section-key="experience" data-entry-index="${entryIdx}">${H.escapeHtml(copy.removeRole)}</button>
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+        <button class="btn small ghost" type="button" data-section-editor-action="add-entry" data-section-key="experience">${H.escapeHtml(copy.addRole)}</button>
+      `;
+    }
+
+    function renderEducationSectionEditor(items){
+      const copy = sectionEditorCopy();
+      const arr = Array.isArray(items) ? items : [];
+      return `
+        <div class="sectionEditorStack">
+          ${arr.map((entry, entryIdx) => {
+            const bullets = Array.isArray(entry?.bullets) ? entry.bullets : [];
+            return `
+              <div class="sectionEditorCardBlock">
+                <div class="sectionEditorGrid">
+                  ${renderSectionEditorField(copy.degree, `<input class="textInput" type="text" value="${H.escapeHtml(entry?.degree || "")}" data-editor-kind="entry-field" data-section-key="education" data-entry-index="${entryIdx}" data-field="degree" />`)}
+                  ${renderSectionEditorField(copy.field, `<input class="textInput" type="text" value="${H.escapeHtml(entry?.field || "")}" data-editor-kind="entry-field" data-section-key="education" data-entry-index="${entryIdx}" data-field="field" />`)}
+                  ${renderSectionEditorField(copy.school, `<input class="textInput" type="text" value="${H.escapeHtml(entry?.school || "")}" data-editor-kind="entry-field" data-section-key="education" data-entry-index="${entryIdx}" data-field="school" />`)}
+                  ${renderSectionEditorField(copy.location, `<input class="textInput" type="text" value="${H.escapeHtml(entry?.location || "")}" data-editor-kind="entry-field" data-section-key="education" data-entry-index="${entryIdx}" data-field="location" />`)}
+                  ${renderSectionEditorField(copy.start, `<input class="textInput" type="text" value="${H.escapeHtml(entry?.start || "")}" data-editor-kind="entry-field" data-section-key="education" data-entry-index="${entryIdx}" data-field="start" />`)}
+                  ${renderSectionEditorField(copy.end, `<input class="textInput" type="text" value="${H.escapeHtml(entry?.end || "")}" data-editor-kind="entry-field" data-section-key="education" data-entry-index="${entryIdx}" data-field="end" />`)}
+                </div>
+                <div class="sectionEditorSubsection">
+                  <div class="sectionEditorLabelRow">
+                    <div class="sectionEditorLabel">${H.escapeHtml(copy.bullets)}</div>
+                    <button class="btn small ghost" type="button" data-section-editor-action="add-bullet" data-section-key="education" data-entry-index="${entryIdx}">${H.escapeHtml(copy.addBullet)}</button>
+                  </div>
+                  <div class="sectionEditorStack">
+                    ${bullets.map((bullet, bulletIdx) => `
+                      <div class="sectionEditorListRow">
+                        <input
+                          class="textInput"
+                          type="text"
+                          value="${H.escapeHtml(bullet || "")}"
+                          placeholder="${H.escapeHtml(copy.bulletPlaceholder)}"
+                          data-editor-kind="entry-bullet"
+                          data-section-key="education"
+                          data-entry-index="${entryIdx}"
+                          data-bullet-index="${bulletIdx}"
+                        />
+                        <button class="btn small ghost" type="button" data-section-editor-action="remove-bullet" data-section-key="education" data-entry-index="${entryIdx}" data-bullet-index="${bulletIdx}">${H.escapeHtml(copy.remove)}</button>
+                      </div>
+                    `).join("")}
+                  </div>
+                </div>
+                <div class="sectionEditorCardActions">
+                  <button class="btn small ghost" type="button" data-section-editor-action="remove-entry" data-section-key="education" data-entry-index="${entryIdx}">${H.escapeHtml(copy.removeEducation)}</button>
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+        <button class="btn small ghost" type="button" data-section-editor-action="add-entry" data-section-key="education">${H.escapeHtml(copy.addEducation)}</button>
+      `;
+    }
+
+    function renderSkillsSectionEditor(skills){
+      const copy = sectionEditorCopy();
+      const skillDoc = skills && typeof skills === "object" ? skills : { groups: [], additional: [] };
+      const groups = Array.isArray(skillDoc.groups) ? skillDoc.groups : [];
+      const additional = Array.isArray(skillDoc.additional) ? skillDoc.additional : [];
+      return `
+        <div class="sectionEditorStack">
+          ${groups.map((group, groupIdx) => `
+            <div class="sectionEditorCardBlock">
+              <div class="sectionEditorGrid">
+                ${renderSectionEditorField(copy.groupLabel, `<input class="textInput" type="text" value="${H.escapeHtml(group?.label || "")}" data-editor-kind="skill-group-label" data-group-index="${groupIdx}" />`, true)}
+                ${renderSectionEditorField(copy.groupItems, `<textarea class="sectionEditorTextarea" rows="3" placeholder="${H.escapeHtml(copy.groupItemsPlaceholder)}" data-editor-kind="skill-group-items" data-group-index="${groupIdx}">${H.escapeHtml((Array.isArray(group?.items) ? group.items : []).join("\n"))}</textarea>`, true)}
+              </div>
+              <div class="sectionEditorMicrocopy">${H.escapeHtml(copy.groupItemsHint)}</div>
+              <div class="sectionEditorCardActions">
+                <button class="btn small ghost" type="button" data-section-editor-action="remove-group" data-group-index="${groupIdx}">${H.escapeHtml(copy.removeGroup)}</button>
+              </div>
+            </div>
+          `).join("")}
+          ${renderSectionEditorField(copy.additionalSkills, `<textarea class="sectionEditorTextarea" rows="3" placeholder="${H.escapeHtml(copy.additionalSkillsPlaceholder)}" data-editor-kind="skills-additional">${H.escapeHtml(additional.join("\n"))}</textarea>`, true)}
+        </div>
+        <button class="btn small ghost" type="button" data-section-editor-action="add-group">${H.escapeHtml(copy.addGroup)}</button>
+      `;
+    }
+
+    function renderCustomSectionEditor(sectionKey, section){
+      const copy = sectionEditorCopy();
+      const style = String(section?.style || "paragraph").trim().toLowerCase() === "bullets" ? "bullets" : "paragraph";
+      const items = Array.isArray(section?.items) ? section.items : [];
+      const textareaValue = style === "bullets" ? items.join("\n") : items.join("\n\n");
+      const placeholder = style === "bullets" ? copy.customBulletsPlaceholder : copy.customParagraphPlaceholder;
+      const hint = style === "bullets" ? copy.customContentHintBullets : copy.customContentHintParagraph;
+      return `
+        <div class="sectionEditorStack">
+          <div class="sectionEditorGrid">
+            ${renderSectionEditorField(copy.customTitle, `<input class="textInput" type="text" value="${H.escapeHtml(section?.title || "")}" placeholder="${H.escapeHtml(copy.customDefaultTitle)}" data-editor-kind="custom-title" data-section-key="${H.escapeHtml(sectionKey)}" />`, true)}
+            ${renderSectionEditorField(copy.customType, `
+              <select class="selectWide" data-editor-kind="custom-style" data-section-key="${H.escapeHtml(sectionKey)}">
+                <option value="paragraph"${style === "paragraph" ? " selected" : ""}>${H.escapeHtml(copy.customParagraph)}</option>
+                <option value="bullets"${style === "bullets" ? " selected" : ""}>${H.escapeHtml(copy.customBullets)}</option>
+              </select>
+            `)}
+            ${renderSectionEditorField(copy.customContent, `<textarea class="sectionEditorTextarea" rows="7" placeholder="${H.escapeHtml(placeholder)}" data-editor-kind="custom-content" data-section-key="${H.escapeHtml(sectionKey)}">${H.escapeHtml(textareaValue)}</textarea>`, true)}
+          </div>
+          <div class="sectionEditorMicrocopy">${H.escapeHtml(hint)}</div>
+          <div class="sectionEditorCardActions">
+            <button class="btn small ghost" type="button" data-section-editor-action="remove-custom-section" data-section-key="${H.escapeHtml(sectionKey)}">${H.escapeHtml(copy.removeSection)}</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function persistCurrentCvLocally(){
+      try{
+        const key = (jobSource === "paste")
+          ? (pasteCacheKey || ("cvstudio_last_paste_" + fnv1a(String($("pasteDesc")?.value || ""))))
+          : ("cvstudio_last_" + String(selectedJob?.id || ""));
+        if(!key) return;
+        localStorage.setItem(key, JSON.stringify({
+          at: Date.now(),
+          payload: buildTailorPayload?.() || null,
+          cv_text: $("cvText").value || "",
+          cv_doc: lastCvDoc,
+          lang: lastLang,
+          used: lastUsed,
+          missing: lastMissing,
+          all: atsKeywordsAll,
+          debug: lastDebug,
+          sections: getCvSectionPrefsSnapshot(),
+          font: normalizeCvFontTheme(cvFontTheme)
+        }));
+      }catch(_){}
+    }
+
+    function renderSectionManager(){
+      const wrap = $("sectionManager");
+      if(!wrap) return;
+      const copy = sectionEditorCopy();
+      const entries = getSectionManagerEntries(lastCvDoc || {}, lastLang);
+      wrap.innerHTML = entries.map((entry) => `
+        <div class="sectionRow ${entry.hidden ? "isHidden" : ""} ${activeSectionEditorKey === entry.key ? "isEditing" : ""}" data-section-key="${H.escapeHtml(entry.key)}" tabindex="0" aria-current="${activeSectionEditorKey === entry.key ? "true" : "false"}">
+          <div class="sectionRowMain">
+            <div class="sectionRowLabel">${H.escapeHtml(entry.title)}</div>
+            <div class="sectionRowMeta">
+              <span>${H.escapeHtml(entry.meta || (entry.hasContent ? t("sectionShown") : t("sectionEmpty")))}</span>
+              ${entry.isCustom ? `<span>${H.escapeHtml(copy.custom)}</span>` : ``}
+              ${activeSectionEditorKey === entry.key ? `<span>${H.escapeHtml(copy.editing)}</span>` : ``}
+              ${entry.hidden ? `<span>${H.escapeHtml(t("sectionHidden"))}</span>` : ``}
+            </div>
+          </div>
+          <div class="sectionRowActions">
+            ${entry.isFixed ? `` : `
+            <button class="sectionMiniBtn" type="button" data-section-action="up" title="${H.escapeHtml(t("sectionMoveUp"))}" ${entry.index === 0 ? "disabled" : ""}>↑</button>
+            <button class="sectionMiniBtn" type="button" data-section-action="down" title="${H.escapeHtml(t("sectionMoveDown"))}" ${entry.index === entry.maxIndex ? "disabled" : ""}>↓</button>
+            <button class="sectionToggle ${entry.hidden ? "" : "isActive"}" type="button" data-section-action="toggle">
+              ${H.escapeHtml(entry.hidden ? t("sectionHidden") : t("sectionShown"))}
+            </button>
+            `}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function renderSectionEditor(){
+      const wrap = $("sectionEditorPanel");
+      if(!wrap) return;
+      const copy = sectionEditorCopy();
+      if(!lastCvDoc){
+        wrap.innerHTML = "";
+        return;
+      }
+
+      let key = ensureActiveSectionEditorKey();
+      if(!key){
+        wrap.innerHTML = `<div class="sectionEditorEmpty">${H.escapeHtml(copy.empty)}</div>`;
+        return;
+      }
+
+      const title = getSectionTitleByKey(key, lastLang, lastCvDoc);
+      const workspaceHint = key === HEADER_EDITOR_KEY ? copy.headerHint : copy.workspaceHint;
+      let body = "";
+
+      if(key === HEADER_EDITOR_KEY){
+        body = renderHeaderSectionEditor(lastCvDoc);
+      }else if(key === "summary"){
+        const paragraphs = ensureDocListSection(lastCvDoc, "summary");
+        body = renderSectionEditorField(copy.summaryLabel, `<textarea class="sectionEditorTextarea" rows="6" placeholder="${H.escapeHtml(copy.summaryPlaceholder)}" data-editor-kind="summary">${H.escapeHtml(paragraphs.join("\n\n"))}</textarea>`, true);
+      }else if(key === "experience"){
+        body = renderExperienceSectionEditor(ensureDocExperience(lastCvDoc));
+      }else if(key === "education"){
+        body = renderEducationSectionEditor(ensureDocEducation(lastCvDoc));
+      }else if(key === "skills"){
+        body = renderSkillsSectionEditor(ensureDocSkills(lastCvDoc));
+      }else if(isCustomSectionKey(key)){
+        body = renderCustomSectionEditor(key, getCustomSectionByKey(lastCvDoc, key) || normalizeCustomSection({ title:"", style:"paragraph", items:[] }));
+      }else{
+        body = renderSimpleListSectionEditor(key, ensureDocListSection(lastCvDoc, key));
+      }
+
+      wrap.innerHTML = `
+        <div class="sectionEditorTop">
+          <div>
+            <div class="sectionEditorEyebrow">${H.escapeHtml(copy.workspace)}</div>
+            <div class="sectionEditorTitle">${H.escapeHtml(title)}</div>
+            <div class="sectionEditorHint">${H.escapeHtml(workspaceHint)}</div>
+          </div>
+          <div class="sectionEditorTopActions">
+            <button class="btn small primary" type="button" data-section-editor-action="add-custom-section">${H.escapeHtml(copy.addSection)}</button>
+          </div>
+        </div>
+        <div class="sectionEditorBody">
+          ${body}
+        </div>
+      `;
+    }
+
+    function applySectionPrefsChange(mutator){
+      const prefs = ensureCvSectionPrefs(lastCvDoc);
+      if(typeof mutator === "function") mutator(prefs);
+      cvSectionPrefs = normalizeCvSectionPrefs(prefs, lastCvDoc);
+      writeCvSectionPrefs();
+      renderSectionManager();
+      renderSectionEditor();
+      renderCvPreviewFromDoc(lastCvDoc, lastLang);
+      $("cvText").value = lastCvDoc ? cvDocToPlainText(lastCvDoc, lastLang) : (lastCvText || "");
+      recomputeCoverageFromCurrentText();
+      updateUndoResetButtons();
+      if($("tabChanges")?.classList?.contains("active")){ try{ renderChangesView(); }catch(_){ } }
+      persistCurrentCvLocally();
+    }
+
+    function moveSection(key, direction){
+      if(!isValidSectionKey(key, lastCvDoc)) return;
+      historyStack.push(snapshotCurrent());
+      applySectionPrefsChange((prefs) => {
+        const idx = prefs.order.indexOf(key);
+        if(idx < 0) return;
+        const next = idx + direction;
+        if(next < 0 || next >= prefs.order.length) return;
+        const swap = prefs.order[next];
+        prefs.order[next] = key;
+        prefs.order[idx] = swap;
+      });
+    }
+
+    function toggleSectionVisibility(key){
+      if(!isValidSectionKey(key, lastCvDoc)) return;
+      historyStack.push(snapshotCurrent());
+      applySectionPrefsChange((prefs) => {
+        prefs.hidden[key] = !prefs.hidden[key];
+      });
+    }
+
+    function resetSectionPrefs(){
+      historyStack.push(snapshotCurrent());
+      cvSectionPrefs = defaultCvSectionPrefs(lastCvDoc);
+      applySectionPrefsChange();
+    }
+
+    function applySectionDocStructuralChange(mutator){
+      if(!lastCvDoc || typeof mutator !== "function") return;
+      historyStack.push(snapshotCurrent());
+      mutator(lastCvDoc);
+      syncSectionDocEdit({ renderEditor:true });
+    }
+
+    function updateSectionDocFromEditorInput(target){
+      if(!target || !lastCvDoc) return;
+      const kind = String(target.getAttribute("data-editor-kind") || "");
+      if(!kind) return;
+
+      if(kind === "summary"){
+        lastCvDoc.summary = normalizeParagraphEditorText(target.value);
+        return syncSectionDocEdit({ renderEditor:false });
+      }
+
+      if(kind === "header-field"){
+        ensureDocHeader(lastCvDoc);
+        const field = String(target.getAttribute("data-field") || "");
+        if(!field) return;
+        lastCvDoc[field] = String(target.value || "");
+        return syncSectionDocEdit({ renderEditor:false });
+      }
+
+      if(kind === "header-contact"){
+        ensureDocHeader(lastCvDoc);
+        const field = String(target.getAttribute("data-field") || "");
+        if(!field) return;
+        lastCvDoc.contact[field] = String(target.value || "");
+        return syncSectionDocEdit({ renderEditor:false });
+      }
+
+      if(kind === "header-setting"){
+        const header = ensureDocHeader(lastCvDoc);
+        const setting = String(target.getAttribute("data-setting") || "");
+        if(setting === "show_role"){
+          header.show_role = !!target.checked;
+          return syncSectionDocEdit({ renderEditor:true });
+        }
+      }
+
+      if(kind === "list-item"){
+        const key = String(target.getAttribute("data-section-key") || "");
+        const index = Number(target.getAttribute("data-index") || "-1");
+        const arr = ensureDocListSection(lastCvDoc, key);
+        if(index < 0 || index >= arr.length) return;
+        arr[index] = String(target.value || "");
+        return syncSectionDocEdit({ renderEditor:false });
+      }
+
+      if(kind === "entry-field"){
+        const key = String(target.getAttribute("data-section-key") || "");
+        const entryIndex = Number(target.getAttribute("data-entry-index") || "-1");
+        const field = String(target.getAttribute("data-field") || "");
+        const list = key === "education" ? ensureDocEducation(lastCvDoc) : ensureDocExperience(lastCvDoc);
+        const entry = list[entryIndex];
+        if(!entry || !field) return;
+        entry[field] = String(target.value || "");
+        return syncSectionDocEdit({ renderEditor:false });
+      }
+
+      if(kind === "entry-bullet"){
+        const key = String(target.getAttribute("data-section-key") || "");
+        const entryIndex = Number(target.getAttribute("data-entry-index") || "-1");
+        const bulletIndex = Number(target.getAttribute("data-bullet-index") || "-1");
+        const list = key === "education" ? ensureDocEducation(lastCvDoc) : ensureDocExperience(lastCvDoc);
+        const entry = list[entryIndex];
+        if(!entry) return;
+        entry.bullets = Array.isArray(entry.bullets) ? entry.bullets : [];
+        if(bulletIndex < 0 || bulletIndex >= entry.bullets.length) return;
+        entry.bullets[bulletIndex] = String(target.value || "");
+        return syncSectionDocEdit({ renderEditor:false });
+      }
+
+      if(kind === "skill-group-label"){
+        const groupIndex = Number(target.getAttribute("data-group-index") || "-1");
+        const skills = ensureDocSkills(lastCvDoc);
+        const group = skills.groups[groupIndex];
+        if(!group) return;
+        group.label = String(target.value || "");
+        return syncSectionDocEdit({ renderEditor:false });
+      }
+
+      if(kind === "skill-group-items"){
+        const groupIndex = Number(target.getAttribute("data-group-index") || "-1");
+        const skills = ensureDocSkills(lastCvDoc);
+        const group = skills.groups[groupIndex];
+        if(!group) return;
+        group.items = normalizeTokenEditorText(target.value);
+        return syncSectionDocEdit({ renderEditor:false });
+      }
+
+      if(kind === "skills-additional"){
+        const skills = ensureDocSkills(lastCvDoc);
+        skills.additional = normalizeTokenEditorText(target.value);
+        return syncSectionDocEdit({ renderEditor:false });
+      }
+
+      if(kind === "custom-title"){
+        const section = getCustomSectionByKey(lastCvDoc, String(target.getAttribute("data-section-key") || ""));
+        if(!section) return;
+        section.title = String(target.value || "");
+        return syncSectionDocEdit({ renderEditor:false });
+      }
+
+      if(kind === "custom-style"){
+        const section = getCustomSectionByKey(lastCvDoc, String(target.getAttribute("data-section-key") || ""));
+        if(!section) return;
+        section.style = String(target.value || "").trim().toLowerCase() === "bullets" ? "bullets" : "paragraph";
+        return syncSectionDocEdit({ renderEditor:true });
+      }
+
+      if(kind === "custom-content"){
+        const section = getCustomSectionByKey(lastCvDoc, String(target.getAttribute("data-section-key") || ""));
+        if(!section) return;
+        section.items = section.style === "bullets"
+          ? String(target.value || "").split(/\n+/g).map((item) => String(item || "").trim()).filter(Boolean)
+          : normalizeParagraphEditorText(target.value);
+        return syncSectionDocEdit({ renderEditor:false });
+      }
+    }
+
+    function handleSectionEditorAction(btn){
+      if(!btn || !lastCvDoc) return;
+      const action = String(btn.getAttribute("data-section-editor-action") || "");
+      const key = String(btn.getAttribute("data-section-key") || activeSectionEditorKey || "");
+      const index = Number(btn.getAttribute("data-index") || "-1");
+      const entryIndex = Number(btn.getAttribute("data-entry-index") || "-1");
+      const bulletIndex = Number(btn.getAttribute("data-bullet-index") || "-1");
+      const groupIndex = Number(btn.getAttribute("data-group-index") || "-1");
+
+      if(action === "add-item"){
+        return applySectionDocStructuralChange((doc) => {
+          ensureDocListSection(doc, key).push("");
+        });
+      }
+      if(action === "remove-item"){
+        return applySectionDocStructuralChange((doc) => {
+          const arr = ensureDocListSection(doc, key);
+          if(index >= 0 && index < arr.length) arr.splice(index, 1);
+        });
+      }
+      if(action === "add-entry"){
+        return applySectionDocStructuralChange((doc) => {
+          const list = key === "education" ? ensureDocEducation(doc) : ensureDocExperience(doc);
+          list.push(key === "education" ? createEmptyEducationEntry() : createEmptyExperienceEntry());
+        });
+      }
+      if(action === "remove-entry"){
+        return applySectionDocStructuralChange((doc) => {
+          const list = key === "education" ? ensureDocEducation(doc) : ensureDocExperience(doc);
+          if(entryIndex >= 0 && entryIndex < list.length) list.splice(entryIndex, 1);
+        });
+      }
+      if(action === "add-bullet"){
+        return applySectionDocStructuralChange((doc) => {
+          const list = key === "education" ? ensureDocEducation(doc) : ensureDocExperience(doc);
+          const entry = list[entryIndex];
+          if(!entry) return;
+          entry.bullets = Array.isArray(entry.bullets) ? entry.bullets : [];
+          entry.bullets.push("");
+        });
+      }
+      if(action === "remove-bullet"){
+        return applySectionDocStructuralChange((doc) => {
+          const list = key === "education" ? ensureDocEducation(doc) : ensureDocExperience(doc);
+          const entry = list[entryIndex];
+          if(!entry) return;
+          entry.bullets = Array.isArray(entry.bullets) ? entry.bullets : [];
+          if(bulletIndex >= 0 && bulletIndex < entry.bullets.length) entry.bullets.splice(bulletIndex, 1);
+        });
+      }
+      if(action === "add-group"){
+        return applySectionDocStructuralChange((doc) => {
+          ensureDocSkills(doc).groups.push(createEmptySkillGroup());
+        });
+      }
+      if(action === "header-contact-style"){
+        historyStack.push(snapshotCurrent());
+        ensureDocHeader(lastCvDoc).contact_style = normalizeContactStyle(btn.getAttribute("data-style") || "");
+        return syncSectionDocEdit({ renderEditor:true });
+      }
+      if(action === "remove-group"){
+        return applySectionDocStructuralChange((doc) => {
+          const groups = ensureDocSkills(doc).groups;
+          if(groupIndex >= 0 && groupIndex < groups.length) groups.splice(groupIndex, 1);
+        });
+      }
+      if(action === "add-custom-section"){
+        historyStack.push(snapshotCurrent());
+        const sectionId = createCustomSectionId();
+        const key = buildCustomSectionKey(sectionId);
+        ensureDocCustomSections(lastCvDoc).push(normalizeCustomSection({
+          id: sectionId,
+          title: sectionEditorCopy().customDefaultTitle,
+          style: "paragraph",
+          items: []
+        }));
+        cvSectionPrefs = normalizeCvSectionPrefs(cvSectionPrefs, lastCvDoc);
+        if(!cvSectionPrefs.order.includes(key)) cvSectionPrefs.order.push(key);
+        cvSectionPrefs.hidden[key] = false;
+        activeSectionEditorKey = key;
+        syncSectionDocEdit({ renderEditor:true });
+        scrollSectionEditorIntoView();
+        return;
+      }
+      if(action === "remove-custom-section"){
+        historyStack.push(snapshotCurrent());
+        const keyToRemove = String(btn.getAttribute("data-section-key") || "");
+        const id = getCustomSectionIdFromKey(keyToRemove);
+        if(!id) return;
+        const sections = ensureDocCustomSections(lastCvDoc);
+        const idx = sections.findIndex((section) => String(section.id) === id);
+        if(idx >= 0) sections.splice(idx, 1);
+        cvSectionPrefs = normalizeCvSectionPrefs(cvSectionPrefs, lastCvDoc);
+        cvSectionPrefs.order = cvSectionPrefs.order.filter((key) => key !== keyToRemove);
+        delete cvSectionPrefs.hidden[keyToRemove];
+        activeSectionEditorKey = (cvSectionPrefs.order[0] || CV_SECTION_KEYS[0] || "");
+        syncSectionDocEdit({ renderEditor:true });
+        scrollSectionEditorIntoView();
+      }
+    }
+
+    function cvDocToPreviewHtml(doc, lang){
+      ensureDocHeader(doc);
+      const name = String(doc?.name || "YOUR NAME");
+      const role = getHeaderRole(doc);
+      const previewClass = ["cvPreview", getCvFontPreviewClass()].join(" ");
+      const c = doc?.contact || {};
+      const headerFocus = studioMode === "customize" && String(activeSectionEditorKey || "") === HEADER_EDITOR_KEY;
+      const headerPrimaryHtml = renderHeaderContactLineHtml([
+        ["phone", c.phone],
+        ["email", c.email],
+        ["location", c.location]
+      ], doc.header?.contact_style);
+      const headerSecondaryHtml = renderHeaderContactLineHtml([
+        ["linkedin", c.linkedin],
+        ["portfolio", c.portfolio]
+      ], doc.header?.contact_style);
+      const orderedSections = getOrderedCvSections(doc, lang);
+
+      return [
+        `<div class="${previewClass}">`,
+        `<div class="cvHeaderBlock${headerFocus ? " isHeaderFocus" : ""}">`,
         `<div class="cvName">${H.escapeHtml(name)}</div>`,
-        `<div class="cvRole">${H.escapeHtml(role)}</div>`,
-        contactLine ? `<div class="cvContact">${H.escapeHtml(contactLine)}</div>` : ``,
-        sec(L.summary, summaryHtml),
-        sec(L.experience, expHtml),
-        sec(L.education, eduHtml),
-        sec(L.achievements, ul(ach)),
-        sec(L.skills, skillsInner),
-        sec(L.courses, coursesInner),
-        sec(L.interests, interestsInner),
-        sec(L.languages, langsInner),
+        role ? `<div class="cvRole">${H.escapeHtml(role)}</div>` : ``,
+        headerPrimaryHtml ? `<div class="cvContact">${headerPrimaryHtml}</div>` : ``,
+        headerSecondaryHtml ? `<div class="cvContact cvContactSecondary">${headerSecondaryHtml}</div>` : ``,
+        `</div>`,
+        orderedSections.map((section) => sec(section.title, renderCvSectionInner(section), section.key)).join(""),
         `</div>`,
       ].join("");
     }
 
     function cvDocToPlainText(doc, lang){
-      const L = cvLabels(lang);
       const lines = [];
+      ensureDocHeader(doc);
       const name = String(doc?.name || "").trim();
-      const role = String(doc?.target_role || "").trim();
+      const role = getHeaderRole(doc);
       const c = doc?.contact || {};
-      const contactLine = joinNonEmpty([c.phone, c.email, c.linkedin, c.portfolio, c.location], " · ");
+      const contactLine = formatHeaderContactLine([
+        ["phone", c.phone],
+        ["email", c.email],
+        ["linkedin", c.linkedin],
+        ["portfolio", c.portfolio],
+        ["location", c.location]
+      ], doc, "plain");
 
       if(name) lines.push(name);
       if(role) lines.push(role);
       if(contactLine) lines.push(contactLine);
       if(lines.length) lines.push("");
 
-      const summary = asStringArr(doc?.summary, 8);
-      if(summary.length){
-        lines.push(L.summary.toUpperCase());
-        lines.push(summary.join(" "));
-        lines.push("");
-      }
-
-      const exp = Array.isArray(doc?.experience) ? doc.experience : [];
-      if(exp.length){
-        lines.push(L.experience.toUpperCase());
-        for(const e of exp){
-          const t = String(e?.title || "").trim();
-          const sub = joinNonEmpty([e?.company, e?.location], " · ");
-          const meta = joinNonEmpty([e?.start, e?.end], " – ");
-          if(t) lines.push(t);
-          if(sub) lines.push(sub);
-          if(meta) lines.push(meta);
-          const b = asStringArr(e?.bullets, 12);
-          for(const bb of b) lines.push("- " + bb);
-          lines.push("");
+      getOrderedCvSections(doc, lang).forEach((section) => {
+        lines.push(String(section.title || "").toUpperCase());
+        if(section.kind === "paragraph"){
+          (section.paragraphs || []).forEach((paragraph) => lines.push(paragraph));
+        }else if(section.kind === "experience"){
+          (section.items || []).forEach((e) => {
+            const t = String(e?.title || "").trim();
+            const sub = joinNonEmpty([e?.company, e?.location], ", ");
+            const meta = joinNonEmpty([e?.start, e?.end], " – ");
+            if(t) lines.push(t);
+            if(sub) lines.push(sub);
+            if(meta) lines.push(meta);
+            asStringArr(e?.bullets, 12).forEach((bb) => lines.push("- " + bb));
+            lines.push("");
+          });
+        }else if(section.kind === "education"){
+          (section.items || []).forEach((e) => {
+            const t = joinNonEmpty([e?.degree, e?.field], " · ");
+            const sub = joinNonEmpty([e?.school, e?.location], ", ");
+            const meta = joinNonEmpty([e?.start, e?.end], " – ");
+            if(t) lines.push(t);
+            if(sub) lines.push(sub);
+            if(meta) lines.push(meta);
+            asStringArr(e?.bullets, 8).forEach((bb) => lines.push("- " + bb));
+            lines.push("");
+          });
+        }else if(section.kind === "bullets"){
+          (section.items || []).forEach((entry) => lines.push("- " + entry));
+        }else if(section.kind === "lines"){
+          (section.items || []).forEach((entry) => lines.push(entry));
         }
-      }
-
-      const edu = Array.isArray(doc?.education) ? doc.education : [];
-      if(edu.length){
-        lines.push(L.education.toUpperCase());
-        for(const e of edu){
-          const t = joinNonEmpty([e?.degree, e?.field], " · ");
-          const sub = joinNonEmpty([e?.school, e?.location], " · ");
-          const meta = joinNonEmpty([e?.start, e?.end], " – ");
-          if(t) lines.push(t);
-          if(sub) lines.push(sub);
-          if(meta) lines.push(meta);
-          const b = asStringArr(e?.bullets, 8);
-          for(const bb of b) lines.push("- " + bb);
-          lines.push("");
-        }
-      }
-
-      const ach = asStringArr(doc?.key_achievements, 10);
-      if(ach.length){
-        lines.push(L.achievements.toUpperCase());
-        for(const a of ach) lines.push("- " + a);
         lines.push("");
-      }
-
-      const skills = doc?.skills || {};
-      const groups = Array.isArray(skills?.groups) ? skills.groups : [];
-      const addSkills = asStringArr(skills?.additional, 24);
-      const skillLines = [];
-      for(const g of groups){
-        const label = String(g?.label || "").trim();
-        const items = asStringArr(g?.items, 30);
-        if(!items.length) continue;
-        skillLines.push(label ? (label + ": " + items.join(", ")) : items.join(", "));
-      }
-      if(addSkills.length) skillLines.push(addSkills.join(", "));
-      if(skillLines.length){
-        lines.push(L.skills.toUpperCase());
-        for(const s of skillLines) lines.push(s);
-        lines.push("");
-      }
-
-      const courses = asStringArr(doc?.courses, 12);
-      if(courses.length){
-        lines.push(L.courses.toUpperCase());
-        lines.push(courses.join(" · "));
-        lines.push("");
-      }
-
-      const interests = asStringArr(doc?.interests, 12);
-      if(interests.length){
-        lines.push(L.interests.toUpperCase());
-        lines.push(interests.join(" · "));
-        lines.push("");
-      }
-
-      const langs = asStringArr(doc?.languages, 12);
-      if(langs.length){
-        lines.push(L.languages.toUpperCase());
-        lines.push(langs.join(" · "));
-        lines.push("");
-      }
+      });
 
       return lines.join("\n").trim() + "\n";
     }
@@ -2454,6 +4166,9 @@ function markSteps(state){
     function cvTextToPrintableHtml(title, text){
       const safeTitle = H.escapeHtml(title || "Curriculum Vitae");
       const safeText = H.escapeHtml(String(text || "").trim());
+      const textFont = normalizeCvFontTheme(cvFontTheme) === "sans"
+        ? `"Helvetica Neue", Arial, "Segoe UI", sans-serif`
+        : `"Georgia", "Times New Roman", serif`;
       return `<!doctype html>
 <html>
 <head>
@@ -2462,7 +4177,7 @@ function markSteps(state){
 <title>${safeTitle}</title>
 <style>
   @page{ size:A4; margin:14mm 14mm 14mm 14mm; }
-  body{ margin:0; padding:0; font-family: Arial, Helvetica, sans-serif; color:#111318; }
+  body{ margin:0; padding:0; font-family: ${textFont}; color:#111318; }
   .cvPaper{ max-width:820px; margin:0 auto; padding:0; }
   h1{ font-size:18px; margin:0 0 10px 0; }
   pre{ white-space:pre-wrap; font-size:12.5px; line-height:1.45; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace; }
@@ -2480,25 +4195,32 @@ function markSteps(state){
     function cvDocToPrintableHtml(cvDoc, lang, title){
       const css = `
         @page{ size:A4; margin:14mm 14mm 14mm 14mm; }
-        body{ margin:0; padding:0; font-family: Arial, Helvetica, sans-serif; color:#111318; }
+        body{ margin:0; padding:0; color:#111318; }
         .cvPaper{ max-width:820px; margin:0 auto; }
-        .cvName{ font-size:34px; font-weight:900; letter-spacing:-.6px; color:#111318; }
-        .cvRole{ margin-top:2px; font-size:14px; font-weight:800; color:#3b3f46; }
-        .cvContact{ margin-top:6px; font-size:12.5px; color:#3b3f46; }
-        .cvSection{ margin-top:16px; }
-        .cvSectionTitle{ font-size:14px; font-weight:900; letter-spacing:.04em; text-transform:uppercase; border-bottom:3px solid #111318; padding-bottom:6px; margin:0 0 8px 0; }
-        .cvItem{ margin-top:10px; }
-        .cvItemTitle{ font-size:13.5px; font-weight:900; }
-        .cvItemSub{ margin-top:2px; font-size:12.5px; font-weight:800; color:#3b3f46; }
-        .cvMetaLine{ margin-top:2px; font-size:12.5px; color:#3b3f46; }
+        .cvPaper.cvFontSerif{ font-family: "Georgia", "Times New Roman", serif; }
+        .cvPaper.cvFontSans{ font-family: "Helvetica Neue", Arial, "Segoe UI", sans-serif; }
+        .cvName{ font-size:32px; font-weight:700; letter-spacing:0; color:#111318; text-align:center; }
+        .cvPaper.cvFontSans .cvName{ font-weight:800; letter-spacing:-.04em; }
+        .cvRole{ margin-top:4px; font-size:13.5px; font-weight:600; color:#3b3f46; text-align:center; }
+        .cvContact{ margin-top:6px; font-size:11.6px; color:#3b3f46; text-align:center; }
+        .cvContactSecondary{ margin-top:3px; }
+        .cvSection{ margin-top:18px; }
+        .cvSectionTitle{ font-size:13px; font-weight:700; letter-spacing:0; text-transform:none; border-bottom:1px solid rgba(17,19,24,.55); padding-bottom:6px; margin:0 0 9px 0; }
+        .cvPaper.cvFontSans .cvSectionTitle{ font-weight:800; letter-spacing:-.01em; }
+        .cvItem{ margin-top:11px; }
+        .cvItemHead{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+        .cvItemHeadMain{ min-width:0; }
+        .cvItemTitle{ font-size:13.6px; font-weight:700; }
+        .cvItemSub{ margin-top:2px; font-size:11.9px; font-style:italic; color:#626872; }
+        .cvMetaLine{ margin-top:1px; font-size:11.8px; color:#626872; font-style:italic; white-space:nowrap; }
         .cvUl{ margin:6px 0 0 18px; padding:0; }
-        .cvUl li{ margin:0 0 3px 0; font-size:13px; }
-        .cvPara{ font-size:13px; line-height:1.45; margin:0; }
-        .cvSkillLine{ font-size:13px; line-height:1.45; margin:2px 0; }
+        .cvUl li{ margin:0 0 3px 0; font-size:12.4px; line-height:1.42; }
+        .cvPara{ font-size:12.5px; line-height:1.52; margin:0; }
+        .cvSkillLine{ font-size:12.4px; line-height:1.46; margin:2px 0; }
       `;
 
       const safeTitle = H.escapeHtml(title || "Curriculum Vitae");
-      const bodyHtml = cvDocToPreviewHtml(cvDoc, lang).replace('<div class="cvPreview">', '<div class="cvPaper">');
+      const bodyHtml = cvDocToPreviewHtml(cvDoc, lang).replace(/<div class="cvPreview([^"]*)">/, '<div class="cvPaper$1">');
 
       return `<!doctype html>
 <html>
@@ -2548,9 +4270,9 @@ ${bodyHtml}
       const isText = which === "text";
       const isChanges = which === "changes";
 
-      $("tabPreview").classList.toggle("active", isPreview);
-      $("tabText").classList.toggle("active", isText);
-      $("tabChanges").classList.toggle("active", isChanges);
+      $("tabPreview")?.classList.toggle("active", isPreview);
+      $("tabText")?.classList.toggle("active", isText);
+      $("tabChanges")?.classList.toggle("active", isChanges);
 
       $("cvPreviewWrap").style.display = isPreview ? "" : "none";
       $("cvTextWrap").style.display = isText ? "" : "none";
@@ -2567,18 +4289,33 @@ ${bodyHtml}
 
     function updateStudioFlowUi(){
       const hasOutput = hasGeneratedOutput();
+      const showPostGenerateStages = hasOutput && !gateActive;
+      if(studioRoot) studioRoot.classList.toggle("fullTailorMode", showPostGenerateStages && studioMode !== "customize");
+      const modeTailor = $("modeTailor");
+      const modeCustomize = $("modeCustomize");
       const modeEdit = $("modeEdit");
       const modeReview = $("modeReview");
-      [modeEdit, modeReview].forEach((btn) => {
+      if(modeTailor){
+        modeTailor.style.display = showPostGenerateStages ? "none" : "";
+        modeTailor.disabled = showPostGenerateStages;
+      }
+      [modeCustomize, modeEdit, modeReview].forEach((btn) => {
         if(!btn) return;
-        btn.style.display = hasOutput ? "" : "none";
-        btn.disabled = !hasOutput;
+        btn.style.display = showPostGenerateStages ? "" : "none";
+        btn.disabled = !showPostGenerateStages;
       });
 
-      if(!hasOutput && studioMode !== "tailor"){
+      if(!showPostGenerateStages && studioMode !== "tailor"){
         setStudioMode("tailor");
         return;
       }
+
+      if(showPostGenerateStages && studioMode === "tailor"){
+        setStudioMode("customize");
+        return;
+      }
+
+      updateSettingsSurfaceUi();
 
       const usedDetails = $("usedKeywordsDetails");
       const usedCount = Array.isArray(lastUsed) ? lastUsed.length : 0;
@@ -2588,15 +4325,16 @@ ${bodyHtml}
 
     /* -------------------------
        Studio modes (Resume.io-inspired)
-       - Tailor: keep UI calm (Preview only)
-       - Edit: show Preview/Text/Changes tabs
-       - AI Review: show review panel in Inspector
+       - Tailor: pre-generation job setup
+       - Customize: content + formatting workspace once a CV exists
+       - Edit: improvement workspace for ATS terms and wording
+       - Review: final QA before export
        ------------------------- */
     const studioRoot = $("studioRoot");
     let studioMode = "tailor";
 
     function setModeButton(activeId){
-      const ids = ["modeEdit","modeReview","modeTailor"];
+      const ids = ["modeTailor","modeCustomize","modeEdit","modeReview"];
       ids.forEach((id) => {
         const b = $(id);
         if(!b) return;
@@ -2606,24 +4344,54 @@ ${bodyHtml}
       });
     }
 
-    function setStudioMode(mode){
+    function updateSettingsSurfaceUi(){
+      const hasOutput = hasGeneratedOutput();
+      const showFormatOptions = hasOutput && !gateActive && studioMode === "customize";
+      const formatBlock = $("formatOptionsBlock");
+      if(formatBlock){
+        formatBlock.hidden = !showFormatOptions;
+        formatBlock.style.display = showFormatOptions ? "" : "none";
+      }
+
+      const summary = $("settingsSummary");
+      if(summary){
+        summary.textContent = showFormatOptions
+          ? (uiLang === "de" ? "Formatoptionen" : "Formatting options")
+          : (uiLang === "de" ? "Tailoring-Optionen" : "Tailoring options");
+      }
+    }
+
+    function setStudioMode(mode, opts = {}){
       const hasOutput = hasGeneratedOutput();
       let nextMode = mode || "tailor";
-      if(nextMode === "customize") nextMode = hasOutput ? "edit" : "tailor";
-      if((nextMode === "edit" || nextMode === "review") && !hasOutput) nextMode = "tailor";
+      if((nextMode === "customize" || nextMode === "edit" || nextMode === "review") && !hasOutput) nextMode = "tailor";
       studioMode = nextMode;
       if(studioRoot) studioRoot.setAttribute("data-mode", studioMode);
 
-      if(studioMode === "edit"){
+      if(studioMode === "customize"){
+        setModeButton("modeCustomize");
+        setTabs("preview");
+        try{ setSetupCollapsed(false, { persist:false, scroll:false }); }catch(_){}
+        try{ $("settingsDetails").open = true; }catch(_){}
+        if(!activeSectionEditorKey || !isValidSectionKey(activeSectionEditorKey, lastCvDoc)){
+          const firstKey = (ensureCvSectionPrefs(lastCvDoc).order || []).find((key) => isValidSectionKey(key, lastCvDoc)) || "experience";
+          activeSectionEditorKey = firstKey;
+        }
+        try{ $("setupTitle").textContent = isLikelyGerman(uiLang) ? "Content" : "Content"; }catch(_){}
+        renderSectionEditor();
+      }else if(studioMode === "edit"){
         setModeButton("modeEdit");
-        // Start with a high-signal view of what changed.
-        setTabs("changes");
+        // Keep the improvement workspace focused on the CV itself.
+        setTabs("preview");
+        try{ $("setupTitle").textContent = t("setupTitle") || "Setup"; }catch(_){}
       }else if(studioMode === "review"){
         setModeButton("modeReview");
         setTabs("preview");
+        try{ $("setupTitle").textContent = t("setupTitle") || "Setup"; }catch(_){}
       }else{
         setModeButton("modeTailor");
         setTabs("preview");
+        try{ $("setupTitle").textContent = t("setupTitle") || "Setup"; }catch(_){}
       }
 
       // Inspector header copy
@@ -2631,6 +4399,14 @@ ${bodyHtml}
         $("inspectorTitle").textContent = "Final check";
         $("inspectorHint").textContent = "Run one last check before export. We flag the highest-impact fixes first.";
         $("inspectorBadge").textContent = "Final";
+      }else if(studioMode === "customize"){
+        $("inspectorTitle").textContent = "Content";
+        $("inspectorHint").textContent = "Edit sections, adjust content, and shape the final layout while keeping the full CV visible.";
+        $("inspectorBadge").textContent = "Content";
+      }else if(studioMode === "edit"){
+        $("inspectorTitle").textContent = "Improve";
+        $("inspectorHint").textContent = "Add true missing ATS terms directly in the preview and refine the wording where it matters most.";
+        $("inspectorBadge").textContent = "Improve";
       }else{
         $("inspectorTitle").textContent = "Inspector";
         $("inspectorHint").textContent = "Start with the missing ATS terms. When the match looks good, run the final check and export.";
@@ -2641,8 +4417,12 @@ ${bodyHtml}
       const dl = $("studioDownloadDrop");
       if(dl) dl.open = false;
 
-      try { localStorage.setItem("jmj_cv_mode", studioMode); } catch(_) {}
+      if(opts.persist !== false){
+        try { localStorage.setItem("jmj_cv_mode", studioMode); } catch(_) {}
+      }
       updateStudioFlowUi();
+      renderCvPreviewFromDoc(lastCvDoc, lastLang);
+      renderSectionManager();
     }
 
     /* -------------------------
@@ -2708,6 +4488,108 @@ ${bodyHtml}
       while(i < n){ out.push({ type:"del", line: A[i++] }); }
       while(j < m){ out.push({ type:"add", line: B[j++] }); }
       return out;
+    }
+
+    function tokenizeInlineDiffText(text){
+      const src = String(text || "");
+      if(!src) return [];
+      const fallbackRe = /(\s+|[A-Za-z0-9%]+(?:[\/&+.#-][A-Za-z0-9%]+)*|[^\s])/g;
+      try{
+        const unicodeRe = /(\s+|[\p{L}\p{N}%]+(?:[\/&+.#-][\p{L}\p{N}%]+)*|[^\s])/gu;
+        const tokens = Array.from(src.matchAll(unicodeRe), m => m[0]);
+        return tokens.length ? tokens : [src];
+      }catch(_){
+        const tokens = Array.from(src.matchAll(fallbackRe), m => m[0]);
+        return tokens.length ? tokens : [src];
+      }
+    }
+
+    function normalizeInlineDiffToken(token){
+      return String(token || "").trim().toLocaleLowerCase(uiLang === "de" ? "de-DE" : "en-US");
+    }
+
+    function buildInlineDiffHighlightHtml(beforeText, afterText){
+      const rawAfter = String(afterText || "");
+      if(!rawAfter) return { html: "—", changed: false };
+
+      const beforeTokens = tokenizeInlineDiffText(beforeText)
+        .filter(tok => !/^\s+$/.test(tok))
+        .map(normalizeInlineDiffToken);
+      const afterPieces = tokenizeInlineDiffText(rawAfter).map(tok => ({
+        text: tok,
+        isSpace: /^\s+$/.test(tok),
+        norm: /^\s+$/.test(tok) ? "" : normalizeInlineDiffToken(tok)
+      }));
+      const afterTokens = afterPieces.filter(piece => !piece.isSpace).map(piece => piece.norm);
+
+      if(!beforeTokens.length || !afterTokens.length){
+        return { html: H.escapeHtml(rawAfter), changed: false };
+      }
+
+      const n = beforeTokens.length;
+      const m = afterTokens.length;
+      const dp = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+
+      for(let i = n - 1; i >= 0; i--){
+        const row = dp[i];
+        const nextRow = dp[i + 1];
+        for(let j = m - 1; j >= 0; j--){
+          if(beforeTokens[i] === afterTokens[j]) row[j] = nextRow[j + 1] + 1;
+          else row[j] = Math.max(nextRow[j], row[j + 1]);
+        }
+      }
+
+      const addedTokenIndexes = new Set();
+      let i = 0;
+      let j = 0;
+      while(i < n && j < m){
+        if(beforeTokens[i] === afterTokens[j]){
+          i++;
+          j++;
+        }else if(dp[i + 1][j] >= dp[i][j + 1]){
+          i++;
+        }else{
+          addedTokenIndexes.add(j);
+          j++;
+        }
+      }
+      while(j < m){
+        addedTokenIndexes.add(j);
+        j++;
+      }
+
+      if(!addedTokenIndexes.size){
+        return { html: H.escapeHtml(rawAfter), changed: false };
+      }
+
+      let html = "";
+      let afterTokenIndex = 0;
+      let inMark = false;
+      const openMark = () => {
+        if(inMark) return;
+        html += `<mark class="kwInlineDiffAdd">`;
+        inMark = true;
+      };
+      const closeMark = () => {
+        if(!inMark) return;
+        html += `</mark>`;
+        inMark = false;
+      };
+
+      afterPieces.forEach(piece => {
+        if(piece.isSpace){
+          html += H.escapeHtml(piece.text);
+          return;
+        }
+        const isAdded = addedTokenIndexes.has(afterTokenIndex);
+        afterTokenIndex += 1;
+        if(isAdded) openMark();
+        else closeMark();
+        html += H.escapeHtml(piece.text);
+      });
+      closeMark();
+
+      return { html, changed: true };
     }
 
     function countAddedSignals(diff){
@@ -3160,7 +5042,7 @@ ${bodyHtml}
         }
 
         // Re-render + sync text to doc
-        $("cvPreview").innerHTML = cvDocToPreviewHtml(curDoc, lastLang);
+        renderCvPreviewFromDoc(curDoc, lastLang);
         $("cvText").value = cvDocToPlainText(curDoc, lastLang);
 
         // Keep keyword coverage in sync
@@ -3236,9 +5118,23 @@ ${bodyHtml}
     }
 
 
+    function renderCvPreviewFromDoc(doc = lastCvDoc, lang = lastLang){
+      const preview = $("cvPreview");
+      if(!preview) return;
+
+      if(doc){
+        preview.innerHTML = cvDocToPreviewHtml(doc, lang);
+      }else{
+        preview.innerHTML = `<div class="hint">${uiLang==="de" ? "Keine strukturierte Preview verfügbar. Zeige Text." : "No structured preview available. Showing text only."}</div>`;
+      }
+
+      try{ renderKwInlineUi(); }catch(_){ }
+    }
+
     function setCvOutput({ text, doc, lang }){
       lastCvText = String(text || "").trim();
       lastCvDoc = doc || null;
+      if(lastCvDoc) ensureDocHeader(lastCvDoc);
       lastLang = lang || "en";
 
       // New CV output => QA should run again
@@ -3247,12 +5143,9 @@ ${bodyHtml}
       qaLastReport = null;
       qaPendingAction = "";
 
-      // Preview
-      if(lastCvDoc){
-        $("cvPreview").innerHTML = cvDocToPreviewHtml(lastCvDoc, lastLang);
-      }else{
-        $("cvPreview").innerHTML = `<div class="hint">${uiLang==="de" ? "Keine strukturierte Preview verfügbar. Zeige Text." : "No structured preview available. Showing text only."}</div>`;
-      }
+      renderCvPreviewFromDoc(lastCvDoc, lastLang);
+      renderSectionManager();
+      renderSectionEditor();
 
       // Text view
       const textOut = lastCvDoc ? cvDocToPlainText(lastCvDoc, lastLang) : lastCvText;
@@ -3271,21 +5164,30 @@ ${bodyHtml}
         lang: lastLang,
         used: Array.isArray(lastUsed) ? [...lastUsed] : [],
         missing: Array.isArray(lastMissing) ? [...lastMissing] : [],
-        all: Array.isArray(atsKeywordsAll) ? [...atsKeywordsAll] : []
+        all: Array.isArray(atsKeywordsAll) ? [...atsKeywordsAll] : [],
+        sections: getCvSectionPrefsSnapshot()
       };
     }
 
     function restoreSnapshot(snap){
       if(!snap) return;
       lastCvDoc = deepCopy(snap.cv_doc);
+      if(lastCvDoc) ensureDocHeader(lastCvDoc);
       lastLang = snap.lang || lastLang || "en";
       $("cvText").value = String(snap.cv_text || "");
       lastUsed = Array.isArray(snap.used) ? snap.used : [];
       lastMissing = Array.isArray(snap.missing) ? snap.missing : [];
       atsKeywordsAll = Array.isArray(snap.all) ? snap.all : atsKeywordsAll;
+      cvSectionPrefs = normalizeCvSectionPrefs(snap.sections || cvSectionPrefs || readCvSectionPrefs(lastCvDoc), lastCvDoc);
+      cvFontTheme = normalizeCvFontTheme(snap.font || cvFontTheme || readCvFontTheme());
+      writeCvFontTheme();
+      applyCvFontUi();
+      writeCvSectionPrefs();
 
       // rerender preview from doc if possible
-      if(lastCvDoc) $("cvPreview").innerHTML = cvDocToPreviewHtml(lastCvDoc, lastLang);
+      renderCvPreviewFromDoc(lastCvDoc, lastLang);
+      renderSectionManager();
+      renderSectionEditor();
       renderKeywords();
       updateUndoResetButtons();
     }
@@ -3378,6 +5280,11 @@ ${bodyHtml}
         if(raw){
           const obj = JSON.parse(raw);
           if(obj && (obj.cv_doc || obj.cv_text)){
+            cvSectionPrefs = normalizeCvSectionPrefs(obj.sections || cvSectionPrefs || readCvSectionPrefs(obj.cv_doc || lastCvDoc), obj.cv_doc || lastCvDoc);
+            cvFontTheme = normalizeCvFontTheme(obj.font || cvFontTheme || readCvFontTheme());
+            writeCvFontTheme();
+            applyCvFontUi();
+            writeCvSectionPrefs();
             lastUsed = Array.isArray(obj.used) ? obj.used : [];
             lastMissing = Array.isArray(obj.missing) ? obj.missing : [];
             atsKeywordsAll = Array.isArray(obj.all) ? obj.all : Array.from(new Set([...(lastUsed||[]), ...(lastMissing||[])]));
@@ -3527,7 +5434,9 @@ ${bodyHtml}
             used: lastUsed,
             missing: lastMissing,
             all: atsKeywordsAll,
-            debug: lastDebug
+            debug: lastDebug,
+            sections: getCvSectionPrefsSnapshot(),
+            font: normalizeCvFontTheme(cvFontTheme)
           }));
         }catch(_){}
 
@@ -3759,7 +5668,9 @@ ${bodyHtml}
             used: lastUsed,
             missing: lastMissing,
             all: atsKeywordsAll,
-            debug: lastDebug
+            debug: lastDebug,
+            sections: getCvSectionPrefsSnapshot(),
+            font: normalizeCvFontTheme(cvFontTheme)
           }));
         }catch(_){}
 
@@ -3901,13 +5812,593 @@ ${bodyHtml}
       URL.revokeObjectURL(url);
     }
 
-    function printPdf(){
+    function downloadBlobFile(blob, filename){
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => {
+        try{ URL.revokeObjectURL(url); }catch(_){}
+      }, 1500);
+    }
+
+    function buildCvFilename(ext){
+      const jm = getActiveJobMeta();
+      const name = String(lastCvDoc?.name || "").trim();
+      const role = String(jm?.title || lastCvDoc?.target_role || "Tailored CV").trim();
+      const company = String(jm?.company_name || "").trim();
+      const base = [name, role, company]
+        .filter(Boolean)
+        .join(" - ")
+        .replace(/[\\/:*?"<>|]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim() || "Tailored CV";
+      return base + ext;
+    }
+
+    function setPdfExportLoading(isLoading){
+      pdfExportLoading = !!isLoading;
+      const btn = $("btnPrint");
+      if(!btn) return;
+      btn.disabled = !!isLoading || !hasGeneratedOutput();
+      btn.textContent = isLoading ? t("printBusy") : t("print");
+      btn.classList.toggle("isLoading", !!isLoading);
+      btn.setAttribute("aria-busy", isLoading ? "true" : "false");
+    }
+
+    function normalizePdfText(text){
+      return String(text || "")
+        .replace(/\r\n/g, "\n")
+        .replace(/\r/g, "\n")
+        .replace(/\u00a0/g, " ")
+        .replace(/[\u2018\u2019\u201a\u201b]/g, "'")
+        .replace(/[\u201c\u201d\u201e]/g, "\"")
+        .replace(/[\u2013\u2014\u2212]/g, "-")
+        .replace(/\u2026/g, "...")
+        .replace(/[\u2022\u25cf\u25e6]/g, "-");
+    }
+
+    function canPdfEncode(font, text){
+      try{
+        font.encodeText(String(text || ""));
+        return true;
+      }catch(_){
+        return false;
+      }
+    }
+
+    function sanitizePdfTextForFont(font, text){
+      let out = normalizePdfText(text);
+      if(canPdfEncode(font, out)) return out;
+      try{
+        out = out.normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+      }catch(_){}
+      if(canPdfEncode(font, out)) return out;
+      out = out.replace(/[^\x20-\x7e\xa0-\xff\n]/g, "");
+      if(canPdfEncode(font, out)) return out;
+      return out.split("").map((ch) => canPdfEncode(font, ch) ? ch : "?").join("");
+    }
+
+    function splitPdfLongToken(font, size, token, maxWidth){
+      const clean = sanitizePdfTextForFont(font, token);
+      if(!clean) return [""];
+      const parts = [];
+      let chunk = "";
+      for(const ch of clean){
+        const next = chunk + ch;
+        if(chunk && font.widthOfTextAtSize(next, size) > maxWidth){
+          parts.push(chunk);
+          chunk = ch;
+        }else{
+          chunk = next;
+        }
+      }
+      if(chunk) parts.push(chunk);
+      return parts.length ? parts : [clean];
+    }
+
+    function wrapPdfText(font, size, text, maxWidth){
+      const clean = sanitizePdfTextForFont(font, text);
+      const paragraphs = clean.split("\n");
+      const lines = [];
+
+      paragraphs.forEach((para, idx) => {
+        const trimmed = para.trim();
+        if(!trimmed){
+          if(idx < paragraphs.length - 1) lines.push("");
+          return;
+        }
+
+        const words = trimmed.split(/\s+/);
+        let line = "";
+        const flush = () => {
+          if(line){
+            lines.push(line);
+            line = "";
+          }
+        };
+
+        words.forEach((word) => {
+          if(!word) return;
+          if(font.widthOfTextAtSize(word, size) > maxWidth){
+            flush();
+            splitPdfLongToken(font, size, word, maxWidth).forEach((part) => {
+              if(part) lines.push(part);
+            });
+            return;
+          }
+          const candidate = line ? (line + " " + word) : word;
+          if(font.widthOfTextAtSize(candidate, size) <= maxWidth){
+            line = candidate;
+          }else{
+            flush();
+            line = word;
+          }
+        });
+
+        flush();
+        if(idx < paragraphs.length - 1) lines.push("");
+      });
+
+      return lines.length ? lines : [""];
+    }
+
+    function measurePdfTextBlock(font, size, text, maxWidth, lineHeight){
+      const resolvedLineHeight = Number(lineHeight || (size * 1.35));
+      const lines = wrapPdfText(font, size, text, maxWidth);
+      return {
+        lines,
+        lineHeight: resolvedLineHeight,
+        height: Math.max(resolvedLineHeight, lines.length * resolvedLineHeight)
+      };
+    }
+
+    function drawPdfTextLinesAt(page, lines, opts){
+      const font = opts.font;
+      const size = Number(opts.size || 10);
+      const x = Number(opts.x || 0);
+      const topY = Number(opts.topY || 0);
+      const lineHeight = Number(opts.lineHeight || (size * 1.35));
+      const maxWidth = Number(opts.maxWidth || 0);
+      const align = String(opts.align || "left");
+      const color = opts.color;
+
+      lines.forEach((line, idx) => {
+        if(!line) return;
+        const textWidth = font.widthOfTextAtSize(line, size);
+        const drawX = (align === "right" && maxWidth)
+          ? (x + Math.max(0, maxWidth - textWidth))
+          : x;
+        page.drawText(line, {
+          x: drawX,
+          y: topY - size - (idx * lineHeight),
+          size,
+          font,
+          color
+        });
+      });
+    }
+
+    function createPdfComposer(pdfDoc){
+      const composer = {
+        pageWidth: 595.28,
+        pageHeight: 841.89,
+        margins: { top: 42, right: 42, bottom: 42, left: 42 },
+        page: null,
+        y: 0,
+        addPage(){
+          this.page = pdfDoc.addPage([this.pageWidth, this.pageHeight]);
+          this.y = this.pageHeight - this.margins.top;
+          return this.page;
+        },
+        ensure(spaceNeeded){
+          if(this.y - spaceNeeded < this.margins.bottom){
+            this.addPage();
+          }
+        }
+      };
+      composer.addPage();
+      return composer;
+    }
+
+    async function embedPdfFontSet(pdfDoc, StandardFonts, rgb, theme = cvFontTheme){
+      const family = normalizeCvFontTheme(theme) === "sans"
+        ? {
+            regular: StandardFonts.Helvetica,
+            bold: StandardFonts.HelveticaBold,
+            italic: StandardFonts.HelveticaOblique
+          }
+        : {
+            regular: StandardFonts.TimesRoman,
+            bold: StandardFonts.TimesRomanBold,
+            italic: StandardFonts.TimesRomanItalic
+          };
+      return {
+        regular: await pdfDoc.embedFont(family.regular),
+        bold: await pdfDoc.embedFont(family.bold),
+        italic: await pdfDoc.embedFont(family.italic),
+        base: rgb(17/255, 19/255, 24/255),
+        muted: rgb(97/255, 104/255, 114/255),
+        rule: rgb(76/255, 82/255, 92/255)
+      };
+    }
+
+    function drawPdfWrappedText(composer, text, opts){
+      const font = opts.font;
+      const size = Number(opts.size || 10);
+      const x = Number(opts.x || composer.margins.left);
+      const color = opts.color;
+      const lineHeight = Number(opts.lineHeight || (size * 1.35));
+      const maxWidth = Number(opts.maxWidth || (composer.pageWidth - composer.margins.right - x));
+      const afterGap = Number(opts.afterGap || 0);
+      const lines = wrapPdfText(font, size, text, maxWidth);
+      const heightNeeded = Math.max(lineHeight, lines.length * lineHeight);
+
+      composer.ensure(Math.min(heightNeeded, composer.pageHeight - composer.margins.top - composer.margins.bottom));
+      lines.forEach((line) => {
+        if(composer.y - lineHeight < composer.margins.bottom){
+          composer.addPage();
+        }
+        if(line){
+          const textWidth = font.widthOfTextAtSize(line, size);
+          const drawX = String(opts.align || "left") === "right"
+            ? (x + Math.max(0, maxWidth - textWidth))
+            : x;
+          composer.page.drawText(line, {
+            x: drawX,
+            y: composer.y - size,
+            size,
+            font,
+            color
+          });
+        }
+        composer.y -= lineHeight;
+      });
+      composer.y -= afterGap;
+      return lines;
+    }
+
+    function drawPdfCenteredTextBlock(composer, text, opts){
+      const font = opts.font;
+      const size = Number(opts.size || 10);
+      const x = Number(opts.x || composer.margins.left);
+      const maxWidth = Number(opts.maxWidth || (composer.pageWidth - composer.margins.left - composer.margins.right));
+      const lineHeight = Number(opts.lineHeight || (size * 1.35));
+      const afterGap = Number(opts.afterGap || 0);
+      const color = opts.color;
+      const block = measurePdfTextBlock(font, size, text, maxWidth, lineHeight);
+
+      composer.ensure(block.height);
+      const topY = composer.y;
+      block.lines.forEach((line, idx) => {
+        if(!line) return;
+        const textWidth = font.widthOfTextAtSize(line, size);
+        composer.page.drawText(line, {
+          x: x + Math.max(0, (maxWidth - textWidth) / 2),
+          y: topY - size - (idx * lineHeight),
+          size,
+          font,
+          color
+        });
+      });
+      composer.y = topY - block.height - afterGap;
+      return block.lines;
+    }
+
+    function drawPdfSectionTitle(composer, fonts, title){
+      const label = sanitizePdfTextForFont(fonts.bold, String(title || ""));
+      composer.ensure(28);
+      composer.page.drawText(label, {
+        x: composer.margins.left,
+        y: composer.y - 10,
+        size: 12.2,
+        font: fonts.bold,
+        color: fonts.base
+      });
+      composer.y -= 14;
+      composer.page.drawLine({
+        start: { x: composer.margins.left, y: composer.y },
+        end: { x: composer.pageWidth - composer.margins.right, y: composer.y },
+        thickness: 0.8,
+        color: fonts.rule
+      });
+      composer.y -= 10;
+    }
+
+    function drawPdfBullet(composer, fonts, bulletText){
+      const bulletX = composer.margins.left + 5.5;
+      const textX = composer.margins.left + 17;
+      const size = 10;
+      const lineHeight = 13.6;
+      const maxWidth = composer.pageWidth - composer.margins.right - textX;
+      const block = measurePdfTextBlock(fonts.regular, size, bulletText, maxWidth, lineHeight);
+
+      composer.ensure(Math.max(16, block.height + 2));
+      const topY = composer.y;
+      composer.page.drawCircle({
+        x: bulletX,
+        y: topY - (lineHeight * 0.5) + 0.4,
+        size: 1.75,
+        color: fonts.base
+      });
+      drawPdfTextLinesAt(composer.page, block.lines, {
+        x: textX,
+        topY,
+        size,
+        font: fonts.regular,
+        color: fonts.base,
+        lineHeight,
+        maxWidth
+      });
+      composer.y = topY - block.height - 1;
+    }
+
+    function drawPdfExperienceItem(composer, fonts, itemData){
+      const title = String(itemData?.title || "").trim();
+      const sub = joinNonEmpty([itemData?.company, itemData?.location], ", ");
+      const meta = joinNonEmpty([itemData?.start, itemData?.end], " – ");
+      const bullets = asStringArr(itemData?.bullets, 20);
+
+      const totalWidth = composer.pageWidth - composer.margins.left - composer.margins.right;
+      const metaGap = meta ? 18 : 0;
+      const metaMinWidth = meta ? 96 : 0;
+      const metaMaxWidth = meta ? 140 : 0;
+      let metaWidth = 0;
+      let metaBlock = null;
+
+      if(meta){
+        const cleanMeta = sanitizePdfTextForFont(fonts.italic, meta);
+        metaWidth = Math.min(metaMaxWidth, Math.max(metaMinWidth, fonts.italic.widthOfTextAtSize(cleanMeta, 9.4) + 2));
+        metaBlock = measurePdfTextBlock(fonts.italic, 9.4, meta, metaWidth, 11.8);
+      }
+
+      const leftWidth = Math.max(180, totalWidth - metaWidth - metaGap);
+      const titleBlock = title ? measurePdfTextBlock(fonts.bold, 11.2, title, leftWidth, 13.8) : null;
+      const subBlock = sub ? measurePdfTextBlock(fonts.italic, 9.6, sub, leftWidth, 11.8) : null;
+      const leftHeight = (titleBlock ? titleBlock.height : 0) + (subBlock ? subBlock.height : 0);
+      const rowHeight = Math.max(leftHeight || 0, metaBlock ? metaBlock.height : 0, 13.8);
+
+      composer.ensure(Math.max(32, rowHeight + 2));
+      const topY = composer.y;
+      if(titleBlock){
+        drawPdfTextLinesAt(composer.page, titleBlock.lines, {
+          x: composer.margins.left,
+          topY,
+          size: 11.2,
+          font: fonts.bold,
+          color: fonts.base,
+          lineHeight: titleBlock.lineHeight,
+          maxWidth: leftWidth
+        });
+      }
+      if(subBlock){
+        drawPdfTextLinesAt(composer.page, subBlock.lines, {
+          x: composer.margins.left,
+          topY: topY - (titleBlock ? titleBlock.height : 0),
+          size: 9.6,
+          font: fonts.italic,
+          color: fonts.muted,
+          lineHeight: subBlock.lineHeight,
+          maxWidth: leftWidth
+        });
+      }
+      if(metaBlock){
+        drawPdfTextLinesAt(composer.page, metaBlock.lines, {
+          x: composer.pageWidth - composer.margins.right - metaWidth,
+          topY,
+          size: 9.4,
+          font: fonts.italic,
+          color: fonts.muted,
+          lineHeight: metaBlock.lineHeight,
+          maxWidth: metaWidth,
+          align: "right"
+        });
+      }
+
+      composer.y = topY - rowHeight - 3;
+      bullets.forEach((bullet) => drawPdfBullet(composer, fonts, bullet));
+      composer.y -= 5;
+    }
+
+    async function buildStructuredPdfBytes(cvDoc, lang, jobTitle){
+      const PDFLib = window.PDFLib;
+      if(!PDFLib) throw new Error("pdf-lib missing");
+      const { PDFDocument, StandardFonts, rgb } = PDFLib;
+      const pdfDoc = await PDFDocument.create();
+      const fonts = await embedPdfFontSet(pdfDoc, StandardFonts, rgb, cvFontTheme);
+      const composer = createPdfComposer(pdfDoc);
+      ensureDocHeader(cvDoc);
+      const name = String(cvDoc?.name || "YOUR NAME").trim();
+      const role = getHeaderRole(cvDoc, jobTitle || "Curriculum Vitae");
+      const contact = cvDoc?.contact || {};
+      const contactLine = formatHeaderContactLine([
+        ["phone", contact.phone],
+        ["email", contact.email],
+        ["location", contact.location]
+      ], cvDoc, "pdf");
+      const contactLine2 = formatHeaderContactLine([
+        ["linkedin", contact.linkedin],
+        ["portfolio", contact.portfolio]
+      ], cvDoc, "pdf");
+
+      pdfDoc.setTitle(sanitizePdfTextForFont(fonts.bold, buildCvFilename(".pdf").replace(/\.pdf$/i, "")));
+      pdfDoc.setProducer("jobmejob");
+      pdfDoc.setCreator("jobmejob");
+
+      drawPdfCenteredTextBlock(composer, name, {
+        font: fonts.bold,
+        size: 22,
+        lineHeight: 25,
+        color: fonts.base,
+        x: composer.margins.left,
+        maxWidth: composer.pageWidth - composer.margins.left - composer.margins.right,
+        afterGap: 2
+      });
+      if(role){
+        drawPdfCenteredTextBlock(composer, role, {
+          font: fonts.regular,
+          size: 10.6,
+          lineHeight: 13,
+          color: fonts.muted,
+          x: composer.margins.left,
+          maxWidth: composer.pageWidth - composer.margins.left - composer.margins.right,
+          afterGap: 2
+        });
+      }
+      if(contactLine){
+        drawPdfCenteredTextBlock(composer, contactLine, {
+          font: fonts.regular,
+          size: 9.3,
+          lineHeight: 11.3,
+          color: fonts.muted,
+          x: composer.margins.left,
+          maxWidth: composer.pageWidth - composer.margins.left - composer.margins.right,
+          afterGap: 2
+        });
+      }
+      if(contactLine2){
+        drawPdfCenteredTextBlock(composer, contactLine2, {
+          font: fonts.regular,
+          size: 9.3,
+          lineHeight: 11.3,
+          color: fonts.muted,
+          x: composer.margins.left,
+          maxWidth: composer.pageWidth - composer.margins.left - composer.margins.right,
+          afterGap: 8
+        });
+      }else{
+        composer.y -= 6;
+      }
+
+      getOrderedCvSections(cvDoc, lang).forEach((section) => {
+        drawPdfSectionTitle(composer, fonts, section.title);
+        if(section.kind === "paragraph"){
+          (section.paragraphs || []).forEach((text) => {
+            drawPdfWrappedText(composer, text, {
+              font: fonts.regular,
+              size: 10.3,
+              lineHeight: 13.9,
+              color: fonts.base,
+              afterGap: 4
+            });
+          });
+        }else if(section.kind === "experience"){
+          (section.items || []).forEach((entry) => drawPdfExperienceItem(composer, fonts, entry));
+        }else if(section.kind === "education"){
+          (section.items || []).forEach((entry) => {
+            drawPdfExperienceItem(composer, fonts, {
+              title: joinNonEmpty([entry?.degree, entry?.field], " · "),
+              company: entry?.school,
+              location: entry?.location,
+              start: entry?.start,
+              end: entry?.end,
+              bullets: entry?.bullets
+            });
+          });
+        }else if(section.kind === "bullets"){
+          (section.items || []).forEach((entry) => drawPdfBullet(composer, fonts, entry));
+          composer.y -= 4;
+        }else if(section.kind === "lines"){
+          (section.items || []).forEach((entry) => {
+            drawPdfWrappedText(composer, entry, {
+              font: fonts.regular,
+              size: 9.9,
+              lineHeight: 13,
+              color: fonts.base
+            });
+          });
+          composer.y -= 4;
+        }
+      });
+
+      return pdfDoc.save();
+    }
+
+    async function buildPlainTextPdfBytes(title, text){
+      const PDFLib = window.PDFLib;
+      if(!PDFLib) throw new Error("pdf-lib missing");
+      const { PDFDocument, StandardFonts, rgb } = PDFLib;
+      const pdfDoc = await PDFDocument.create();
+      const theme = normalizeCvFontTheme(cvFontTheme) === "sans"
+        ? { regular: StandardFonts.Helvetica, bold: StandardFonts.HelveticaBold }
+        : { regular: StandardFonts.TimesRoman, bold: StandardFonts.TimesRomanBold };
+      const regular = await pdfDoc.embedFont(theme.regular);
+      const bold = await pdfDoc.embedFont(theme.bold);
+      const composer = createPdfComposer(pdfDoc);
+      const base = rgb(17/255, 19/255, 24/255);
+      const muted = rgb(59/255, 63/255, 70/255);
+
+      pdfDoc.setTitle(sanitizePdfTextForFont(bold, buildCvFilename(".pdf").replace(/\.pdf$/i, "")));
+      pdfDoc.setProducer("jobmejob");
+      pdfDoc.setCreator("jobmejob");
+
+      drawPdfWrappedText(composer, title || "Curriculum Vitae", {
+        font: bold,
+        size: 18,
+        lineHeight: 22,
+        color: base,
+        afterGap: 8
+      });
+
+      splitLines(String(text || "")).forEach((line) => {
+        if(!String(line || "").trim()){
+          composer.y -= 7;
+          return;
+        }
+        drawPdfWrappedText(composer, line, {
+          font: regular,
+          size: 10.2,
+          lineHeight: 13.6,
+          color: /^[A-ZÄÖÜ0-9 .,&/-]{4,}$/.test(String(line || "").trim()) ? muted : base
+        });
+      });
+
+      return pdfDoc.save();
+    }
+
+    function printPdfFallback(){
       const jm = getActiveJobMeta();
       const jobTitle = jm?.title ? String(jm.title) : "Curriculum Vitae";
-      const html = (lastCvDoc)
+      const useTextExport = !lastCvDoc || detectManualTextEdits();
+      const html = (!useTextExport && lastCvDoc)
         ? cvDocToPrintableHtml(lastCvDoc, lastLang, jobTitle)
         : cvTextToPrintableHtml(jobTitle, $("cvText").value || "");
       printHtml(html);
+    }
+
+    async function exportPdf(){
+      const jm = getActiveJobMeta();
+      const jobTitle = jm?.title ? String(jm.title) : "Curriculum Vitae";
+      const useTextExport = !lastCvDoc || detectManualTextEdits();
+
+      setPdfExportLoading(true);
+      showError("");
+      try{
+        if(!window.PDFLib){
+          try{
+            window.JobMeJobShared?.toast?.(t("printFallback"), { kind:"warn", title:"CV Studio" });
+          }catch(_){}
+          return printPdfFallback();
+        }
+        const bytes = useTextExport
+          ? await buildPlainTextPdfBytes(jobTitle, $("cvText").value || "")
+          : await buildStructuredPdfBytes(lastCvDoc, lastLang, jobTitle);
+        downloadBlobFile(new Blob([bytes], { type:"application/pdf" }), buildCvFilename(".pdf"));
+        try{
+          window.JobMeJobShared?.toast?.(t("printDone"), { kind:"good", title:"CV Studio" });
+        }catch(_){}
+      }catch(e){
+        console.error("PDF export failed", e);
+        try{
+          window.JobMeJobShared?.toast?.(t("printFailed"), { kind:"warn", title:"CV Studio" });
+        }catch(_){}
+        printPdfFallback();
+      }finally{
+        setPdfExportLoading(false);
+      }
     }
 
 
@@ -4304,7 +6795,7 @@ ${bodyHtml}
         openQaModal(kind);
         return;
       }
-      if(kind === "print") return printPdf();
+      if(kind === "print") return exportPdf();
       if(kind === "download") return downloadTxt();
     }
 
@@ -4411,6 +6902,360 @@ ${bodyHtml}
         sel.appendChild(opt);
         $("kwBulletPreview").textContent = uiLang==="de" ? "Diese Station hat noch keine Bullets." : "This role has no bullets.";
       }
+    }
+
+    function isKwInlineOpen(){
+      return kwSurface === "inline" && !!activeKeywordRaw;
+    }
+
+    function getKwSelectedBullet(){
+      return {
+        expIdx: Number($("kwExpRole")?.value || "0"),
+        bulletIdx: Number($("kwExpBullet")?.value || "0")
+      };
+    }
+
+    function setKwSelectedBullet(expIdx, bulletIdx){
+      if(!$("kwExpRole") || !$("kwExpBullet")) return;
+
+      $("kwTarget").value = "experience";
+      $("kwExpHow").value = "rewrite";
+      updateKwTargetUi();
+      updateKwExpHowUi();
+
+      if($("kwExpRole") && [...$("kwExpRole").options].some(o => o.value === String(expIdx))){
+        $("kwExpRole").value = String(expIdx);
+      }
+      fillBulletsForSelectedRole();
+
+      if($("kwExpBullet") && [...$("kwExpBullet").options].some(o => o.value === String(bulletIdx))){
+        $("kwExpBullet").value = String(bulletIdx);
+      }else if($("kwExpBullet")?.options?.length){
+        $("kwExpBullet").value = $("kwExpBullet").options[0].value;
+      }
+
+      const currentExp = Number($("kwExpRole").value || "0");
+      const currentBullet = Number($("kwExpBullet").value || "0");
+      const e = (Array.isArray(lastCvDoc?.experience) ? lastCvDoc.experience : [])[currentExp] || null;
+      const bullets = asStringArr(e?.bullets, 50);
+      $("kwBulletPreview").textContent = bullets[currentBullet] || "—";
+    }
+
+    function getKwRecommendedBullet(){
+      if(!lastCvDoc || !activeKeywordRaw) return { expIdx: 0, bulletIdx: 0, score: -1 };
+      return pickBestRoleAndBullet(activeKeywordRaw);
+    }
+
+    function getKwInlineDraftText(){
+      const picked = getPickedKwRewriteForCurrentBullet();
+      if(picked) return picked;
+
+      const reco = getRecoRewriteForCurrentBullet();
+      if(reco) return reco;
+
+      return getDefaultRewriteDraftForCurrentBullet();
+    }
+
+    function getKwRewriteAvoidTexts(){
+      const out = [];
+      const reco = getRecoRewriteForCurrentBullet();
+      if(reco) out.push(reco);
+      kwRewriteVariants.forEach(v => { if(v?.text) out.push(String(v.text)); });
+      return out
+        .map(txt => String(txt || "").trim())
+        .filter(Boolean)
+        .filter((txt, idx, arr) => arr.findIndex(other => normForMatch(other) === normForMatch(txt)) === idx);
+    }
+
+    function scrollKwSelectedBulletIntoView(){
+      if(!isKwInlineOpen()) return;
+      const { expIdx, bulletIdx } = getKwSelectedBullet();
+      const el = $("cvPreview")?.querySelector(`.cvBulletItem[data-exp-index="${expIdx}"][data-bullet-index="${bulletIdx}"]`);
+      if(!el) return;
+      try{
+        el.scrollIntoView({ behavior:"smooth", block:"nearest", inline:"nearest" });
+      }catch(_){
+        try{ el.scrollIntoView(); }catch(__){}
+      }
+    }
+
+    function positionKwInlineCard(){
+      const host = $("kwInlineHost");
+      const stage = $("pageStage");
+      const preview = $("cvPreview");
+      if(!host || !stage || !preview || !isKwInlineOpen()){
+        if(host){
+          host.style.setProperty("--kw-inline-offset", "0px");
+          host.style.setProperty("--kw-inline-pointer", "30px");
+          host.style.setProperty("--kw-inline-connector", "22px");
+        }
+        return;
+      }
+
+      const card = host.querySelector(".kwInlineCard");
+      const { expIdx, bulletIdx } = getKwSelectedBullet();
+      const bullet = preview.querySelector(`.cvBulletItem[data-exp-index="${expIdx}"][data-bullet-index="${bulletIdx}"]`);
+      if(!card || !bullet){
+        host.style.setProperty("--kw-inline-offset", "0px");
+        host.style.setProperty("--kw-inline-pointer", "30px");
+        host.style.setProperty("--kw-inline-connector", "22px");
+        return;
+      }
+
+      host.style.setProperty("--kw-inline-offset", "0px");
+
+      const stageRect = stage.getBoundingClientRect();
+      const bulletRect = bullet.getBoundingClientRect();
+      const cardRect = card.getBoundingClientRect();
+      const hostRect = host.getBoundingClientRect();
+      const safeTop = 12;
+      const safeBottom = 12;
+      const rawTop = bulletRect.top - stageRect.top - 18;
+      const maxTop = Math.max(0, stageRect.height - cardRect.height - safeBottom);
+      const top = Math.max(safeTop, Math.min(rawTop, maxTop));
+      const pointer = Math.max(
+        24,
+        Math.min(cardRect.height - 24, (bulletRect.top - stageRect.top) - top + (bulletRect.height / 2) - 5)
+      );
+      const connector = Math.max(14, Math.round(hostRect.left - bulletRect.right - 6));
+
+      host.style.setProperty("--kw-inline-offset", `${Math.round(top)}px`);
+      host.style.setProperty("--kw-inline-pointer", `${Math.round(pointer)}px`);
+      host.style.setProperty("--kw-inline-connector", `${connector}px`);
+    }
+
+    function renderKwInlineUi(){
+      const preview = $("cvPreview");
+      const host = $("kwInlineHost");
+      const stage = $("pageStage");
+      if(!preview) return;
+
+      preview.classList.remove("keywordPlacementMode", "keywordPlacementPicking");
+      if(stage) stage.classList.remove("hasKwInspector");
+      if(host){
+        host.hidden = true;
+        host.innerHTML = "";
+      }
+      preview.querySelectorAll(".kwInlineCard").forEach(el => el.remove());
+      preview.querySelectorAll(".cvBulletItem").forEach(li => {
+        li.classList.remove("is-kw-selected", "is-kw-recommended");
+        li.setAttribute("tabindex", "-1");
+        li.removeAttribute("aria-pressed");
+      });
+
+      if(!isKwInlineOpen() || !lastCvDoc) return;
+
+      preview.classList.add("keywordPlacementMode");
+      if(stage && host) stage.classList.add("hasKwInspector");
+
+      const selected = getKwSelectedBullet();
+      const selectedLi = preview.querySelector(`.cvBulletItem[data-exp-index="${selected.expIdx}"][data-bullet-index="${selected.bulletIdx}"]`);
+
+      preview.querySelectorAll(".cvBulletItem").forEach(li => {
+        li.setAttribute("tabindex", "0");
+        const expIdx = Number(li.getAttribute("data-exp-index") || "-1");
+        const bulletIdx = Number(li.getAttribute("data-bullet-index") || "-1");
+        const isSelected = expIdx === Number(selected.expIdx) && bulletIdx === Number(selected.bulletIdx);
+        li.classList.toggle("is-kw-selected", isSelected);
+        li.setAttribute("aria-pressed", isSelected ? "true" : "false");
+      });
+
+      if(!selectedLi) return;
+
+      const current = getCurrentSelectedBulletText() || "—";
+      const suggested = getKwInlineDraftText() || "—";
+      const suggestedDiff = buildInlineDiffHighlightHtml(current, suggested);
+      const hasPickedAlt = !!getPickedKwRewriteForCurrentBullet();
+      const isBusy = kwRewriteLoading || kwInlineDraftLoading;
+      const statusText = kwRewriteLoading
+        ? t("kwInlineRewriteLoading")
+        : kwInlineDraftLoading
+          ? t("kwInlineAiLoading")
+          : hasPickedAlt
+            ? t("kwInlineAltReady")
+            : (suggested && suggested !== "—" && suggested !== current ? t("kwInlineAiReady") : t("kwInlineTemplate"));
+      const keywordLabel = H.escapeHtml(activeKeywordDisplay || prettyKeyword(activeKeywordRaw, chosenKwLang()));
+      const rewriteBtnLabel = kwRewriteLoading ? t("kwInlineChangeLoading") : t("kwInlineChange");
+      const statusClass = "kwInlineStatus" + (isBusy ? " isLoading" : "") + (hasPickedAlt && !isBusy ? " isSuccess" : "");
+
+      const card = document.createElement("div");
+      card.className = "kwInlineCard";
+      card.setAttribute("aria-busy", isBusy ? "true" : "false");
+      card.innerHTML = `
+        <div class="kwInlineTop">
+          <div class="kwInlineHead">
+            <div class="kwInlineTitle">${H.escapeHtml(t("kwH"))}</div>
+            <div class="chips" style="margin-top:6px">
+              <span class="chip warn">${keywordLabel}</span>
+            </div>
+          </div>
+          <button class="btn small ghost" type="button" data-kw-inline-action="close">${H.escapeHtml(t("close"))}</button>
+        </div>
+        <div class="${statusClass}">${H.escapeHtml(statusText)}</div>
+        <div class="kwInlineCompare">
+          <div class="kwInlineBlock">
+            <div class="kwInlineLabel">${H.escapeHtml(t("kwInlineCurrent"))}</div>
+            <div class="kwInlineText">${H.escapeHtml(current)}</div>
+          </div>
+          <div class="kwInlineBlock">
+            <div class="kwInlineLabelRow">
+              <div class="kwInlineLabel">${H.escapeHtml(t("kwInlineSuggested"))}</div>
+              ${suggestedDiff.changed ? `<div class="kwInlineDiffHint">${H.escapeHtml(t("kwInlineDiffHint"))}</div>` : ``}
+            </div>
+            <div class="kwInlineText kwInlineTextDiff">${suggestedDiff.html}</div>
+          </div>
+        </div>
+        <div class="kwInlineActions">
+          <button class="btn primary" type="button" data-kw-inline-action="apply">${H.escapeHtml(t("kwApply"))}</button>
+          <button class="btn${kwRewriteLoading ? " isLoading" : ""}" type="button" data-kw-inline-action="rewrite"${isBusy ? " disabled" : ""}>${H.escapeHtml(rewriteBtnLabel)}</button>
+        </div>
+      `;
+
+      if(host){
+        host.hidden = false;
+        host.appendChild(card);
+      }else{
+        selectedLi.appendChild(card);
+      }
+
+      try{
+        requestAnimationFrame(() => positionKwInlineCard());
+      }catch(_){
+        positionKwInlineCard();
+      }
+    }
+
+    function getKwInlineDraftCacheKey(){
+      const { expIdx, bulletIdx } = getKwSelectedBullet();
+      const lang = chosenKwLang();
+      const current = normForMatch(getCurrentSelectedBulletText());
+      return [
+        normForMatch(activeKeywordRaw),
+        String(lang || ""),
+        String(expIdx),
+        String(bulletIdx),
+        current
+      ].join("|");
+    }
+
+    async function refreshKwInlineDraft({ force=false, source="inline" } = {}){
+      if(!isKwInlineOpen() || !lastCvDoc || !activeKeywordRaw) return;
+      if(kwMode !== "ai") return;
+
+      const { expIdx, bulletIdx } = getKwSelectedBullet();
+      const current = getCurrentSelectedBulletText();
+      if(!current) return;
+
+      const lang = chosenKwLang();
+      const cacheKey = getKwInlineDraftCacheKey();
+      const recoKey = getAiRecoCacheKey(activeKeywordRaw, lang);
+
+      if(!force && kwInlineDraftCache.has(cacheKey)){
+        const cachedText = String(kwInlineDraftCache.get(cacheKey) || "").trim();
+        if(cachedText){
+          kwAiReco = {
+            target: "experience",
+            exp_index: expIdx,
+            bullet_index: bulletIdx,
+            rewritten_bullet: cachedText
+          };
+          kwAiRecoKey = recoKey;
+          kwInlineDraftLoading = false;
+          updateKwPreview();
+        }
+        return;
+      }
+
+      const exp = (Array.isArray(lastCvDoc?.experience) ? lastCvDoc.experience : [])[expIdx] || {};
+      const token = ++kwInlineDraftToken;
+      kwInlineDraftLoading = true;
+      renderKwInlineUi();
+
+      try{
+        const ctx = {
+          cv_language: lastLang,
+          target_language: lang,
+          role_title: exp?.title || "",
+          company: exp?.company || "",
+          job_title: selectedJob?.title || "",
+          job_company: selectedJob?.company_name || "",
+          intent: "rewrite",
+          source
+        };
+
+        const ai = await tryAiRewriteOrCraft({
+          mode: "rewrite",
+          keyword: activeKeywordRaw,
+          lang,
+          current_bullet: current,
+          note: "",
+          context: ctx
+        });
+
+        if(token !== kwInlineDraftToken) return;
+
+        if(ai.ok && ai.text){
+          const rewritten = String(ai.text || "").trim();
+          kwAiReco = {
+            target: "experience",
+            exp_index: expIdx,
+            bullet_index: bulletIdx,
+            rewritten_bullet: rewritten
+          };
+          kwAiRecoKey = recoKey;
+          kwInlineDraftCache.set(cacheKey, rewritten);
+        }
+      }catch(_){
+        if(token !== kwInlineDraftToken) return;
+      }finally{
+        if(token === kwInlineDraftToken){
+          kwInlineDraftLoading = false;
+          updateKwPreview();
+        }
+      }
+    }
+
+    function openKwInline(keywordRaw){
+      showError("");
+      if(!lastCvDoc){
+        showError(t("needDoc"));
+        return;
+      }
+
+      const exp = Array.isArray(lastCvDoc?.experience) ? lastCvDoc.experience : [];
+      const hasBullets = exp.some(e => asStringArr(e?.bullets, 50).length);
+      if(!hasBullets){
+        openKwModal(keywordRaw);
+        return;
+      }
+
+      H.hideModal("kwModal");
+      activeKeywordRaw = String(keywordRaw || "").trim();
+      activeKeywordDisplay = prettyKeyword(activeKeywordRaw, lastLang);
+      kwSurface = "inline";
+      kwInlinePickMode = false;
+      kwInlineDraftLoading = false;
+      kwInlineDraftToken += 1;
+      kwRewriteLoading = false;
+      $("kwChip").textContent = activeKeywordDisplay || "—";
+      $("kwLang").value = "auto";
+      $("kwTarget").value = "experience";
+      $("kwExpHow").value = "rewrite";
+      try{ $("kwAdvancedDetails").open = false; }catch(_){}
+      clearKwAiReco();
+      resetKwRewriteVariants();
+      setKwMode("ai");
+      fillSkillGroups();
+      fillExperienceRoles();
+
+      const best = getKwRecommendedBullet();
+      setKwSelectedBullet(best.expIdx || 0, best.bulletIdx || 0);
+
+      setStudioMode("tailor");
+      setTabs("preview");
+      updateKwPreview();
+      scrollKwSelectedBulletIntoView();
+      void refreshKwInlineDraft({ force:false, source:"open-inline" });
     }
 
     
@@ -4694,10 +7539,15 @@ ${bodyHtml}
 	        return;
       }
 
+      kwSurface = "modal";
+      kwInlinePickMode = false;
+      kwInlineDraftLoading = false;
+      kwInlineDraftToken += 1;
+      kwRewriteLoading = false;
+      renderKwInlineUi();
       activeKeywordRaw = String(keywordRaw || "").trim();
       activeKeywordDisplay = prettyKeyword(activeKeywordRaw, lastLang);
       $("kwChip").textContent = activeKeywordDisplay || "—";
-      $("kwTruth").checked = false;
 
       // Reset AI recommendation for this keyword
       try{ clearKwAiReco(); }catch(_){ }
@@ -4749,6 +7599,11 @@ ${bodyHtml}
 
     function closeKwModal(){
       H.hideModal("kwModal");
+      kwSurface = "";
+      kwInlinePickMode = false;
+      kwInlineDraftLoading = false;
+      kwInlineDraftToken += 1;
+      kwRewriteLoading = false;
       activeKeywordRaw = "";
       activeKeywordDisplay = "";
       $("kwResultPreview").textContent = "—";
@@ -4764,6 +7619,7 @@ ${bodyHtml}
       kwRewriteSelected = "reco";
       kwRewriteKey = "";
       try{ updateKwRewriteUi(); }catch(_){ }
+      renderKwInlineUi();
     }
 
     function updateKwTargetUi(){
@@ -4869,14 +7725,23 @@ ${bodyHtml}
     }
 
     function setKwRewriteLoading(isLoading, msg){
+      kwRewriteLoading = !!isLoading;
       const badge = $("kwRewriteBadge");
-      if(!badge) return;
-      if(isLoading){
-        badge.textContent = msg || (uiLang==="de" ? "Generiere…" : "Generating…");
-        badge.className = "badge warn";
-      }else{
-        // badge updated in render
+      const btn = $("kwRewriteAgain");
+      if(btn){
+        btn.disabled = !!isLoading;
+        btn.textContent = isLoading ? t("kwInlineChangeLoading") : t("kwRewriteAgain");
+        btn.classList.toggle("isLoading", !!isLoading);
       }
+      if(badge){
+        if(isLoading){
+          badge.textContent = msg || t("kwInlineRewriteLoading");
+          badge.className = "badge warn";
+        }else{
+          // badge updated in render
+        }
+      }
+      if(isKwInlineOpen()) renderKwInlineUi();
     }
 
     function updateKwRewriteUi(){
@@ -5010,56 +7875,64 @@ ${bodyHtml}
         return;
       }
 
-      const avoid = [];
-      const reco = getRecoRewriteForCurrentBullet();
-      if(reco) avoid.push(reco);
-      kwRewriteVariants.forEach(v => { if(v?.text) avoid.push(String(v.text)); });
-
       const token = ++kwRewriteToken;
-      setKwRewriteLoading(true);
+      setKwRewriteLoading(true, t("kwInlineRewriteLoading"));
 
       try{
         const expIdx = Number($("kwExpRole").value || "0");
         const exp = (Array.isArray(lastCvDoc?.experience) ? lastCvDoc.experience : [])[expIdx] || {};
+        const seenNorms = new Set(getKwRewriteAvoidTexts().map(normForMatch).filter(Boolean));
+        let freshText = "";
+        let hadAiText = false;
+        const maxAttempts = 3;
 
-        const ctx = {
-          cv_language: lastLang,
-          target_language: lang,
-          role_title: exp?.title || "",
-          company: exp?.company || "",
-          job_title: selectedJob?.title || "",
-          job_company: selectedJob?.company_name || "",
-          intent: how,
-          variation: kwRewriteVariants.length + 1,
-          avoid_rewrites: avoid.slice(0, 6)
-        };
+        for(let attempt = 0; attempt < maxAttempts; attempt++){
+          const avoid = getKwRewriteAvoidTexts();
+          const ctx = {
+            cv_language: lastLang,
+            target_language: lang,
+            role_title: exp?.title || "",
+            company: exp?.company || "",
+            job_title: selectedJob?.title || "",
+            job_company: selectedJob?.company_name || "",
+            intent: how,
+            variation: kwRewriteVariants.length + attempt + 1,
+            rewrite_attempt: attempt + 1,
+            require_distinct: true,
+            avoid_rewrites: avoid.slice(0, 8)
+          };
 
-        const ai = await tryAiRewriteOrCraft({
-          mode: "rewrite",
-          keyword: kw,
-          lang,
-          current_bullet: current,
-          note: "",
-          context: ctx
-        });
+          const ai = await tryAiRewriteOrCraft({
+            mode: "rewrite",
+            keyword: kw,
+            lang,
+            current_bullet: current,
+            note: "",
+            context: ctx
+          });
 
-        if(token !== kwRewriteToken) return;
+          if(token !== kwRewriteToken) return;
+          if(!(ai.ok && ai.text)) continue;
 
-        if(ai.ok && ai.text){
           const txt = String(ai.text || "").trim();
           const normTxt = normForMatch(txt);
-          const exists = (
-            normForMatch(getRecoRewriteForCurrentBullet()) === normTxt
-            || kwRewriteVariants.some(v => normForMatch(v?.text||"") === normTxt)
-          );
-          if(!exists){
-            kwRewriteVariants.push({ text: txt, at: Date.now() });
+          if(!normTxt) continue;
+          hadAiText = true;
+          if(seenNorms.has(normTxt)){
+            continue;
           }
+
+          freshText = txt;
+          break;
+        }
+
+        if(freshText){
+          kwRewriteVariants.push({ text: freshText, at: Date.now() });
           kwRewriteSelected = "v:" + Math.max(0, kwRewriteVariants.length - 1);
           renderKwRewriteOptions();
           updateKwPreview();
         }else{
-          showError(t("aiFallback"));
+          showError(hadAiText ? t("kwRewriteNoFresh") : t("aiFallback"));
         }
       }catch(e){
         showError((uiLang==="de" ? "Rewrite fehlgeschlagen: " : "Rewrite failed: ") + (e?.message || String(e)));
@@ -5151,16 +8024,13 @@ ${bodyHtml}
 
     function updateKwPreview(){
       $("kwResultPreview").textContent = buildKwPreviewText();
+      if(isKwInlineOpen()) renderKwInlineUi();
     }
 
     async function applyKeyword(){
       showError("");
       if(!activeKeywordRaw){
         closeKwModal();
-        return;
-      }
-      if(!$("kwTruth").checked){
-        showError(t("truthRequired"));
         return;
       }
 
@@ -5221,7 +8091,7 @@ ${bodyHtml}
             }
 
             // Update text and preview
-            $("cvPreview").innerHTML = cvDocToPreviewHtml(lastCvDoc, lastLang);
+            renderCvPreviewFromDoc(lastCvDoc, lastLang);
             $("cvText").value = cvDocToPlainText(lastCvDoc, lastLang);
           }
 
@@ -5361,7 +8231,7 @@ ${bodyHtml}
         }
 
         if(changed){
-          $("cvPreview").innerHTML = cvDocToPreviewHtml(lastCvDoc, lastLang);
+          renderCvPreviewFromDoc(lastCvDoc, lastLang);
           $("cvText").value = cvDocToPlainText(lastCvDoc, lastLang);
           recomputeCoverageFromCurrentText();
 
@@ -5394,7 +8264,9 @@ ${bodyHtml}
             used: lastUsed,
             missing: lastMissing,
             all: atsKeywordsAll,
-            debug: lastDebug
+            debug: lastDebug,
+            sections: getCvSectionPrefsSnapshot(),
+            font: normalizeCvFontTheme(cvFontTheme)
           }));
         }catch(_){}
       }
@@ -5449,7 +8321,11 @@ ${bodyHtml}
       showError("");
 
       applyUiTexts();
+      cvFontTheme = readCvFontTheme();
+      applyCvFontUi();
       setStrengthUi();
+      cvSectionPrefs = readCvSectionPrefs(lastCvDoc);
+      renderSectionManager();
 
       // Step 1 Gate: if user didn't come from Jobs, start with job selection/paste as the main screen
       try{ setGateActive(shouldShowGate()); }catch(_){ }
@@ -5472,6 +8348,7 @@ ${bodyHtml}
 
       await loadStateAndNav();
       try{ await refreshCvStudioAccess(); }catch(_){ updateCvUsageUi(); }
+      try{ maybeAutoOpenUpgradeModal(); }catch(_){}
 
       // restore saved template/strength
       try{
@@ -5552,7 +8429,12 @@ ${bodyHtml}
       renderKeywords();
       setTabs("preview");
       markSteps("idle");
-      setOutputEnabled(false);
+      setOutputEnabled(hasGeneratedOutput());
+      try{
+        const savedMode = (localStorage.getItem("jmj_cv_mode") || "").trim();
+        if(gateActive) setStudioMode("tailor", { persist:false });
+        else if(savedMode) setStudioMode(savedMode);
+      }catch(_){}
       updateUndoResetButtons();
     }
 
@@ -5626,11 +8508,73 @@ $("startStrengthList")?.addEventListener("click", async (e) => {
     });
 
     $("tplSelect").addEventListener("change", setTemplateUi);
+    document.querySelectorAll("[data-font-theme]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        setCvFontTheme(btn.getAttribute("data-font-theme") || "serif");
+      });
+    });
+    $("sectionManager")?.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-section-action]");
+      if(btn){
+        const row = btn.closest("[data-section-key]");
+        const key = String(row?.getAttribute("data-section-key") || "");
+        const action = String(btn.getAttribute("data-section-action") || "");
+        if(!key || !action) return;
+        if(action === "up") return moveSection(key, -1);
+        if(action === "down") return moveSection(key, 1);
+        if(action === "toggle") return toggleSectionVisibility(key);
+        return;
+      }
+      const row = e.target.closest("[data-section-key]");
+      const key = String(row?.getAttribute("data-section-key") || "");
+      if(!key) return;
+      setActiveSectionEditor(key);
+    });
+    $("sectionManager")?.addEventListener("keydown", (e) => {
+      const row = e.target.closest("[data-section-key]");
+      if(!row || e.target.closest("[data-section-action]")) return;
+      if(e.key !== "Enter" && e.key !== " ") return;
+      e.preventDefault();
+      const key = String(row.getAttribute("data-section-key") || "");
+      if(!key) return;
+      setActiveSectionEditor(key);
+    });
+    $("sectionEditorPanel")?.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-section-editor-action]");
+      if(!btn) return;
+      handleSectionEditorAction(btn);
+    });
+    $("sectionEditorPanel")?.addEventListener("input", (e) => {
+      const target = e.target.closest("[data-editor-kind]");
+      if(!target) return;
+      beginSectionEditorHistory(target);
+      updateSectionDocFromEditorInput(target);
+    });
+    $("sectionEditorPanel")?.addEventListener("focusout", (e) => {
+      const target = e.target.closest("[data-editor-kind]");
+      if(!target) return;
+      endSectionEditorHistory(target);
+    });
+    $("btnAddSection")?.addEventListener("click", () => {
+      handleSectionEditorAction({ getAttribute: (name) => name === "data-section-editor-action" ? "add-custom-section" : "" });
+    });
+    $("btnResetSections")?.addEventListener("click", resetSectionPrefs);
 
     $("btnAtsInfo").addEventListener("click", () => H.showModal("atsModal"));
     $("atsClose").addEventListener("click", () => H.hideModal("atsModal"));
     $("atsOk").addEventListener("click", () => H.hideModal("atsModal"));
     $("atsModal").addEventListener("click", (e) => { if(e.target && e.target.id === "atsModal") H.hideModal("atsModal"); });
+
+    $("btnUpgradeCv")?.addEventListener("click", (e) => {
+      if(!isFreeCvLimitReached()) return;
+      e.preventDefault();
+      openUpgradeModal({ source:"top-upgrade" });
+    });
+    $("btnUpgradeBanner")?.addEventListener("click", () => openUpgradeModal({ source:"banner-upgrade" }));
+    $("upgradeModalClose")?.addEventListener("click", closeUpgradeModal);
+    $("upgradeModal")?.addEventListener("click", (e) => { if(e.target && e.target.id === "upgradeModal") closeUpgradeModal(); });
+    $("upgradeStarterBtn")?.addEventListener("click", () => openUpgradeCheckout("starter"));
+    $("upgradePlusBtn")?.addEventListener("click", () => openUpgradeCheckout("plus"));
 
     $("btnViewDesc").addEventListener("click", openDescModal);
     $("btnCopyDesc").addEventListener("click", async () => {
@@ -5653,12 +8597,14 @@ $("startStrengthList")?.addEventListener("click", async (e) => {
     document.addEventListener("keydown", (e) => {
       if(e.key === "Escape"){
         closeStrengthModal();
+        closeUpgradeModal();
         H.hideModal("atsModal");
         H.hideModal("descModal");
         H.hideModal("kwModal");
         H.hideModal("qaModal");
         H.hideModal("activityModal");
         closeGenModal();
+        if(isKwInlineOpen()) closeKwModal();
       }
     });
 
@@ -5721,7 +8667,7 @@ $("startStrengthList")?.addEventListener("click", async (e) => {
     function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
 
     function computeFitZoom(){
-      const stage = document.querySelector(".pageStage");
+      const stage = $("pageStageMain") || document.querySelector(".pageStage");
       const page = $("cvPreview");
       if(!stage || !page) return 1.0;
 
@@ -5740,6 +8686,13 @@ $("startStrengthList")?.addEventListener("click", async (e) => {
       if(pct) pct.textContent = Math.round(zoom * 100) + "%";
       if(persist){
         try { localStorage.setItem("jmj_cv_zoom", String(zoom)); } catch(_) {}
+      }
+      if(isKwInlineOpen()){
+        try{
+          requestAnimationFrame(() => positionKwInlineCard());
+        }catch(_){
+          positionKwInlineCard();
+        }
       }
     }
 
@@ -5767,7 +8720,16 @@ $("startStrengthList")?.addEventListener("click", async (e) => {
     });
 
     window.addEventListener("resize", () => {
-      if(hadSavedZoom || zoomUserSet) return;
+      if(hadSavedZoom || zoomUserSet){
+        if(isKwInlineOpen()){
+          try{
+            requestAnimationFrame(() => positionKwInlineCard());
+          }catch(_){
+            positionKwInlineCard();
+          }
+        }
+        return;
+      }
       zoom = computeFitZoom();
       applyZoom(false);
     });
@@ -5776,9 +8738,9 @@ $("startStrengthList")?.addEventListener("click", async (e) => {
     $("zoomOut")?.addEventListener("click", () => { zoom = clamp(zoom - 0.1, 0.6, 1.4); applyZoom(); });
     applyZoom();
 
-$("tabPreview").addEventListener("click", () => setTabs("preview"));
-    $("tabText").addEventListener("click", () => setTabs("text"));
-    $("tabChanges").addEventListener("click", () => setTabs("changes"));
+$("tabPreview")?.addEventListener("click", () => setTabs("preview"));
+    $("tabText")?.addEventListener("click", () => setTabs("text"));
+    $("tabChanges")?.addEventListener("click", () => setTabs("changes"));
 
     $("btnCopy").addEventListener("click", () => copyCv());
     $("btnDownload").addEventListener("click", () => onExportClick("download"));
@@ -5790,7 +8752,7 @@ $("tabPreview").addEventListener("click", () => setTabs("preview"));
     $("qaContinue").addEventListener("click", () => {
       const kind = qaPendingAction;
       closeQaModal();
-      if(kind === "print") return printPdf();
+      if(kind === "print") return exportPdf();
       if(kind === "download") return downloadTxt();
     });
     $("qaFixes").addEventListener("click", (e) => {
@@ -5821,7 +8783,59 @@ $("tabPreview").addEventListener("click", () => setTabs("preview"));
         showError(t("needCv"));
         return;
       }
-      openKwModal(kw);
+      openKwInline(kw);
+    });
+
+    $("cvPreviewWrap").addEventListener("click", (e) => {
+      const action = e.target.closest("[data-kw-inline-action]");
+      if(action){
+        const kind = action.getAttribute("data-kw-inline-action") || "";
+        if(kind === "close"){
+          closeKwModal();
+          return;
+        }
+        if(kind === "apply"){
+          applyKeyword();
+          return;
+        }
+        if(kind === "rewrite"){
+          onKwRewriteAgain();
+          return;
+        }
+      }
+
+      if(!isKwInlineOpen()) return;
+      if(e.target.closest(".kwInlineCard")) return;
+
+      const bullet = e.target.closest(".cvBulletItem[data-exp-index][data-bullet-index]");
+      if(!bullet) return;
+
+      const expIdx = Number(bullet.getAttribute("data-exp-index") || "0");
+      const bulletIdx = Number(bullet.getAttribute("data-bullet-index") || "0");
+      const current = getKwSelectedBullet();
+      const sameBullet = current.expIdx === expIdx && current.bulletIdx === bulletIdx;
+
+      if(!sameBullet){
+        setKwSelectedBullet(expIdx, bulletIdx);
+        resetKwRewriteVariants();
+      }
+
+      kwInlinePickMode = false;
+      updateKwPreview();
+      scrollKwSelectedBulletIntoView();
+
+      if(!sameBullet){
+        void refreshKwInlineDraft({ force:false, source:"preview-click" });
+      }
+    });
+
+    $("cvPreview").addEventListener("keydown", (e) => {
+      if(!isKwInlineOpen()) return;
+      if(!(e.key === "Enter" || e.key === " ")) return;
+      const bullet = e.target.closest(".cvBulletItem[data-exp-index][data-bullet-index]");
+      if(!bullet) return;
+      e.preventDefault();
+      bullet.click();
     });
 
     // Undo / Reset
@@ -5882,7 +8896,12 @@ $("tabPreview").addEventListener("click", () => setTabs("preview"));
 	    });
 
     $("kwSkillGroup").addEventListener("change", updateKwPreview);
-    $("kwExpRole").addEventListener("change", () => { fillBulletsForSelectedRole(); try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ } updateKwPreview(); });
+    $("kwExpRole").addEventListener("change", () => {
+      fillBulletsForSelectedRole();
+      try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ }
+      updateKwPreview();
+      if(isKwInlineOpen()) void refreshKwInlineDraft({ force:false, source:"role-change" });
+    });
     $("kwExpHow").addEventListener("change", updateKwExpHowUi);
     $("kwExpBullet").addEventListener("change", () => {
       const expIdx = Number($("kwExpRole").value || "0");
@@ -5891,9 +8910,8 @@ $("tabPreview").addEventListener("click", () => setTabs("preview"));
       const i = Number($("kwExpBullet").value || "0");
       $("kwBulletPreview").textContent = bullets[i] || "—";
       try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ }
-      try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ }
-      try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ }
       updateKwPreview();
+      if(isKwInlineOpen()) void refreshKwInlineDraft({ force:false, source:"bullet-change" });
     });
     
     $("kwAutoPick").addEventListener("click", () => {
@@ -5912,6 +8930,7 @@ $("tabPreview").addEventListener("click", () => setTabs("preview"));
       }
       try{ resetKwRewriteVariants(); updateKwRewriteUi(); }catch(_){ }
       updateKwPreview();
+      if(isKwInlineOpen()) void refreshKwInlineDraft({ force:false, source:"auto-pick" });
     });
 $("kwNote").addEventListener("input", updateKwPreview);
     

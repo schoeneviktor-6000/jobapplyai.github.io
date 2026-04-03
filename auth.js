@@ -340,10 +340,12 @@ async function logout(redirectTo = "./index.html") {
 /* ============================================================
 6) Backend helper: ensure customer exists
 ============================================================ */
-async function upsertCustomerByEmail(email) {
+async function upsertCustomerByEmail(email, accessToken = "") {
+  const headers = { "content-type": "application/json" };
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
   const res = await fetch(`${API_BASE}/customers/upsert`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers,
     body: JSON.stringify({ email })
   });
 
@@ -364,7 +366,7 @@ async function requireAuthAndCustomer(opts = {}) {
     return null;
   }
 
-  const data = await upsertCustomerByEmail(email);
+  const data = await upsertCustomerByEmail(email, session.access_token);
   const customerId = data && data.customer_id ? String(data.customer_id).trim() : "";
 
   if (customerId) lsSet("jm_customer_id", customerId);

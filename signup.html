@@ -304,7 +304,8 @@ white-space:pre-wrap;
 <a class="jmNavItem" href="./cv.html" data-nav="1" role="menuitem">CV Studio</a>
 <a class="jmNavItem" href="./jobs.html" data-nav="1" role="menuitem">Jobs</a>
 <a class="jmNavItem" href="./profile.html" data-nav="1" role="menuitem">Profile</a>
-<a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Billing & plans</a>
+<a class="jmNavItem" href="./profile.html#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Manage billing</a>
+<a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Plans & pricing</a>
 <div class="menuSep" role="separator"></div>
 <button class="jmNavItem jmNavDanger" id="navLogout" type="button" role="menuitem">Logout</button>
 </div>
@@ -388,7 +389,7 @@ white-space:pre-wrap;
 
 <script src="./vendor/supabase-js-2.100.1.js"></script>
 <script src="./auth.js?v=202603310940"></script>
-<script src="./shared.js?v=202603310940"></script>
+<script src="./shared.js?v=202603311215"></script>
 <script>
 "use strict";
 
@@ -508,10 +509,12 @@ go(url);
 }
 
 /* API helpers */
-async function upsertCustomerByEmail(email){
+async function upsertCustomerByEmail(email, accessToken){
+const headers={ "content-type":"application/json" };
+if(accessToken) headers.Authorization="Bearer "+accessToken;
 const res=await fetch(`${API_BASE}/customers/upsert`,{
 method:"POST",
-headers:{ "content-type":"application/json" },
+headers,
 body:JSON.stringify({ email })
 });
 const text=await res.text().catch(()=> "");
@@ -623,7 +626,7 @@ try{sessionStorage.setItem("sb_access_token", session.access_token);}catch(_){}
 try{
 setGoogleButton(true,"Setting up…");
 setHint("Setting up your account…");
-const data=await upsertCustomerByEmail(email);
+const data=await upsertCustomerByEmail(email, session.access_token);
 if(data && data.customer_id) lsSetAll(LS.customerId, String(data.customer_id));
 const next=consumePendingPostAuthRedirect() || await determineNextUrl(session);
 setHint("Done. Taking you to the next step…");

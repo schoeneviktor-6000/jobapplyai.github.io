@@ -18,6 +18,16 @@ const AI_CACHE_KEY_OLD="ja_ai_titles_cache_v1";
 const GMAIL_VERIFY_RESULT_KEY="jm_gmail_verify_result_v1";
 const GMAIL_VERIFY_PENDING_KEY="jm_gmail_verify_pending";
 const GMAIL_VERIFY_SCOPE="openid email profile https://www.googleapis.com/auth/gmail.send";
+const LINKS = (APP_CONFIG && APP_CONFIG.LINKS) ? APP_CONFIG.LINKS : {};
+const SUPPORT_EMAIL = "team@jobmejob.com";
+const BILLING_PORTAL_LINK = String(LINKS.CV_STUDIO_PORTAL_URL || "").trim();
+const PLAN_PAGE_URL = "./plan.html#cv-pricing";
+const CV_PLAN_META = Object.freeze({
+  free: { label:"Free", quota:"5 free CVs" },
+  cv_starter: { label:"Starter", quota:"10 CVs / month" },
+  cv_plus: { label:"Plus", quota:"50 CVs / month" },
+  cv_unlimited: { label:"Unlimited", quota:"Unlimited CVs" }
+});
 
 let supabaseClient=null;
 let session=null;
@@ -84,6 +94,93 @@ profileDone: ["jm_profile_complete","ja_profile_complete"],
 plan: ["jm_plan","ja_plan"],
 workplace: ["jobmejob_workplace","jobapplyai_workplace"]
 };
+
+function normalizePlanId(value){
+const raw=String(value||"").trim().toLowerCase();
+if(!raw) return "";
+if(raw==="starter"||raw==="cv_starter") return "cv_starter";
+if(raw==="plus"||raw==="cv_plus") return "cv_plus";
+if(raw==="unlimited"||raw==="cv_unlimited") return "cv_unlimited";
+if(raw==="free") return "free";
+return raw;
+}
+
+function planIdFromState(st){
+const directCandidates=[
+  st?.cv_plan_id,
+  st?.cv_studio_plan_id,
+  st?.cvstudio_plan_id,
+  st?.entitlements?.cv_plan_id,
+  st?.entitlements?.cv_studio_plan_id
+];
+for(const candidate of directCandidates){
+  const pid=normalizePlanId(candidate);
+  if(pid) return pid;
+}
+
+const fallback=String(st?.plan_id || "").trim().toLowerCase();
+if(fallback==="cv_starter" || fallback==="cv_plus" || fallback==="cv_unlimited" || fallback==="free"){
+  return fallback;
+}
+return "";
+}
+
+function planLabelFromId(planId){
+const pid=normalizePlanId(planId) || "free";
+return (CV_PLAN_META[pid] && CV_PLAN_META[pid].label) || "Paid";
+}
+
+function quotaLabelFromPlanId(planId){
+const pid=normalizePlanId(planId) || "free";
+return (CV_PLAN_META[pid] && CV_PLAN_META[pid].quota) || "Monthly CV plan";
+}
+
+function storedCvPlanId(){
+const raw=String(lsGetFirst(LS.plan) || "").trim().toLowerCase();
+if(raw==="cv_starter" || raw==="cv_plus" || raw==="cv_unlimited" || raw==="free"){
+  return raw;
+}
+return "";
+}
+
+function firstNumber(){
+for(let i=0;i<arguments.length;i+=1){
+  const value=arguments[i];
+  if(value===null || value===undefined || value==="") continue;
+  const n=Number(value);
+  if(Number.isFinite(n)) return n;
+}
+return null;
+}
+
+function formatCurrencyMinor(amountMinor, currency){
+const amount=Number(amountMinor);
+const code=String(currency||"EUR").trim().toUpperCase() || "EUR";
+if(!Number.isFinite(amount)) return "—";
+try{
+  return new Intl.NumberFormat(undefined, { style:"currency", currency:code }).format(amount / 100);
+}catch(_){
+  return (amount / 100).toFixed(2) + " " + code;
+}
+}
+
+function formatDateShort(value){
+try{
+  if(!value) return "—";
+  const d=new Date(value);
+  if(!Number.isFinite(d.getTime())) return "—";
+  return d.toLocaleDateString(undefined, { year:"numeric", month:"short", day:"numeric" });
+}catch(_){
+  return "—";
+}
+}
+
+function supportFallback(subject, body){
+const params=new URLSearchParams();
+params.set("subject", String(subject || "jobmejob support"));
+if(body) params.set("body", String(body));
+return "mailto:" + SUPPORT_EMAIL + "?" + params.toString();
+}
 
 function lsGetFirst(keys){
 for(const k of keys){
@@ -233,8 +330,10 @@ async function apiPostForm(path,formData){
   return json;
 }
 
-async function ensureCustomer(email){
-const res=await fetch(API_BASE+"/customers/upsert",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({email})});
+async function ensureCustomer(email, accessToken){
+const headers={"content-type":"application/json"};
+if(accessToken) headers.Authorization="Bearer "+accessToken;
+const res=await fetch(API_BASE+"/customers/upsert",{method:"POST",headers,body:JSON.stringify({email})});
 const text=await res.text().catch(()=> "");
 if(!res.ok) throw new Error("customers/upsert failed: "+res.status+" "+text);
 const data=JSON.parse(text);
@@ -272,6 +371,187 @@ function toast(kind, title, message){
       S.toast(String(message || ""), { kind: kind || "good", title: title || "" });
     }
   }catch(_){}
+}
+
+function billingBadgeInfo(summary, paid){
+  const status=String(summary?.subscription?.status || "").trim().toLowerCase();
+  const cancelAtPeriodEnd=summary?.subscription?.cancel_at_period_end === true;
+
+  if(status==="active"){
+    return cancelAtPeriodEnd
+      ? { kind:"warn", label:"Cancelling" }
+      : { kind:"good", label:"Active" };
+  }
+  if(status==="trialing") return { kind:"good", label:"Trial" };
+  if(status==="past_due") return { kind:"warn", label:"Past due" };
+  if(status==="unpaid") return { kind:"bad", label:"Unpaid" };
+  if(status==="canceled") return { kind:"bad", label:"Canceled" };
+  if(paid) return { kind:"good", label:"Paid" };
+  return { kind:"warn", label:"Free" };
+}
+
+function renderBillingInvoices(invoices){
+  const section=$("billingInvoicesSection");
+  const list=$("billingInvoicesList");
+  if(!section || !list) return;
+
+  const rows=Array.isArray(invoices) ? invoices.slice(0,4) : [];
+  if(!rows.length){
+    section.style.display="none";
+    list.innerHTML="";
+    return;
+  }
+
+  section.style.display="grid";
+  list.innerHTML=rows.map((invoice)=>{
+    const invoiceId=String(invoice?.number || invoice?.id || "Invoice").trim();
+    const createdLabel=formatDateShort(invoice?.paid_at || invoice?.created_at || invoice?.period_end || invoice?.period_start);
+    const amountLabel=formatCurrencyMinor(firstNumber(invoice?.amount_paid, invoice?.amount_due, 0), invoice?.currency || "EUR");
+    const statusLabel=String(invoice?.status || "open").trim().replace(/_/g, " ");
+    const href=String(invoice?.invoice_pdf || invoice?.hosted_invoice_url || "").trim();
+    const actionLabel=invoice?.invoice_pdf ? "Download PDF" : "Open";
+
+    return (
+      '<div class="invoiceItem">'
+        + '<div class="invoiceCopy">'
+          + '<div class="invoiceTitle">' + escapeHtml(invoiceId) + '</div>'
+          + '<div class="invoiceMeta">' + escapeHtml(amountLabel) + ' • ' + escapeHtml(createdLabel) + ' • ' + escapeHtml(statusLabel) + '</div>'
+        + '</div>'
+        + (
+          href
+            ? ('<a class="btn small invoiceAction" href="' + escapeHtml(href) + '" target="_blank" rel="noopener">')
+                + escapeHtml(actionLabel)
+              + '</a>'
+            : '<span class="badge">' + escapeHtml(statusLabel) + '</span>'
+        )
+      + '</div>'
+    );
+  }).join("");
+}
+
+function renderBillingSummary(summary){
+  const planId=normalizePlanId(
+    summary?.subscription?.plan_id ||
+    summary?.cv_plan_id ||
+    planIdFromState(state) ||
+    storedCvPlanId() ||
+    "free"
+  ) || "free";
+  const paid=!!(summary?.cv_paid === true || (planId && planId !== "free"));
+  const limit=firstNumber(summary?.cv_quota_limit, state?.cv_quota_limit, state?.entitlements?.cv_quota_limit);
+  const used=firstNumber(summary?.cv_quota_used, state?.cv_quota_used, state?.entitlements?.cv_quota_used, paid ? 0 : state?.cv_free_used, paid ? 0 : state?.entitlements?.cv_free_used);
+  const remaining=(limit !== null && used !== null) ? Math.max(0, limit - used) : null;
+  const invoices=Array.isArray(summary?.invoices) ? summary.invoices : [];
+  const portalEnabled=summary?.billing?.portal_enabled === true || !!BILLING_PORTAL_LINK;
+  const badge=billingBadgeInfo(summary, paid);
+  const subscription=summary?.subscription || null;
+  const renewsAt=subscription?.current_period_end || null;
+  const cancelsAt=subscription?.cancel_at || (subscription?.cancel_at_period_end ? renewsAt : null);
+
+  setBadge("billingStatusBadge", badge.kind, badge.label);
+  setText("billingPlanValue", paid ? planLabelFromId(planId) : "Free");
+  setText(
+    "billingUsageValue",
+    limit === 0
+      ? "Unlimited"
+      : (remaining !== null ? (String(remaining) + " left") : quotaLabelFromPlanId(planId))
+  );
+  setText(
+    "billingCycleValue",
+    subscription?.cancel_at_period_end && cancelsAt
+      ? ("Ends " + formatDateShort(cancelsAt))
+      : (subscription?.status === "trialing" && subscription?.trial_end)
+        ? ("Trial until " + formatDateShort(subscription.trial_end))
+        : renewsAt
+          ? ("Renews " + formatDateShort(renewsAt))
+          : (paid ? "Paid plan" : "Free plan")
+  );
+  setText("billingInvoiceValue", invoices.length ? (String(invoices.length) + " recent") : (paid ? "None yet" : "—"));
+  renderBillingInvoices(invoices);
+
+  const usageText = limit === 0
+    ? "Unlimited."
+    : (remaining !== null && used !== null)
+      ? (String(used) + " of " + String(limit) + " used.")
+      : quotaLabelFromPlanId(planId) + ".";
+
+  let summaryText = paid
+    ? (planLabelFromId(planId) + ". " + usageText)
+    : "Free plan.";
+
+  if(subscription?.cancel_at_period_end && cancelsAt){
+    summaryText = planLabelFromId(planId) + " until " + formatDateShort(cancelsAt) + ".";
+  } else if(subscription?.status === "past_due"){
+    summaryText = "Payment issue. Open billing.";
+  } else if(subscription?.status === "unpaid"){
+    summaryText = "Billing issue. Open billing.";
+  } else if(summary?.provider_error){
+    summaryText += " Stripe details are delayed.";
+  }
+
+  setText("billingSummaryText", summaryText);
+  setText(
+    "billingFooterHint",
+    portalEnabled
+      ? "Open Stripe to manage plan and invoices."
+      : "Billing help is available by email."
+  );
+
+  const manageBtn=$("billingManageBtn");
+  if(manageBtn){
+    manageBtn.textContent=portalEnabled ? "Manage billing" : "Billing help";
+  }
+
+  const plansBtn=$("billingPlansBtn");
+  if(plansBtn){
+    plansBtn.textContent=paid ? "Change plan" : "View plans";
+    plansBtn.setAttribute("href", PLAN_PAGE_URL);
+  }
+}
+
+async function refreshBillingSummary(){
+  setBadge("billingStatusBadge","warn","Checking...");
+  setText("billingPlanValue","—");
+  setText("billingUsageValue","—");
+  setText("billingCycleValue","—");
+  setText("billingInvoiceValue","—");
+  try{
+    const summary=await apiGet("/me/billing/summary");
+    renderBillingSummary(summary || {});
+  }catch(e){
+    renderBillingSummary({
+      billing: { portal_enabled: !!BILLING_PORTAL_LINK },
+      cv_paid: !!(planIdFromState(state) && planIdFromState(state) !== "free"),
+      cv_plan_id: planIdFromState(state),
+      cv_quota_limit: state?.cv_quota_limit,
+      cv_quota_used: state?.cv_quota_used,
+      provider_error: e && e.message ? e.message : String(e || "")
+    });
+  }
+}
+
+async function openBillingPortal(){
+  const btn=$("billingManageBtn");
+  if(btn) btn.disabled=true;
+
+  const fallbackTarget = BILLING_PORTAL_LINK || supportFallback(
+    "CV Studio billing support",
+    "Hi jobmejob team,\n\nI need help with my CV Studio subscription, cancellation, or invoices.\n\nThanks."
+  );
+
+  try{
+    const data=await apiPostJson("/me/billing/portal",{});
+    if(data && data.url){
+      window.location.href=data.url;
+      return;
+    }
+  }catch(e){
+    toast("warn","Billing", e?.message || "Billing portal unavailable right now.");
+  }finally{
+    if(btn) btn.disabled=false;
+  }
+
+  window.location.href=fallbackTarget;
 }
 
 function readJsonStorage(key){
@@ -1011,7 +1291,7 @@ async function maybeAutoGenerateAiTitles(reason){
     aiAutoStarted = true;
 
     setBadge("aiStatusBadge","warn","Auto…");
-    setText("aiHint","Generating suggestions automatically…");
+    setText("aiHint","Generating roles…");
 
     const titles = await handleAiGenerate({ force:false, background:true });
     const t = Array.isArray(titles) ? titles : ((aiResult && Array.isArray(aiResult.titles)) ? aiResult.titles : []);
@@ -1022,7 +1302,7 @@ async function maybeAutoGenerateAiTitles(reason){
       // allow manual retry
       aiAutoStarted = false;
       setBadge("aiStatusBadge","warn","Manual");
-      setText("aiHint","Automatic generation didn’t work this time. Click “Generate now” to try again.");
+      setText("aiHint","Auto-run missed. Click Generate roles.");
     }
   }catch(_){
     aiAutoStarted = false;
@@ -1067,7 +1347,7 @@ function unlockAiWhileOcrRunning(){
   $("aiGenerateBtn").disabled=false;
   $("aiApplyBtn").disabled=true;
   $("aiRegenerateLink").style.display="none";
-  setText("aiHint","OCR is still running. We’ll auto-generate titles once it’s done (you can also try now).");
+  setText("aiHint","OCR is still running. You can wait or try now.");
 }
 
 function unlockAiFallback(msg){
@@ -1075,7 +1355,7 @@ function unlockAiFallback(msg){
   $("aiGenerateBtn").disabled=false;
   $("aiApplyBtn").disabled=true;
   $("aiRegenerateLink").style.display="none";
-  setText("aiHint", msg || "You can try generating suggestions now. If it fails, upload a PDF or retry OCR.");
+  setText("aiHint", msg || "Try again now, or upload a PDF and retry OCR.");
 }
 
 function stopOcrPollingAndCleanup(){
@@ -1121,7 +1401,7 @@ function startOcrPolling(opts){
         showRetryOcr(false);
         setProgress(false, 100, "", "");
         setBadge("cvStatusBadge","good","OCR done");
-        setText("ocrHint","OCR done. You can generate AI suggestions now.");
+        setText("ocrHint","OCR done.");
         lastCvMeta=cvMetaFromCv(cv);
         unlockAiReady();
         tryLoadCachedAiSuggestions();
@@ -1135,14 +1415,14 @@ function startOcrPolling(opts){
         setProgress(false, 0, "", "");
         setBadge("cvStatusBadge","bad","OCR failed");
         setText("ocrHint","OCR failed: "+(cv?.cv_ocr_error||""));
-        unlockAiFallback("OCR failed. You can retry OCR or try generating suggestions anyway.");
+        unlockAiFallback("OCR failed. Retry OCR or try roles anyway.");
         return;
       }
 
       // processing / idle / unknown
       if(elapsed > OCR_SOFT_WAIT_MS){
         showRetryOcr(true);
-        setText("ocrHint","OCR is taking longer than usual… You can keep this page open or tap Retry OCR.");
+        setText("ocrHint","OCR is taking longer than usual.");
       }else{
         showRetryOcr(false);
         setText("ocrHint","OCR is running…");
@@ -1166,8 +1446,8 @@ function startOcrPolling(opts){
         showRetryOcr(true);
         setBadge("cvStatusBadge","warn","OCR delayed");
         setProgress(false, 0, "", "");
-        setText("ocrHint","OCR is still processing. Tap Retry OCR or refresh later.");
-        unlockAiFallback("OCR is delayed. You can try generating suggestions anyway, or tap Retry OCR.");
+        setText("ocrHint","OCR is still processing.");
+        unlockAiFallback("OCR is delayed. Retry OCR or try roles anyway.");
       }
 
     }catch(e){
@@ -1204,7 +1484,7 @@ $("aiRegenerateLink").style.display="none";
 aiResult=null;
 aiSelectedTitles=new Set();
 $("aiTitlesWrap").style.display="none";
-setText("aiHint", msg || "Upload your CV first. When OCR is done, you can generate suggestions.");
+setText("aiHint", msg || "Upload a CV first.");
 aiGeneratedOnce=false;
 aiAppliedOnce=false;
 }
@@ -1214,7 +1494,7 @@ setBadge("aiStatusBadge","good","Ready");
 $("aiGenerateBtn").disabled=false;
 $("aiApplyBtn").disabled=true;
 $("aiRegenerateLink").style.display="none";
-setText("aiHint","Your CV text is ready. We’ll generate job title suggestions automatically (and save them to your account).");
+setText("aiHint","Ready to generate roles.");
 aiGeneratedOnce=false;
 aiAppliedOnce=false;
 }
@@ -1273,9 +1553,10 @@ setText("kCustomerId",customerId||"—");
 const profOk=!!(st && st.profile_complete);
 setText("kProfile",profOk?"Yes":"No");
 $("kProfile").className="kpiVal "+(profOk?"ok":"bad");
-const planOk=!!(st && st.plan_id);
-setText("kPlan",planOk?"Yes":"No");
-$("kPlan").className="kpiVal "+(planOk?"ok":"warn");
+const cvPlanId=planIdFromState(st) || "free";
+const paidPlan=!!(cvPlanId && cvPlanId!=="free");
+setText("kPlan",paidPlan?planLabelFromId(cvPlanId):"Free");
+$("kPlan").className="kpiVal "+(paidPlan?"ok":"warn");
 const cvOk=!!(st && st.cv_uploaded);
 setText("kCv",cvOk?"Yes":"No");
 $("kCv").className="kpiVal "+(cvOk?"ok":"warn");
@@ -1309,13 +1590,13 @@ try{
 
 if(!cvOk2){
 setText("continueBtn","Upload CV to start");
-setText("continueHint","Upload your CV first. After that, you can open CV Studio directly and paste job descriptions manually.");
+setText("continueHint","Upload a CV first.");
 }else if(!profOk2){
 setText("continueBtn","Open CV Studio");
-setText("continueHint","You can tailor your CV now with manual paste. The Chrome extension will plug into the same account once it is approved.");
+setText("continueHint","Ready for CV Studio.");
 }else{
 setText("continueBtn","Open CV Studio");
-setText("continueHint","You're all set. Next: open CV Studio and tailor your next role. The extension can be added later once it is approved.");
+setText("continueHint","Ready for CV Studio.");
 }
 }
 
@@ -1342,6 +1623,12 @@ try{ if(locations.length){ setLocationSuggestionUI([]); } }catch(_){}
 
 if(countries[0]) $("country").value=String(countries[0]);
 if(radius!==null && radius!==undefined) $("radiusKm").value=String(radius);
+try{
+  const prefsToggle=$("prefsToggle");
+  if(prefsToggle && (desired.length || industries.length || locations.length || (radius!==null && radius!==undefined))){
+    prefsToggle.open=true;
+  }
+}catch(_){}
 setBadge("saveStatusBadge","good","Loaded");
 }catch{}
 }
@@ -1411,7 +1698,7 @@ function applyAiUiFromTitles(titles){
   }catch(_){}
 
   setBadge("aiStatusBadge","good","Ready");
-  setText("aiHint","Generated automatically and saved to your account. (Optional) Adjust selection, then update your job titles below.");
+  setText("aiHint","Saved. Select any roles you want to keep.");
   setHtml("aiTitlesWrap","<div class='small'><strong>Suggested titles</strong> (click to select)</div>");
   renderChips("aiTitlesWrap", clean, aiSelectedTitles);
 
@@ -1454,7 +1741,7 @@ async function loadCvStatusAndUpdateUx(){
       if(s==="done"){
         stopOcrPollingAndCleanup();
         setBadge("cvStatusBadge","good","OCR done");
-        setText("ocrHint","OCR done. You can generate AI suggestions now.");
+        setText("ocrHint","OCR done.");
         setProgress(false, 100, "", "");
         unlockAiReady();
         tryLoadCachedAiSuggestions();
@@ -1470,7 +1757,7 @@ async function loadCvStatusAndUpdateUx(){
           unlockAiWhileOcrRunning();
           startOcrPolling({ startedAt: Date.now() });
         }else{
-          lockAi("For OCR and AI suggestions, please upload a PDF version.");
+          lockAi("Upload a PDF for OCR.");
         }
         markStep1DoneVisual(false);
         return;
@@ -1483,7 +1770,7 @@ async function loadCvStatusAndUpdateUx(){
         setText("ocrHint","OCR failed: "+(cv.cv_ocr_error||""));
         if(isPdf){
           showRetryOcr(true);
-          unlockAiFallback("OCR failed. Tap Retry OCR or try generating suggestions anyway.");
+          unlockAiFallback("OCR failed. Retry OCR or try roles anyway.");
         }else{
           lockAi("OCR failed. Please upload a PDF.");
         }
@@ -1496,12 +1783,12 @@ async function loadCvStatusAndUpdateUx(){
       setBadge("cvStatusBadge","good","Uploaded");
       setProgress(false, 0, "", "");
       if(isPdf){
-        setText("ocrHint","OCR not started yet. Tap Retry OCR to start.");
+        setText("ocrHint","OCR not started.");
         showRetryOcr(true);
-        unlockAiFallback("CV uploaded. Tap Retry OCR to extract text, or try generating suggestions anyway.");
+        unlockAiFallback("Retry OCR, or try roles anyway.");
       }else{
-        setText("ocrHint","Upload a PDF to enable OCR.");
-        lockAi("Upload a PDF to enable OCR and AI suggestions.");
+        setText("ocrHint","PDF required for OCR.");
+        lockAi("Upload a PDF for OCR.");
       }
       markStep1DoneVisual(false);
       return;
@@ -1515,7 +1802,7 @@ async function loadCvStatusAndUpdateUx(){
     setText("cvHint","No CV uploaded yet.");
     setText("ocrHint","");
     setProgress(false, 0, "", "");
-    lockAi("Upload your CV first. Then you can generate suggestions.");
+    lockAi("Upload a CV first.");
     markStep1DoneVisual(false);
   }catch(e){
     lastCvMeta=null;
@@ -1525,7 +1812,7 @@ async function loadCvStatusAndUpdateUx(){
     setText("cvHint","Could not load CV status.");
     setText("ocrHint","");
     setProgress(false, 0, "", "");
-    lockAi("Upload your CV first. Then you can generate suggestions.");
+    lockAi("Upload a CV first.");
     showTopError(e.message||String(e));
     markStep1DoneVisual(false);
   }
@@ -1562,8 +1849,8 @@ async function uploadCvThenAutoOcr(file){
 
   if(!isPdfFile(file)){
     setProgress(false, 0, "", "");
-    setText("ocrHint","For OCR and AI suggestions, please upload a PDF version.");
-    lockAi("Upload a PDF to enable OCR and AI suggestions.");
+    setText("ocrHint","Upload a PDF for OCR.");
+    lockAi("Upload a PDF for OCR.");
     showRetryOcr(false);
     return;
   }
@@ -1637,7 +1924,7 @@ async function handleRetryOcr(){
     setBadge("cvStatusBadge","bad","OCR error");
     setProgress(false, 0, "", "");
     showTopError(e.message||String(e));
-    unlockAiFallback("Could not start OCR. You can try generating suggestions anyway, or retry later.");
+    unlockAiFallback("Could not start OCR. Try roles anyway, or retry later.");
   }finally{
     if(btn) btn.disabled=false;
   }
@@ -1670,7 +1957,7 @@ async function handleAiGenerate({ force=false, background=false } = {}){
   $("aiSkillsChips").innerHTML = "";
 
   setBadge("aiStatusBadge","warn","Generating…");
-  setText("aiHint","Reading your CV and generating job title suggestions…");
+  setText("aiHint","Generating roles…");
 
   try{
     // Best-effort: if OCR has not finished yet, trigger it once before the AI call
@@ -1708,7 +1995,7 @@ async function handleAiGenerate({ force=false, background=false } = {}){
 
     if(!titles.length){
       setBadge("aiStatusBadge","warn","No titles");
-      setText("aiHint","No title suggestions returned. Try a PDF CV and OCR first.");
+      setText("aiHint","No roles yet. Try a PDF CV.");
       $("aiGenerateBtn").disabled = false;
       return null;
     }
@@ -1725,7 +2012,7 @@ async function handleAiGenerate({ force=false, background=false } = {}){
     // Persist the exact titles into backend (source of truth for Jobs/Dashboard)
     const saved = await saveAiTitlesToBackend(titles);
     if(saved && saved.ok){
-      setText("aiHint","Generated automatically and saved to your account. (Optional) Adjust selection, then update job titles below.");
+      setText("aiHint","Saved. Select any roles you want to keep.");
     }
 
     try{
@@ -1800,7 +2087,7 @@ async function handleAiGenerate({ force=false, background=false } = {}){
     return titles;
   }catch(e){
     setBadge("aiStatusBadge","bad","Failed");
-    setText("aiHint","AI generation failed. You can still tailor your CV and fill preferences manually.");
+    setText("aiHint","Generation failed. You can continue manually.");
 
     if(background){
       toast("warn","AI titles", e?.message || "Automatic generation failed. Tap Generate now to retry.");
@@ -1839,7 +2126,12 @@ renderAiAppliedChips(aiAppliedTitles);
 markPrefsDirty();
 scheduleAutoSave();
 setBadge("aiStatusBadge","good","Applied");
-setText("aiHint","Job titles updated. Add your location — preferences auto-save — to enable matched jobs.");
+setText("aiHint","Job titles updated.");
+
+try{
+  const prefsToggle=$("prefsToggle");
+  if(prefsToggle) prefsToggle.open=true;
+}catch(_){}
 
 markStep1DoneVisual(true);
 
@@ -2222,7 +2514,7 @@ function closeActivityModal(){
 async function boot(){
 try{
 clearTopError();
-setText("subLine","Checking session…");
+setText("subLine","Checking account…");
 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 {
   const auth = getAppAuth();
@@ -2256,13 +2548,14 @@ return;
 
 resetLocalStateForNewUser(email);
 try{sessionStorage.setItem("sb_access_token",session.access_token);}catch{}
-setText("subLine","Signed in as "+email+" — upload your base CV once, then tailor from any job page.");
+setText("subLine","Signed in as "+email+".");
 rememberGoogleProviderTokens();
 refreshGmailVerifyUi();
 
-await ensureCustomer(email);
+await ensureCustomer(email, session.access_token);
 await refreshState();
 try{ window.JobMeJobShared?.hydrateAccountNav?.({ session, state }); }catch(_){}
+await refreshBillingSummary();
 await loadCvStatusAndUpdateUx();
 await loadProfileIntoForm();
 await maybeFinishPendingGmailVerify();
@@ -2310,6 +2603,13 @@ $("gmailSendAgainBtn")?.addEventListener("click", async ()=>{
   }catch(e){
     refreshGmailVerifyUi();
     showTopError(e?.message || String(e));
+  }
+});
+$("billingManageBtn")?.addEventListener("click", async ()=>{
+  try{
+    await openBillingPortal();
+  }catch(e){
+    toast("warn","Billing", e?.message || "Billing help is unavailable right now.");
   }
 });
 
