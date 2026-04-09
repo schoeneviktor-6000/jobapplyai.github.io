@@ -404,6 +404,35 @@
       grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr);
       gap:16px;
     }
+    .showcaseCard{
+      padding:18px;
+      background:rgba(255,255,255,.9);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+    .showcaseFrame{
+      overflow:hidden;
+      border-radius:22px;
+      border:1px solid rgba(17,19,24,.08);
+      background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(247,245,239,.92));
+    }
+    .showcaseFrame img{
+      display:block;
+      width:100%;
+      height:auto;
+    }
+    .showcaseCaption{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:14px;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.55;
+    }
+    .showcaseCaption strong{color:var(--text)}
     .railCard{
       padding:20px;
     }
@@ -510,11 +539,11 @@
               <a class="btn primary" href="./signup.html?entry=cv-studio">Start with 5 free CVs</a>
               <a class="btn ghost" data-extension-link data-extension-disabled-label="Get extension updates" data-extension-ready-label="Add to Chrome" href="./cv-studio.html#manual"><span data-extension-label>Add to Chrome</span></a>
             </div>
-            <p class="heroNote"><strong>Chrome Web Store review in progress.</strong> Start with manual paste today, or use the notify button and we will send the extension link once it is approved. It will use the same jobmejob account and will not ask for a separate login inside the side panel.</p>
+            <p class="heroNote"><strong>Chrome extension live.</strong> Add it on the Chrome Web Store, or paste manually whenever you want a fallback. It uses the same jobmejob account and does not need a separate login inside the side panel.</p>
             <div class="proof" aria-label="Key product points">
-              <span>Manual paste available now</span>
+              <span>Chrome extension live</span>
               <span>Upload base CV once</span>
-              <span>Extension launch soon</span>
+              <span>Manual paste fallback</span>
             </div>
           </div>
 
@@ -551,14 +580,35 @@
       </div>
     </section>
 
+    <section class="section" id="product-shot">
+      <div class="container">
+        <div class="sectionHead">
+          <div>
+            <span class="sectionKicker">Product snapshot</span>
+            <h2>See the CV Studio flow in one image.</h2>
+          </div>
+          <p>A shareable product visual hosted directly on the CV Studio marketing page.</p>
+        </div>
+        <div class="showcaseCard">
+          <div class="showcaseFrame">
+            <img src="./jobmejob_ad.png" alt="CV Studio visual showing CV tailoring from a LinkedIn job posting with ATS keyword suggestions." width="1536" height="1024">
+          </div>
+          <div class="showcaseCaption">
+            <strong>From job page to ATS-tuned CV</strong>
+            <span>Share the section link or open the image directly.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="section">
       <div class="container">
         <div class="sectionHead">
           <div>
             <span class="sectionKicker">Workflow</span>
-            <h2>Start with manual paste. Add the extension once approved.</h2>
+            <h2>Start with manual paste or import straight from the extension.</h2>
           </div>
-          <p>You can get full value from CV Studio today without waiting. The extension will simply make the import step faster once the Chrome Web Store listing is approved.</p>
+          <p>You can get full value from CV Studio either way. The extension is the fastest path on supported job pages, and manual paste stays available whenever you need it.</p>
         </div>
         <div class="flowGrid">
           <article class="flowCard">
@@ -575,9 +625,9 @@
           </article>
           <article class="flowCard">
             <div class="flowNum">03</div>
-            <span class="flowTag">Soon</span>
-            <h3>Add the extension when it goes live</h3>
-            <p>Until then, paste job descriptions manually. After approval, the extension will send job pages into the same CV Studio flow.</p>
+            <span class="flowTag">Live now</span>
+            <h3>Add the extension anytime</h3>
+            <p>Use it on supported job pages to send the role straight into the same CV Studio flow you already use on jobmejob.</p>
           </article>
         </div>
         <div class="sites" aria-label="Supported sites">
@@ -591,7 +641,7 @@
         <div class="altPathBox" id="manual">
           <div>
             <strong>Manual paste works today.</strong>
-            <p>Sign in, upload your CV, and paste any job description manually. The extension will simply make that import step faster once it is approved.</p>
+            <p>Sign in, upload your CV, and paste any job description manually whenever you need a fallback. The extension makes that import step faster on supported job pages.</p>
           </div>
           <div class="heroActions" style="margin-top:0">
             <a class="btn primary" href="./signup.html?entry=cv-studio">Start free</a>

@@ -23,7 +23,7 @@ const LINKS_DEFAULT = {
   CV_STUDIO_STARTER_URL: "",
   CV_STUDIO_PLUS_URL: "",
   CV_STUDIO_PORTAL_URL: "",
-  CHROME_EXTENSION_URL: "",
+  CHROME_EXTENSION_URL: "https://chromewebstore.google.com/detail/cv-studio-tailor/jibmnlonajhoaanhoblhiciddggiohba",
   CHROME_EXTENSION_NOTIFY_URL: "mailto:team@jobmejob.com?subject=Notify%20me%20when%20CV%20Studio%20Chrome%20extension%20is%20live&body=Hi%20jobmejob%20team%2C%0A%0APlease%20notify%20me%20when%20the%20CV%20Studio%20Chrome%20extension%20is%20available.%0A",
   AUTO_APPLY_REQUEST_URL: "mailto:team@jobmejob.com?subject=Auto-apply%20beta%20request"
 };

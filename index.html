@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>jobmejob — CV Studio for tailored CVs</title>
-<meta name="description" content="Tailor your CV from any job posting with the Chrome extension or pasted job descriptions.">
+<title>jobmejob — Tailor your CV to any job online</title>
+<meta name="description" content="Tailor your CV to any job you find online. Match job requirements, spot missing keywords, keep ATS-safe formatting, edit the draft, and export a polished PDF.">
 <script>
   (function(){
     try{
@@ -365,6 +365,13 @@ margin:0 0 12px;
 color:var(--muted);
 font-size:14px;
 }
+.heroCardTop{
+display:flex;
+align-items:center;
+gap:10px;
+flex-wrap:wrap;
+margin-bottom:10px;
+}
 .miniList{
 margin:0;
 padding:0;
@@ -406,6 +413,25 @@ color:#0a3a1c;
 .miniIcon svg{width:18px;height:18px}
 .miniText strong{display:block;font-size:13px;font-weight:950;margin-bottom:2px}
 .miniText span{display:block;font-size:13px;color:var(--muted2)}
+.heroBoardChips{
+display:flex;
+flex-wrap:wrap;
+gap:8px;
+margin-top:14px;
+}
+.heroBoardChip{
+display:inline-flex;
+align-items:center;
+justify-content:center;
+padding:8px 12px;
+border-radius:999px;
+background:rgba(255,255,255,.92);
+border:1px solid rgba(0,166,63,.18);
+color:var(--ink2);
+font-size:12px;
+font-weight:950;
+white-space:nowrap;
+}
 .heroCardActions{
 display:flex;
 gap:10px;
@@ -2674,9 +2700,9 @@ color:var(--text);
 <div class="container">
 <div class="heroGrid">
 <div>
-<div class="eyebrow"><span class="badgeDot" aria-hidden="true"></span>CV Studio for real job descriptions</div>
-<h1>Tailor your CV for any job in minutes.</h1>
-<p class="subtitle">Paste a job description or import one from the Chrome extension. CV Studio tailors against your stored base CV, improves ATS coverage, and gets you to an export-ready draft fast.</p>
+<div class="eyebrow"><span class="badgeDot" aria-hidden="true"></span>For any job you find online</div>
+<h1>Turn any job post into an ATS-ready CV you can actually send.</h1>
+<p class="subtitle">Import a role from LinkedIn, Greenhouse, Lever, Indeed, Workday, or paste any job description manually. jobmejob tailors your CV to the job requirements, highlights missing keywords, keeps the formatting ATS-safe, and gives you an export-ready PDF you can still refine before sending.</p>
 
 <div class="hero-actions">
 <a class="btn primary" href="signup.html?entry=cv-studio">
@@ -2698,29 +2724,33 @@ color:var(--text);
 </div>
 
 <div class="proofLine" aria-label="Key points">
-<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Manual paste available now</span>
+<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Any job online</span>
 <span class="proofDot" aria-hidden="true"></span>
-<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Tailored per role</span>
+<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Missing keywords highlighted</span>
 <span class="proofDot" aria-hidden="true"></span>
-<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>ATS review built in</span>
+<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Editable before export</span>
 </div>
 
 <div class="heroStatus" aria-label="Current availability">
 <div class="heroStatusTop">
-<span class="heroStatusPill">Available now</span>
-<span class="heroStatusMeta">Start with manual paste today</span>
+<span class="heroStatusPill">Import any online job</span>
+<span class="heroStatusMeta">Extension or manual paste</span>
 </div>
-<p class="heroStatusCopy">Create your account, upload your base CV once, and tailor against real job descriptions right away. If you want the extension later, you can use the same account when it goes live.</p>
+<p class="heroStatusCopy">The extension is only the fastest import path. The real value is inside CV Studio: requirement-aware tailoring, ATS-safe structure, missing keyword guidance, manual control over bullets, experience, skills, and profile, plus export-ready PDF output when you are ready to apply.</p>
 <div class="heroStatusLinks">
-<a class="heroStatusLink lime" href="cv-studio.html#manual">Use manual paste now</a>
-<a class="heroStatusLink" data-extension-link data-extension-disabled-label="Notify me when it launches" data-extension-ready-label="Add to Chrome" href="cv-studio.html#manual"><span data-extension-label>Notify me when it launches</span></a>
+<a class="heroStatusLink lime" data-extension-link data-extension-disabled-label="Get extension updates" data-extension-ready-label="Add to Chrome" href="https://chromewebstore.google.com/detail/cv-studio-tailor/jibmnlonajhoaanhoblhiciddggiohba"><span data-extension-label>Add to Chrome</span></a>
+<a class="heroStatusLink" href="cv-studio.html#manual">Use manual paste anytime</a>
 </div>
 </div>
 </div>
 
-<aside class="heroCard" aria-label="Service snapshot">
-<h3>What CV Studio does</h3>
-<p>A focused workflow for tailoring quality, ATS coverage, and faster iteration.</p>
+<aside class="heroCard" aria-label="Product value snapshot">
+<div class="heroCardTop">
+<span class="heroStatusPill">High-end tailoring</span>
+<span class="heroStatusMeta">Quality + control</span>
+</div>
+<h3>What users actually get</h3>
+<p>Not generic CV rewriting. One job post becomes a tailored document you can inspect, refine, and export with confidence.</p>
 <ul class="miniList">
 <li class="miniItem">
 <div class="miniIcon lime" aria-hidden="true">
@@ -2728,7 +2758,7 @@ color:var(--text);
 <path d="M21 21l-4.3-4.3"></path><circle cx="11" cy="11" r="7"></circle>
 </svg>
 </div>
-<div class="miniText"><strong>Paste or import</strong><span>Bring in a JD from the Chrome extension or paste it manually.</span></div>
+<div class="miniText"><strong>Tailoring around the real job requirements</strong><span>We adapt the summary, profile, skills, and experience toward the target role instead of giving you a generic rewrite.</span></div>
 </li>
 <li class="miniItem">
 <div class="miniIcon" aria-hidden="true">
@@ -2736,7 +2766,7 @@ color:var(--text);
 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path>
 </svg>
 </div>
-<div class="miniText"><strong>CV Studio</strong><span>Tailor against your stored base CV and keep the structure clean.</span></div>
+<div class="miniText"><strong>Missing keyword guidance you can use</strong><span>See which important terms are already covered, which are still missing, and only add the ones that are true for your background.</span></div>
 </li>
 <li class="miniItem">
 <div class="miniIcon lime" aria-hidden="true">
@@ -2744,11 +2774,27 @@ color:var(--text);
 <path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"></path><path d="M21 8l-9 6-9-6"></path>
 </svg>
 </div>
-<div class="miniText"><strong>ATS review</strong><span>See keyword gaps and polish the result before you export.</span></div>
+<div class="miniText"><strong>ATS-safe formatting with manual control</strong><span>Keep the structure readable for ATS systems, then adjust bullets, experience, skills, or profile before you export.</span></div>
+</li>
+<li class="miniItem">
+<div class="miniIcon" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path>
+</svg>
+</div>
+<div class="miniText"><strong>Export-ready PDF output</strong><span>Once the draft looks right, run the final check and export a clean CV you can actually send.</span></div>
 </li>
 </ul>
+<div class="heroBoardChips" aria-label="Supported job boards">
+<span class="heroBoardChip">LinkedIn</span>
+<span class="heroBoardChip">Greenhouse</span>
+<span class="heroBoardChip">Lever</span>
+<span class="heroBoardChip">Indeed</span>
+<span class="heroBoardChip">Workday</span>
+<span class="heroBoardChip">Career pages</span>
+</div>
 <div class="heroCardActions">
-<a class="btn small" href="#pricing"><span class="btnLabel">Plans</span></a>
+<a class="btn small" data-extension-link data-extension-disabled-label="Get extension updates" data-extension-ready-label="Add to Chrome" href="https://chromewebstore.google.com/detail/cv-studio-tailor/jibmnlonajhoaanhoblhiciddggiohba"><span class="btnLabel"><span data-extension-label>Add to Chrome</span></span></a>
 <a class="btn small" href="cv-studio.html"><span class="btnLabel">CV Studio</span></a>
 <a class="btn primary small" href="signup.html?entry=cv-studio"><span class="btnLabel">Get started</span></a>
 </div>
@@ -2761,8 +2807,8 @@ color:var(--text);
   <div class="container">
     <div class="sectionHead">
       <div class="kicker">How it works</div>
-      <h2 class="sectionTitle">Paste. Tailor. Export.</h2>
-      <p class="sectionDesc">CV Studio keeps the workflow simple: bring in a job description, tailor your CV, then review the ATS gaps before you export.</p>
+      <h2 class="sectionTitle">From any job post to an export-ready CV.</h2>
+      <p class="sectionDesc">Bring in the role, tailor around the requirements, then refine the final document before you send it.</p>
     </div>
 
     <div class="hiwGrid" role="list" aria-label="Three-step workflow">
@@ -2848,13 +2894,13 @@ color:var(--text);
           <div class="hiwPills" aria-label="Step label">
             <span class="hiwStepPill">Step 1</span>
           </div>
-          <h3>Paste or import</h3>
-          <p>Use the Chrome extension on a job page, or paste the job description manually.</p>
+          <h3>Bring in the job</h3>
+          <p>Use the extension on supported sites or paste any job description manually. Either way, the role, company, and job requirements enter the same CV Studio flow.</p>
 
-          <div class="hiwChips" aria-label="Job Search outputs">
+          <div class="hiwChips" aria-label="Import options">
             <span class="hiwChip">Chrome extension</span>
             <span class="hiwChip">Manual paste</span>
-            <span class="hiwChip">Any job page</span>
+            <span class="hiwChip">Any job post</span>
           </div>
         </div>
       </article>
@@ -2935,13 +2981,13 @@ color:var(--text);
           <div class="hiwPills" aria-label="Step label">
             <span class="hiwStepPill">Step 2</span>
           </div>
-          <h3>CV Tailoring</h3>
-          <p>We tailor your CV to the role while keeping the wording truthful, clear, and ATS-friendly.</p>
+          <h3>Tailor around the requirements</h3>
+          <p>CV Studio rewrites toward the actual role, keeps the structure ATS-safe, and measures which priority terms already appear in your CV.</p>
 
-          <div class="hiwChips" aria-label="CV Tailoring outputs">
-            <span class="hiwChip">ATS-ready</span>
-            <span class="hiwChip">Keyword gaps</span>
-            <span class="hiwChip">Same structure</span>
+          <div class="hiwChips" aria-label="Tailoring outcomes">
+            <span class="hiwChip">Job requirements</span>
+            <span class="hiwChip">ATS-safe format</span>
+            <span class="hiwChip">Truthful tailoring</span>
           </div>
         </div>
       </article>
@@ -2949,7 +2995,7 @@ color:var(--text);
       <!-- Step 3 -->
       <article class="hiwCard" role="listitem" data-accent="send">
         <div class="hiwMedia" aria-hidden="true">
-          <!-- Illustration: Auto Apply -->
+          <!-- Illustration: Review and export -->
           <svg viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <filter id="aShadow" x="-20%" y="-20%" width="140%" height="140%">
@@ -3007,12 +3053,12 @@ color:var(--text);
           <div class="hiwPills" aria-label="Step label">
             <span class="hiwStepPill">Step 3</span>
           </div>
-          <h3>Review + Export</h3>
-          <p>Check the match score, polish the wording, and export a ready-to-send CV.</p>
+          <h3>Refine + Export</h3>
+          <p>Adjust bullets, experience, skills, or profile, add true missing terms, run the final check, and export a clean PDF.</p>
 
-          <div class="hiwChips" aria-label="Auto Apply outputs">
-            <span class="hiwChip">Match score</span>
-            <span class="hiwChip">Manual edit</span>
+          <div class="hiwChips" aria-label="Refine and export outputs">
+            <span class="hiwChip">Edit sections</span>
+            <span class="hiwChip">Missing keywords</span>
             <span class="hiwChip">Export PDF</span>
           </div>
         </div>
@@ -3029,7 +3075,7 @@ color:var(--text);
         </div>
         <div>
           <div class="hiwCtaTitle">CV Studio keeps you in control</div>
-          <div class="hiwCtaSub">Paste a job, tailor your CV, review the gaps, and export when ready.</div>
+          <div class="hiwCtaSub">Import the job, tailor the CV, refine the output, and export when you are ready.</div>
         </div>
       </div>
       <div class="hiwCtaActions">
@@ -3256,7 +3302,7 @@ Last 7 days
 <div class="sectionHead">
 <div class="kicker">Pricing</div>
 <h2 class="sectionTitle">Start free with CV Studio.</h2>
-<p class="sectionDesc">Simple monthly pricing for CV tailoring with the Chrome extension or pasted job descriptions.</p>
+<p class="sectionDesc">Simple monthly pricing for role-specific CV tailoring, missing keyword guidance, ATS-safe formatting, and export-ready PDFs.</p>
 </div>
 
 <div class="pricingWrap">
@@ -3271,17 +3317,17 @@ Last 7 days
 
 <div class="valueRow" aria-label="Monthly value">
 <div>
-<strong>Use CV Studio without a paid plan</strong>
-<span>Try the extension or paste flow first</span>
+<strong>Use CV Studio on real applications</strong>
+<span>Import from the extension or paste any job post</span>
 </div>
 <div class="valueBadge"><i aria-hidden="true"></i>Best first step</div>
 </div>
 
 <ul class="features">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Chrome extension + manual paste flow</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>ATS match score + keyword gaps</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Reuses your stored base CV</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Great for validating the workflow</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Import from Chrome or paste any job post</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>ATS match score + missing keyword guidance</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Edit bullets, experience, skills, and profile</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Export-ready PDF output</li>
 </ul>
 <div class="planActions">
 <a class="btn primary" href="signup.html?entry=cv-studio"><span class="btnLabel">Start free</span></a>
@@ -3301,16 +3347,16 @@ Last 7 days
 <div class="valueRow" aria-label="Monthly value">
 <div>
 <strong>10 tailored CVs / month</strong>
-<span>One quota across extension + paste mode</span>
+<span>One quota across extension and manual import</span>
 </div>
-<div class="valueBadge"><i aria-hidden="true"></i>Extension-first</div>
+<div class="valueBadge"><i aria-hidden="true"></i>Most active searches</div>
 </div>
 
 <ul class="features">
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>All Free features</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Best fit for active extension users</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Best for weekly applications across multiple roles</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Faster iteration without restarting your CV each time</li>
 <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Simple recurring monthly plan</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Clear upgrade without market restrictions</li>
 </ul>
 <div class="planActions">
 <a class="btn lime" href="plan.html#cv-pricing"><span class="btnLabel">Choose Starter</span></a>
@@ -3349,7 +3395,7 @@ Last 7 days
 </div>
 </div>
 
-<p class="fineprint">CV Studio pricing is monthly, global, and built for extension-first usage. Future workflows will be introduced separately when they are ready.</p>
+<p class="fineprint">CV Studio pricing is monthly, global, and based on how many tailored CVs you need. Future workflows will be introduced separately when they are ready.</p>
 </div>
 </section>
 
@@ -3357,27 +3403,27 @@ Last 7 days
 <div class="container">
 <div class="sectionHead">
 <div class="kicker">Why this works</div>
-<h2 class="sectionTitle">Better tailoring leads to better interviews.</h2>
-<p class="sectionDesc">A clearer CV, stronger keyword match, and faster iteration help you apply with more confidence.</p>
+<h2 class="sectionTitle">Why this leads to stronger applications.</h2>
+<p class="sectionDesc">The value is not just faster import. It is better role-fit, clearer ATS coverage, and more control over the final document you send.</p>
 </div>
 
 <div class="whyGrid">
 <div class="whyList">
 <div class="whyItem">
 <div class="whyIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8 10L4 11"></path></svg></div>
-<div class="whyText"><strong>Faster first draft</strong><span>Import a job description and get to a tailored version without rewriting your CV from scratch.</span></div>
+<div class="whyText"><strong>Faster from job post to first draft</strong><span>Bring in any role and get a tailored starting point without rebuilding your CV from scratch.</span></div>
 </div>
 <div class="whyItem">
 <div class="whyIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg></div>
-<div class="whyText"><strong>Better keyword coverage</strong><span>ATS gaps stay visible so you can improve the wording before you export.</span></div>
+<div class="whyText"><strong>See what is still missing</strong><span>Keyword gaps stay visible so you can strengthen the match before you apply.</span></div>
 </div>
 <div class="whyItem">
 <div class="whyIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h16"></path></svg></div>
-<div class="whyText"><strong>Tailored per role and company</strong><span>Each application matches the job requirements and your experience.</span></div>
+<div class="whyText"><strong>Edit the details that matter</strong><span>Adjust bullet points, experience, skills, and profile inside the app before exporting.</span></div>
 </div>
 <div class="whyItem">
 <div class="whyIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"></path><path d="M21 8l-9 6-9-6"></path></svg></div>
-<div class="whyText"><strong>Built on your base CV</strong><span>Your stored CV stays the source of truth, so the output remains grounded in your real background.</span></div>
+<div class="whyText"><strong>Export something you can actually send</strong><span>Keep the structure ATS-safe and generate a clean PDF when the draft looks right.</span></div>
 </div>
 </div>
 
@@ -3391,15 +3437,15 @@ Last 7 days
 </div>
 <div>
 <h3>CV quality principle</h3>
-<p>We focus on truthful tailoring, strong structure, and practical ATS coverage so each exported version is easier to review and send.</p>
+<p>We focus on truthful tailoring, strong structure, and practical ATS coverage so every export stays credible, editable, and ready to send.</p>
 </div>
 </div>
 
 <div class="qpPills" aria-label="Quality checks">
 <div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>No invented experience</div>
 <div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Human in control</div>
-<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Clear keyword gaps</div>
-<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Role-specific narrative</div>
+<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>ATS-safe structure</div>
+<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Export-ready PDF</div>
 </div>
 
 <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;position:relative">
@@ -3433,7 +3479,7 @@ Last 7 days
 
 <details class="faqItem">
 <summary>Can I edit the tailored CV before exporting?</summary>
-<div class="faqBody">Yes. CV Studio keeps you in control. You can review the output, make manual edits, and decide what to export.</div>
+<div class="faqBody">Yes. CV Studio keeps you in control. You can adjust bullet points, experience, skills, and profile before you export the final PDF.</div>
 </details>
 
 <details class="faqItem">
