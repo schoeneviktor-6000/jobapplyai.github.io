@@ -7065,15 +7065,35 @@ ${bodyHtml}
       if(box){
         const boxRect = box.getBoundingClientRect();
         const bulletRect = el.getBoundingClientRect();
-        const pad = 28;
-        const fullyVisible = bulletRect.top >= (boxRect.top + pad) && bulletRect.bottom <= (boxRect.bottom - pad);
+        const hudRect = $("cvPreviewWrap")?.querySelector(".zoomHud")?.getBoundingClientRect();
+        const topPad = 28;
+        const bottomPad = Math.max(
+          34,
+          hudRect && hudRect.top < boxRect.bottom
+            ? Math.round(boxRect.bottom - hudRect.top + 16)
+            : 34
+        );
+        const fullyVisible = bulletRect.top >= (boxRect.top + topPad) && bulletRect.bottom <= (boxRect.bottom - bottomPad);
         if(fullyVisible){
           scheduleKwInlinePosition({ immediate:true });
           return;
         }
+        const reducedMotion = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+        const targetTop = clamp(
+          Math.round(box.scrollTop + (bulletRect.top - boxRect.top) - Math.min(140, Math.max(topPad, box.clientHeight * 0.28))),
+          0,
+          Math.max(0, box.scrollHeight - box.clientHeight)
+        );
+        try{
+          box.scrollTo({ top: targetTop, behavior: reducedMotion ? "auto" : "smooth" });
+        }catch(_){
+          try{ box.scrollTop = targetTop; }catch(__){}
+        }
+        scheduleKwInlinePosition({ immediate:true });
+        return;
       }
       try{
-        el.scrollIntoView({ behavior:"auto", block:"nearest", inline:"nearest" });
+        el.scrollIntoView({ behavior:"smooth", block:"nearest", inline:"nearest" });
       }catch(_){
         try{ el.scrollIntoView(); }catch(__){}
       }
@@ -7082,6 +7102,7 @@ ${bodyHtml}
 
     let kwInlinePositionRaf = 0;
     let kwInlinePositionTimeout = 0;
+    let kwInlineScrollRaf = 0;
     function scheduleKwInlinePosition({ immediate=false } = {}){
       if(kwInlinePositionRaf){
         try{ cancelAnimationFrame(kwInlinePositionRaf); }catch(_){}
@@ -7113,6 +7134,47 @@ ${bodyHtml}
           try{ positionKwInlineCard(); }catch(_){}
         }, 120);
       }catch(_){}
+    }
+
+    function syncKwInlinePositionOnScroll(){
+      if(!isKwInlineOpen()) return;
+      if(kwInlineScrollRaf) return;
+      const run = () => {
+        kwInlineScrollRaf = 0;
+        try{ positionKwInlineCard(); }catch(_){}
+      };
+      try{
+        kwInlineScrollRaf = requestAnimationFrame(run);
+      }catch(_){
+        run();
+      }
+    }
+
+    function getKwBulletAnchorY(bullet){
+      if(!bullet) return 0;
+      const bulletRect = bullet.getBoundingClientRect();
+      const text = bullet.querySelector(".cvBulletText");
+      if(text){
+        try{
+          const range = document.createRange();
+          range.selectNodeContents(text);
+          const rects = Array.from(range.getClientRects()).filter((rect) => rect && rect.width > 0 && rect.height > 0);
+          if(typeof range.detach === "function") range.detach();
+          const firstRect = rects[0];
+          if(firstRect){
+            return firstRect.top + (firstRect.height / 2);
+          }
+        }catch(_){}
+      }
+      let fallbackHeight = bulletRect.height;
+      try{
+        const styles = window.getComputedStyle(text || bullet);
+        const lineHeight = parseFloat(styles.lineHeight);
+        if(lineHeight && isFinite(lineHeight)){
+          fallbackHeight = Math.min(bulletRect.height, lineHeight);
+        }
+      }catch(_){}
+      return bulletRect.top + (Math.max(10, fallbackHeight) / 2);
     }
 
     function positionKwInlineCard(){
@@ -7148,9 +7210,9 @@ ${bodyHtml}
       const cardRect = card.getBoundingClientRect();
       const hostRect = host.getBoundingClientRect();
       const isNarrowLayout = window.matchMedia && window.matchMedia("(max-width: 920px)").matches;
-      // Anchor the connector to the selected bullet row itself so the callout
-      // keeps pointing to the highlighted bullet even when the text wraps.
-      const anchorY = bulletRect.top + (bulletRect.height / 2);
+      // Follow the first visible text line so the connector tracks the actual
+      // bullet line instead of drifting toward the middle of tall wrapped items.
+      const anchorY = getKwBulletAnchorY(bullet) || (bulletRect.top + (bulletRect.height / 2));
       const safeTop = 12;
       const safeBottom = 12;
       const anchorStageY = anchorY - stageRect.top;
@@ -8876,15 +8938,11 @@ $("startStrengthList")?.addEventListener("click", async (e) => {
     });
 
     applyZoom(hadSavedZoom);
-    $("zoomOut")?.addEventListener("click", () => { zoom = clamp(zoom - 0.1, 0.6, 1.4); applyZoom(); });
     applyZoom();
 
-    const syncKwInlinePosition = () => {
-      if(!isKwInlineOpen()) return;
-      scheduleKwInlinePosition();
-    };
-    $("cvBox")?.addEventListener("scroll", syncKwInlinePosition, { passive:true });
-    window.addEventListener("scroll", syncKwInlinePosition, { passive:true });
+    $("cvBox")?.addEventListener("scroll", syncKwInlinePositionOnScroll, { passive:true });
+    $("pageStage")?.addEventListener("scroll", syncKwInlinePositionOnScroll, { passive:true });
+    window.addEventListener("scroll", syncKwInlinePositionOnScroll, { passive:true });
 
     $("tabPreview")?.addEventListener("click", () => setTabs("preview"));
     $("tabText")?.addEventListener("click", () => setTabs("text"));

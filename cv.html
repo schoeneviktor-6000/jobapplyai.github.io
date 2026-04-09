@@ -1140,7 +1140,13 @@ body.cvGate.cvGateForm #jobSourceHint{
       padding:12px;
       overflow:auto;
       max-height: 56vh;
+      scroll-behavior:smooth;
+      overscroll-behavior:contain;
+      scrollbar-gutter:stable both-edges;
       -webkit-overflow-scrolling:touch;
+    }
+    .cvBox .paperWrap{
+      overflow:visible;
     }
 
     /* Preview rendering (HTML) */
