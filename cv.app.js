@@ -7000,21 +7000,70 @@ ${bodyHtml}
 
     function scrollKwSelectedBulletIntoView(){
       if(!isKwInlineOpen()) return;
+      const box = $("cvBox");
       const { expIdx, bulletIdx } = getKwSelectedBullet();
       const el = $("cvPreview")?.querySelector(`.cvBulletItem[data-exp-index="${expIdx}"][data-bullet-index="${bulletIdx}"]`);
       if(!el) return;
+      if(box){
+        const boxRect = box.getBoundingClientRect();
+        const bulletRect = el.getBoundingClientRect();
+        const pad = 28;
+        const fullyVisible = bulletRect.top >= (boxRect.top + pad) && bulletRect.bottom <= (boxRect.bottom - pad);
+        if(fullyVisible){
+          scheduleKwInlinePosition({ immediate:true });
+          return;
+        }
+      }
       try{
-        el.scrollIntoView({ behavior:"smooth", block:"nearest", inline:"nearest" });
+        el.scrollIntoView({ behavior:"auto", block:"nearest", inline:"nearest" });
       }catch(_){
         try{ el.scrollIntoView(); }catch(__){}
       }
+      scheduleKwInlinePosition({ immediate:true });
+    }
+
+    let kwInlinePositionRaf = 0;
+    let kwInlinePositionTimeout = 0;
+    function scheduleKwInlinePosition({ immediate=false } = {}){
+      if(kwInlinePositionRaf){
+        try{ cancelAnimationFrame(kwInlinePositionRaf); }catch(_){}
+        kwInlinePositionRaf = 0;
+      }
+      if(kwInlinePositionTimeout){
+        try{ clearTimeout(kwInlinePositionTimeout); }catch(_){}
+        kwInlinePositionTimeout = 0;
+      }
+
+      const run = () => {
+        kwInlinePositionRaf = 0;
+        try{ positionKwInlineCard(); }catch(_){}
+      };
+
+      if(immediate){
+        try{ positionKwInlineCard(); }catch(_){}
+      }
+
+      try{
+        kwInlinePositionRaf = requestAnimationFrame(run);
+      }catch(_){
+        run();
+      }
+
+      try{
+        kwInlinePositionTimeout = window.setTimeout(() => {
+          kwInlinePositionTimeout = 0;
+          try{ positionKwInlineCard(); }catch(_){}
+        }, 120);
+      }catch(_){}
     }
 
     function positionKwInlineCard(){
       const host = $("kwInlineHost");
       const stage = $("pageStage");
       const preview = $("cvPreview");
+      const connector = $("kwInlineConnector");
       if(!host || !stage || !preview || !isKwInlineOpen()){
+        if(connector) connector.hidden = true;
         if(host){
           host.style.setProperty("--kw-inline-offset", "0px");
           host.style.setProperty("--kw-inline-pointer", "30px");
@@ -7027,6 +7076,7 @@ ${bodyHtml}
       const { expIdx, bulletIdx } = getKwSelectedBullet();
       const bullet = preview.querySelector(`.cvBulletItem[data-exp-index="${expIdx}"][data-bullet-index="${bulletIdx}"]`);
       if(!card || !bullet){
+        if(connector) connector.hidden = true;
         host.style.setProperty("--kw-inline-offset", "0px");
         host.style.setProperty("--kw-inline-pointer", "30px");
         host.style.setProperty("--kw-inline-connector", "22px");
@@ -7039,26 +7089,58 @@ ${bodyHtml}
       const bulletRect = bullet.getBoundingClientRect();
       const cardRect = card.getBoundingClientRect();
       const hostRect = host.getBoundingClientRect();
+      const isNarrowLayout = window.matchMedia && window.matchMedia("(max-width: 920px)").matches;
+      const bulletText = bullet.querySelector(".cvBulletText");
+      const textRect = bulletText ? bulletText.getBoundingClientRect() : null;
+      let lineHeight = 0;
+      try{
+        const styles = window.getComputedStyle(bulletText || bullet);
+        lineHeight = parseFloat(styles.lineHeight) || 0;
+        if(!lineHeight || !isFinite(lineHeight)){
+          const fontSize = parseFloat(styles.fontSize) || 12;
+          lineHeight = fontSize * 1.42;
+        }
+      }catch(_){
+        lineHeight = 0;
+      }
+      const firstLineHeight = Math.max(
+        10,
+        Math.min(
+          lineHeight || bulletRect.height,
+          textRect?.height || bulletRect.height
+        )
+      );
+      const anchorY = textRect
+        ? (textRect.top + (firstLineHeight / 2))
+        : (bulletRect.top + (bulletRect.height / 2));
       const safeTop = 12;
       const safeBottom = 12;
-      const rawTop = bulletRect.top - stageRect.top - 18;
-      const maxTop = Math.max(0, stageRect.height - cardRect.height - safeBottom);
-      const top = Math.max(safeTop, Math.min(rawTop, maxTop));
-      const pointer = Math.max(
-        24,
-        Math.min(cardRect.height - 24, (bulletRect.top - stageRect.top) - top + (bulletRect.height / 2) - 5)
-      );
-      const connector = Math.max(14, Math.round(hostRect.left - bulletRect.right - 6));
+      const anchorStageY = anchorY - stageRect.top;
+      const maxTop = Math.max(safeTop, stageRect.height - cardRect.height - safeBottom);
+      const top = clamp(anchorStageY - 68, safeTop, maxTop);
 
       host.style.setProperty("--kw-inline-offset", `${Math.round(top)}px`);
-      host.style.setProperty("--kw-inline-pointer", `${Math.round(pointer)}px`);
-      host.style.setProperty("--kw-inline-connector", `${connector}px`);
+      card.style.top = isNarrowLayout ? "0px" : `${Math.round(top)}px`;
+
+      if(connector){
+        if(isNarrowLayout){
+          connector.hidden = true;
+        }else{
+          const lineLeft = Math.max(0, Math.round(bulletRect.right - stageRect.left + 6));
+          const lineRight = Math.max(lineLeft + 14, Math.round(hostRect.left - stageRect.left - 12));
+          connector.style.setProperty("--kw-inline-line-left", `${lineLeft}px`);
+          connector.style.setProperty("--kw-inline-line-top", `${Math.round(anchorStageY)}px`);
+          connector.style.setProperty("--kw-inline-line-width", `${Math.max(14, lineRight - lineLeft)}px`);
+          connector.hidden = false;
+        }
+      }
     }
 
     function renderKwInlineUi(){
       const preview = $("cvPreview");
       const host = $("kwInlineHost");
       const stage = $("pageStage");
+      const connector = $("kwInlineConnector");
       if(!preview) return;
 
       preview.classList.remove("keywordPlacementMode", "keywordPlacementPicking");
@@ -7067,6 +7149,7 @@ ${bodyHtml}
         host.hidden = true;
         host.innerHTML = "";
       }
+      if(connector) connector.hidden = true;
       preview.querySelectorAll(".kwInlineCard").forEach(el => el.remove());
       preview.querySelectorAll(".cvBulletItem").forEach(li => {
         li.classList.remove("is-kw-selected", "is-kw-recommended");
@@ -7149,11 +7232,7 @@ ${bodyHtml}
         selectedLi.appendChild(card);
       }
 
-      try{
-        requestAnimationFrame(() => positionKwInlineCard());
-      }catch(_){
-        positionKwInlineCard();
-      }
+      scheduleKwInlinePosition({ immediate:true });
     }
 
     function getKwInlineDraftCacheKey(){
@@ -8720,11 +8799,7 @@ $("startStrengthList")?.addEventListener("click", async (e) => {
         try { localStorage.setItem("jmj_cv_zoom", String(zoom)); } catch(_) {}
       }
       if(isKwInlineOpen()){
-        try{
-          requestAnimationFrame(() => positionKwInlineCard());
-        }catch(_){
-          positionKwInlineCard();
-        }
+        scheduleKwInlinePosition();
       }
     }
 
@@ -8754,11 +8829,7 @@ $("startStrengthList")?.addEventListener("click", async (e) => {
     window.addEventListener("resize", () => {
       if(hadSavedZoom || zoomUserSet){
         if(isKwInlineOpen()){
-          try{
-            requestAnimationFrame(() => positionKwInlineCard());
-          }catch(_){
-            positionKwInlineCard();
-          }
+          scheduleKwInlinePosition();
         }
         return;
       }
@@ -8770,7 +8841,14 @@ $("startStrengthList")?.addEventListener("click", async (e) => {
     $("zoomOut")?.addEventListener("click", () => { zoom = clamp(zoom - 0.1, 0.6, 1.4); applyZoom(); });
     applyZoom();
 
-$("tabPreview")?.addEventListener("click", () => setTabs("preview"));
+    const syncKwInlinePosition = () => {
+      if(!isKwInlineOpen()) return;
+      scheduleKwInlinePosition();
+    };
+    $("cvBox")?.addEventListener("scroll", syncKwInlinePosition, { passive:true });
+    window.addEventListener("scroll", syncKwInlinePosition, { passive:true });
+
+    $("tabPreview")?.addEventListener("click", () => setTabs("preview"));
     $("tabText")?.addEventListener("click", () => setTabs("text"));
     $("tabChanges")?.addEventListener("click", () => setTabs("changes"));
 

@@ -1283,6 +1283,7 @@ body.cvGate.cvGateForm #jobSourceHint{
     .cvSkillLine{ font-size:12.4px; line-height:1.48; margin:2px 0; }
 
     .pageStage{
+      position:relative;
       display:flex;
       justify-content:center;
       align-items:flex-start;
@@ -1304,12 +1305,46 @@ body.cvGate.cvGateForm #jobSourceHint{
       width:min(320px, 100%);
       align-self:start;
       position:relative;
+      z-index:2;
       --kw-inline-offset: 0px;
       --kw-inline-pointer: 30px;
       --kw-inline-connector: 22px;
     }
     .kwInspectorWrap[hidden]{
       display:none !important;
+    }
+    .kwInlineConnector{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      z-index:1;
+      --kw-inline-line-left: 0px;
+      --kw-inline-line-top: 0px;
+      --kw-inline-line-width: 0px;
+    }
+    .kwInlineConnector[hidden]{
+      display:none !important;
+    }
+    .kwInlineConnectorLine{
+      position:absolute;
+      left:var(--kw-inline-line-left);
+      top:var(--kw-inline-line-top);
+      width:var(--kw-inline-line-width);
+      height:2px;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(34,197,94,.24), rgba(34,197,94,.40));
+      transform:translateY(-50%);
+    }
+    .kwInlineConnectorDot{
+      position:absolute;
+      left:calc(var(--kw-inline-line-left) - 9px);
+      top:calc(var(--kw-inline-line-top) - 9px);
+      width:12px;
+      height:12px;
+      border-radius:999px;
+      border:2px solid rgba(34,197,94,.28);
+      background:#fff;
+      box-shadow:0 0 0 4px rgba(34,197,94,.10);
     }
 
     .cvExpBullets{ margin-top:8px; }
@@ -1345,39 +1380,23 @@ body.cvGate.cvGateForm #jobSourceHint{
     }
 
     .kwInlineCard{
-      position:relative;
+      position:absolute;
+      top:0;
+      left:0;
+      right:0;
       border:1px solid rgba(17,19,24,.10);
       border-radius:22px;
       background:rgba(255,255,255,.88);
       backdrop-filter:saturate(180%) blur(18px);
       box-shadow:0 18px 38px rgba(17,19,24,.10);
       padding:14px;
-      transform:translateY(var(--kw-inline-offset));
-      transition:transform .22s ease, box-shadow .18s ease;
+      transition:top .22s ease, box-shadow .18s ease;
     }
     .kwInlineCard::before{
-      content:"";
-      position:absolute;
-      left:calc(-1 * var(--kw-inline-connector));
-      top:var(--kw-inline-pointer);
-      width:var(--kw-inline-connector);
-      height:2px;
-      border-radius:999px;
-      background:linear-gradient(90deg, rgba(34,197,94,.24), rgba(34,197,94,.40));
-      pointer-events:none;
+      content:none;
     }
     .kwInlineCard::after{
-      content:"";
-      position:absolute;
-      left:calc(-1 * var(--kw-inline-connector) - 8px);
-      top:calc(var(--kw-inline-pointer) - 5px);
-      width:10px;
-      height:10px;
-      border-radius:999px;
-      border:2px solid rgba(34,197,94,.28);
-      background:#fff;
-      box-shadow:0 0 0 4px rgba(34,197,94,.10);
-      pointer-events:none;
+      content:none;
     }
     .kwInlineTop{
       display:flex;
@@ -1525,8 +1544,14 @@ body.cvGate.cvGateForm #jobSourceHint{
         margin:0 auto;
         position:static;
       }
+      .kwInlineConnector{
+        display:none !important;
+      }
       .kwInlineCard{
-        transform:none;
+        position:relative;
+        top:auto;
+        left:auto;
+        right:auto;
       }
       .kwInlineCard::before,
       .kwInlineCard::after{
@@ -3290,6 +3315,10 @@ body.fromJobsLink #settingsDetails{
                     <div class="hint">No tailored CV yet.</div>
                   </div>
                 </div>
+              </div>
+              <div class="kwInlineConnector" id="kwInlineConnector" hidden aria-hidden="true">
+                <div class="kwInlineConnectorLine"></div>
+                <div class="kwInlineConnectorDot"></div>
               </div>
               <aside class="kwInspectorWrap" id="kwInlineHost" hidden aria-live="polite"></aside>
             </div>
