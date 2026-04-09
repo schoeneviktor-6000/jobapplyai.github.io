@@ -1583,9 +1583,11 @@ body.cvGate.cvGateForm #jobSourceHint{
       backdrop-filter: blur(10px);
     }
     .stickyRow{ display:flex; gap:10px; flex-wrap:wrap; }
+    #btnToImprove{ margin-left:auto; }
     @media (max-width:620px){
       .stickyRow{ flex-direction:column; }
       .stickyRow .btn{ width:100%; justify-content:center; }
+      #btnToImprove{ margin-left:0; }
       .cvBox{ max-height: 52vh; }
       textarea.cvText{ min-height: 52vh; }
     }
@@ -3376,6 +3378,7 @@ body.fromJobsLink #settingsDetails{
             <button class="btn" id="btnCopy" type="button" disabled>Copy</button>
             <button class="btn" id="btnDownload" type="button" disabled>Download .txt</button>
             <button class="btn" id="btnQa" type="button" disabled>Final check<span class="miniBadgeDot" id="qaDot"></span></button>
+            <button class="btn primary" id="btnToImprove" type="button" disabled hidden>Next: Improve</button>
             <button class="btn primary" id="btnPrint" type="button" disabled>Export PDF</button>
           </div>
         </div>

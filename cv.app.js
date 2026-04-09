@@ -222,6 +222,7 @@ let genStepsState = "idle";
         tabChanges: "Was sich geaendert hat",
         copy: "Kopieren",
         download: "Download .txt",
+        nextImprove: "Weiter: Improve",
         print: "PDF exportieren",
         printBusy: "PDF wird erstellt...",
         printDone: "PDF heruntergeladen.",
@@ -373,6 +374,7 @@ let genStepsState = "idle";
         tabChanges: "What changed",
         copy: "Copy",
         download: "Download .txt",
+        nextImprove: "Next: Improve",
         print: "Export PDF",
         printBusy: "Exporting PDF...",
         printDone: "PDF downloaded.",
@@ -576,6 +578,7 @@ let genStepsState = "idle";
       $("tabChanges").textContent = t("tabChanges");
       $("btnCopy").textContent = t("copy");
       $("btnDownload").textContent = t("download");
+      setText("btnToImprove", t("nextImprove"));
       $("btnPrint").textContent = pdfExportLoading ? t("printBusy") : t("print");
       setText("sectionsTitle", t("sectionsTitle"));
       setText("sectionsHint", t("sectionsHint"));
@@ -2765,6 +2768,7 @@ function markSteps(state){
       $("btnCopy").disabled = !enabled;
       $("btnDownload").disabled = !enabled;
       $("btnQa").disabled = !enabled;
+      $("btnToImprove").disabled = !enabled;
       $("btnPrint").disabled = !enabled;
       $("btnCopyMissing").disabled = !enabled;
       $("btnUndoEdit").disabled = !enabled;
@@ -4317,6 +4321,7 @@ ${bodyHtml}
 
       updateImproveModeAttention();
       updateSettingsSurfaceUi();
+      updateStickyActionsUi();
 
       const usedDetails = $("usedKeywordsDetails");
       const usedCount = Array.isArray(lastUsed) ? lastUsed.length : 0;
@@ -4389,6 +4394,21 @@ ${bodyHtml}
         summary.textContent = showFormatOptions
           ? (uiLang === "de" ? "Formatoptionen" : "Formatting options")
           : (uiLang === "de" ? "Tailoring-Optionen" : "Tailoring options");
+      }
+    }
+
+    function updateStickyActionsUi(){
+      const hasOutput = hasGeneratedOutput();
+      const showNextToImprove = hasOutput && !gateActive && studioMode === "customize";
+      const nextBtn = $("btnToImprove");
+      const printBtn = $("btnPrint");
+
+      if(nextBtn){
+        nextBtn.hidden = !showNextToImprove;
+        nextBtn.disabled = !hasOutput;
+      }
+      if(printBtn){
+        printBtn.hidden = showNextToImprove;
       }
     }
 
@@ -8854,6 +8874,7 @@ $("startStrengthList")?.addEventListener("click", async (e) => {
 
     $("btnCopy").addEventListener("click", () => copyCv());
     $("btnDownload").addEventListener("click", () => onExportClick("download"));
+    $("btnToImprove")?.addEventListener("click", () => setStudioMode("edit"));
     $("btnPrint").addEventListener("click", () => onExportClick("print"));
     $("btnQa").addEventListener("click", () => openQaModal(""));
     $("qaCloseX").addEventListener("click", closeQaModal);
