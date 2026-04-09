@@ -4401,11 +4401,23 @@ ${bodyHtml}
       const hasOutput = hasGeneratedOutput();
       const showNextToImprove = hasOutput && !gateActive && studioMode === "customize";
       const nextBtn = $("btnToImprove");
+      const copyBtn = $("btnCopy");
+      const downloadBtn = $("btnDownload");
+      const qaBtn = $("btnQa");
       const printBtn = $("btnPrint");
 
       if(nextBtn){
         nextBtn.hidden = !showNextToImprove;
         nextBtn.disabled = !hasOutput;
+      }
+      if(copyBtn){
+        copyBtn.hidden = showNextToImprove;
+      }
+      if(downloadBtn){
+        downloadBtn.hidden = showNextToImprove;
+      }
+      if(qaBtn){
+        qaBtn.hidden = showNextToImprove;
       }
       if(printBtn){
         printBtn.hidden = showNextToImprove;
