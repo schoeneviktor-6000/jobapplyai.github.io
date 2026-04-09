@@ -1,5 +1,5 @@
 /* shared.js — JobMeJob multipage helpers (site-wide)
-   Version: 2026-01-27 (v3)
+   Version: 2026-04-10 (v4)
 
    Safe to include on every page.
    Includes:
@@ -15,9 +15,9 @@
   "use strict";
 
   // Avoid double-init
-  if (window.JobMeJobShared && window.JobMeJobShared.__loaded_v3) return;
+  if (window.JobMeJobShared && window.JobMeJobShared.__loaded_v4) return;
 
-  const VERSION = "2026-01-27-v3";
+  const VERSION = "2026-04-10-v4";
 
   const $ = (id) => document.getElementById(id);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -704,6 +704,154 @@ details[data-dd="1"]:not([open]) .navMenu{
     document.head.appendChild(style);
   }
 
+  function ensureExtensionGuideStyles(){
+    if (document.getElementById("jmSharedExtensionGuideStyles")) return;
+    const style = document.createElement("style");
+    style.id = "jmSharedExtensionGuideStyles";
+    style.textContent = `
+.jmExtGuideTag{
+  display:inline-flex;
+  align-items:center;
+  min-height:28px;
+  padding:0 10px;
+  border-radius:999px;
+  border:1px solid rgba(34,197,94,.28);
+  background:rgba(34,197,94,.12);
+  color:#0a4a22;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.02em;
+  text-transform:uppercase;
+}
+.jmExtGuideLead{
+  margin:14px 0 0;
+  color:rgba(17,19,24,.72);
+  line-height:1.55;
+  font-size:14px;
+}
+.jmExtGuideGrid{
+  display:grid;
+  gap:10px;
+  margin-top:16px;
+}
+.jmExtGuideStep{
+  padding:14px;
+  border-radius:16px;
+  border:1px solid rgba(17,19,24,.10);
+  background:rgba(17,19,24,.03);
+}
+.jmExtGuideStep strong{
+  display:block;
+  margin-bottom:4px;
+  font-size:13px;
+  font-weight:950;
+  letter-spacing:-.01em;
+}
+.jmExtGuideStep span{
+  display:block;
+  font-size:13px;
+  line-height:1.5;
+  color:rgba(17,19,24,.68);
+}
+.jmExtGuideNote{
+  margin-top:14px;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid rgba(17,19,24,.10);
+  background:rgba(255,255,255,.92);
+  color:rgba(17,19,24,.72);
+  font-size:13px;
+  line-height:1.5;
+}
+@media (min-width: 720px){
+  .jmExtGuideGrid{
+    grid-template-columns:repeat(3, minmax(0, 1fr));
+  }
+}
+`;
+    document.head.appendChild(style);
+  }
+
+  function ensureExtensionGuideModal(){
+    ensureExtensionGuideStyles();
+    let modal = $("extensionGuideModal");
+    if (modal) return modal;
+
+    modal = document.createElement("div");
+    modal.className = "modalBackdrop";
+    modal.id = "extensionGuideModal";
+    modal.style.display = "none";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("aria-labelledby", "extensionGuideTitle");
+    modal.innerHTML = `
+      <div class="modalCard" style="max-width:720px">
+        <div class="modalHeader">
+          <div style="min-width:0">
+            <div class="modalTitle" id="extensionGuideTitle">Chrome extension</div>
+            <div class="small" style="margin-top:6px">A helper for importing the job page faster, not the main product itself.</div>
+          </div>
+          <button class="btn small" type="button" data-close-modal>Close</button>
+        </div>
+        <div class="modalScroll">
+          <span class="jmExtGuideTag">Support tool</span>
+          <p class="jmExtGuideLead">Use the extension when you find a role on LinkedIn, Greenhouse, Lever, Indeed, Workday, or a company career page. It sends the job into CV Studio, where you still tailor the CV, review keywords, improve ATS coverage, edit the content, and export the PDF.</p>
+
+          <div class="jmExtGuideGrid" aria-label="How the Chrome extension works">
+            <div class="jmExtGuideStep">
+              <strong>1. Open the job post</strong>
+              <span>Go to the job page you want to apply to on the open web.</span>
+            </div>
+            <div class="jmExtGuideStep">
+              <strong>2. Import it with Chrome</strong>
+              <span>Click the extension to pull the title, company, and description into jobmejob.</span>
+            </div>
+            <div class="jmExtGuideStep">
+              <strong>3. Finish inside CV Studio</strong>
+              <span>Tailor the CV, check missing keywords, adjust bullets or sections, and export the final PDF.</span>
+            </div>
+          </div>
+
+          <div class="jmExtGuideNote">Manual paste stays available anytime, so the extension remains a convenience layer on top of the core CV Studio workflow.</div>
+        </div>
+        <div class="modalActions">
+          <a class="btn ghost" href="./cv.html" data-nav="1">Open CV Studio</a>
+          <button class="btn" type="button" data-close-modal>Close</button>
+          <a class="btn primary" data-extension-link data-extension-disabled-label="Get extension updates" data-extension-ready-label="Add to Chrome" href="./cv-studio.html#manual"><span class="btnLabel"><span data-extension-label>Add to Chrome</span></span></a>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    hydrateExtensionLinks(modal);
+    return modal;
+  }
+
+  function openExtensionGuideModal(triggerEl){
+    try{
+      const navDrop = triggerEl && triggerEl.closest
+        ? triggerEl.closest("details.navDrop, details[data-dd='1']")
+        : null;
+      if (navDrop) navDrop.open = false;
+    }catch(_){}
+
+    const modal = ensureExtensionGuideModal();
+    hydrateExtensionLinks(modal);
+    showModal("extensionGuideModal");
+  }
+
+  function wireExtensionGuideTriggers(){
+    if (wireExtensionGuideTriggers.__wired) return;
+    wireExtensionGuideTriggers.__wired = true;
+
+    document.addEventListener("click", (e) => {
+      const trigger = e.target && e.target.closest ? e.target.closest("[data-extension-modal-open]") : null;
+      if (!trigger) return;
+      e.preventDefault();
+      openExtensionGuideModal(trigger);
+    });
+  }
+
   function buildBillingSettingsHref(navAccount){
     try{
       const profileLink = navAccount?.querySelector("a.jmNavItem[href*='profile.html']");
@@ -827,6 +975,35 @@ details[data-dd="1"]:not([open]) .navMenu{
     }
   }
 
+  function ensureAccountExtensionNav(navAccount){
+    const menu = navAccount?.querySelector(".navMenu");
+    if (!menu) return;
+
+    const cvLink = menu.querySelector("a.jmNavItem[href*='cv.html']");
+    const jobsLink = menu.querySelector("a.jmNavItem[href*='jobs.html']");
+    const profileLink = menu.querySelector("a.jmNavItem[href*='profile.html']");
+    let extensionButton = menu.querySelector("[data-jm-nav='chrome-extension']");
+
+    if (!extensionButton){
+      extensionButton = document.createElement("button");
+      extensionButton.type = "button";
+      extensionButton.className = "jmNavItem";
+      extensionButton.setAttribute("role", "menuitem");
+      extensionButton.setAttribute("data-jm-nav", "chrome-extension");
+      extensionButton.setAttribute("data-extension-modal-open", "1");
+      extensionButton.textContent = "Chrome extension";
+
+      const anchor = jobsLink || cvLink || profileLink;
+      if (anchor && anchor.nextSibling){
+        menu.insertBefore(extensionButton, anchor.nextSibling);
+      } else if (profileLink){
+        menu.insertBefore(extensionButton, profileLink);
+      } else {
+        menu.appendChild(extensionButton);
+      }
+    }
+  }
+
   async function hydrateAccountNav(opts = {}){
     ensureAccountNavStyles();
 
@@ -861,7 +1038,10 @@ details[data-dd="1"]:not([open]) .navMenu{
 
     if (!signedIn) return { signedIn:false, session:null, state:null };
 
-    if (navAccount) ensureAccountBillingNav(navAccount);
+    if (navAccount){
+      ensureAccountBillingNav(navAccount);
+      ensureAccountExtensionNav(navAccount);
+    }
 
     const handle = (email.split("@")[0] || "Account").trim();
     const shortHandle = handle.length > 16 ? (handle.slice(0, 16) + "...") : handle;
@@ -936,7 +1116,7 @@ details[data-dd="1"]:not([open]) .navMenu{
 
   // Export shared API (merge with existing)
   const api = {
-    __loaded_v3: true,
+    __loaded_v4: true,
     VERSION,
 
     $,
@@ -953,11 +1133,13 @@ details[data-dd="1"]:not([open]) .navMenu{
     getChromeExtensionUrl,
     getChromeExtensionNotifyUrl,
     hydrateExtensionLinks,
+    openExtensionGuideModal,
 
     go,
     wireNavTransitions,
     wireDetailsDropdowns,
     wireNavDropdowns,
+    wireExtensionGuideTriggers,
     hydrateAccountNav,
 
     showTopError,
@@ -985,6 +1167,7 @@ details[data-dd="1"]:not([open]) .navMenu{
   window.addEventListener("DOMContentLoaded", () => {
     wireNavTransitions();
     wireDetailsDropdowns();
+    wireExtensionGuideTriggers();
     wireModalDismiss();
     hydrateExtensionLinks();
     hydrateAccountNav().catch(() => {});
