@@ -4399,12 +4399,21 @@ ${bodyHtml}
 
     function updateStickyActionsUi(){
       const hasOutput = hasGeneratedOutput();
+      const showFooter = hasOutput && !gateActive && studioMode !== "tailor";
       const showNextToImprove = hasOutput && !gateActive && studioMode === "customize";
+      const stickyActions = document.querySelector(".stickyActions");
       const nextBtn = $("btnToImprove");
       const copyBtn = $("btnCopy");
       const downloadBtn = $("btnDownload");
       const qaBtn = $("btnQa");
       const printBtn = $("btnPrint");
+
+      if(stickyActions){
+        stickyActions.hidden = !showFooter;
+      }
+      if(!showFooter){
+        return;
+      }
 
       if(nextBtn){
         nextBtn.hidden = !showNextToImprove;
