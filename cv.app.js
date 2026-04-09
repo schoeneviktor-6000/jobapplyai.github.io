@@ -4293,6 +4293,7 @@ ${bodyHtml}
 
     function updateStudioFlowUi(){
       const hasOutput = hasGeneratedOutput();
+      const hasStructuredOutput = !!lastCvDoc;
       const showPostGenerateStages = hasOutput && !gateActive;
       if(studioRoot) studioRoot.classList.toggle("fullTailorMode", showPostGenerateStages && studioMode !== "customize");
       const modeTailor = $("modeTailor");
@@ -4303,7 +4304,11 @@ ${bodyHtml}
         modeTailor.style.display = showPostGenerateStages ? "none" : "";
         modeTailor.disabled = showPostGenerateStages;
       }
-      [modeCustomize, modeEdit, modeReview].forEach((btn) => {
+      if(modeCustomize){
+        modeCustomize.style.display = (showPostGenerateStages && hasStructuredOutput) ? "" : "none";
+        modeCustomize.disabled = !showPostGenerateStages || !hasStructuredOutput;
+      }
+      [modeEdit, modeReview].forEach((btn) => {
         if(!btn) return;
         btn.style.display = showPostGenerateStages ? "" : "none";
         btn.disabled = !showPostGenerateStages;
@@ -4314,8 +4319,13 @@ ${bodyHtml}
         return;
       }
 
+      if(showPostGenerateStages && studioMode === "customize" && !hasStructuredOutput){
+        setStudioMode("edit");
+        return;
+      }
+
       if(showPostGenerateStages && studioMode === "tailor"){
-        setStudioMode(isKwInlineOpen() ? "edit" : "customize");
+        setStudioMode((isKwInlineOpen() || !hasStructuredOutput) ? "edit" : "customize");
         return;
       }
 
@@ -4400,37 +4410,33 @@ ${bodyHtml}
     function updateStickyActionsUi(){
       const hasOutput = hasGeneratedOutput();
       const showFooter = hasOutput && !gateActive && studioMode !== "tailor";
-      const showNextToImprove = hasOutput && !gateActive && studioMode === "customize";
+      const isContentMode = hasOutput && !gateActive && studioMode === "customize";
+      const isImproveMode = hasOutput && !gateActive && studioMode === "edit";
+      const isReviewMode = hasOutput && !gateActive && studioMode === "review";
+      const showExportActions = isImproveMode || isReviewMode;
       const stickyActions = document.querySelector(".stickyActions");
-      const nextBtn = $("btnToImprove");
-      const copyBtn = $("btnCopy");
-      const downloadBtn = $("btnDownload");
-      const qaBtn = $("btnQa");
-      const printBtn = $("btnPrint");
+
+      const syncActionBtn = (id, { show=false, enabled=false } = {}) => {
+        const btn = $(id);
+        if(!btn) return;
+        btn.hidden = !show;
+        btn.style.display = show ? "" : "none";
+        btn.disabled = !show || !enabled;
+      };
 
       if(stickyActions){
         stickyActions.hidden = !showFooter;
+        stickyActions.style.display = showFooter ? "" : "none";
       }
       if(!showFooter){
         return;
       }
 
-      if(nextBtn){
-        nextBtn.hidden = !showNextToImprove;
-        nextBtn.disabled = !hasOutput;
-      }
-      if(copyBtn){
-        copyBtn.hidden = showNextToImprove;
-      }
-      if(downloadBtn){
-        downloadBtn.hidden = showNextToImprove;
-      }
-      if(qaBtn){
-        qaBtn.hidden = showNextToImprove;
-      }
-      if(printBtn){
-        printBtn.hidden = showNextToImprove;
-      }
+      syncActionBtn("btnToImprove", { show:isContentMode, enabled:hasOutput });
+      syncActionBtn("btnCopy", { show:showExportActions, enabled:hasOutput });
+      syncActionBtn("btnDownload", { show:showExportActions, enabled:hasOutput });
+      syncActionBtn("btnQa", { show:isImproveMode, enabled:hasOutput });
+      syncActionBtn("btnPrint", { show:showExportActions, enabled:hasOutput });
     }
 
     function setStudioMode(mode, opts = {}){
@@ -5193,9 +5199,20 @@ ${bodyHtml}
     function renderCvPreviewFromDoc(doc = lastCvDoc, lang = lastLang){
       const preview = $("cvPreview");
       if(!preview) return;
+      const fallbackText = String($("cvText")?.value || lastCvText || "").trim();
 
       if(doc){
         preview.innerHTML = cvDocToPreviewHtml(doc, lang);
+      }else if(fallbackText){
+        const fallbackNote = uiLang==="de"
+          ? "Strukturierte Preview gerade nicht verfügbar. Wir zeigen deinen CV als Textvorschau."
+          : "Structured preview is unavailable right now. Showing your CV as a text preview instead.";
+        preview.innerHTML = `
+          <div class="cvTextFallback">
+            <div class="cvTextFallbackNote">${H.escapeHtml(fallbackNote)}</div>
+            <pre class="cvTextFallbackPre">${H.escapeHtml(fallbackText)}</pre>
+          </div>
+        `;
       }else{
         preview.innerHTML = `<div class="hint">${uiLang==="de" ? "Keine strukturierte Preview verfügbar. Zeige Text." : "No structured preview available. Showing text only."}</div>`;
       }
@@ -7131,29 +7148,9 @@ ${bodyHtml}
       const cardRect = card.getBoundingClientRect();
       const hostRect = host.getBoundingClientRect();
       const isNarrowLayout = window.matchMedia && window.matchMedia("(max-width: 920px)").matches;
-      const bulletText = bullet.querySelector(".cvBulletText");
-      const textRect = bulletText ? bulletText.getBoundingClientRect() : null;
-      let lineHeight = 0;
-      try{
-        const styles = window.getComputedStyle(bulletText || bullet);
-        lineHeight = parseFloat(styles.lineHeight) || 0;
-        if(!lineHeight || !isFinite(lineHeight)){
-          const fontSize = parseFloat(styles.fontSize) || 12;
-          lineHeight = fontSize * 1.42;
-        }
-      }catch(_){
-        lineHeight = 0;
-      }
-      const firstLineHeight = Math.max(
-        10,
-        Math.min(
-          lineHeight || bulletRect.height,
-          textRect?.height || bulletRect.height
-        )
-      );
-      const anchorY = textRect
-        ? (textRect.top + (firstLineHeight / 2))
-        : (bulletRect.top + (bulletRect.height / 2));
+      // Anchor the connector to the selected bullet row itself so the callout
+      // keeps pointing to the highlighted bullet even when the text wraps.
+      const anchorY = bulletRect.top + (bulletRect.height / 2);
       const safeTop = 12;
       const safeBottom = 12;
       const anchorStageY = anchorY - stageRect.top;
