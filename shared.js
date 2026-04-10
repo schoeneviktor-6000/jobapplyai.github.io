@@ -331,14 +331,20 @@
   }
 
   function hydrateExtensionLinks(root = document){
-    const extensionUrl = getChromeExtensionUrl();
+    const configuredExtensionUrl = getChromeExtensionUrl();
     const notifyUrl = getChromeExtensionNotifyUrl();
     const targets = $$("[data-extension-link]", root);
-    if(!targets.length) return { ready: !!extensionUrl, url: extensionUrl };
+    if(!targets.length) return { ready: !!configuredExtensionUrl, url: configuredExtensionUrl };
+
+    let resolvedGlobalUrl = configuredExtensionUrl;
 
     targets.forEach((el) => {
-      const fallback = String(el.getAttribute("data-extension-fallback") || notifyUrl || "./cv-studio.html#manual").trim();
       const isAnchor = String(el.tagName || "").toLowerCase() === "a";
+      const inlineHref = isAnchor ? String(el.getAttribute("href") || "").trim() : "";
+      const inlineExtensionUrl = /chromewebstore\.google\.com\/detail\//i.test(inlineHref) ? inlineHref : "";
+      const extensionUrl = configuredExtensionUrl || inlineExtensionUrl;
+      if (!resolvedGlobalUrl && extensionUrl) resolvedGlobalUrl = extensionUrl;
+      const fallback = String(el.getAttribute("data-extension-fallback") || notifyUrl || "./cv-studio.html#manual").trim();
       const labelEl = el.querySelector("[data-extension-label]");
       const readyLabel = String(el.getAttribute("data-extension-ready-label") || "").trim();
       const disabledLabel = String(el.getAttribute("data-extension-disabled-label") || "").trim();
@@ -369,10 +375,10 @@
     });
 
     $$("[data-extension-copy='url']", root).forEach((el) => {
-      el.textContent = extensionUrl || "Chrome Web Store";
+      el.textContent = resolvedGlobalUrl || "Chrome Web Store";
     });
 
-    return { ready: !!extensionUrl, url: extensionUrl, notifyUrl };
+    return { ready: !!resolvedGlobalUrl, url: resolvedGlobalUrl, notifyUrl };
   }
 
   function safeParseJson(raw){
@@ -723,49 +729,283 @@ details[data-dd="1"]:not([open]) .navMenu{
   letter-spacing:.02em;
   text-transform:uppercase;
 }
-.jmExtGuideLead{
+.jmExtGuideHeader{
+  align-items:center;
+}
+.jmExtGuideTitleWrap{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+.jmExtGuideChromeBadge{
+  flex:0 0 auto;
+  width:48px;
+  height:48px;
+  border-radius:16px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid rgba(17,19,24,.08);
+  background:linear-gradient(160deg, rgba(255,255,255,.98), rgba(17,19,24,.05));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.78);
+}
+.jmExtGuideChromeBadge svg{
+  width:30px;
+  height:30px;
+  display:block;
+}
+.jmExtGuideSub{
+  margin-top:6px;
+  color:rgba(17,19,24,.68);
+  line-height:1.45;
+  max-width:42ch;
+}
+.jmExtGuideBody{
+  padding:16px 14px 18px;
+}
+.jmExtGuideHero{
+  display:grid;
+  gap:12px;
+  align-items:stretch;
+}
+.jmExtGuideIntro,
+.jmExtGuideMiniCard{
+  padding:16px;
+  border-radius:20px;
+  border:1px solid rgba(17,19,24,.08);
+}
+.jmExtGuideIntro{
+  background:linear-gradient(145deg, rgba(17,19,24,.04), rgba(255,255,255,.96));
+}
+.jmExtGuideHeadline{
   margin:14px 0 0;
+  font-size:24px;
+  line-height:1.08;
+  font-weight:950;
+  letter-spacing:-.03em;
+  color:#111318;
+}
+.jmExtGuideBoards{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:16px;
+}
+.jmExtGuideBoard{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 11px;
+  border-radius:999px;
+  border:1px solid rgba(17,19,24,.08);
+  background:rgba(255,255,255,.92);
+  color:rgba(17,19,24,.74);
+  font-size:12px;
+  font-weight:850;
+}
+.jmExtGuideBoardDot{
+  width:7px;
+  height:7px;
+  border-radius:999px;
+  background:linear-gradient(135deg, #4285f4, #34a853);
+}
+.jmExtGuideMiniCard{
+  background:linear-gradient(145deg, rgba(226,247,232,.92), rgba(255,255,255,.98));
+  border-color:rgba(34,197,94,.18);
+}
+.jmExtGuideMiniEyebrow{
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:#0d5a2b;
+}
+.jmExtGuideMiniChips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:12px;
+}
+.jmExtGuideMiniChip{
+  display:inline-flex;
+  align-items:center;
+  padding:8px 10px;
+  border-radius:12px;
+  border:1px solid rgba(17,19,24,.08);
+  background:rgba(255,255,255,.92);
+  color:rgba(17,19,24,.8);
+  font-size:12px;
+  font-weight:850;
+}
+.jmExtGuideMiniMeta{
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  margin-top:12px;
   color:rgba(17,19,24,.72);
-  line-height:1.55;
-  font-size:14px;
+  font-size:12px;
+  line-height:1.45;
+}
+.jmExtGuideMiniMetaIco,
+.jmExtGuideBenefitIco,
+.jmExtGuideNoteIco,
+.jmExtGuideStepIco{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+}
+.jmExtGuideMiniMetaIco{
+  width:20px;
+  height:20px;
+  border-radius:8px;
+  background:rgba(34,197,94,.16);
+  color:#0a5a2a;
+}
+.jmExtGuideMiniMetaIco svg,
+.jmExtGuideBenefitIco svg,
+.jmExtGuideNoteIco svg,
+.jmExtGuideStepIco svg,
+.jmExtGuideActionIco svg{
+  width:100%;
+  height:100%;
+  display:block;
 }
 .jmExtGuideGrid{
   display:grid;
   gap:10px;
-  margin-top:16px;
+  margin-top:14px;
 }
 .jmExtGuideStep{
-  padding:14px;
-  border-radius:16px;
+  padding:15px;
+  border-radius:18px;
   border:1px solid rgba(17,19,24,.10);
-  background:rgba(17,19,24,.03);
+  background:linear-gradient(155deg, rgba(17,19,24,.04), rgba(255,255,255,.96));
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.jmExtGuideStepTop{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.jmExtGuideStepIco{
+  width:38px;
+  height:38px;
+  border-radius:12px;
+  background:rgba(255,255,255,.92);
+  border:1px solid rgba(17,19,24,.08);
+  color:#111318;
+}
+.jmExtGuideStepNo{
+  color:rgba(17,19,24,.5);
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
 }
 .jmExtGuideStep strong{
   display:block;
-  margin-bottom:4px;
-  font-size:13px;
+  font-size:15px;
   font-weight:950;
-  letter-spacing:-.01em;
+  letter-spacing:-.02em;
 }
-.jmExtGuideStep span{
-  display:block;
+.jmExtGuideStep p{
+  margin:0;
   font-size:13px;
-  line-height:1.5;
+  line-height:1.45;
   color:rgba(17,19,24,.68);
+}
+.jmExtGuideBenefits{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:14px;
+}
+.jmExtGuideBenefit{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:9px 12px;
+  border-radius:999px;
+  border:1px solid rgba(17,19,24,.08);
+  background:rgba(17,19,24,.04);
+  color:rgba(17,19,24,.82);
+  font-size:12px;
+  font-weight:850;
+}
+.jmExtGuideBenefitIco{
+  width:18px;
+  height:18px;
+  color:#0f6b32;
 }
 .jmExtGuideNote{
   margin-top:14px;
-  padding:12px 14px;
-  border-radius:14px;
+  padding:14px;
+  border-radius:16px;
   border:1px solid rgba(17,19,24,.10);
-  background:rgba(255,255,255,.92);
+  background:linear-gradient(145deg, rgba(255,255,255,.98), rgba(17,19,24,.03));
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:12px;
+  align-items:flex-start;
+}
+.jmExtGuideNoteIco{
+  width:36px;
+  height:36px;
+  border-radius:12px;
+  background:rgba(17,19,24,.05);
+  color:#111318;
+}
+.jmExtGuideNote strong{
+  display:block;
+  font-size:13px;
+  font-weight:900;
+  color:#111318;
+}
+.jmExtGuideNote span{
+  display:block;
+  margin-top:4px;
   color:rgba(17,19,24,.72);
   font-size:13px;
   line-height:1.5;
 }
+.jmExtGuideActionIco{
+  width:18px;
+  height:18px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+}
 @media (min-width: 720px){
+  .jmExtGuideHero{
+    grid-template-columns:minmax(0, 1.35fr) minmax(260px, .95fr);
+  }
   .jmExtGuideGrid{
     grid-template-columns:repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px){
+  .jmExtGuideHeader{
+    align-items:flex-start;
+  }
+  .jmExtGuideTitleWrap{
+    align-items:flex-start;
+  }
+  .jmExtGuideChromeBadge{
+    width:42px;
+    height:42px;
+    border-radius:14px;
+  }
+  .jmExtGuideHeadline{
+    font-size:21px;
+  }
+  .jmExtGuideNote{
+    grid-template-columns:1fr;
   }
 }
 `;
@@ -784,40 +1024,139 @@ details[data-dd="1"]:not([open]) .navMenu{
     modal.setAttribute("role", "dialog");
     modal.setAttribute("aria-modal", "true");
     modal.setAttribute("aria-labelledby", "extensionGuideTitle");
+    const chromeIcon = `
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M12 12h9.35A9.47 9.47 0 0 0 7.43 3.77Z" fill="#EA4335"></path>
+        <path d="M12 12 7.43 3.77A9.48 9.48 0 0 0 2.53 12c0 1.29.26 2.52.73 3.64Z" fill="#FBBC05"></path>
+        <path d="M12 12 3.26 15.64A9.48 9.48 0 0 0 21.35 12Z" fill="#34A853"></path>
+        <circle cx="12" cy="12" r="4.15" fill="#4285F4"></circle>
+        <circle cx="12" cy="12" r="1.95" fill="#DCE7FF"></circle>
+      </svg>
+    `;
+    const browserIcon = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="4" y="5" width="16" height="14" rx="3"></rect>
+        <path d="M4 9h16"></path>
+        <path d="M8 7h.01"></path>
+        <path d="M11 7h.01"></path>
+      </svg>
+    `;
+    const studioIcon = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M14 3H8a2 2 0 0 0-2 2v14l4-2 4 2 4-2V7Z"></path>
+        <path d="M9 9h6"></path>
+        <path d="M9 13h5"></path>
+      </svg>
+    `;
+    const checkIcon = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M20 6 9 17l-5-5"></path>
+      </svg>
+    `;
+    const pasteIcon = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M9 4h6"></path>
+        <path d="M9 2h6v4H9z"></path>
+        <rect x="5" y="5" width="14" height="17" rx="2"></rect>
+        <path d="M8.5 11h7"></path>
+        <path d="M8.5 15h5"></path>
+      </svg>
+    `;
+    const openIcon = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M14 5h5v5"></path>
+        <path d="M10 14 19 5"></path>
+        <path d="M19 13v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4"></path>
+      </svg>
+    `;
     modal.innerHTML = `
-      <div class="modalCard" style="max-width:720px">
-        <div class="modalHeader">
+      <div class="modalCard" style="max-width:760px">
+        <div class="modalHeader jmExtGuideHeader">
           <div style="min-width:0">
-            <div class="modalTitle" id="extensionGuideTitle">Chrome extension</div>
-            <div class="small" style="margin-top:6px">A helper for importing the job page faster, not the main product itself.</div>
+            <div class="jmExtGuideTitleWrap">
+              <span class="jmExtGuideChromeBadge" aria-hidden="true">${chromeIcon}</span>
+              <div style="min-width:0">
+                <div class="modalTitle" id="extensionGuideTitle">Chrome extension</div>
+                <div class="small jmExtGuideSub">Import the job post fast. The real tailoring still happens in CV Studio.</div>
+              </div>
+            </div>
           </div>
           <button class="btn small" type="button" data-close-modal>Close</button>
         </div>
-        <div class="modalScroll">
-          <span class="jmExtGuideTag">Support tool</span>
-          <p class="jmExtGuideLead">Use the extension when you find a role on LinkedIn, Greenhouse, Lever, Indeed, Workday, or a company career page. It sends the job into CV Studio, where you still tailor the CV, review keywords, improve ATS coverage, edit the content, and export the PDF.</p>
+        <div class="modalScroll jmExtGuideBody">
+          <div class="jmExtGuideHero">
+            <div class="jmExtGuideIntro">
+              <span class="jmExtGuideTag">Support tool</span>
+              <div class="jmExtGuideHeadline">From job page to CV Studio in one click</div>
+              <div class="jmExtGuideBoards" aria-label="Supported job sites">
+                <span class="jmExtGuideBoard"><span class="jmExtGuideBoardDot" aria-hidden="true"></span>LinkedIn</span>
+                <span class="jmExtGuideBoard"><span class="jmExtGuideBoardDot" aria-hidden="true"></span>Greenhouse</span>
+                <span class="jmExtGuideBoard"><span class="jmExtGuideBoardDot" aria-hidden="true"></span>Lever</span>
+                <span class="jmExtGuideBoard"><span class="jmExtGuideBoardDot" aria-hidden="true"></span>Indeed</span>
+                <span class="jmExtGuideBoard"><span class="jmExtGuideBoardDot" aria-hidden="true"></span>Workday</span>
+                <span class="jmExtGuideBoard"><span class="jmExtGuideBoardDot" aria-hidden="true"></span>Career page</span>
+              </div>
+            </div>
 
-          <div class="jmExtGuideGrid" aria-label="How the Chrome extension works">
-            <div class="jmExtGuideStep">
-              <strong>1. Open the job post</strong>
-              <span>Go to the job page you want to apply to on the open web.</span>
-            </div>
-            <div class="jmExtGuideStep">
-              <strong>2. Import it with Chrome</strong>
-              <span>Click the extension to pull the title, company, and description into jobmejob.</span>
-            </div>
-            <div class="jmExtGuideStep">
-              <strong>3. Finish inside CV Studio</strong>
-              <span>Tailor the CV, check missing keywords, adjust bullets or sections, and export the final PDF.</span>
+            <div class="jmExtGuideMiniCard">
+              <div class="jmExtGuideMiniEyebrow">What gets imported</div>
+              <div class="jmExtGuideMiniChips" aria-label="Imported job fields">
+                <span class="jmExtGuideMiniChip">Job title</span>
+                <span class="jmExtGuideMiniChip">Company</span>
+                <span class="jmExtGuideMiniChip">Description</span>
+              </div>
+              <div class="jmExtGuideMiniMeta">
+                <span class="jmExtGuideMiniMetaIco" aria-hidden="true">${checkIcon}</span>
+                <span>Same jobmejob account. No extra side-panel login.</span>
+              </div>
             </div>
           </div>
 
-          <div class="jmExtGuideNote">Manual paste stays available anytime, so the extension remains a convenience layer on top of the core CV Studio workflow.</div>
+          <div class="jmExtGuideGrid" aria-label="How the Chrome extension works">
+            <div class="jmExtGuideStep">
+              <div class="jmExtGuideStepTop">
+                <span class="jmExtGuideStepIco" aria-hidden="true">${browserIcon}</span>
+                <span class="jmExtGuideStepNo">Step 1</span>
+              </div>
+              <strong>Open the role page</strong>
+              <p>Find the job post in Chrome and keep the original page open.</p>
+            </div>
+            <div class="jmExtGuideStep">
+              <div class="jmExtGuideStepTop">
+                <span class="jmExtGuideStepIco" aria-hidden="true">${chromeIcon}</span>
+                <span class="jmExtGuideStepNo">Step 2</span>
+              </div>
+              <strong>Capture with the extension</strong>
+              <p>Click once to pull the title, company, and description into jobmejob.</p>
+            </div>
+            <div class="jmExtGuideStep">
+              <div class="jmExtGuideStepTop">
+                <span class="jmExtGuideStepIco" aria-hidden="true">${studioIcon}</span>
+                <span class="jmExtGuideStepNo">Step 3</span>
+              </div>
+              <strong>Finish inside CV Studio</strong>
+              <p>Tailor, review ATS gaps, edit the draft, and export the PDF.</p>
+            </div>
+          </div>
+
+          <div class="jmExtGuideBenefits" aria-label="What you can do in CV Studio">
+            <span class="jmExtGuideBenefit"><span class="jmExtGuideBenefitIco" aria-hidden="true">${checkIcon}</span>ATS gaps</span>
+            <span class="jmExtGuideBenefit"><span class="jmExtGuideBenefitIco" aria-hidden="true">${checkIcon}</span>Edit content</span>
+            <span class="jmExtGuideBenefit"><span class="jmExtGuideBenefitIco" aria-hidden="true">${checkIcon}</span>PDF export</span>
+          </div>
+
+          <div class="jmExtGuideNote">
+            <span class="jmExtGuideNoteIco" aria-hidden="true">${pasteIcon}</span>
+            <div>
+              <strong>Manual paste still works.</strong>
+              <span>If a page is blocked or messy, paste the job description into CV Studio and keep moving.</span>
+            </div>
+          </div>
         </div>
         <div class="modalActions">
-          <a class="btn ghost" href="./cv.html" data-nav="1">Open CV Studio</a>
+          <a class="btn ghost" href="./cv.html" data-nav="1"><span class="btnLabel"><span class="jmExtGuideActionIco" aria-hidden="true">${openIcon}</span>Open CV Studio</span></a>
           <button class="btn" type="button" data-close-modal>Close</button>
-          <a class="btn primary" data-extension-link data-extension-disabled-label="Get extension updates" data-extension-ready-label="Add to Chrome" href="./cv-studio.html#manual"><span class="btnLabel"><span data-extension-label>Add to Chrome</span></span></a>
+          <a class="btn primary" data-extension-link data-extension-disabled-label="Add to Chrome" data-extension-ready-label="Add to Chrome" href="https://chromewebstore.google.com/detail/jibmnlonajhoaanhoblhiciddggiohba?utm_source=item-share-cb"><span class="btnLabel"><span class="jmExtGuideActionIco" aria-hidden="true">${chromeIcon}</span><span data-extension-label>Add to Chrome</span></span></a>
         </div>
       </div>
     `;
