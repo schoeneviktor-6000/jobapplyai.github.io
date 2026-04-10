@@ -365,13 +365,6 @@ margin:0 0 12px;
 color:var(--muted);
 font-size:14px;
 }
-.heroCardTop{
-display:flex;
-align-items:center;
-gap:10px;
-flex-wrap:wrap;
-margin-bottom:10px;
-}
 .miniList{
 margin:0;
 padding:0;
@@ -413,90 +406,12 @@ color:#0a3a1c;
 .miniIcon svg{width:18px;height:18px}
 .miniText strong{display:block;font-size:13px;font-weight:950;margin-bottom:2px}
 .miniText span{display:block;font-size:13px;color:var(--muted2)}
-.heroBoardChips{
-display:flex;
-flex-wrap:wrap;
-gap:8px;
-margin-top:14px;
-}
-.heroBoardChip{
-display:inline-flex;
-align-items:center;
-justify-content:center;
-padding:8px 12px;
-border-radius:999px;
-background:rgba(255,255,255,.92);
-border:1px solid rgba(0,166,63,.18);
-color:var(--ink2);
-font-size:12px;
-font-weight:950;
-white-space:nowrap;
-}
 .heroCardActions{
 display:flex;
 gap:10px;
 flex-wrap:wrap;
 margin-top:14px;
 }
-.heroStatus{
-margin-top:18px;
-padding:14px 16px;
-border-radius:20px;
-border:1px solid rgba(215,218,220,.95);
-background:linear-gradient(180deg, rgba(255,255,255,.96), rgba(246,247,248,.90));
-box-shadow:0 10px 22px rgba(0,0,0,.05);
-display:grid;
-gap:10px;
-}
-.heroStatusTop{
-display:flex;
-align-items:center;
-gap:10px;
-flex-wrap:wrap;
-}
-.heroStatusPill{
-display:inline-flex;
-align-items:center;
-padding:8px 12px;
-border-radius:999px;
-background:#e9f7ee;
-border:1px solid rgba(0,166,63,.28);
-color:#0a3a1c;
-font-size:12px;
-font-weight:1000;
-letter-spacing:.04em;
-text-transform:uppercase;
-}
-.heroStatusMeta{
-font-size:13px;
-font-weight:900;
-color:var(--muted2);
-}
-.heroStatusCopy{
-margin:0;
-color:var(--muted);
-font-size:14px;
-line-height:1.55;
-max-width:60ch;
-}
-.heroStatusLinks{
-display:flex;
-align-items:center;
-gap:10px;
-flex-wrap:wrap;
-}
-.heroStatusLink{
-display:inline-flex;
-align-items:center;
-gap:8px;
-font-size:13px;
-font-weight:950;
-color:var(--ink2);
-}
-.heroStatusLink.lime{
-color:#0a3a1c;
-}
-
 .soonFlagWrap{
 position:relative;
 padding-top:18px;
@@ -2700,12 +2615,12 @@ color:var(--text);
 <div class="container">
 <div class="heroGrid">
 <div>
-<div class="eyebrow"><span class="badgeDot" aria-hidden="true"></span>For any job you find online</div>
-<h1>Turn any job post into an ATS-ready CV you can actually send.</h1>
-<p class="subtitle">Import a role from LinkedIn, Greenhouse, Lever, Indeed, Workday, or paste any job description manually. jobmejob tailors your CV to the job requirements, highlights missing keywords, keeps the formatting ATS-safe, and gives you an export-ready PDF you can still refine before sending.</p>
+<div class="eyebrow"><span class="badgeDot" aria-hidden="true"></span>For any job post online</div>
+<h1>Build a tailored, ATS-ready CV from any job post.</h1>
+<p class="subtitle">Use the job requirements to shape a stronger CV around your real experience. See what is missing, edit the draft yourself, and export a clean version you can send.</p>
 
 <div class="hero-actions">
-<a class="btn primary" href="signup.html?entry=cv-studio">
+<a class="btn lime" href="signup.html?entry=cv-studio">
 <span class="btnLabel">
 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
 <path d="M12 5v14"></path><path d="M5 12h14"></path>
@@ -2724,33 +2639,17 @@ color:var(--text);
 </div>
 
 <div class="proofLine" aria-label="Key points">
-<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Any job online</span>
+<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Any job post online</span>
 <span class="proofDot" aria-hidden="true"></span>
 <span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Missing keywords highlighted</span>
 <span class="proofDot" aria-hidden="true"></span>
-<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Editable before export</span>
-</div>
-
-<div class="heroStatus" aria-label="Current availability">
-<div class="heroStatusTop">
-<span class="heroStatusPill">Import any online job</span>
-<span class="heroStatusMeta">Extension or manual paste</span>
-</div>
-<p class="heroStatusCopy">The extension is only the fastest import path. The real value is inside CV Studio: requirement-aware tailoring, ATS-safe structure, missing keyword guidance, manual control over bullets, experience, skills, and profile, plus export-ready PDF output when you are ready to apply.</p>
-<div class="heroStatusLinks">
-<a class="heroStatusLink lime" data-extension-link data-extension-disabled-label="Add to Chrome" data-extension-ready-label="Add to Chrome" href="https://chromewebstore.google.com/detail/jibmnlonajhoaanhoblhiciddggiohba?utm_source=item-share-cb"><span data-extension-label>Add to Chrome</span></a>
-<a class="heroStatusLink" href="cv-studio.html#manual">Use manual paste anytime</a>
-</div>
+<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>ATS-safe and editable</span>
 </div>
 </div>
 
 <aside class="heroCard" aria-label="Product value snapshot">
-<div class="heroCardTop">
-<span class="heroStatusPill">High-end tailoring</span>
-<span class="heroStatusMeta">Quality + control</span>
-</div>
 <h3>What users actually get</h3>
-<p>Not generic CV rewriting. One job post becomes a tailored document you can inspect, refine, and export with confidence.</p>
+<p>This is not generic CV rewriting. One job post becomes one tailored CV you can review, edit, and export while staying true to your experience.</p>
 <ul class="miniList">
 <li class="miniItem">
 <div class="miniIcon lime" aria-hidden="true">
@@ -2758,7 +2657,7 @@ color:var(--text);
 <path d="M21 21l-4.3-4.3"></path><circle cx="11" cy="11" r="7"></circle>
 </svg>
 </div>
-<div class="miniText"><strong>Tailoring around the real job requirements</strong><span>We adapt the summary, profile, skills, and experience toward the target role instead of giving you a generic rewrite.</span></div>
+<div class="miniText"><strong>Tailored to the real job requirements</strong><span>The draft follows the role, not a generic template. Your summary, skills, and experience are adjusted toward the job while staying true to your background.</span></div>
 </li>
 <li class="miniItem">
 <div class="miniIcon" aria-hidden="true">
@@ -2766,7 +2665,7 @@ color:var(--text);
 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path>
 </svg>
 </div>
-<div class="miniText"><strong>Missing keyword guidance you can use</strong><span>See which important terms are already covered, which are still missing, and only add the ones that are true for your background.</span></div>
+<div class="miniText"><strong>Clear keyword guidance</strong><span>See what is already covered and what is still missing. Add only the terms that are accurate for your experience.</span></div>
 </li>
 <li class="miniItem">
 <div class="miniIcon lime" aria-hidden="true">
@@ -2774,25 +2673,9 @@ color:var(--text);
 <path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"></path><path d="M21 8l-9 6-9-6"></path>
 </svg>
 </div>
-<div class="miniText"><strong>ATS-safe formatting with manual control</strong><span>Keep the structure readable for ATS systems, then adjust bullets, experience, skills, or profile before you export.</span></div>
-</li>
-<li class="miniItem">
-<div class="miniIcon" aria-hidden="true">
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-<path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path>
-</svg>
-</div>
-<div class="miniText"><strong>Export-ready PDF output</strong><span>Once the draft looks right, run the final check and export a clean CV you can actually send.</span></div>
+<div class="miniText"><strong>ATS-safe formatting, ready to export</strong><span>Keep the structure readable for ATS systems. Make final edits yourself, then export a clean CV you can actually send.</span></div>
 </li>
 </ul>
-<div class="heroBoardChips" aria-label="Supported job boards">
-<span class="heroBoardChip">LinkedIn</span>
-<span class="heroBoardChip">Greenhouse</span>
-<span class="heroBoardChip">Lever</span>
-<span class="heroBoardChip">Indeed</span>
-<span class="heroBoardChip">Workday</span>
-<span class="heroBoardChip">Career pages</span>
-</div>
 <div class="heroCardActions">
 <a class="btn small" data-extension-link data-extension-disabled-label="Add to Chrome" data-extension-ready-label="Add to Chrome" href="https://chromewebstore.google.com/detail/jibmnlonajhoaanhoblhiciddggiohba?utm_source=item-share-cb"><span class="btnLabel"><span data-extension-label>Add to Chrome</span></span></a>
 <a class="btn small" href="cv-studio.html"><span class="btnLabel">CV Studio</span></a>
@@ -3565,6 +3448,6 @@ Last 7 days
 </footer>
 <script src="./vendor/supabase-js-2.100.1.js"></script>
 <script src="./auth.js?v=202604101215"></script>
-<script src="./shared.js?v=202604101215"></script>
+<script src="./shared.js?v=202604100252"></script>
 </body>
 </html>
