@@ -174,7 +174,7 @@ let genStepsState = "idle";
        ------------------------- */
     const I18N = {
       de: {
-        subTitle: "Fuege einen Job ein oder waehle ihn aus Jobs. Wir passen deinen CV an, zeigen ATS-Luecken und bringen dich schnell zum Export.",
+        subTitle: "Importiere einen Job mit der Chrome-Erweiterung oder fuege ihn manuell ein. Wir passen deinen CV an, zeigen ATS-Luecken und bringen dich schnell zum Export.",
         setupTitle: "Setup",
         jobToTailorLbl: "Job auswählen",
         openJobsBtn: "Jobs öffnen",
@@ -310,7 +310,7 @@ let genStepsState = "idle";
         copied: "Kopiert ✓"
       },
       en: {
-        subTitle: "Paste a job or pick one from Jobs. We tailor your CV, show the ATS gaps, and get you ready to send.",
+        subTitle: "Import a job with the Chrome extension or paste it manually. We tailor your CV, show the ATS gaps, and get you ready to send.",
         setupTitle: "Setup",
         jobSourceLbl: "Job source",
         sourceJobs: "From my Jobs",
@@ -486,15 +486,15 @@ let genStepsState = "idle";
       // Step 1 chooser cards (Gate)
       try{
         if(uiLang==="de"){
-          $("gatePickQueueTitle") && ($("gatePickQueueTitle").textContent = "Aus Jobs");
-          $("gatePickQueueDesc") && ($("gatePickQueueDesc").textContent = "Wähle einen passenden Job aus deiner Jobs-Liste / Queue.");
-          $("gatePickQueueHint") && ($("gatePickQueueHint").textContent = "Empfohlen, wenn du schon Jobs gespeichert hast.");
-          $("gatePickQueueTag") && ($("gatePickQueueTag").textContent = "Empfohlen");
+          $("gatePickExtensionTitle") && ($("gatePickExtensionTitle").textContent = "Chrome-Erweiterung holen");
+          $("gatePickExtensionDesc") && ($("gatePickExtensionDesc").textContent = "Importiere die offene Stellenanzeige von LinkedIn oder einer unterstuetzten Unternehmensseite.");
+          $("gatePickExtensionHint") && ($("gatePickExtensionHint").textContent = "Oeffne die Rolle in Chrome und sende sie direkt in CV Studio.");
+          $("gatePickExtensionTag") && ($("gatePickExtensionTag").textContent = "Empfohlen");
 
           $("gatePickPasteTitle") && ($("gatePickPasteTitle").textContent = "Beschreibung einfügen");
           $("gatePickPasteDesc") && ($("gatePickPasteDesc").textContent = "Füge eine beliebige Stellenbeschreibung (z.B. LinkedIn oder Website) ein.");
           $("gatePickPasteHint") && ($("gatePickPasteHint").textContent = "Tipp: Aufgaben + Anforderungen + Tech-Stack einfügen.");
-          $("gatePickPasteTag") && ($("gatePickPasteTag").textContent = "Schnell");
+          $("gatePickPasteTag") && ($("gatePickPasteTag").textContent = "Manuell");
         }
       }catch(_){}
 
@@ -8830,12 +8830,6 @@ $("startStrengthList")?.addEventListener("click", async (e) => {
 
 
     // Step 1 chooser cards
-    $("gatePickQueue")?.addEventListener("click", () => {
-      try{ setJobSource("queue"); }catch(_){}
-      setGateView("form");
-      setTimeout(() => { try{ $("jobSelect")?.focus(); }catch(_){ } }, 60);
-    });
-
     $("gatePickPaste")?.addEventListener("click", () => {
       try{ setJobSource("paste"); }catch(_){}
       setGateView("form");
@@ -8845,7 +8839,7 @@ $("startStrengthList")?.addEventListener("click", async (e) => {
     // Back to the two-option chooser
     $("gateBackBtn")?.addEventListener("click", () => {
       setGateView("choose");
-      setTimeout(() => { try{ $("gatePickQueue")?.focus(); }catch(_){ } }, 40);
+      setTimeout(() => { try{ $("gatePickExtension")?.focus(); }catch(_){ } }, 40);
     });
 
 

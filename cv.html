@@ -2991,7 +2991,7 @@ body.fromJobsLink #settingsDetails{
 
   <main class="main mainWide">
     <h1 class="h1">CV Studio</h1>
-    <p class="sub" id="subTitle">Paste a job, import one from the Chrome extension, or pick one from Jobs. We tailor your CV, show the ATS gaps, and get you ready to send.</p>
+    <p class="sub" id="subTitle">Import a job with the Chrome extension or paste it manually. We tailor your CV, show the ATS gaps, and get you ready to send.</p>
 
     <div class="errorTop" id="errorTop"></div>
     <div class="upgradeBanner" id="cvUpgradeBanner" style="display:none" role="status" aria-live="polite">
@@ -3071,43 +3071,44 @@ body.fromJobsLink #settingsDetails{
 
         <div class="gateChooser" id="gateChooser" style="display:none">
           <div class="gateCards" role="list" aria-label="Choose your job source">
-  <!-- Option 1: From Jobs queue -->
-  <button class="gateCard" id="gatePickQueue" type="button" data-variant="recommended" aria-describedby="gatePickQueueDesc gatePickQueueHint">
+  <!-- Option 1: Chrome extension -->
+  <button class="gateCard" id="gatePickExtension" type="button" data-variant="recommended" data-extension-modal-open="1" aria-describedby="gatePickExtensionDesc gatePickExtensionHint" title="See how the Chrome extension works">
     <div class="gateCardTop">
       <div class="gateCardTitleRow">
         <div class="gateCardIcon" aria-hidden="true">
-          <!-- Briefcase icon -->
+          <!-- Browser icon -->
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M9 6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2H9V6Z"/>
-            <path d="M7 8h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2Z"/>
-            <path d="M5 13h14"/>
+            <rect x="4" y="5" width="16" height="14" rx="3"></rect>
+            <path d="M4 9h16"></path>
+            <path d="M8 7h.01"></path>
+            <path d="M11 7h.01"></path>
           </svg>
         </div>
 
         <div class="gateCardTitleWrap">
-          <div class="gateCardTitle" id="gatePickQueueTitle">From my Jobs</div>
-          <div class="gateCardDesc" id="gatePickQueueDesc">Pick a saved job from your Jobs queue.</div>
+          <div class="gateCardTitle" id="gatePickExtensionTitle">Get Chrome extension</div>
+          <div class="gateCardDesc" id="gatePickExtensionDesc">Import the active job page from LinkedIn or any supported company site.</div>
         </div>
       </div>
 
-      <span class="badge prio" id="gatePickQueueTag">Recommended</span>
+      <span class="badge prio" id="gatePickExtensionTag">Recommended</span>
     </div>
 
     <div class="gateMiniFlow" aria-hidden="true">
-      <span class="flowChip"><span class="flowDot src" aria-hidden="true"></span><span>Jobs queue</span></span>
+      <span class="flowChip"><span class="flowDot src" aria-hidden="true"></span><span>Chrome extension</span></span>
       <span class="flowArrow" aria-hidden="true">→</span>
       <span class="flowChip"><span class="flowDot out" aria-hidden="true"></span><span>Tailored CV</span></span>
-      <span class="flowNote">Auto‑fill basics</span>
+      <span class="flowNote">One-click import</span>
     </div>
 
     <ul class="gateBullets">
-      <li><span class="gateBulletMark" aria-hidden="true">✓</span><span>Auto‑fills title, company &amp; apply link</span></li>
-      <li><span class="gateBulletMark" aria-hidden="true">✓</span><span>Best for multi‑apply workflows</span></li>
+      <li><span class="gateBulletMark" aria-hidden="true">✓</span><span>Imports title, company, apply link &amp; job description</span></li>
+      <li><span class="gateBulletMark" aria-hidden="true">✓</span><span>Best for LinkedIn, Greenhouse, Lever, Workday, and more</span></li>
     </ul>
 
     <div class="gateCardFooter">
-      <div class="gateCardHint" id="gatePickQueueHint">Best if you already saved jobs you want to apply to.</div>
-      <div class="gateCta" aria-hidden="true"><span>Choose</span><span class="gateCtaArrow">→</span></div>
+      <div class="gateCardHint" id="gatePickExtensionHint">Open the role in Chrome, then send it straight into CV Studio.</div>
+      <div class="gateCta" aria-hidden="true"><span>Get extension</span><span class="gateCtaArrow">→</span></div>
     </div>
   </button>
 
@@ -3131,7 +3132,7 @@ body.fromJobsLink #settingsDetails{
         </div>
       </div>
 
-      <span class="badge warn" id="gatePickPasteTag">Fast</span>
+      <span class="badge warn" id="gatePickPasteTag">Manual</span>
     </div>
 
     <div class="gateMiniFlow" aria-hidden="true">
