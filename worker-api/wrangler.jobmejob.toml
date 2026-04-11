@@ -9,7 +9,21 @@ routes = [
 ]
 
 [vars]
+BA_API_BASE = "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service"
+BA_API_KEY = "jobboerse-jobsuche"
+BA_TOKEN_URL = "https://rest.arbeitsagentur.de/oauth/gettoken_cc"
+CV_BUCKET = "cvs"
+GCP_GCS_BUCKET = "jobapplyai-ocr-eu"
+GCP_PROJECT_ID = "jobapplyai-auth"
+GEMINI_API_BASE = "aistudio"
+GEMINI_CV_MAX_OUTPUT_TOKENS = "8000"
+GEMINI_CV_TAILOR_MODELS = "gemini-2.5-pro,gemini-2.5-flash"
+GEMINI_RETRY_429 = "4"
+GEMINI_RETRY_BASE_MS = "1200"
+PUBLIC_API_BASE = "https://jobmejob.com"
 SITE_ORIGIN = "https://jobmejob.com"
+SUPABASE_URL = "https://auth.jobmejob.com"
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY"
 STRIPE_CV_STARTER_PRICE_ID = "price_1TGeulEFGlBEGstVPCGzlHMi"
 STRIPE_CV_PLUS_PRICE_ID = "price_1TGevXEFGlBEGstV8CJ8TdVH"
 

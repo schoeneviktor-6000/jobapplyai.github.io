@@ -1,0 +1,950 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>jobmejob • Mobile CV Studio</title>
+  <meta name="description" content="Tailor one CV for one job on mobile with screenshot or pasted job description input."/>
+
+  <link rel="stylesheet" href="./shared.css?v=202604111335"/>
+
+  <style>
+    .mobileStudioMain{
+      max-width:820px;
+      padding-top:24px;
+      padding-bottom:40px;
+    }
+    .hero{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-bottom:16px;
+    }
+    .flowRail{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+      gap:10px;
+      margin-bottom:14px;
+    }
+    .flowStep{
+      border:1px solid rgba(17,19,24,.10);
+      border-radius:18px;
+      background:rgba(255,255,255,.76);
+      padding:12px;
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      min-width:0;
+      transition:border-color .16s ease, background .16s ease, box-shadow .16s ease, transform .16s ease;
+    }
+    .flowStepNum{
+      width:24px;
+      height:24px;
+      border-radius:999px;
+      border:1px solid rgba(17,19,24,.14);
+      background:rgba(17,19,24,.05);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:12px;
+      font-weight:950;
+      flex:0 0 auto;
+    }
+    .flowStepText{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .flowStepText strong{
+      font-size:13px;
+      line-height:1.15;
+    }
+    .flowStepText span{
+      font-size:11px;
+      line-height:1.35;
+      color:rgba(17,19,24,.56);
+      font-weight:750;
+    }
+    .flowStep.isActive{
+      border-color:rgba(34,197,94,.34);
+      background:rgba(34,197,94,.10);
+      box-shadow:0 10px 24px rgba(34,197,94,.10);
+      transform:translateY(-1px);
+    }
+    .flowStep.isDone{
+      border-color:rgba(22,163,74,.18);
+      background:rgba(34,197,94,.06);
+    }
+    .flowStep.isReady{
+      border-color:rgba(34,197,94,.22);
+      background:rgba(255,255,255,.90);
+    }
+    .flowStep.isActive .flowStepNum,
+    .flowStep.isDone .flowStepNum,
+    .flowStep.isReady .flowStepNum{
+      border-color:rgba(34,197,94,.32);
+      background:linear-gradient(135deg, rgba(34,197,94,.22), rgba(22,163,74,.28));
+      color:#0b4d24;
+    }
+    .hero .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid rgba(17,19,24,.10);
+      background:rgba(255,255,255,.80);
+      font-size:12px;
+      font-weight:900;
+      color:rgba(17,19,24,.76);
+      width:max-content;
+      max-width:100%;
+    }
+    .hero .eyebrow::before{
+      content:"";
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow:0 0 0 4px rgba(34,197,94,.16);
+      flex:0 0 auto;
+    }
+    .studioStack{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      padding-bottom:calc(132px + env(safe-area-inset-bottom, 0px));
+    }
+    .panel{
+      padding:18px;
+    }
+    .panelHead{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:12px;
+    }
+    .panelHead h2{
+      margin:0;
+      font-size:22px;
+      line-height:1.08;
+      letter-spacing:-.02em;
+    }
+    .panelHead p{
+      margin:6px 0 0;
+    }
+    .kvRow{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    .field textarea{
+      min-height:220px;
+      resize:none;
+    }
+    .screenshotCard{
+      border:1px solid rgba(17,19,24,.10);
+      background:rgba(17,19,24,.03);
+      border-radius:18px;
+      padding:14px;
+      margin-bottom:12px;
+    }
+    .screenshotHead{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .screenshotMeta{
+      margin-top:10px;
+      display:grid;
+      grid-template-columns:1fr;
+      gap:8px;
+    }
+    .statusBox{
+      border:1px solid rgba(17,19,24,.10);
+      background:rgba(17,19,24,.03);
+      border-radius:18px;
+      padding:12px;
+    }
+    .statusBox.isLoading{
+      border-color:rgba(34,197,94,.24);
+      background:rgba(34,197,94,.08);
+    }
+    .statusBox.isReady{
+      border-color:rgba(22,163,74,.22);
+      background:rgba(34,197,94,.08);
+    }
+    .statusBox.isError{
+      border-color:rgba(216,27,96,.18);
+      background:rgba(216,27,96,.06);
+    }
+    .statusLabel{
+      font-size:12px;
+      font-weight:950;
+      letter-spacing:.03em;
+      text-transform:uppercase;
+      color:rgba(17,19,24,.54);
+      margin-bottom:6px;
+    }
+    .inlineProgress{
+      display:none;
+      margin-top:10px;
+    }
+    .inlineProgressTrack{
+      height:8px;
+      border-radius:999px;
+      background:rgba(17,19,24,.10);
+      overflow:hidden;
+      position:relative;
+    }
+    .inlineProgressFill{
+      position:absolute;
+      inset:0 auto 0 0;
+      width:38%;
+      border-radius:inherit;
+      background:linear-gradient(90deg, rgba(34,197,94,.28), rgba(34,197,94,.92), rgba(22,163,74,.42));
+      animation:shotProgressSlide 1.15s ease-in-out infinite;
+      box-shadow:0 0 0 1px rgba(34,197,94,.08);
+    }
+    @keyframes shotProgressSlide{
+      0%{ transform:translateX(-118%); }
+      100%{ transform:translateX(286%); }
+    }
+    .actionsRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:18px;
+      position:relative;
+      z-index:1;
+    }
+    .jobDescField{
+      margin-top:12px;
+    }
+    .previewPaper{
+      background:#fff;
+      border:1px solid rgba(17,19,24,.10);
+      border-radius:22px;
+      box-shadow:0 14px 36px rgba(17,19,24,.08);
+      padding:18px 18px 30px;
+    }
+    .previewText{
+      margin:0;
+      white-space:pre-wrap;
+      word-break:break-word;
+      font-family: "Georgia", "Times New Roman", serif;
+      font-size:14px;
+      line-height:1.55;
+      color:rgba(17,19,24,.92);
+    }
+    .keywordSummary{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .keywordChips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .keywordChip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:9px 12px;
+      border-radius:999px;
+      border:1px solid rgba(17,19,24,.12);
+      background:rgba(17,19,24,.04);
+      font-weight:850;
+      font-size:13px;
+      cursor:pointer;
+      transition:.12s ease;
+      user-select:none;
+    }
+    .keywordChip.isMissing{
+      border-color:rgba(232,184,63,.42);
+      background:rgba(255,214,102,.18);
+      color:#6f4a00;
+    }
+    .keywordChip:hover{
+      transform:translateY(-1px);
+      background:rgba(17,19,24,.06);
+    }
+    .keywordChip.isMissing:hover{
+      background:rgba(255,214,102,.24);
+    }
+    .keywordChip.selected{
+      border-color:rgba(218,162,32,.68);
+      background:rgba(255,214,102,.32);
+      color:#5f3f00;
+      box-shadow:0 0 0 2px rgba(255,214,102,.22);
+    }
+    .keywordChip.used{
+      cursor:default;
+      border-color:rgba(22,163,74,.24);
+      background:rgba(34,197,94,.10);
+      color:#0a5a2a;
+    }
+    .keywordChip .mark,
+    .keywordChip .dot{
+      width:18px;
+      height:18px;
+      border-radius:999px;
+      border:1px solid currentColor;
+      display:inline-block;
+      position:relative;
+      font-size:0;
+      line-height:0;
+      opacity:.9;
+      flex:0 0 auto;
+    }
+    #missingKeywordChips .keywordChip{
+      border-color:rgba(232,184,63,.42);
+      background:rgba(255,214,102,.18);
+      color:#6f4a00;
+    }
+    #missingKeywordChips .keywordChip:hover{
+      background:rgba(255,214,102,.24);
+    }
+    #missingKeywordChips .keywordChip.selected{
+      border-color:rgba(218,162,32,.68);
+      background:rgba(255,214,102,.32);
+      color:#5f3f00;
+    }
+    #missingKeywordChips .keywordChip .mark,
+    #missingKeywordChips .keywordChip .dot{
+      font-size:0;
+      line-height:0;
+    }
+    #missingKeywordChips .keywordChip .mark::before,
+    #missingKeywordChips .keywordChip .dot::before{
+      content:"";
+      position:absolute;
+      left:50%;
+      top:50%;
+      width:8px;
+      height:2px;
+      border-radius:999px;
+      background:currentColor;
+      transform:translate(-50%, -50%);
+    }
+    #missingKeywordChips .keywordChip .mark::after,
+    #missingKeywordChips .keywordChip .dot::after{
+      content:"";
+      position:absolute;
+      left:50%;
+      top:50%;
+      width:2px;
+      height:8px;
+      border-radius:999px;
+      background:currentColor;
+      transform:translate(-50%, -50%);
+    }
+    #usedKeywordChips .keywordChip .mark::before,
+    #usedKeywordChips .keywordChip .dot::before{
+      content:"";
+      position:absolute;
+      left:50%;
+      top:46%;
+      width:6px;
+      height:10px;
+      border-right:2px solid currentColor;
+      border-bottom:2px solid currentColor;
+      transform:translate(-50%, -50%) rotate(40deg);
+    }
+    .editorBox{
+      margin-top:12px;
+      border:1px solid rgba(17,19,24,.10);
+      background:rgba(17,19,24,.03);
+      border-radius:18px;
+      padding:12px;
+    }
+    .jobSummaryCard{
+      display:none;
+    }
+    .jobSummaryTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:12px;
+    }
+    .jobSummaryTop h2{
+      margin:0;
+      font-size:20px;
+      line-height:1.08;
+      letter-spacing:-.02em;
+    }
+    .jobSummaryTop p{
+      margin:6px 0 0;
+    }
+    .jobSummaryGrid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    .jobSummaryText{
+      display:-webkit-box;
+      -webkit-line-clamp:4;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+      line-height:1.5;
+      color:rgba(17,19,24,.78);
+    }
+    .optionalMeta{
+      margin-top:10px;
+      border:1px solid rgba(17,19,24,.10);
+      border-radius:18px;
+      background:rgba(17,19,24,.03);
+      overflow:hidden;
+    }
+    .optionalMeta > summary{
+      list-style:none;
+      padding:12px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      font-size:13px;
+      font-weight:850;
+      cursor:pointer;
+    }
+    .optionalMeta > summary::-webkit-details-marker{
+      display:none;
+    }
+    .optionalMeta > summary::after{
+      content:"+";
+      font-size:18px;
+      line-height:1;
+      color:rgba(17,19,24,.48);
+      flex:0 0 auto;
+    }
+    .optionalMeta[open] > summary{
+      border-bottom:1px solid rgba(17,19,24,.10);
+      background:rgba(255,255,255,.46);
+    }
+    .optionalMeta[open] > summary::after{
+      content:"−";
+    }
+    .optionalMetaBody{
+      padding:12px 14px 14px;
+      display:grid;
+      gap:10px;
+    }
+    .generateModalCard{
+      width:min(520px, 96vw);
+      max-height:min(88vh, 760px);
+    }
+    .generateModalBody{
+      padding:18px 18px 16px;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+    .generateModalLead{
+      display:flex;
+      align-items:flex-start;
+      gap:14px;
+    }
+    .generateSpinner{
+      width:44px;
+      height:44px;
+      border-radius:999px;
+      border:3px solid rgba(17,19,24,.10);
+      border-top-color:var(--accent);
+      border-right-color:var(--accent2);
+      flex:0 0 auto;
+      animation:generateSpin 1s linear infinite;
+    }
+    .generateSpinner.isDone{
+      animation:none;
+      border-color:rgba(34,197,94,.20);
+      background:linear-gradient(135deg, rgba(34,197,94,.18), rgba(22,163,74,.30));
+      position:relative;
+    }
+    .generateSpinner.isDone::after{
+      content:"";
+      position:absolute;
+      left:14px;
+      top:10px;
+      width:10px;
+      height:17px;
+      border-right:3px solid #0f6f33;
+      border-bottom:3px solid #0f6f33;
+      transform:rotate(38deg);
+    }
+    @keyframes generateSpin{
+      from{ transform:rotate(0deg); }
+      to{ transform:rotate(360deg); }
+    }
+    .generateModalText{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .generateModalText .modalTitle{
+      font-size:24px;
+      line-height:1.02;
+      letter-spacing:-.03em;
+    }
+    .generateEquation{
+      display:grid;
+      grid-template-columns:1fr auto 1fr auto 1fr;
+      gap:8px;
+      align-items:center;
+    }
+    .generateEquationChip{
+      min-height:74px;
+      border-radius:18px;
+      border:1px solid rgba(17,19,24,.10);
+      background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(17,19,24,.03));
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:5px;
+      padding:12px;
+      text-align:center;
+    }
+    .generateEquationChip strong{
+      font-size:14px;
+      line-height:1.15;
+    }
+    .generateEquationChip span{
+      font-size:12px;
+      color:rgba(17,19,24,.58);
+      font-weight:750;
+    }
+    .generateEquationSymbol{
+      font-size:24px;
+      font-weight:950;
+      color:rgba(17,19,24,.48);
+    }
+    .generateSteps{
+      display:grid;
+      gap:8px;
+    }
+    .generateStep{
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:16px;
+      border:1px solid rgba(17,19,24,.10);
+      background:rgba(17,19,24,.03);
+      transition:.18s ease;
+    }
+    .generateStepDot{
+      width:11px;
+      height:11px;
+      border-radius:999px;
+      border:2px solid rgba(17,19,24,.22);
+      margin-top:4px;
+      flex:0 0 auto;
+      transition:.18s ease;
+    }
+    .generateStepText{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .generateStepText strong{
+      font-size:14px;
+      line-height:1.2;
+    }
+    .generateStepText span{
+      font-size:12px;
+      line-height:1.4;
+      color:rgba(17,19,24,.56);
+    }
+    .generateStep.isActive{
+      border-color:rgba(34,197,94,.34);
+      background:rgba(34,197,94,.10);
+      transform:translateY(-1px);
+    }
+    .generateStep.isActive .generateStepDot{
+      border-color:rgba(34,197,94,.34);
+      background:linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow:0 0 0 4px rgba(34,197,94,.14);
+    }
+    .generateStep.isDone{
+      border-color:rgba(22,163,74,.20);
+      background:rgba(34,197,94,.07);
+    }
+    .generateStep.isDone .generateStepDot{
+      border-color:#149447;
+      background:#149447;
+      box-shadow:none;
+    }
+    .generateModalActions{
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+    }
+    .stickyBar{
+      position:sticky;
+      bottom:calc(10px + env(safe-area-inset-bottom, 0px));
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      justify-content:flex-end;
+      padding-top:6px;
+    }
+    .footer{
+      margin-top:24px;
+      text-align:center;
+      color:rgba(17,19,24,.58);
+      font-size:12px;
+      font-weight:650;
+    }
+    @media (max-width:640px){
+      .mobileStudioMain{ padding-top:18px; }
+      .panel{ padding:16px; }
+      .panelHead h2{ font-size:20px; }
+      .kvRow{ grid-template-columns:1fr; }
+      .jobSummaryGrid{ grid-template-columns:1fr; }
+      .flowStep{ padding:10px; }
+      .flowStepText strong{ font-size:12px; }
+      .flowStepText span{ font-size:10px; }
+      .generateModalBody{ padding:16px; }
+      .generateModalLead{ flex-direction:column; }
+      .generateEquation{ grid-template-columns:1fr; }
+      .generateEquationSymbol{
+        text-align:center;
+        transform:rotate(90deg);
+      }
+      .actionsRow .btn,
+      .stickyBar .btn,
+      .generateModalActions .btn{ width:100%; }
+      .stickyBar{ justify-content:stretch; }
+    }
+  </style>
+</head>
+<body class="mobileFlowPage mobileFlowStudio">
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="./index.html" data-nav="1" aria-label="jobmejob home">
+        <span class="logo" aria-hidden="true"></span>
+        <span>jobmejob</span>
+      </a>
+
+      <div class="navcta">
+        <details class="navDrop" id="navAccount" style="display:none">
+          <summary class="pill jmNavTrigger" aria-label="Open account menu">
+            <span class="jmNavTriggerLabel" id="navAccountLabel">Account</span>
+          </summary>
+          <div class="navMenu" role="menu" aria-label="Account">
+            <div class="jmAccountCard">
+              <div class="jmAccountTitleRow">
+                <div>
+                  <div class="jmAccountTitle" id="navAccountTitle">Your account</div>
+                  <div class="jmAccountEmail" id="navAccountEmail">—</div>
+                </div>
+                <span class="jmNavMetaPill" id="navPlanPill">Free</span>
+              </div>
+              <div class="jmAccountHint" id="navPlanMeta">CV Studio account</div>
+              <div class="jmAccountUsage">
+                <span class="jmNavMetaPill" id="navUsagePill">Usage syncing</span>
+                <div class="jmAccountHint" id="navUsageMeta">Usage updates after each tailored CV.</div>
+              </div>
+            </div>
+            <div class="menuSep" role="separator"></div>
+            <a class="jmNavItem" href="./cv-mobile-upload.html" data-nav="1" role="menuitem">Upload CV</a>
+            <a class="jmNavItem" href="./cv-mobile.html" data-nav="1" role="menuitem">Mobile CV Studio</a>
+            <a class="jmNavItem" href="./cv.html?cv_mobile_flow=0" data-nav="1" role="menuitem">Open full site</a>
+            <a class="jmNavItem" href="./profile.html?cv_mobile_flow=0#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Manage billing</a>
+            <a class="jmNavItem" href="./plan.html?cv_mobile_flow=0#cv-pricing" data-nav="1" role="menuitem">Plans & pricing</a>
+            <div class="menuSep" role="separator"></div>
+            <button class="jmNavItem jmNavDanger" id="navLogout" type="button" role="menuitem">Logout</button>
+          </div>
+        </details>
+
+        <a class="pill" href="./signup.html?entry=cv-studio" id="navSignIn" data-nav="1">Sign in</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="main mobileStudioMain">
+    <section class="hero">
+      <div class="eyebrow">Mobile CV flow · Step 2</div>
+      <h1 class="h1">Build one strong CV for one job.</h1>
+      <p class="sub" id="subLine">Add the job post, build the preview, then export the PDF.</p>
+    </section>
+
+    <section class="flowRail" aria-label="Tailor flow">
+      <div class="flowStep isActive" id="flowStepInput">
+        <div class="flowStepNum">1</div>
+        <div class="flowStepText">
+          <strong>Job post</strong>
+          <span>Paste or screenshot</span>
+        </div>
+      </div>
+      <div class="flowStep" id="flowStepPreview">
+        <div class="flowStepNum">2</div>
+        <div class="flowStepText">
+          <strong>Preview</strong>
+          <span>Check and refine</span>
+        </div>
+      </div>
+      <div class="flowStep" id="flowStepExport">
+        <div class="flowStepNum">3</div>
+        <div class="flowStepText">
+          <strong>Export</strong>
+          <span>Download PDF</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="studioStack">
+      <div class="errorTop" id="errorTop"></div>
+
+      <section class="card panel" id="jobInputCard">
+        <div class="panelHead">
+          <div>
+            <h2>Add the job post</h2>
+            <p class="small">Paste it or pull the text from a screenshot.</p>
+          </div>
+          <span class="badge" id="cvReadyBadge">Checking CV…</span>
+        </div>
+
+        <div class="statusBox" style="margin-bottom:12px">
+          <div class="statusLabel">Base CV</div>
+          <div class="small" id="cvReadyHint">Checking your uploaded CV…</div>
+        </div>
+
+        <div class="screenshotCard">
+          <div class="screenshotHead">
+            <div style="min-width:0">
+              <div class="statusLabel" style="margin-bottom:4px">Screenshot</div>
+              <div class="small">Upload the job post and we will pull the text below.</div>
+            </div>
+            <button class="btn" id="browseScreenshotBtn" type="button">Use screenshot</button>
+          </div>
+          <input accept="image/png,image/jpeg,image/webp,image/heic,image/heif" id="jobShotFile" type="file" style="display:none"/>
+          <div class="screenshotMeta">
+            <div class="statusBox">
+              <div class="statusLabel">File</div>
+              <div class="small" id="shotFileHint">No screenshot selected yet.</div>
+            </div>
+            <div class="statusBox" id="shotExtractionBox" aria-live="polite">
+              <div class="statusLabel">Extraction</div>
+              <div class="small" id="shotStatusHint">PNG, JPG, or WEBP work best.</div>
+              <div class="inlineProgress" id="shotProgress" aria-hidden="true">
+                <div class="inlineProgressTrack">
+                  <div class="inlineProgressFill"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <details class="optionalMeta">
+          <summary>Optional role details</summary>
+          <div class="optionalMetaBody">
+            <div class="kvRow">
+              <label class="field">
+                <span class="fieldLabel">Job title</span>
+                <input class="textInput" id="jobTitle" type="text" placeholder="Optional"/>
+              </label>
+              <label class="field">
+                <span class="fieldLabel">Company</span>
+                <input class="textInput" id="jobCompany" type="text" placeholder="Optional"/>
+              </label>
+            </div>
+
+            <label class="field">
+              <span class="fieldLabel">Apply URL</span>
+              <input class="textInput" id="jobApplyUrl" type="url" placeholder="Optional"/>
+            </label>
+          </div>
+        </details>
+
+        <div class="field jobDescField">
+          <label class="fieldLabel" for="jobDesc">Paste the job post</label>
+          <textarea id="jobDesc" placeholder="Paste the full job post here."></textarea>
+          <span class="hint" id="jobDescHint">Full post = better preview.</span>
+        </div>
+
+        <div class="actionsRow">
+          <button class="btn primary cta" id="generateBtn" type="button" disabled>Build preview</button>
+          <a class="btn ghost" href="./cv-mobile-upload.html" data-nav="1">Change CV</a>
+        </div>
+      </section>
+
+      <section class="card panel jobSummaryCard" id="jobSummaryCard" style="display:none">
+        <div class="jobSummaryTop">
+          <div>
+            <h2 id="jobSummaryHeading">Current job post</h2>
+            <p class="small" id="jobSummaryHint">This is the job post behind the current preview.</p>
+          </div>
+          <span class="badge good" id="jobSummaryBadge">Ready</span>
+        </div>
+
+        <div class="jobSummaryGrid">
+          <div class="statusBox">
+            <div class="statusLabel">Source</div>
+            <div class="small" id="jobSummarySource">Pasted description</div>
+          </div>
+          <div class="statusBox">
+            <div class="statusLabel">Length</div>
+            <div class="small" id="jobSummaryMeta">0 characters</div>
+          </div>
+        </div>
+
+        <div class="statusBox" style="margin-top:10px">
+          <div class="statusLabel">Current job post</div>
+          <div class="small jobSummaryText" id="jobSummaryText">—</div>
+        </div>
+
+        <div class="actionsRow">
+          <button class="btn ghost" id="editJobInputBtn" type="button">Edit job post</button>
+        </div>
+      </section>
+
+      <section class="card panel" id="previewCard" style="display:none">
+        <div class="panelHead">
+          <div>
+            <h2>Preview</h2>
+            <p class="small" id="previewHint">Review the draft before export.</p>
+          </div>
+          <span class="badge" id="previewBadge">Waiting</span>
+        </div>
+
+        <div class="previewPaper">
+          <pre class="previewText" id="previewText"></pre>
+        </div>
+
+        <div class="actionsRow">
+          <button class="btn ghost" id="toggleEditBtn" type="button">Edit before PDF</button>
+          <button class="btn" id="regenerateBtn" type="button">Rebuild preview</button>
+        </div>
+
+        <div class="editorBox" id="editorBox" style="display:none">
+          <label class="field">
+            <span class="fieldLabel">Edit before export</span>
+            <textarea id="editorText" style="min-height:220px"></textarea>
+          </label>
+          <div class="actionsRow">
+            <button class="btn primary" id="saveEditBtn" type="button">Save edits</button>
+            <button class="btn ghost" id="cancelEditBtn" type="button">Cancel</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card panel" id="keywordsCard" style="display:none">
+        <div class="panelHead">
+          <div>
+            <h2>Close the gaps</h2>
+            <p class="small">Pick only the terms that are true for your background.</p>
+          </div>
+          <span class="badge" id="atsBadge">ATS</span>
+        </div>
+
+        <div class="keywordSummary">
+          <div class="small" id="keywordSummary">No preview yet.</div>
+          <div class="row">
+            <span class="badge good" id="usedBadge">Covered: 0</span>
+            <span class="badge warn" id="missingBadge">Missing: 0</span>
+          </div>
+        </div>
+
+        <div class="keywordChips" id="missingKeywordChips"></div>
+
+        <div class="actionsRow">
+          <button class="btn primary" id="applyKeywordsBtn" type="button" disabled>Add selected terms</button>
+          <button class="btn ghost" id="clearKeywordsBtn" type="button" disabled>Clear</button>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="small" style="font-weight:850; margin-bottom:8px">Already covered</div>
+        <div class="keywordChips" id="usedKeywordChips"></div>
+      </section>
+
+      <div class="stickyBar" id="downloadBar" style="display:none">
+        <button class="btn primary cta" id="downloadPdfBtn" type="button">Download PDF</button>
+      </div>
+    </div>
+
+    <footer class="footer">Support: <a href="mailto:team@jobmejob.com">team@jobmejob.com</a></footer>
+  </main>
+
+  <div class="modalBackdrop" id="generateModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="generateModalTitle" aria-describedby="generateModalHint">
+    <div class="modalCard generateModalCard">
+      <div class="generateModalBody">
+        <div class="generateModalLead">
+          <div class="generateSpinner" id="generateSpinner" aria-hidden="true"></div>
+          <div class="generateModalText">
+            <div class="modalTitle" id="generateModalTitle">Generating your preview</div>
+            <div class="small" id="generateModalSubtitle">We are matching your CV to the job post and building the draft.</div>
+          </div>
+        </div>
+
+        <div class="generateEquation" aria-hidden="true">
+          <div class="generateEquationChip">
+            <strong>Your CV</strong>
+            <span>Real experience only</span>
+          </div>
+          <div class="generateEquationSymbol">+</div>
+          <div class="generateEquationChip">
+            <strong>Job description</strong>
+            <span>Role requirements</span>
+          </div>
+          <div class="generateEquationSymbol">=</div>
+          <div class="generateEquationChip">
+            <strong>Tailored CV</strong>
+            <span>Preview before export</span>
+          </div>
+        </div>
+
+        <div class="generateSteps" id="generateSteps" aria-live="polite">
+          <div class="generateStep" data-step="0">
+            <div class="generateStepDot"></div>
+            <div class="generateStepText">
+              <strong>Reading your base CV</strong>
+              <span>We start from the CV already saved on your account.</span>
+            </div>
+          </div>
+          <div class="generateStep" data-step="1">
+            <div class="generateStepDot"></div>
+            <div class="generateStepText">
+              <strong>Checking the job requirements</strong>
+              <span>We compare your CV against the role and surface ATS coverage.</span>
+            </div>
+          </div>
+          <div class="generateStep" data-step="2">
+            <div class="generateStepDot"></div>
+            <div class="generateStepText">
+              <strong>Building your tailored preview</strong>
+              <span>You will land directly in the preview once it is ready.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="statusBox">
+          <div class="statusLabel">Status</div>
+          <div class="small" id="generateModalHint" role="status" aria-live="polite">Keep this open, or continue in the background if you prefer.</div>
+        </div>
+
+        <div class="generateModalActions">
+          <button class="btn ghost" id="generateModalCloseBtn" type="button" data-close-modal>Continue in background</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="./vendor/pdf-lib-1.17.1.min.js"></script>
+  <script src="./vendor/supabase-js-2.100.1.js"></script>
+  <script src="./auth.js?v=202604111458"></script>
+  <script src="./shared.js?v=202604102230"></script>
+  <script src="./cv-mobile.app.js?v=202604111445"></script>
+</body>
+</html>

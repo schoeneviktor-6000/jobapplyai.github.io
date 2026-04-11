@@ -203,6 +203,9 @@ let genStepsState = "idle";
         s5: "Preview & Export vorbereiten",
         truthHint: "Nur Inhalte, die bereits in deinem CV stehen, werden verwendet.",
         genStatusDetail: "Wir gleichen deinen aktuellen CV mit dieser Rolle ab.",
+        genExtensionEyebrow: "Chrome-Erweiterung",
+        genExtensionText: "Deine Erweiterung ist schon bereit. Importiere den nächsten Job mit einem Klick direkt in CV Studio.",
+        genExtensionBtn: "Ansehen",
         genFocusTitle: "Fokus für diesen Entwurf",
         genFocusTag1: "Rollen-Keywords",
         genFocusTag2: "Stärkere Bullets",
@@ -355,6 +358,9 @@ let genStepsState = "idle";
         s5: "Prepare preview & export",
         truthHint: "Only details already in your CV are used.",
         genStatusDetail: "Matching your current CV to this role.",
+        genExtensionEyebrow: "Chrome extension",
+        genExtensionText: "You already have the extension. For the next role, import the job page into CV Studio in one click.",
+        genExtensionBtn: "See guide",
         genFocusTitle: "Focus for this draft",
         genFocusTag1: "Role keywords",
         genFocusTag2: "Stronger bullets",
@@ -557,6 +563,9 @@ let genStepsState = "idle";
       setText("s5", t("s5"));
       setText("truthHint", t("truthHint"));
       setText("genStatusDetail", t("genStatusDetail"));
+      setText("genExtensionEyebrow", t("genExtensionEyebrow"));
+      setText("genExtensionText", t("genExtensionText"));
+      setText("genExtensionBtn", t("genExtensionBtn"));
       setText("genFocusTitle", t("genFocusTitle"));
       setText("genFocusTag1", t("genFocusTag1"));
       setText("genFocusTag2", t("genFocusTag2"));

@@ -26,6 +26,10 @@
     }
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
+    @media (prefers-reduced-motion: reduce){
+      .btn.lime{animation:none}
+    }
+    @keyframes gradMove{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
     body{
       margin:0;
       font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
@@ -87,6 +91,26 @@
       border-color:rgba(0,166,63,.4);
       color:#07120a;
     }
+    .btn.lime{
+      padding:12px 14px;
+      font-weight:950;
+      line-height:1;
+      white-space:nowrap;
+      position:relative;
+      overflow:hidden;
+      background:linear-gradient(135deg, #00a63f, #66ff8a, #00a63f);
+      background-size:220% 220%;
+      animation:gradMove 5.5s ease-in-out infinite;
+      border-color:rgba(0,166,63,.55);
+      color:#061208;
+      box-shadow:0 12px 28px rgba(0,166,63,.20);
+    }
+    .btn.lime:hover{
+      transform:translateY(-1px);
+      box-shadow:0 16px 44px rgba(0,166,63,.26);
+      filter:saturate(1.05);
+    }
+    .btn.lime:active{transform:translateY(0)}
     .btn.ghost{
       background:rgba(255,255,255,.55);
     }
@@ -447,7 +471,7 @@
     }
   </style>
 </head>
-<body data-nav-fetch-state="1">
+<body data-nav-fetch-state="1" data-mobile-cv-redirect="app">
   <header class="topbar">
     <div class="container">
       <nav class="nav" aria-label="Primary navigation">
@@ -707,7 +731,7 @@
     </div>
   </footer>
   <script src="./vendor/supabase-js-2.100.1.js"></script>
-  <script src="./auth.js?v=202604101215"></script>
-  <script src="./shared.js?v=202604101215"></script>
+  <script src="./auth.js?v=202604111458"></script>
+  <script src="./shared.js?v=202604102230"></script>
 </body>
 </html>

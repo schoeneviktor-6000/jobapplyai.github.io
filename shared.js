@@ -1,5 +1,5 @@
 /* shared.js — JobMeJob multipage helpers (site-wide)
-   Version: 2026-04-10 (v4)
+   Version: 2026-04-10 (v5)
 
    Safe to include on every page.
    Includes:
@@ -15,9 +15,9 @@
   "use strict";
 
   // Avoid double-init
-  if (window.JobMeJobShared && window.JobMeJobShared.__loaded_v4) return;
+  if (window.JobMeJobShared && window.JobMeJobShared.__loaded_v5) return;
 
-  const VERSION = "2026-04-10-v4";
+  const VERSION = "2026-04-10-v5";
 
   const $ = (id) => document.getElementById(id);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -407,6 +407,109 @@
     return String(value || "").trim().toLowerCase();
   }
 
+  function parseBooleanish(value){
+    const v = trimLower(value);
+    if (!v) return null;
+    if (v === "1" || v === "true" || v === "yes" || v === "on" || v === "mobile") return true;
+    if (v === "0" || v === "false" || v === "no" || v === "off" || v === "desktop") return false;
+    return null;
+  }
+
+  function getCurrentUrl(){
+    try{
+      return new URL(window.location.href);
+    }catch(_){
+      return null;
+    }
+  }
+
+  function basenamePath(pathname){
+    const raw = String(pathname || "").trim();
+    if (!raw) return "";
+    const clean = raw.split("?")[0].split("#")[0].replace(/\/+$/, "");
+    const parts = clean.split("/");
+    return trimLower(parts[parts.length - 1] || "");
+  }
+
+  function readQueryBool(name){
+    try{
+      const u = getCurrentUrl();
+      if (!u) return null;
+      return parseBooleanish(u.searchParams.get(name));
+    }catch(_){
+      return null;
+    }
+  }
+
+  function isMobileCvFlowEnabled(){
+    const fromQuery = readQueryBool("cv_mobile_flow");
+    if (fromQuery !== null) return fromQuery;
+    const fromStorage = parseBooleanish(safeLocalGet("jm_cv_mobile_flow_enabled"));
+    if (fromStorage !== null) return fromStorage;
+    return true;
+  }
+
+  function readMobileCvDeviceOverride(){
+    const fromQuery = readQueryBool("cv_mobile");
+    if (fromQuery !== null) return fromQuery;
+    return parseBooleanish(safeLocalGet("jm_cv_mobile_override"));
+  }
+
+  function isNarrowViewport(maxWidth = 820){
+    try{
+      if (window.matchMedia && window.matchMedia(`(max-width: ${Number(maxWidth) || 820}px)`).matches){
+        return true;
+      }
+    }catch(_){}
+
+    try{
+      const width = Number(window.innerWidth || document.documentElement?.clientWidth || 0);
+      return Number.isFinite(width) && width > 0 && width <= maxWidth;
+    }catch(_){
+      return false;
+    }
+  }
+
+  function hasCoarsePointer(){
+    try{
+      if (window.matchMedia && (window.matchMedia("(pointer: coarse)").matches || window.matchMedia("(any-pointer: coarse)").matches)){
+        return true;
+      }
+    }catch(_){}
+    return false;
+  }
+
+  function hasTouchSupport(){
+    try{
+      if ("ontouchstart" in window) return true;
+    }catch(_){}
+    try{
+      if (Number(navigator?.maxTouchPoints || 0) > 0) return true;
+    }catch(_){}
+    try{
+      if (Number(navigator?.msMaxTouchPoints || 0) > 0) return true;
+    }catch(_){}
+    return false;
+  }
+
+  function isMobileCvDevice(){
+    const override = readMobileCvDeviceOverride();
+    if (override !== null) return override;
+    return isNarrowViewport(820) && (hasCoarsePointer() || hasTouchSupport());
+  }
+
+  function getMobileCvFlowPaths(){
+    return {
+      upload: "./cv-mobile-upload.html",
+      studio: "./cv-mobile.html"
+    };
+  }
+
+  function isMobileCvFlowPage(pathname = window.location.pathname){
+    const page = basenamePath(pathname);
+    return page === "cv-mobile-upload.html" || page === "cv-mobile.html";
+  }
+
   function readCachedState(){
     try{
       const auth = getAppAuth();
@@ -423,6 +526,74 @@
   function readCachedCvAccess(){
     const parsed = safeParseJson(safeLocalGet("jm_cv_access_cache_v1"));
     return parsed && typeof parsed === "object" ? parsed : null;
+  }
+
+  function hasUploadedCv(state){
+    if (!state || typeof state !== "object") return false;
+    if (state.cv_uploaded === true || state.cv_uploaded === 1) return true;
+    return trimLower(state.cv_uploaded) === "true";
+  }
+
+  function resolveMobileCvPath(opts = {}){
+    const paths = getMobileCvFlowPaths();
+    const prefer = trimLower(opts.prefer || "");
+    if (prefer === "upload") return paths.upload;
+    if (prefer === "studio") return paths.studio;
+    return hasUploadedCv(opts.state || readCachedState()) ? paths.studio : paths.upload;
+  }
+
+  async function enforceMobileCvFlow(opts = {}){
+    const enabled = opts.enabled === true || (opts.enabled !== false && isMobileCvFlowEnabled());
+    if (!enabled){
+      return { redirected:false, reason:"disabled", session:opts.session || null, state:opts.state || null, target:"" };
+    }
+    if (!isMobileCvDevice()){
+      return { redirected:false, reason:"desktop", session:opts.session || null, state:opts.state || null, target:"" };
+    }
+    if (isMobileCvFlowPage()){
+      return { redirected:false, reason:"already-mobile-flow", session:opts.session || null, state:opts.state || null, target:"" };
+    }
+
+    const auth = getAppAuth();
+    let session = opts.session || null;
+    let state = opts.state || readCachedState();
+
+    if (!session && auth && typeof auth.getSession === "function"){
+      try{ session = await auth.getSession(); }catch(_){ session = null; }
+    }
+
+    const signedIn = !!(session && session.user && session.user.email);
+    if (opts.signedInOnly !== false && !signedIn){
+      return { redirected:false, reason:"signed-out", session, state, target:"" };
+    }
+
+    if (!state && signedIn && auth && typeof auth.syncStateToLocalStorage === "function" && opts.fetchState !== false){
+      try{ state = await auth.syncStateToLocalStorage(session); }catch(_){ state = null; }
+    }
+
+    const target = resolveMobileCvPath({ state, prefer: opts.prefer || "" });
+    const currentPage = basenamePath(window.location.pathname);
+    const targetPage = basenamePath(new URL(target, window.location.href).pathname);
+    if (!targetPage || currentPage === targetPage){
+      return { redirected:false, reason:"already-target", session, state, target };
+    }
+
+    if (opts.replace === false){
+      window.location.href = target;
+    }else{
+      window.location.replace(target);
+    }
+    return { redirected:true, reason:"redirected", session, state, target };
+  }
+
+  async function handleBodyMobileCvRedirect(){
+    const mode = trimLower(document.body?.dataset?.mobileCvRedirect || "");
+    if (!mode) return { redirected:false, reason:"no-body-opt-in", target:"" };
+    return enforceMobileCvFlow({
+      signedInOnly: mode !== "guest",
+      fetchState: true,
+      replace: true
+    });
   }
 
   function planLabelFromId(planId){
@@ -1455,7 +1626,7 @@ details[data-dd="1"]:not([open]) .navMenu{
 
   // Export shared API (merge with existing)
   const api = {
-    __loaded_v4: true,
+    __loaded_v5: true,
     VERSION,
 
     $,
@@ -1465,6 +1636,11 @@ details[data-dd="1"]:not([open]) .navMenu{
     safeLocalGet,
     safeLocalSet,
     isLocalDebugHost,
+    isMobileCvFlowEnabled,
+    isMobileCvDevice,
+    getMobileCvFlowPaths,
+    resolveMobileCvPath,
+    enforceMobileCvFlow,
 
     normalizeBaseUrl,
     resolveApiBase,
@@ -1503,7 +1679,11 @@ details[data-dd="1"]:not([open]) .navMenu{
   app.shared = window.JobMeJobShared;
 
   // Auto-wire global behaviors
-  window.addEventListener("DOMContentLoaded", () => {
+  window.addEventListener("DOMContentLoaded", async () => {
+    try{
+      const redirect = await handleBodyMobileCvRedirect();
+      if (redirect && redirect.redirected) return;
+    }catch(_){}
     wireNavTransitions();
     wireDetailsDropdowns();
     wireExtensionGuideTriggers();

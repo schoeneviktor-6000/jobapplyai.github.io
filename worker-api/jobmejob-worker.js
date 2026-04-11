@@ -1,9 +1,9 @@
 // Cloudflare Worker: JobApplyAI API
 // Endpoints:
 // GET  /health
-// POST /customers/upsert                 (PUBLIC - for website signup)
-// POST /customer-profiles/upsert         (PUBLIC - legacy; prefer /me/profile)
-// POST /customer-plans/upsert            (PUBLIC - legacy; prefer /me/plan)
+// POST /customers/upsert                 (AUTHENTICATED bootstrap for website signup)
+// POST /customer-profiles/upsert         (AUTHENTICATED legacy alias; prefer /me/profile)
+// POST /customer-plans/upsert            (AUTHENTICATED legacy alias; prefer /me/plan)
 // GET  /billing/config                   (PUBLIC - pricing/billing capabilities)
 // POST /stripe/webhook                   (PUBLIC - Stripe webhook)
 // GET  /customers/search?email=test@example.com
@@ -14,12 +14,15 @@
 // GET  /customers/<customer_id>/applications/summary     <-- admin
 // GET  /me/jobs/queue                                   <-- customer (Supabase auth)
 // GET  /me/jobs/description?job_id=<uuid>               <-- customer (Supabase auth)  [NEW]
+// POST /me/jobs/ocr-image                               <-- customer (Supabase auth)  [NEW]
 // GET  /me/applications/summary                          <-- customer (Supabase auth)
 // GET  /me/profile                                       <-- customer (Supabase auth)  [NEW]
 // POST /me/profile                                      <-- customer (Supabase auth)  [NEW]
 // GET  /me/plan                                          <-- customer (Supabase auth)  [NEW]
 // POST /me/plan                                         <-- customer (Supabase auth)  [NEW]
+// GET  /me/billing/summary                               <-- customer (Supabase auth)
 // POST /me/billing/checkout                              <-- customer (Supabase auth)
+// POST /me/billing/confirm                               <-- customer (Supabase auth)
 // POST /me/billing/portal                                <-- customer (Supabase auth)
 // GET  /me/cv                                            <-- customer (Supabase auth)
 // POST /me/cv                                           <-- customer (Supabase auth)
@@ -91,12 +94,15 @@ export default {
   "POST /stripe/webhook",
   "GET /me/jobs/queue",
   "GET /me/jobs/description?job_id=<uuid>",
+  "POST /me/jobs/ocr-image",
   "GET /me/applications/summary",
   "GET /me/profile",
   "POST /me/profile",
   "GET /me/plan",
   "POST /me/plan",
+  "GET /me/billing/summary",
   "POST /me/billing/checkout",
+  "POST /me/billing/confirm",
   "POST /me/billing/portal",
   "GET /me/cv",
   "POST /me/cv",
@@ -149,6 +155,17 @@ export default {
   if ((url.pathname === "/me/jobs/description" || url.pathname === "/api/me/jobs/description") && request.method === "GET") {
     return await handleMeJobsDescription(request, env);
   }
+  if (
+    (
+      url.pathname === "/me/jobs/ocr-image" ||
+      url.pathname === "/api/me/jobs/ocr-image" ||
+      url.pathname === "/me/jobs/ocr_image" ||
+      url.pathname === "/api/me/jobs/ocr_image"
+    ) &&
+    request.method === "POST"
+  ) {
+    return await handleMeJobsOcrImage(request, env);
+  }
 
   
   if ((url.pathname === "/me/jobs/fetch" || url.pathname === "/api/me/jobs/fetch") && request.method === "POST") {
@@ -175,8 +192,14 @@ if (url.pathname === "/me/profile" && request.method === "GET") {
   if (url.pathname === "/me/plan" && request.method === "POST") {
   return await handleMePlanUpsert(request, env);
   }
+  if ((url.pathname === "/me/billing/summary" || url.pathname === "/api/me/billing/summary") && request.method === "GET") {
+    return await handleMeBillingSummary(request, env);
+  }
   if ((url.pathname === "/me/billing/checkout" || url.pathname === "/api/me/billing/checkout") && request.method === "POST") {
     return await handleMeBillingCheckout(request, env);
+  }
+  if ((url.pathname === "/me/billing/confirm" || url.pathname === "/api/me/billing/confirm") && request.method === "POST") {
+    return await handleMeBillingConfirm(request, env);
   }
   if ((url.pathname === "/me/billing/portal" || url.pathname === "/api/me/billing/portal") && request.method === "POST") {
     return await handleMeBillingPortal(request, env);
@@ -323,7 +346,11 @@ if (url.pathname === "/me/cv" && request.method === "POST") {
   return json(request, { error: "Not found" }, 404);
   } catch (err) {
   const details = err && err.stack ? String(err.stack) : String(err);
-  return json(request, { error: "Unhandled error", details }, 500);
+  const message =
+    err && typeof err.message === "string" && err.message.trim()
+      ? err.message.trim()
+      : (details || "Unhandled error");
+  return json(request, { error: message, details }, 500);
   }
   },
   
@@ -542,6 +569,18 @@ async function stripeGetSubscription(env, subscriptionId) {
   return await stripeFetchJson(env, `/v1/subscriptions/${encodeURIComponent(String(subscriptionId))}`, { method: "GET" });
 }
 
+async function stripeGetCheckoutSession(env, sessionId, { expandSubscription = false } = {}) {
+  if (!sessionId) return null;
+  const q = new URLSearchParams();
+  if (expandSubscription) q.append("expand[]", "subscription");
+  const suffix = q.toString() ? (`?${q.toString()}`) : "";
+  return await stripeFetchJson(
+    env,
+    `/v1/checkout/sessions/${encodeURIComponent(String(sessionId))}${suffix}`,
+    { method: "GET" }
+  );
+}
+
 async function stripeEnsureCustomer(env, { email, customerId }) {
   const normalizedEmail = String(email || "").trim().toLowerCase();
   if (!looksLikeEmail(normalizedEmail)) throw new Error("Valid email is required for Stripe customer");
@@ -566,7 +605,7 @@ async function stripeCreateCheckoutSession(env, { email, customerId, planId }) {
   params.set("mode", "subscription");
   params.set("customer", stripeCustomer.id);
   params.set("client_reference_id", String(customerId || ""));
-  params.set("success_url", `${siteOrigin}/plan.html?billing=success&plan=${encodeURIComponent(normalizedPlanId)}`);
+  params.set("success_url", `${siteOrigin}/plan.html?billing=success&plan=${encodeURIComponent(normalizedPlanId)}&session_id={CHECKOUT_SESSION_ID}`);
   params.set("cancel_url", `${siteOrigin}/plan.html?billing=cancelled#cv-pricing`);
   params.set("allow_promotion_codes", "true");
   params.set("line_items[0][price]", priceId);
@@ -588,6 +627,120 @@ async function stripeCreatePortalSession(env, { email, customerId }) {
   const configurationId = String(env.STRIPE_BILLING_PORTAL_CONFIGURATION_ID || "").trim();
   if (configurationId) params.set("configuration", configurationId);
   return await stripeFetchJson(env, "/v1/billing_portal/sessions", { method: "POST", body: params });
+}
+
+async function stripeListSubscriptions(env, stripeCustomerId, { limit = 10 } = {}) {
+  if (!stripeCustomerId) return [];
+  const q = new URLSearchParams();
+  q.set("customer", String(stripeCustomerId));
+  q.set("status", "all");
+  q.set("limit", String(clampInt(limit, 1, 25, 10)));
+  q.append("expand[]", "data.items.data.price");
+  const data = await stripeFetchJson(env, `/v1/subscriptions?${q.toString()}`, { method: "GET" });
+  return Array.isArray(data?.data) ? data.data : [];
+}
+
+async function stripeListInvoices(env, stripeCustomerId, { limit = 6 } = {}) {
+  if (!stripeCustomerId) return [];
+  const q = new URLSearchParams();
+  q.set("customer", String(stripeCustomerId));
+  q.set("limit", String(clampInt(limit, 1, 12, 6)));
+  const data = await stripeFetchJson(env, `/v1/invoices?${q.toString()}`, { method: "GET" });
+  return Array.isArray(data?.data) ? data.data : [];
+}
+
+function stripeUnixToIso(value) {
+  const ts = Number(value);
+  if (!Number.isFinite(ts) || ts <= 0) return null;
+  try {
+    return new Date(ts * 1000).toISOString();
+  } catch {
+    return null;
+  }
+}
+
+function stripeSubscriptionStatusRank(status) {
+  const v = String(status || "").trim().toLowerCase();
+  if (v === "active") return 0;
+  if (v === "trialing") return 1;
+  if (v === "past_due") return 2;
+  if (v === "unpaid") return 3;
+  if (v === "canceled") return 4;
+  if (v === "incomplete") return 5;
+  if (v === "incomplete_expired") return 6;
+  return 9;
+}
+
+function pickCurrentStripeSubscription(subscriptions) {
+  const list = Array.isArray(subscriptions) ? subscriptions.filter(Boolean) : [];
+  if (!list.length) return null;
+
+  const sorted = list.slice().sort((a, b) => {
+    const rankDiff = stripeSubscriptionStatusRank(a?.status) - stripeSubscriptionStatusRank(b?.status);
+    if (rankDiff !== 0) return rankDiff;
+
+    const periodA = Number(a?.current_period_end || a?.cancel_at || a?.created || 0);
+    const periodB = Number(b?.current_period_end || b?.cancel_at || b?.created || 0);
+    return periodB - periodA;
+  });
+
+  return sorted[0] || null;
+}
+
+function summarizeStripeSubscription(env, subscription) {
+  if (!subscription || typeof subscription !== "object") return null;
+
+  const items = Array.isArray(subscription?.items?.data) ? subscription.items.data : [];
+  const knownPriceIds = new Set([
+    String(env.STRIPE_CV_STARTER_PRICE_ID || "").trim(),
+    String(env.STRIPE_CV_PLUS_PRICE_ID || "").trim()
+  ]);
+  const primaryItem = items.find((item) => knownPriceIds.has(String(item?.price?.id || "").trim())) || items[0] || null;
+  const price = primaryItem?.price && typeof primaryItem.price === "object" ? primaryItem.price : null;
+  const recurring = price?.recurring && typeof price.recurring === "object" ? price.recurring : null;
+
+  return {
+    id: String(subscription.id || "").trim() || null,
+    status: String(subscription.status || "").trim().toLowerCase() || null,
+    plan_id: resolveStripePlanIdFromSubscription(env, subscription),
+    price_id: String(price?.id || "").trim() || null,
+    currency: String(price?.currency || "").trim().toLowerCase() || null,
+    unit_amount: Number.isFinite(Number(price?.unit_amount)) ? Number(price.unit_amount) : null,
+    interval: String(recurring?.interval || "").trim().toLowerCase() || null,
+    interval_count: Number.isFinite(Number(recurring?.interval_count)) ? Number(recurring.interval_count) : null,
+    quantity: Number.isFinite(Number(primaryItem?.quantity)) ? Number(primaryItem.quantity) : null,
+    cancel_at_period_end: subscription?.cancel_at_period_end === true,
+    cancel_at: stripeUnixToIso(subscription?.cancel_at),
+    canceled_at: stripeUnixToIso(subscription?.canceled_at),
+    current_period_start: stripeUnixToIso(subscription?.current_period_start),
+    current_period_end: stripeUnixToIso(subscription?.current_period_end),
+    trial_start: stripeUnixToIso(subscription?.trial_start),
+    trial_end: stripeUnixToIso(subscription?.trial_end),
+    created_at: stripeUnixToIso(subscription?.created)
+  };
+}
+
+function summarizeStripeInvoice(invoice) {
+  if (!invoice || typeof invoice !== "object") return null;
+
+  const linePeriod = invoice?.lines?.data?.[0]?.period || null;
+  return {
+    id: String(invoice.id || "").trim() || null,
+    number: String(invoice.number || "").trim() || null,
+    status: String(invoice.status || "").trim().toLowerCase() || null,
+    currency: String(invoice.currency || "").trim().toLowerCase() || null,
+    amount_due: Number.isFinite(Number(invoice.amount_due)) ? Number(invoice.amount_due) : null,
+    amount_paid: Number.isFinite(Number(invoice.amount_paid)) ? Number(invoice.amount_paid) : null,
+    amount_remaining: Number.isFinite(Number(invoice.amount_remaining)) ? Number(invoice.amount_remaining) : null,
+    hosted_invoice_url: String(invoice.hosted_invoice_url || "").trim() || null,
+    invoice_pdf: String(invoice.invoice_pdf || "").trim() || null,
+    created_at: stripeUnixToIso(invoice.created),
+    due_date: stripeUnixToIso(invoice.due_date),
+    paid_at: stripeUnixToIso(invoice?.status_transitions?.paid_at),
+    period_start: stripeUnixToIso(invoice.period_start || linePeriod?.start),
+    period_end: stripeUnixToIso(invoice.period_end || linePeriod?.end),
+    subscription_id: String(invoice.subscription || "").trim() || null
+  };
 }
 
 function parseStripeSignatureHeader(headerValue) {
@@ -1536,57 +1689,32 @@ async function ensureCvStudioImportedJob(env, customerId, {
 }
   
   /* -----------------------------
-  PUBLIC: POST /customers/upsert
+  AUTHENTICATED: POST /customers/upsert
   ----------------------------- */
   
   async function handleCustomerUpsertPublic(request, env) {
-  let body = null;
+  const me = await requireMeCustomerId(request, env);
+  if (!me.ok) return me.res;
+
+  let requestedEmail = "";
   try {
-    body = await request.json();
-  } catch {
-    return json(request, { error: "Invalid JSON body" }, 400);
+    const body = await request.json();
+    requestedEmail = String(body?.email || "").trim().toLowerCase();
+  } catch {}
+
+  if (requestedEmail && requestedEmail !== me.email) {
+    return json(request, { error: "Email does not match authenticated user" }, 403);
   }
 
-  const email = (body?.email || "").toString().trim().toLowerCase();
-  if (!looksLikeEmail(email)) {
-    return json(request, { error: "Valid email is required" }, 400);
-  }
-
-  // Bootstrap: customers + default profile + default plan
-  const boot = await ensureCustomerBootstrap(env, email);
-
-  // Return customer record
-  const qCust = new URLSearchParams();
-  qCust.set("select", "id,email,created_at");
-  qCust.set("id", `eq.${boot.customerId}`);
-  qCust.set("limit", "1");
-
-  const customers = await supabaseFetch(env, `/rest/v1/customers?${qCust.toString()}`, { method: "GET" });
-  if (!Array.isArray(customers) || customers.length === 0) {
-    return json(request, { error: "Customer lookup failed after bootstrap", email }, 500);
-  }
-
-  const c = customers[0];
-  return json(request, { ok: true, email: c.email, customer_id: c.id, created_at: c.created_at }, 200);
+  return json(request, {
+    ok: true,
+    me: true,
+    email: me.email,
+    customer_id: me.customerId
+  }, 200);
 }
 
-// PUBLIC: POST /customer-profiles/upsert (legacy)
-
-
-  
-  async function handleCustomerProfileUpsertPublic(request, env) {
-  let body = null;
-  try {
-  body = await request.json();
-  } catch {
-  return json(request, { error: "Invalid JSON body" }, 400);
-  }
-  
-  const customer_id = (body?.customer_id || "").toString().trim();
-  if (!looksLikeUuid(customer_id)) {
-  return json(request, { error: "Valid customer_id (uuid) is required" }, 400);
-  }
-  
+function buildCustomerProfileRow(customerId, body) {
   const desired_titles = normStringArray(body?.desired_titles, { maxItems: 30, maxLen: 120 });
   const exclude_titles = normStringArray(body?.exclude_titles, { maxItems: 30, maxLen: 120 });
   const industries = normStringArray(body?.industries, { maxItems: 30, maxLen: 120 });
@@ -1595,76 +1723,114 @@ async function ensureCvStudioImportedJob(env, customerId, {
   const language_requirements = normStringArray(body?.language_requirements, { maxItems: 10, maxLen: 80 });
   const seniority = normStringArray(body?.seniority, { maxItems: 10, maxLen: 80 });
   const work_type = normStringArray(body?.work_type, { maxItems: 10, maxLen: 80 });
-  
+
   const radius_km = normRadiusKm(body?.radius_km);
   const salary_min =
-  body?.salary_min === null || body?.salary_min === undefined || body?.salary_min === ""
-  ? null
-  : Number.isFinite(Number(body?.salary_min))
-  ? Math.max(0, Math.round(Number(body?.salary_min)))
-  : null;
-  
-  const row = {
-  customer_id,
-  desired_titles,
-  exclude_titles,
-  industries,
-  countries_allowed,
-  locations,
-  seniority,
-  radius_km,
-  salary_min,
-  language_requirements: language_requirements.length ? language_requirements : null,
-  work_type: work_type.length ? work_type : null,
-  updated_at: new Date().toISOString()
+    body?.salary_min === null || body?.salary_min === undefined || body?.salary_min === ""
+      ? null
+      : Number.isFinite(Number(body?.salary_min))
+        ? Math.max(0, Math.round(Number(body?.salary_min)))
+        : null;
+
+  return {
+    customer_id: customerId,
+    desired_titles,
+    exclude_titles,
+    industries,
+    countries_allowed,
+    locations,
+    seniority,
+    radius_km,
+    salary_min,
+    language_requirements: language_requirements.length ? language_requirements : null,
+    work_type: work_type.length ? work_type : null,
+    updated_at: new Date().toISOString()
   };
-  
+}
+
+async function writeCustomerProfile(request, env, customerId, body, { me = false, legacy = false } = {}) {
+  const row = buildCustomerProfileRow(customerId, body);
   await supabaseFetch(env, `/rest/v1/customer_profiles?on_conflict=customer_id`, {
-  method: "POST",
-  body: [row],
-  headers: { Prefer: "resolution=merge-duplicates,return=minimal" }
+    method: "POST",
+    body: [row],
+    headers: { Prefer: "resolution=merge-duplicates,return=minimal" }
   });
-  
-  return json(request, { ok: true, customer_id }, 200);
+
+  return json(request, {
+    ok: true,
+    ...(me ? { me: true } : {}),
+    ...(legacy ? { legacy: true } : {}),
+    customer_id: customerId
+  }, 200);
+}
+
+function parseRequestedPlanId(body) {
+  const plan_id = (body?.plan_id || "").toString().trim().toLowerCase();
+  const allowed = new Set(["free", "starter", "pro", "max", "cv_starter", "cv_plus", "cv_unlimited"]);
+  if (!allowed.has(plan_id)) {
+    return { ok: false, plan_id: null, error: "Invalid plan_id", allowed: Array.from(allowed) };
   }
+  return { ok: true, plan_id, allowed: Array.from(allowed) };
+}
+
+async function writeSelfServicePlan(request, env, customerId, plan_id, { me = false, legacy = false } = {}) {
+  if (plan_id !== "free") {
+    return json(request, {
+      error: "Paid plan changes must come from Stripe checkout or webhook sync",
+      allowed: ["free"],
+      checkout_path: "/me/billing/checkout"
+    }, 403);
+  }
+
+  await deleteCustomerPlanRecord(env, customerId);
+  return json(request, {
+    ok: true,
+    ...(me ? { me: true } : {}),
+    ...(legacy ? { legacy: true } : {}),
+    customer_id: customerId,
+    plan_id
+  }, 200);
+}
+
+// AUTHENTICATED: POST /customer-profiles/upsert (legacy alias)
+
+
   
-  /* -----------------------------
-  PUBLIC: POST /customer-plans/upsert (legacy)
-  ----------------------------- */
-  
-  async function handleCustomerPlanUpsertPublic(request, env) {
+  async function handleCustomerProfileUpsertPublic(request, env) {
+  const me = await requireMeCustomerId(request, env);
+  if (!me.ok) return me.res;
+
   let body = null;
   try {
   body = await request.json();
   } catch {
   return json(request, { error: "Invalid JSON body" }, 400);
   }
-  
-  const customer_id = (body?.customer_id || "").toString().trim();
-  if (!looksLikeUuid(customer_id)) {
-  return json(request, { error: "Valid customer_id (uuid) is required" }, 400);
+
+  return await writeCustomerProfile(request, env, me.customerId, body, { legacy: true });
   }
   
-  const plan_id = (body?.plan_id || "").toString().trim().toLowerCase();
-  const allowed = new Set(["free", "starter", "pro", "max", "cv_starter", "cv_plus", "cv_unlimited"]);
-  if (!allowed.has(plan_id)) {
-  return json(request, { error: "Invalid plan_id", allowed: Array.from(allowed) }, 400);
-  }
-
-  if (plan_id === "free") {
-  await deleteCustomerPlanRecord(env, customer_id);
-  return json(request, { ok: true, customer_id, plan_id }, 200);
-  }
-
-  const row = { customer_id, plan_id, updated_at: new Date().toISOString() };
-
-  await supabaseFetch(env, `/rest/v1/customer_plans?on_conflict=customer_id`, {
-  method: "POST",
-  body: [row],
-  headers: { Prefer: "resolution=merge-duplicates,return=minimal" }
-  });
+  /* -----------------------------
+  AUTHENTICATED: POST /customer-plans/upsert (legacy alias)
+  ----------------------------- */
   
-  return json(request, { ok: true, customer_id, plan_id }, 200);
+  async function handleCustomerPlanUpsertPublic(request, env) {
+  const me = await requireMeCustomerId(request, env);
+  if (!me.ok) return me.res;
+
+  let body = null;
+  try {
+  body = await request.json();
+  } catch {
+  return json(request, { error: "Invalid JSON body" }, 400);
+  }
+
+  const plan = parseRequestedPlanId(body);
+  if (!plan.ok) {
+    return json(request, { error: plan.error, allowed: plan.allowed }, 400);
+  }
+
+  return await writeSelfServicePlan(request, env, me.customerId, plan.plan_id, { legacy: true });
   }
 
 async function handleBillingConfigGet(request, env) {
@@ -1852,46 +2018,8 @@ async function handleStripeWebhook(request, env) {
   } catch {
   return json(request, { error: "Invalid JSON body" }, 400);
   }
-  
-  const desired_titles = normStringArray(body?.desired_titles, { maxItems: 30, maxLen: 120 });
-  const exclude_titles = normStringArray(body?.exclude_titles, { maxItems: 30, maxLen: 120 });
-  const industries = normStringArray(body?.industries, { maxItems: 30, maxLen: 120 });
-  const countries_allowed = normStringArray(body?.countries_allowed, { maxItems: 20, maxLen: 80 });
-  const locations = normStringArray(body?.locations, { maxItems: 20, maxLen: 120 });
-  const language_requirements = normStringArray(body?.language_requirements, { maxItems: 10, maxLen: 80 });
-  const seniority = normStringArray(body?.seniority, { maxItems: 10, maxLen: 80 });
-  const work_type = normStringArray(body?.work_type, { maxItems: 10, maxLen: 80 });
-  
-  const radius_km = normRadiusKm(body?.radius_km);
-  const salary_min =
-  body?.salary_min === null || body?.salary_min === undefined || body?.salary_min === ""
-  ? null
-  : Number.isFinite(Number(body?.salary_min))
-  ? Math.max(0, Math.round(Number(body?.salary_min)))
-  : null;
-  
-  const row = {
-  customer_id: me.customerId,
-  desired_titles,
-  exclude_titles,
-  industries,
-  countries_allowed,
-  locations,
-  seniority,
-  radius_km,
-  salary_min,
-  language_requirements: language_requirements.length ? language_requirements : null,
-  work_type: work_type.length ? work_type : null,
-  updated_at: new Date().toISOString()
-  };
-  
-  await supabaseFetch(env, `/rest/v1/customer_profiles?on_conflict=customer_id`, {
-  method: "POST",
-  body: [row],
-  headers: { Prefer: "resolution=merge-duplicates,return=minimal" }
-  });
-  
-  return json(request, { ok: true, me: true, customer_id: me.customerId }, 200);
+
+  return await writeCustomerProfile(request, env, me.customerId, body, { me: true });
   }
   
   /* -----------------------------
@@ -1917,7 +2045,7 @@ async function handleStripeWebhook(request, env) {
   CUSTOMER: POST /me/plan (NEW)
   ----------------------------- */
   
-  async function handleMePlanUpsert(request, env) {
+async function handleMePlanUpsert(request, env) {
   const me = await requireMeCustomerId(request, env);
   if (!me.ok) return me.res;
   
@@ -1927,28 +2055,66 @@ async function handleStripeWebhook(request, env) {
   } catch {
   return json(request, { error: "Invalid JSON body" }, 400);
   }
-  
-  const plan_id = (body?.plan_id || "").toString().trim().toLowerCase();
-  const allowed = new Set(["free", "starter", "pro", "max", "cv_starter", "cv_plus", "cv_unlimited"]);
-  if (!allowed.has(plan_id)) {
-  return json(request, { error: "Invalid plan_id", allowed: Array.from(allowed) }, 400);
+
+  const plan = parseRequestedPlanId(body);
+  if (!plan.ok) {
+    return json(request, { error: plan.error, allowed: plan.allowed }, 400);
   }
 
-  if (plan_id === "free") {
-  await deleteCustomerPlanRecord(env, me.customerId);
-  return json(request, { ok: true, me: true, customer_id: me.customerId, plan_id }, 200);
+  return await writeSelfServicePlan(request, env, me.customerId, plan.plan_id, { me: true });
   }
 
-  const row = { customer_id: me.customerId, plan_id, updated_at: new Date().toISOString() };
+async function handleMeBillingSummary(request, env) {
+  const me = await requireMeCustomerId(request, env);
+  if (!me.ok) return me.res;
 
-  await supabaseFetch(env, `/rest/v1/customer_plans?on_conflict=customer_id`, {
-  method: "POST",
-  body: [row],
-  headers: { Prefer: "resolution=merge-duplicates,return=minimal" }
-  });
-  
-  return json(request, { ok: true, me: true, customer_id: me.customerId, plan_id }, 200);
+  const billing = getStripeBillingConfig(env);
+  const plan = await getCustomerPlanRow(env, me.customerId);
+  const cvAccess = await resolveCvStudioAccess(env, me.customerId, plan);
+  const planId = plan?.plan_id ? String(plan.plan_id).trim().toLowerCase() : null;
+
+  const response = {
+    ok: true,
+    me: true,
+    provider: "stripe",
+    billing,
+    email: me.email,
+    customer_id: me.customerId,
+    stripe_customer_id: null,
+    plan_id: planId,
+    cv_paid: cvAccess.paid,
+    cv_plan_id: cvAccess.planId,
+    cv_quota_limit: cvAccess.limit,
+    cv_quota_used: cvAccess.used,
+    cv_quota_remaining: cvAccess.remaining,
+    cv_quota_period_started_at: cvAccess.periodStartedAt,
+    subscription: null,
+    invoices: []
+  };
+
+  if (!billing.stripe_enabled) {
+    return json(request, response, 200);
   }
+
+  try {
+    const stripeCustomer = await stripeFindCustomerByEmail(env, me.email);
+    if (!stripeCustomer?.id) {
+      return json(request, response, 200);
+    }
+
+    const subscriptions = await stripeListSubscriptions(env, stripeCustomer.id, { limit: 10 });
+    const currentSubscription = pickCurrentStripeSubscription(subscriptions);
+    const invoices = await stripeListInvoices(env, stripeCustomer.id, { limit: 6 });
+
+    response.stripe_customer_id = String(stripeCustomer.id || "").trim() || null;
+    response.subscription = summarizeStripeSubscription(env, currentSubscription);
+    response.invoices = invoices.map((invoice) => summarizeStripeInvoice(invoice)).filter(Boolean);
+    return json(request, response, 200);
+  } catch (err) {
+    response.provider_error = String(err?.message || err || "Stripe billing summary failed");
+    return json(request, response, 200);
+  }
+}
 
 async function handleMeBillingCheckout(request, env) {
   const me = await requireMeCustomerId(request, env);
@@ -2000,6 +2166,83 @@ async function handleMeBillingPortal(request, env) {
     return json(request, { ok: true, provider: "stripe", url: session?.url || null }, 200);
   } catch (err) {
     return json(request, { ok: false, error: String(err?.message || err || "Stripe billing portal failed") }, 502);
+  }
+}
+
+async function handleMeBillingConfirm(request, env) {
+  const me = await requireMeCustomerId(request, env);
+  if (!me.ok) return me.res;
+
+  let body = null;
+  try {
+    body = await request.json();
+  } catch {
+    body = null;
+  }
+
+  const sessionId = String(body?.session_id || "").trim();
+  if (!sessionId) {
+    return json(request, { ok: false, error: "session_id is required" }, 400);
+  }
+
+  try {
+    const checkout = await stripeGetCheckoutSession(env, sessionId, { expandSubscription: true });
+    if (!checkout || typeof checkout !== "object") {
+      return json(request, { ok: false, error: "Stripe checkout session not found" }, 404);
+    }
+
+    const checkoutStatus = String(checkout.status || "").trim().toLowerCase();
+    const paymentStatus = String(checkout.payment_status || "").trim().toLowerCase();
+    if (checkoutStatus !== "complete" || !["paid", "no_payment_required"].includes(paymentStatus)) {
+      return json(request, {
+        ok: false,
+        error: "Stripe checkout is not complete yet",
+        checkout_status: checkoutStatus || null,
+        payment_status: paymentStatus || null
+      }, 409);
+    }
+
+    const metadata = checkout.metadata && typeof checkout.metadata === "object" ? checkout.metadata : {};
+    const checkoutCustomerId = String(
+      checkout.client_reference_id ||
+      metadata.customer_id ||
+      ""
+    ).trim();
+    const checkoutEmail = String(
+      checkout.customer_details?.email ||
+      checkout.customer_email ||
+      metadata.email ||
+      ""
+    ).trim().toLowerCase();
+
+    const matchesCustomer = checkoutCustomerId && checkoutCustomerId === String(me.customerId || "").trim();
+    const matchesEmail = checkoutEmail && checkoutEmail === String(me.email || "").trim().toLowerCase();
+    if (!matchesCustomer && !matchesEmail) {
+      return json(request, { ok: false, error: "Checkout session does not belong to the signed-in customer" }, 403);
+    }
+
+    let subscription = checkout.subscription || null;
+    if (typeof subscription === "string" && subscription.trim()) {
+      subscription = await stripeGetSubscription(env, subscription.trim());
+    }
+
+    if (!subscription || typeof subscription !== "object") {
+      return json(request, { ok: false, error: "Stripe subscription was not available for confirmation" }, 409);
+    }
+
+    const plan = await syncStripeSubscriptionToCustomerPlan(env, subscription);
+    return json(request, {
+      ok: true,
+      provider: "stripe",
+      session_id: sessionId,
+      customer_id: me.customerId,
+      email: me.email,
+      plan_id: plan?.plan_id || resolveStripePlanIdFromSubscription(env, subscription) || null,
+      subscription_id: String(subscription.id || "").trim() || null,
+      subscription_status: String(subscription.status || "").trim().toLowerCase() || null
+    }, 200);
+  } catch (err) {
+    return json(request, { ok: false, error: String(err?.message || err || "Stripe checkout confirmation failed") }, 502);
   }
 }
 
@@ -4578,13 +4821,20 @@ async function handleMeAiTitlesSave(request, env){
   const q = new URLSearchParams();
   q.set(
   "select",
-  "cv_path,cv_filename,cv_mime,cv_size,cv_uploaded_at,cv_ocr_status,cv_ocr_operation,cv_ocr_error,cv_ocr_updated_at"
+  "cv_path,cv_filename,cv_mime,cv_size,cv_uploaded_at,cv_ocr_status,cv_ocr_operation,cv_ocr_error,cv_ocr_updated_at,cv_ocr_text"
   );
   q.set("customer_id", `eq.${me.customerId}`);
   q.set("limit", "1");
   
   const rows = await supabaseFetch(env, `/rest/v1/customer_profiles?${q.toString()}`, { method: "GET" });
-  const cv = Array.isArray(rows) && rows.length ? rows[0] : null;
+  const row = Array.isArray(rows) && rows.length ? rows[0] : null;
+  const ocrText = String(row?.cv_ocr_text || "").trim();
+  const cv = row ? {
+  ...row,
+  cv_ocr_text: undefined,
+  cv_has_ocr_text: ocrText.length > 40,
+  cv_ocr_text_chars: ocrText.length
+  } : null;
   
   return json(request, { ok: true, me: true, customer_id: me.customerId, cv }, 200);
   }
@@ -4845,10 +5095,15 @@ async function persistAiTitles(env, customerId, aiTitles){
   OCR (GCP Vision async PDF OCR)
   ----------------------------- */
   
-  function getOcrMaxPdfBytes(env) {
-  const n = Number(env.OCR_MAX_PDF_BYTES || 10 * 1024 * 1024);
-  return Number.isFinite(n) && n > 0 ? n : 10 * 1024 * 1024;
-  }
+function getOcrMaxPdfBytes(env) {
+const n = Number(env.OCR_MAX_PDF_BYTES || 10 * 1024 * 1024);
+return Number.isFinite(n) && n > 0 ? n : 10 * 1024 * 1024;
+}
+
+function getOcrMaxImageBytes(env) {
+const n = Number(env.OCR_MAX_IMAGE_BYTES || 8 * 1024 * 1024);
+return Number.isFinite(n) && n > 0 ? n : 8 * 1024 * 1024;
+}
   
   function getGcsBucket(env) {
   return mustEnv(env, "GCP_GCS_BUCKET");
@@ -4860,13 +5115,46 @@ async function persistAiTitles(env, customerId, aiTitles){
   return s.endsWith("/") ? s.slice(0, -1) : s;
   }
   
-  function base64UrlEncode(bytes) {
-  let binary = "";
-  const arr = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
-  for (let i = 0; i < arr.length; i += 1) binary += String.fromCharCode(arr[i]);
-  const b64 = btoa(binary);
-  return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+function base64UrlEncode(bytes) {
+let binary = "";
+const arr = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+for (let i = 0; i < arr.length; i += 1) binary += String.fromCharCode(arr[i]);
+const b64 = btoa(binary);
+return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function base64Encode(bytes) {
+let binary = "";
+const arr = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+const chunkSize = 0x8000;
+for (let i = 0; i < arr.length; i += chunkSize) {
+  const chunk = arr.subarray(i, i + chunkSize);
+  let piece = "";
+  for (let j = 0; j < chunk.length; j += 1) {
+    piece += String.fromCharCode(chunk[j]);
   }
+  binary += piece;
+}
+return btoa(binary);
+}
+
+function inferImageMimeFromName(name) {
+const n = String(name || "").toLowerCase();
+if (n.endsWith(".png")) return "image/png";
+if (n.endsWith(".jpg") || n.endsWith(".jpeg")) return "image/jpeg";
+if (n.endsWith(".webp")) return "image/webp";
+if (n.endsWith(".heic")) return "image/heic";
+if (n.endsWith(".heif")) return "image/heif";
+return "";
+}
+
+const ALLOWED_OCR_IMAGE_MIME = new Set([
+"image/png",
+"image/jpeg",
+"image/webp",
+"image/heic",
+"image/heif"
+]);
   
   function pemToArrayBuffer(pem) {
   const b64 = pem
@@ -5144,9 +5432,9 @@ async function gcsTryDownloadJson(env, accessToken, bucket, objectName) {
   return data.name;
   }
   
-  async function visionGetOperation(env, accessToken, operationName) {
-  const location = (env.GCP_LOCATION || "eu").trim() || "eu";
-  const endpoint = `https://${location}-vision.googleapis.com/v1/${operationName}`;
+async function visionGetOperation(env, accessToken, operationName) {
+const location = (env.GCP_LOCATION || "eu").trim() || "eu";
+const endpoint = `https://${location}-vision.googleapis.com/v1/${operationName}`;
   
   const res = await fetch(endpoint, {
   method: "GET",
@@ -5154,8 +5442,60 @@ async function gcsTryDownloadJson(env, accessToken, bucket, objectName) {
   });
   const text = await res.text().catch(() => "");
   if (!res.ok) throw new Error(`Vision op get failed ${res.status}: ${text}`);
-  return text ? JSON.parse(text) : null;
-  }
+return text ? JSON.parse(text) : null;
+}
+
+async function visionExtractTextFromImage(env, accessToken, { bytes, mimeType, languageHints = [] } = {}) {
+const endpoint = "https://vision.googleapis.com/v1/images:annotate";
+const imageBytes = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes || new ArrayBuffer(0));
+if (!imageBytes.length) throw new Error("Image file is empty");
+
+const body = {
+requests: [
+{
+image: { content: base64Encode(imageBytes) },
+features: [{ type: "DOCUMENT_TEXT_DETECTION" }],
+imageContext: {
+languageHints: Array.isArray(languageHints) ? languageHints.map((x) => String(x || "").trim()).filter(Boolean).slice(0, 6) : []
+}
+}
+]
+};
+
+const res = await fetch(endpoint, {
+method: "POST",
+headers: {
+Authorization: `Bearer ${accessToken}`,
+"Content-Type": "application/json"
+},
+body: JSON.stringify(body)
+});
+
+const text = await res.text().catch(() => "");
+if (!res.ok) throw new Error(`Vision image OCR failed ${res.status}: ${text.slice(0, 1200)}`);
+
+let data = null;
+try {
+data = text ? JSON.parse(text) : null;
+} catch {
+data = null;
+}
+
+const response = Array.isArray(data?.responses) ? data.responses[0] : null;
+const err = response?.error;
+if (err && err.message) throw new Error(`Vision image OCR error: ${err.message}`);
+
+const extracted = String(
+response?.fullTextAnnotation?.text ||
+response?.textAnnotations?.[0]?.description ||
+""
+).replace(/\r/g, "").replace(/\u0000/g, " ").trim();
+
+return {
+text: extracted,
+pages: Array.isArray(response?.fullTextAnnotation?.pages) ? response.fullTextAnnotation.pages.length : null
+};
+}
   
   async function setOcrState(env, customerId, patch) {
   const payload = {
@@ -5437,7 +5777,7 @@ async function handleMeCvTailor(request, env) {
   const cacheRows = await supabaseFetch(
     env,
     `/rest/v1/tailored_cvs?select=` +
-      `id,status,input_hash,output_hash,language,model,prompt_version,template,strength,cv_text,ats_keywords_used,ats_keywords_missing,confidence,warnings,error,updated_at,created_at` +
+      `id,status,input_hash,output_hash,language,model,prompt_version,template,strength,cv_text,cv_json,ats_keywords_used,ats_keywords_missing,confidence,warnings,error,updated_at,created_at` +
       `&customer_id=eq.${me.customerId}&job_id=eq.${jobId}&input_hash=eq.${inputHash}` +
       `&order=updated_at.desc&limit=1`
   );
@@ -5456,6 +5796,9 @@ async function handleMeCvTailor(request, env) {
       if (wantModel && cachedModel && cachedModel !== wantModel) {
         // continue to generation
       } else {
+        const cachedCvDoc = cached?.cv_json && typeof cached.cv_json === "object" && cached.cv_json.cv_doc && typeof cached.cv_json.cv_doc === "object"
+          ? cached.cv_json.cv_doc
+          : null;
         return jsonResponse({
         ok: true,
         cached: true,
@@ -5465,6 +5808,7 @@ async function handleMeCvTailor(request, env) {
           template: cached.template || template,
           strength: cached.strength || strength,
           cv_text: cached.cv_text,
+          cv_doc: cachedCvDoc,
           ats_keywords_used: cached.ats_keywords_used || [],
           ats_keywords_missing: cached.ats_keywords_missing || [],
           confidence: cached.confidence,
@@ -5772,6 +6116,72 @@ async function handleMeCvTailorFromText(request, env) {
   }
 }
 
+async function handleMeJobsOcrImage(request, env) {
+  const me = await requireMeCustomerId(request, env);
+  if (!me.ok) return me.res;
+
+  const ct = String(request.headers.get("content-type") || "").toLowerCase();
+  if (!ct.includes("multipart/form-data")) {
+    return jsonResponse({ ok:false, error:"Expected multipart/form-data" }, 400, request);
+  }
+
+  const fd = await request.formData();
+  const file = fd.get("image") || fd.get("screenshot") || fd.get("file");
+  if (!file || typeof file === "string") {
+    return jsonResponse({ ok:false, error:"Missing image field ('image' or 'screenshot')." }, 400, request);
+  }
+
+  const size = Number(file.size || 0);
+  if (!Number.isFinite(size) || size <= 0) {
+    return jsonResponse({ ok:false, error:"Empty image file." }, 400, request);
+  }
+  if (size > getOcrMaxImageBytes(env)) {
+    return jsonResponse({ ok:false, error:"Image file too large.", max_bytes:getOcrMaxImageBytes(env) }, 413, request);
+  }
+
+  let mime = String(file.type || "").trim().toLowerCase();
+  if (!mime) mime = inferImageMimeFromName(file.name);
+  if (!ALLOWED_OCR_IMAGE_MIME.has(mime)) {
+    return jsonResponse({ ok:false, error:"Unsupported image type. Use PNG, JPG, or WEBP." }, 400, request);
+  }
+
+  try {
+    const bytes = await file.arrayBuffer();
+    const accessToken = await getGcpAccessTokenCached(env);
+    const out = await visionExtractTextFromImage(env, accessToken, {
+      bytes,
+      mimeType: mime,
+      languageHints: [
+        String(fd.get("language_hint") || "").trim(),
+        "en",
+        "de"
+      ]
+    });
+
+    const text = String(out?.text || "").trim();
+    if (!text || text.length < 40) {
+      return jsonResponse({
+        ok:false,
+        error:"We could not extract enough text from that screenshot. Try a clearer screenshot or paste the job description."
+      }, 422, request);
+    }
+
+    return jsonResponse({
+      ok:true,
+      text,
+      pages: out?.pages ?? null,
+      mime,
+      size,
+      filename: safeFileName(file.name || "job-screenshot")
+    }, 200, request);
+  } catch (err) {
+    return jsonResponse({
+      ok:false,
+      error:String(err?.message || err || "Failed to extract text from screenshot")
+    }, 502, request);
+  }
+}
+
 /* -----------------------------
   CUSTOMER: POST /me/cv/keyword_insert
   AI-assisted keyword integration into bullets (language-aware).
@@ -5908,6 +6318,80 @@ function isToolKeyword(keyword) {
   return false;
 }
 
+function isAudienceKeyword(keyword) {
+  const k = String(keyword || "").toLowerCase().trim();
+  if (!k) return false;
+  return /\b(stakeholder|stakeholders|leadership|executive|executives|client|clients|customer|customers|partner|partners|supplier|suppliers|vendor|vendors|investor|investors|user|users|founder|founders|manager|managers|team|teams|board|boards)\b/.test(k);
+}
+
+function isProcessLikeKeyword(keyword) {
+  const k = String(keyword || "").toLowerCase().trim();
+  if (!k) return false;
+  return /\b(requirements gathering|requirements analysis|process mapping|process improvement|forecasting|planning|governance|documentation|facilitation|storytelling|communication|workshop facilitation|change management|prioritization|prioritisation|collaboration|coordination|stakeholder management|data governance|scenario planning|demand planning|root cause analysis|financial modeling|financial modelling|cost modeling|cost modelling)\b/.test(k);
+}
+
+function keywordRewriteStyle(keyword, lang) {
+  const raw = String(keyword || "").trim();
+  const low = raw.toLowerCase();
+  const kwPretty = prettyKeywordForCv(raw, lang) || raw;
+  const kwSentence =
+    (lang === "en" && !isToolKeyword(raw) && !/^[A-Z0-9]{2,8}$/.test(raw))
+      ? low
+      : kwPretty;
+
+  if (isToolKeyword(raw)) {
+    return {
+      category: "tool",
+      preferredClause: lang === "de" ? `unter Einsatz von ${kwPretty}` : `using ${kwPretty}`,
+      promptLines: [
+        "This keyword is a tool, technology, or hard-skill term.",
+        "Integrate it into how the work was done, not as a loose ending or parenthetical.",
+        `Good pattern: "${lang === "de" ? `unter Einsatz von ${kwPretty}` : `using ${kwPretty}`}".`
+      ]
+    };
+  }
+
+  if (isProcessLikeKeyword(raw)) {
+    const preferredClause =
+      lang === "de"
+        ? ((/\b(management|governance|collaboration|coordination)\b/.test(low)) ? `durch ${kwPretty}` : `für ${kwPretty}`)
+        : ((/\b(management|governance|collaboration|coordination)\b/.test(low)) ? `through ${kwSentence}` : `for ${kwSentence}`);
+    return {
+      category: "process",
+      preferredClause,
+      promptLines: [
+        "This keyword describes a process, method, or capability.",
+        "Integrate it into the main clause as part of how the work was done.",
+        "If the bullet already has a result clause, place the keyword before that result clause when possible."
+      ]
+    };
+  }
+
+  if (isAudienceKeyword(raw)) {
+    let preferredClause = lang === "de" ? `für ${kwPretty}` : `for ${kwSentence}`;
+    if (lang === "en" && /\bstakeholders?\b/.test(low)) preferredClause = "for key stakeholders";
+    if (lang === "de" && /\bstakeholders?\b/.test(low)) preferredClause = "für relevante Stakeholder";
+    return {
+      category: "audience",
+      preferredClause,
+      promptLines: [
+        "This keyword refers to people, audiences, or stakeholder groups.",
+        "Integrate it into who the work supported or collaborated with, ideally near the main action.",
+        `Good pattern: "${preferredClause}". Bad pattern: a loose ending like "${lang === "de" ? "..., und relevante Stakeholder informiert." : "..., and informing key stakeholders."}".`
+      ]
+    };
+  }
+
+  return {
+    category: "general",
+    preferredClause: lang === "de" ? `mit Fokus auf ${kwPretty}` : `with a focus on ${kwSentence}`,
+    promptLines: [
+      "Integrate the keyword into the main clause, not as a trailing add-on or parenthetical.",
+      "If the bullet has a result clause such as 'resulting in' or 'leading to', place the keyword before that clause when possible."
+    ]
+  };
+}
+
 
 
 function escapeRegExp(str) {
@@ -5977,12 +6461,88 @@ function fixAwkwardByKeywordEnglish(text, keyword, keywordForSentence) {
   return out;
 }
 
+function hasWeakTrailingKeywordClause(text, keyword) {
+  const out = normalizeBulletTextLine(text).toLowerCase();
+  const k = String(keyword || "").trim().toLowerCase();
+  if (!out || !k || !out.includes(k)) return false;
+
+  const idx = out.lastIndexOf(k);
+  if (idx < 0) return false;
+  if ((out.length - idx) > 72) return false;
+
+  const left = out.slice(Math.max(0, idx - 44), idx);
+  if (/\(\s*$/.test(left)) return true;
+  if (/\b(and|including|with|covering|informing|supporting|briefing|updating|engaging|serving|plus)\s+(key\s+|senior\s+|relevant\s+|cross-functional\s+)?$/.test(left)) {
+    return true;
+  }
+  if (!isToolKeyword(keyword) && /,\s*[^,]{0,26}$/.test(left)) return true;
+  return false;
+}
+
+function fixWeakKeywordTailEnglish(text, keyword, preferredClause) {
+  let out = String(text || "");
+  const k = String(keyword || "").trim().toLowerCase();
+  const clause = String(preferredClause || "").trim();
+  if (!out || !k || !clause) return out;
+
+  if (isAudienceKeyword(keyword)) {
+    try {
+      const reResult = /^(.*?)(,\s*(?:resulting in|leading to|driving|delivering|creating)\b.*?)(?:\s+and\s+(?:informing|supporting|briefing|updating|engaging|serving)\s+[^.]+)\.?$/i;
+      const match = out.match(reResult);
+      if (match && String(match[0] || "").toLowerCase().includes(k)) {
+        out = `${String(match[1] || "").trim()} ${clause}${String(match[2] || "").trim()}`;
+      }
+    } catch {}
+  }
+
+  try {
+    const weakTailRe = /(?:,?\s*and\s+(?:informing|supporting|briefing|updating|engaging|serving)|,?\s*including)\s+[^.]+\.?$/i;
+    const tailMatch = out.match(weakTailRe);
+    if (tailMatch && String(tailMatch[0] || "").toLowerCase().includes(k)) {
+      out = out.replace(weakTailRe, ` ${clause}.`);
+    }
+  } catch {}
+
+  out = out.replace(/,,+/g, ",");
+  out = out.replace(/\s+,/g, ",");
+  out = out.replace(/,\s+/g, ", ");
+  out = out.replace(/\s+\./g, ".").trim();
+  if (out && !/[.!?]$/.test(out)) out += ".";
+  return out;
+}
+
+function ensureKeywordPresentNaturally(text, keyword, lang) {
+  let out = normalizeBulletTextLine(text);
+  const kLow = String(keyword || "").toLowerCase().trim();
+  if (!out || !kLow || out.toLowerCase().includes(kLow)) return out;
+
+  const style = keywordRewriteStyle(keyword, lang);
+  const clause = String(style?.preferredClause || "").trim();
+  if (!clause) return out;
+
+  out = out.replace(/[.!?]\s*$/, "").trim();
+  if (!out) return clause;
+  try {
+    const resultRe = /^(.*?)(,\s*(?:resulting in|leading to|driving|delivering|creating)\b.*)$/i;
+    if (resultRe.test(out)) {
+      return out.replace(resultRe, (_m, main, result) => {
+        const lead = String(main || "").trim().replace(/[,\s]+$/, "");
+        const joiner = /^(for|with|through)\b/i.test(clause) ? " " : ", ";
+        return `${lead}${joiner}${clause}${String(result || "")}`;
+      }) + ".";
+    }
+  } catch {}
+  const joiner = /[,;:]\s*$/.test(out) ? " " : ", ";
+  return `${out}${joiner}${clause}.`;
+}
+
 function postProcessKeywordSuggestBullet(text, keyword, lang) {
   let out = normalizeBulletTextLine(text);
   const kRaw = String(keyword || "").trim();
   if (!kRaw) return out;
 
   const kwPretty = prettyKeywordForCv(kRaw, lang);
+  const style = keywordRewriteStyle(kRaw, lang);
 
   // For tools/acronyms (and for German), prefer pretty casing everywhere.
   if (isToolKeyword(kRaw) || /^[A-Z0-9]{2,8}$/.test(kRaw.trim()) || lang === "de") {
@@ -5996,6 +6556,7 @@ function postProcessKeywordSuggestBullet(text, keyword, lang) {
         ? kwPretty
         : kRaw.toLowerCase();
     out = fixAwkwardByKeywordEnglish(out, kRaw, kwForSentence);
+    out = fixWeakKeywordTailEnglish(out, kRaw, style.preferredClause);
   }
 
   return out;
@@ -6020,6 +6581,8 @@ function shouldPolishKeywordSuggestBullet(text, keyword, lang) {
       if (re.test(outLow)) return true;
     } catch {}
   }
+
+  if (hasWeakTrailingKeywordClause(out, k)) return true;
 
   // Very short or obviously broken output
   if (out.length < 12) return true;
@@ -6051,9 +6614,7 @@ async function aiRewriteBulletWithKeyword(env, { models, lang, keyword, currentB
   // Ensure keyword is present (best effort)
   const kLow = String(keyword || "").toLowerCase();
   if (out && kLow && !out.toLowerCase().includes(kLow)) {
-    const kwPretty = prettyKeywordForCv(keyword, lang) || keyword;
-    out = out.endsWith(".") ? out.slice(0, -1) : out;
-    out = `${out} (${kwPretty})`.trim();
+    out = ensureKeywordPresentNaturally(out, keyword, lang);
   }
 
   // Safety cap (keep enough room for ATS + UI)
@@ -6070,15 +6631,20 @@ async function aiRewriteBulletWithKeyword(env, { models, lang, keyword, currentB
 function buildKeywordInsertPrompt({ mode, lang, keyword, currentBullet, note, context }) {
   const language = (lang === "de") ? "German" : "English";
   const ctx = (context && typeof context === "object") ? context : {};
+  const avoidRewrites = Array.isArray(ctx.avoid_rewrites) ? ctx.avoid_rewrites.map(x => String(x || "").trim()).filter(Boolean).slice(0, 8) : [];
+  const variation = Number(ctx.variation || ctx.rewrite_attempt || 0) || 0;
   const ctxSlim = {
     role_title: String(ctx.role_title || "").trim(),
     company: String(ctx.company || "").trim(),
     job_title: String(ctx.job_title || "").trim(),
-    job_company: String(ctx.job_company || "").trim()
+    job_company: String(ctx.job_company || "").trim(),
+    variation: variation || null,
+    require_distinct: !!ctx.require_distinct
   };
 
   const kwRaw = String(keyword || "").trim();
   const kw = prettyKeywordForCv(kwRaw, lang);
+  const style = keywordRewriteStyle(kwRaw, lang);
 
   const hard = [
     "- Output must be ONE bullet text line (no leading dash).",
@@ -6087,11 +6653,18 @@ function buildKeywordInsertPrompt({ mode, lang, keyword, currentBullet, note, co
     "- Do NOT add numbers unless they already exist in the input bullet or in the user note.",
     "- The keyword must appear in the output (case may be adjusted).",
     "- Keep it concise (ideally <= 180 characters).",
-    "- Avoid generic filler like 'responsible for' when possible (use clear action verbs)."
+    "- Avoid generic filler like 'responsible for' when possible (use clear action verbs).",
+    "- Integrate the keyword into the sentence naturally instead of tacking it onto the end.",
+    "- If the bullet already contains a result clause like 'resulting in' or 'leading to', place the keyword before that result clause when possible.",
+    "- Avoid parenthetical keyword add-ons unless absolutely necessary."
   ];
 
   if (mode === "rewrite") {
     hard.push("- REWRITE mode: keep meaning and facts identical to the input bullet; only rephrase to naturally include the keyword.");
+    if (ctx.require_distinct || avoidRewrites.length || variation > 1) {
+      hard.push("- Generate a materially different rewrite from the blocked alternatives below. Do NOT return the same sentence with only trivial punctuation or casing changes.");
+      hard.push("- Change clause order, sentence rhythm, or integration point while preserving the same facts.");
+    }
   } else {
     hard.push("- NEW mode: create the bullet ONLY from the user note. Do not add details beyond the note.");
   }
@@ -6105,9 +6678,17 @@ function buildKeywordInsertPrompt({ mode, lang, keyword, currentBullet, note, co
     "Hard rules:",
     ...hard,
     "",
+    "Keyword integration guidance:",
+    ...((Array.isArray(style?.promptLines) && style.promptLines.length) ? style.promptLines : ["Integrate the keyword into the main clause rather than as a loose ending."]),
+    "",
     "Context (tone only, not facts):",
     JSON.stringify(ctxSlim),
     "",
+    ...(avoidRewrites.length ? [
+      "Blocked rewrites (must differ clearly from these):",
+      JSON.stringify(avoidRewrites),
+      ""
+    ] : []),
     "MODE:",
     String(mode || "").toUpperCase(),
     "KEYWORD:",
@@ -6169,6 +6750,7 @@ function buildKeywordSuggestPrompt({ lang, keyword, bulletCandidates, skillGroup
   const languageName = String(lang || "").toLowerCase().startsWith("de") ? "German" : "English";
   const kwRaw = String(keyword || "").trim();
   const kw = prettyKeywordForCv(kwRaw, lang);
+  const style = keywordRewriteStyle(kwRaw, lang);
 
   const ctx = (context && typeof context === "object") ? context : {};
   const ctxSlim = {
@@ -6185,6 +6767,8 @@ function buildKeywordSuggestPrompt({ lang, keyword, bulletCandidates, skillGroup
     "If the keyword is a tool, software, certification, methodology, or hard skill, prefer placing it under Skills.",
     "If the keyword is a responsibility/process, prefer Experience only if it fits naturally without changing meaning.",
     "For Experience rewrites: use natural grammar. Avoid awkward patterns like 'by <keyword>' for noun phrases; prefer 'including/with/covering' or integrate as a clause.",
+    "If the bullet already contains a result clause like 'resulting in' or 'leading to', place the keyword before that result clause when possible.",
+    "Do NOT tack the keyword onto the end as a loose clause or parenthetical if a more natural integration is possible.",
     "The keyword must appear in the rewritten bullet OR the suggested skill item.",
     "If nothing fits well, choose Skills and suggest adding the keyword as a skill item."
   ];
@@ -6209,6 +6793,9 @@ function buildKeywordSuggestPrompt({ lang, keyword, bulletCandidates, skillGroup
     "Context:",
     JSON.stringify(ctxSlim),
     "",
+    "Keyword integration guidance:",
+    JSON.stringify(style?.promptLines || []),
+    "",
     "KEYWORD:",
     kw,
     "",
@@ -6230,6 +6817,7 @@ function buildKeywordSuggestForceExperiencePrompt({ lang, keyword, bulletCandida
   const languageName = String(lang || "").toLowerCase().startsWith("de") ? "German" : "English";
   const kwRaw = String(keyword || "").trim();
   const kw = prettyKeywordForCv(kwRaw, lang);
+  const style = keywordRewriteStyle(kwRaw, lang);
 
   const ctx = (context && typeof context === "object") ? context : {};
   const ctxSlim = {
@@ -6258,6 +6846,11 @@ function buildKeywordSuggestForceExperiencePrompt({ lang, keyword, bulletCandida
     `- Do NOT add new tools, numbers, achievements, employers, or responsibilities not already implied.`,
     `- Make it sound natural and ATS-friendly.`,
     `- Avoid awkward phrasing like "by <keyword>" for noun phrases. Prefer "including/with/covering" (EN) or "einschließlich/mit" (DE).`,
+    `- If the bullet already contains a result clause like "resulting in" or "leading to", place the keyword before that result clause when possible.`,
+    `- Do NOT tack the keyword onto the end as a loose afterthought or parenthetical.`,
+    ...((Array.isArray(style?.promptLines) && style.promptLines.length)
+      ? style.promptLines.map(line => `- ${line}`)
+      : []),
     `- Output MUST be valid JSON only.`,
     ``,
     `Return JSON with keys exactly:`,
@@ -6408,9 +7001,7 @@ async function handleMeCvKeywordSuggest(request, env) {
     if (reco.target === "experience") {
       let out = String(reco.rewritten_bullet || "").trim();
       if (out && !out.toLowerCase().includes(kwNeedle)) {
-        // ensure keyword appears (keep it short and honest)
-        out = out.length > 240 ? out.slice(0, 240) : out;
-        out = `${out} (${kwPretty})`;
+        out = ensureKeywordPresentNaturally(out, keyword, lang);
       }
       reco.rewritten_bullet = out ? out.slice(0, 280) : null;
       reco.skill_group = null;
@@ -6469,10 +7060,9 @@ async function handleMeCvKeywordSuggest(request, env) {
             confidence: (typeof fp.confidence === "number" && fp.confidence >= 0 && fp.confidence <= 1) ? fp.confidence : reco.confidence
           };
 
-          const kwPretty2 = prettyKeywordForCv(keyword, lang);
           const kwNeedle2 = String(keyword || "").toLowerCase();
           if (reco.rewritten_bullet && !reco.rewritten_bullet.toLowerCase().includes(kwNeedle2)) {
-            reco.rewritten_bullet = `${reco.rewritten_bullet} (${kwPretty2})`.slice(0, 280);
+            reco.rewritten_bullet = ensureKeywordPresentNaturally(reco.rewritten_bullet, keyword, lang).slice(0, 280);
           }
         }
       } catch (_) {
@@ -6509,8 +7099,7 @@ async function handleMeCvKeywordSuggest(request, env) {
       // Ensure keyword is present (last line of defense)
       const kwNeedleFinal = String(keyword || "").toLowerCase();
       if (out && !out.toLowerCase().includes(kwNeedleFinal)) {
-        out = out.length > 240 ? out.slice(0, 240) : out;
-        out = `${out} (${keyword_pretty})`;
+        out = ensureKeywordPresentNaturally(out, keyword, lang);
       }
 
       reco.rewritten_bullet = out ? out.slice(0, 280) : null;
@@ -6524,7 +7113,7 @@ async function handleMeCvKeywordSuggest(request, env) {
       keyword_pretty,
       recommendation: reco,
       model: gen?.model || null,
-      prompt_version: "cv_keyword_suggest_v2"
+      prompt_version: "cv_keyword_suggest_v3"
     });
   } catch (e) {
     return jsonResponse({ ok: false, error: "AI suggest failed", details: String(e?.message || e) }, 500);
@@ -6611,14 +7200,28 @@ async function handleMeCvKeywordInsert(request, env) {
     // Sanitize common model mistakes
     out = out.replace(/^[\-–—•·∙●▪◦]+\s*/g, "").trim(); // remove bullet markers
     out = out.replace(/\s+/g, " ").trim();
+    out = postProcessKeywordSuggestBullet(out, keyword, lang);
+
+    if (mode === "rewrite" && shouldPolishKeywordSuggestBullet(out, keyword, lang) && bulletIn) {
+      try {
+        const polished = await aiRewriteBulletWithKeyword(env, {
+          models,
+          lang,
+          keyword,
+          currentBullet: bulletIn,
+          context: ctx
+        });
+        if (polished) out = polished;
+      } catch (_) {
+        // keep first pass
+      }
+      out = postProcessKeywordSuggestBullet(out, keyword, lang);
+    }
 
     // Ensure keyword is present (best effort)
     const kLow = keyword.toLowerCase();
     if (out && !out.toLowerCase().includes(kLow)) {
-      // append in a natural way without changing facts
-      out = out.endsWith(".") ? out.slice(0, -1) : out;
-      const kwPretty = prettyKeywordForCv(keyword, lang) || keyword;
-      out = out + (lang === "de" ? ` (${kwPretty})` : ` (${kwPretty})`) + ".";
+      out = ensureKeywordPresentNaturally(out, keyword, lang);
     }
 
     if (!out || out.length < 6) {
@@ -6664,11 +7267,16 @@ if (lang === "en") {
   }
 }
 
+    out = postProcessKeywordSuggestBullet(out, keyword, lang);
+    if (out && !out.toLowerCase().includes(kLow)) {
+      out = ensureKeywordPresentNaturally(out, keyword, lang);
+    }
+
     const resp = {
       ok: true,
       language: lang,
       model: gen.model || null,
-      prompt_version: "cv_keyword_insert_v2"
+      prompt_version: "cv_keyword_insert_v4"
     };
 
     if (mode === "new") {
@@ -7258,7 +7866,7 @@ const desiredTitlesForBA = expandedTitles.slice(0, BA_TITLE_LIMIT + 1);
   GET /jobs/search
   ----------------------------- */
   
-  async function handleJobSearch(url, env, request) {
+async function handleJobSearch(url, env, request) {
   const supabaseUrl = mustEnv(env, "SUPABASE_URL").replace(/\/$/, "");
   const serviceKey = mustEnv(env, "SUPABASE_SERVICE_ROLE_KEY");
   
@@ -7266,9 +7874,18 @@ const desiredTitlesForBA = expandedTitles.slice(0, BA_TITLE_LIMIT + 1);
   const q = (url.searchParams.get("q") || "").trim();
   const city = (url.searchParams.get("city") || "").trim();
   const limit = Math.min(Math.max(parseInt(url.searchParams.get("limit") || "25", 10) || 25, 1), 100);
-  const email = (url.searchParams.get("email") || "").trim().toLowerCase();
+  const requestedEmail = (url.searchParams.get("email") || "").trim().toLowerCase();
+  let email = "";
   
   if (!country) return json(request, { error: "country is required (UK, DE, TH, ID)" }, 400);
+
+  if (requestedEmail) {
+  const authUser = await getSupabaseUserFromAuthHeader(request, env).catch(() => null);
+  const authEmail = String(authUser?.email || "").trim().toLowerCase();
+  if (isAdminAuthorized(request, env) || (authEmail && authEmail === requestedEmail)) {
+  email = requestedEmail;
+  }
+  }
   
   const qSafe = q ? escapeForPostgrestLike(q) : "";
   const citySafe = city ? escapeForPostgrestLike(city) : "";
