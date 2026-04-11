@@ -9,7 +9,7 @@ IMPORTANT:
 /* ============================================================
 1) Defaults (frontend-safe)
 ============================================================ */
-const SUPABASE_URL_DEFAULT = "https://awlzvhcnjegfhjedswko.supabase.co";
+const SUPABASE_URL_DEFAULT = "https://auth.jobmejob.com";
 
 // Supabase ANON key (public, safe to ship to browser)
 const SUPABASE_ANON_KEY_DEFAULT =
@@ -427,6 +427,7 @@ window.JobApplyAI = app;
 app.config = app.config || {};
 app.config.API_BASE = API_BASE;
 app.config.SUPABASE_URL = SUPABASE_URL;
+app.config.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
 app.config.CAN_USE_DEBUG_OVERRIDES = CAN_USE_DEBUG_OVERRIDES;
 app.config.LINKS = Object.assign({}, LINKS);
 

@@ -388,16 +388,18 @@ white-space:pre-wrap;
 </div>
 
 <script src="./vendor/supabase-js-2.100.1.js"></script>
-<script src="./auth.js?v=202604101215"></script>
+<script src="./auth.js?v=202604111458"></script>
 <script src="./shared.js?v=202604102230"></script>
 <script>
 "use strict";
 
 /* Config */
-const APP_CONFIG=(window.JobMeJob && window.JobMeJob.config) || (window.JobApplyAI && window.JobApplyAI.config) || null;
+const APP=(window.JobMeJob && window.JobMeJob) || (window.JobApplyAI && window.JobApplyAI) || null;
+const APP_CONFIG=(APP && APP.config) || null;
+const APP_AUTH=(APP && APP.auth) || null;
 const API_BASE=(APP_CONFIG && APP_CONFIG.API_BASE) || "https://jobmejob.schoene-viktor.workers.dev";
-const SUPABASE_URL="https://awlzvhcnjegfhjedswko.supabase.co";
-const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
+const SUPABASE_URL=(APP_CONFIG && APP_CONFIG.SUPABASE_URL) || "https://auth.jobmejob.com";
+const SUPABASE_ANON_KEY=(APP_CONFIG && APP_CONFIG.SUPABASE_ANON_KEY) || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
 
 /* Storage keys (reads legacy ja_, writes jm_) */
 const LS={
@@ -486,7 +488,9 @@ function hasProfileLocal(){return (lsGetFirst(LS.profileDone)==="true");}
 function hasPlanLocal(){return !!lsGetFirst(LS.plan);}
 
 /* Supabase */
-const supabaseClient=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient=(APP_AUTH && APP_AUTH.supabaseClient)
+  ? APP_AUTH.supabaseClient
+  : window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* Navigation with smooth leave */
 function go(url){
@@ -672,6 +676,10 @@ showSignedOut();
 /* Button actions */
 async function loginWithGoogle(){
 const redirectTo=window.location.origin + window.location.pathname + window.location.search + window.location.hash;
+if(APP_AUTH && typeof APP_AUTH.loginWithGoogle === "function"){
+await APP_AUTH.loginWithGoogle({ redirectTo });
+return;
+}
 const { error } = await supabaseClient.auth.signInWithOAuth({
 provider:"google",
 options:{ redirectTo }
