@@ -26,6 +26,10 @@
     }
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
+    @media (prefers-reduced-motion: reduce){
+      .btn.lime{animation:none}
+    }
+    @keyframes gradMove{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
     body{
       margin:0;
       font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
@@ -87,6 +91,26 @@
       border-color:rgba(0,166,63,.4);
       color:#07120a;
     }
+    .btn.lime{
+      padding:12px 14px;
+      font-weight:950;
+      line-height:1;
+      white-space:nowrap;
+      position:relative;
+      overflow:hidden;
+      background:linear-gradient(135deg, #00a63f, #66ff8a, #00a63f);
+      background-size:220% 220%;
+      animation:gradMove 5.5s ease-in-out infinite;
+      border-color:rgba(0,166,63,.55);
+      color:#061208;
+      box-shadow:0 12px 28px rgba(0,166,63,.20);
+    }
+    .btn.lime:hover{
+      transform:translateY(-1px);
+      box-shadow:0 16px 44px rgba(0,166,63,.26);
+      filter:saturate(1.05);
+    }
+    .btn.lime:active{transform:translateY(0)}
     .btn.ghost{
       background:rgba(255,255,255,.55);
     }
@@ -404,35 +428,6 @@
       grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr);
       gap:16px;
     }
-    .showcaseCard{
-      padding:18px;
-      background:rgba(255,255,255,.9);
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-    }
-    .showcaseFrame{
-      overflow:hidden;
-      border-radius:22px;
-      border:1px solid rgba(17,19,24,.08);
-      background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(247,245,239,.92));
-    }
-    .showcaseFrame img{
-      display:block;
-      width:100%;
-      height:auto;
-    }
-    .showcaseCaption{
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      flex-wrap:wrap;
-      margin-top:14px;
-      color:var(--muted);
-      font-size:14px;
-      line-height:1.55;
-    }
-    .showcaseCaption strong{color:var(--text)}
     .railCard{
       padding:20px;
     }
@@ -476,7 +471,7 @@
     }
   </style>
 </head>
-<body data-nav-fetch-state="1">
+<body data-nav-fetch-state="1" data-mobile-cv-redirect="app">
   <header class="topbar">
     <div class="container">
       <nav class="nav" aria-label="Primary navigation">
@@ -536,7 +531,7 @@
             <h1>Tailor any job posting into a stronger CV.</h1>
             <p>Use the Chrome extension on LinkedIn and other job boards, or paste the full job description manually. CV Studio keeps your real experience, improves ATS alignment, and gets you to a tailored CV in minutes.</p>
             <div class="heroActions">
-              <a class="btn primary" href="./signup.html?entry=cv-studio">Start with 5 free CVs</a>
+              <a class="btn lime" href="./signup.html?entry=cv-studio">Start with 5 free CVs</a>
               <a class="btn ghost" data-extension-link data-extension-disabled-label="Add to Chrome" data-extension-ready-label="Add to Chrome" href="https://chromewebstore.google.com/detail/jibmnlonajhoaanhoblhiciddggiohba?utm_source=item-share-cb"><span data-extension-label>Add to Chrome</span></a>
             </div>
             <p class="heroNote"><strong>Chrome extension live.</strong> Add it on the Chrome Web Store, or paste manually whenever you want a fallback. It uses the same jobmejob account and does not need a separate login inside the side panel.</p>
@@ -576,27 +571,6 @@
               </div>
             </div>
           </aside>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="product-shot">
-      <div class="container">
-        <div class="sectionHead">
-          <div>
-            <span class="sectionKicker">Product snapshot</span>
-            <h2>See the CV Studio flow in one image.</h2>
-          </div>
-          <p>A shareable product visual hosted directly on the CV Studio marketing page.</p>
-        </div>
-        <div class="showcaseCard">
-          <div class="showcaseFrame">
-            <img src="./jobmejob_ad.png" alt="CV Studio visual showing CV tailoring from a LinkedIn job posting with ATS keyword suggestions." width="1536" height="1024">
-          </div>
-          <div class="showcaseCaption">
-            <strong>From job page to ATS-tuned CV</strong>
-            <span>Share the section link or open the image directly.</span>
-          </div>
         </div>
       </div>
     </section>
@@ -758,6 +732,6 @@
   </footer>
   <script src="./vendor/supabase-js-2.100.1.js"></script>
   <script src="./auth.js?v=202604101215"></script>
-  <script src="./shared.js?v=202604101215"></script>
+  <script src="./shared.js?v=202604102230"></script>
 </body>
 </html>

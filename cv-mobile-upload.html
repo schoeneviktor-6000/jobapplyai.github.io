@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>jobmejob • Mobile CV upload</title>
+  <meta name="description" content="Upload your base CV for the mobile CV tailoring flow."/>
+
+  <link rel="stylesheet" href="./shared.css?v=202604111335"/>
+
+  <style>
+    .mobileMain{
+      max-width:760px;
+      padding-top:24px;
+      padding-bottom:40px;
+    }
+    .mobileHero{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-bottom:16px;
+    }
+    .mobileHero .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid rgba(17,19,24,.10);
+      background:rgba(255,255,255,.80);
+      font-size:12px;
+      font-weight:900;
+      color:rgba(17,19,24,.76);
+      width:max-content;
+      max-width:100%;
+    }
+    .mobileHero .eyebrow::before{
+      content:"";
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow:0 0 0 4px rgba(34,197,94,.16);
+      flex:0 0 auto;
+    }
+    .mobileStack{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+    .flowRail{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+      gap:10px;
+      margin-bottom:14px;
+    }
+    .flowStep{
+      border:1px solid rgba(17,19,24,.10);
+      border-radius:18px;
+      background:rgba(255,255,255,.76);
+      padding:12px;
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      min-width:0;
+    }
+    .flowStepNum{
+      width:24px;
+      height:24px;
+      border-radius:999px;
+      border:1px solid rgba(17,19,24,.14);
+      background:rgba(17,19,24,.05);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:12px;
+      font-weight:950;
+      flex:0 0 auto;
+    }
+    .flowStepText{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .flowStepText strong{
+      font-size:13px;
+      line-height:1.15;
+    }
+    .flowStepText span{
+      font-size:11px;
+      line-height:1.35;
+      color:rgba(17,19,24,.56);
+      font-weight:750;
+    }
+    .flowStep.isActive{
+      border-color:rgba(34,197,94,.34);
+      background:rgba(34,197,94,.10);
+      box-shadow:0 10px 24px rgba(34,197,94,.10);
+    }
+    .flowStep.isActive .flowStepNum,
+    .flowStep.isDone .flowStepNum{
+      border-color:rgba(34,197,94,.32);
+      background:linear-gradient(135deg, rgba(34,197,94,.22), rgba(22,163,74,.28));
+      color:#0b4d24;
+    }
+    .flowStep.isDone{
+      border-color:rgba(22,163,74,.18);
+      background:rgba(34,197,94,.06);
+    }
+    .uploadCard{
+      padding:18px;
+    }
+    .sectionHead{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:12px;
+    }
+    .sectionHead h2{
+      margin:0;
+      font-size:22px;
+      line-height:1.1;
+      letter-spacing:-.02em;
+    }
+    .sectionHead p{
+      margin:6px 0 0;
+    }
+    .dropzone{
+      border:2px dashed rgba(17,19,24,.16);
+      border-radius:22px;
+      background:rgba(255,255,255,.70);
+      padding:16px;
+      cursor:pointer;
+      transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease, background .12s ease;
+    }
+    .dropzone:hover{
+      transform:translateY(-1px);
+      border-color:rgba(17,19,24,.26);
+      background:rgba(255,255,255,.84);
+    }
+    .dropzone.dragOver{
+      border-color:rgba(34,197,94,.60);
+      background:rgba(34,197,94,.08);
+      box-shadow:0 0 0 4px rgba(34,197,94,.14);
+    }
+    .dzTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .dzTitle{
+      font-size:15px;
+      font-weight:950;
+      letter-spacing:-.01em;
+    }
+    .dzSub{
+      margin-top:4px;
+      font-size:13px;
+      color:rgba(17,19,24,.62);
+      font-weight:700;
+      line-height:1.45;
+    }
+    .dzMeta{
+      margin-top:10px;
+      font-size:12px;
+      color:rgba(17,19,24,.58);
+      font-weight:650;
+      line-height:1.45;
+    }
+    .progressWrap{
+      margin-top:12px;
+      border:1px solid rgba(17,19,24,.10);
+      background:rgba(17,19,24,.03);
+      border-radius:18px;
+      padding:12px;
+    }
+    .progressBar{
+      height:10px;
+      border-radius:999px;
+      background:rgba(17,19,24,.08);
+      overflow:hidden;
+      border:1px solid rgba(17,19,24,.10);
+      margin-top:10px;
+    }
+    #cvProgressFill{
+      height:100%;
+      width:0%;
+      background:linear-gradient(90deg, rgba(34,197,94,.85), rgba(22,163,74,.85));
+      border-radius:999px;
+      transition:width .25s ease;
+    }
+    .statusStrip{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+      margin-top:12px;
+    }
+    .compactStatus{
+      border:1px solid rgba(17,19,24,.10);
+      background:rgba(17,19,24,.03);
+      border-radius:18px;
+      padding:12px;
+    }
+    .compactLabel{
+      font-size:12px;
+      font-weight:950;
+      letter-spacing:.03em;
+      text-transform:uppercase;
+      color:rgba(17,19,24,.54);
+      margin-bottom:6px;
+    }
+    .actionsRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:14px;
+    }
+    .stepsCard{
+      padding:16px 18px;
+    }
+    .stepsTitle{
+      margin:0 0 8px;
+      font-size:16px;
+      font-weight:950;
+      letter-spacing:-.01em;
+    }
+    .stepsList{
+      margin:0;
+      padding:0;
+      list-style:none;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .stepsList li{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      color:rgba(17,19,24,.76);
+      font-size:14px;
+      font-weight:700;
+      line-height:1.45;
+    }
+    .stepsList li::before{
+      content:"";
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      background:rgba(34,197,94,.9);
+      box-shadow:0 0 0 4px rgba(34,197,94,.12);
+      margin-top:5px;
+      flex:0 0 auto;
+    }
+    .footer{
+      margin-top:24px;
+      text-align:center;
+      color:rgba(17,19,24,.58);
+      font-size:12px;
+      font-weight:650;
+    }
+    .miniGuideGrid{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+      gap:10px;
+      margin-top:6px;
+    }
+    .miniGuideItem{
+      border:1px solid rgba(17,19,24,.10);
+      border-radius:16px;
+      background:rgba(17,19,24,.03);
+      padding:12px;
+      min-width:0;
+    }
+    .miniGuideItem strong{
+      display:block;
+      font-size:13px;
+      line-height:1.2;
+      margin-bottom:4px;
+    }
+    .miniGuideItem span{
+      display:block;
+      font-size:12px;
+      line-height:1.4;
+      color:rgba(17,19,24,.58);
+      font-weight:750;
+    }
+    @media (max-width:560px){
+      .mobileMain{ padding-top:18px; }
+      .uploadCard,
+      .stepsCard{ padding:16px; }
+      .sectionHead h2{ font-size:20px; }
+      .flowRail,
+      .miniGuideGrid{ grid-template-columns:1fr; }
+      .actionsRow .btn{ width:100%; }
+    }
+  </style>
+</head>
+<body class="mobileFlowPage mobileFlowUpload">
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="./index.html" data-nav="1" aria-label="jobmejob home">
+        <span class="logo" aria-hidden="true"></span>
+        <span>jobmejob</span>
+      </a>
+
+      <div class="navcta">
+        <details class="navDrop" id="navAccount" style="display:none">
+          <summary class="pill jmNavTrigger" aria-label="Open account menu">
+            <span class="jmNavTriggerLabel" id="navAccountLabel">Account</span>
+          </summary>
+          <div class="navMenu" role="menu" aria-label="Account">
+            <div class="jmAccountCard">
+              <div class="jmAccountTitleRow">
+                <div>
+                  <div class="jmAccountTitle" id="navAccountTitle">Your account</div>
+                  <div class="jmAccountEmail" id="navAccountEmail">—</div>
+                </div>
+                <span class="jmNavMetaPill" id="navPlanPill">Free</span>
+              </div>
+              <div class="jmAccountHint" id="navPlanMeta">CV Studio account</div>
+              <div class="jmAccountUsage">
+                <span class="jmNavMetaPill" id="navUsagePill">Usage syncing</span>
+                <div class="jmAccountHint" id="navUsageMeta">Usage updates after each tailored CV.</div>
+              </div>
+            </div>
+            <div class="menuSep" role="separator"></div>
+            <a class="jmNavItem" href="./cv-mobile-upload.html" data-nav="1" role="menuitem">Upload CV</a>
+            <a class="jmNavItem" href="./cv-mobile.html" data-nav="1" role="menuitem">Mobile CV Studio</a>
+            <a class="jmNavItem" href="./cv.html?cv_mobile_flow=0" data-nav="1" role="menuitem">Open full site</a>
+            <a class="jmNavItem" href="./profile.html?cv_mobile_flow=0#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Manage billing</a>
+            <a class="jmNavItem" href="./plan.html?cv_mobile_flow=0#cv-pricing" data-nav="1" role="menuitem">Plans & pricing</a>
+            <div class="menuSep" role="separator"></div>
+            <button class="jmNavItem jmNavDanger" id="navLogout" type="button" role="menuitem">Logout</button>
+          </div>
+        </details>
+
+        <a class="pill" href="./signup.html?entry=cv-studio" id="navSignIn" data-nav="1">Sign in</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="main mobileMain">
+    <section class="mobileHero">
+      <div class="eyebrow">Mobile CV flow · Step 1</div>
+      <h1 class="h1">Upload your base CV once.</h1>
+      <p class="sub" id="subLine">Upload one PDF. Then tailor one CV for one job.</p>
+    </section>
+
+    <section class="flowRail" aria-label="Mobile CV flow">
+      <div class="flowStep isActive" id="uploadFlowStepUpload">
+        <div class="flowStepNum">1</div>
+        <div class="flowStepText">
+          <strong>Upload</strong>
+          <span>Add your base CV</span>
+        </div>
+      </div>
+      <div class="flowStep" id="uploadFlowStepTailor">
+        <div class="flowStepNum">2</div>
+        <div class="flowStepText">
+          <strong>Tailor</strong>
+          <span>Add one job post</span>
+        </div>
+      </div>
+      <div class="flowStep" id="uploadFlowStepExport">
+        <div class="flowStepNum">3</div>
+        <div class="flowStepText">
+          <strong>Export</strong>
+          <span>Download the PDF</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="mobileStack">
+      <div class="errorTop" id="errorTop"></div>
+
+      <section class="card uploadCard">
+        <div class="sectionHead">
+          <div>
+            <h2>Upload PDF</h2>
+            <p class="small">One file here powers the whole mobile flow.</p>
+          </div>
+          <span class="badge" id="cvStatusBadge">Checking…</span>
+        </div>
+
+        <div class="dropzone" id="cvDropzone" tabindex="0" role="button" aria-label="Upload CV">
+          <div class="dzTop">
+            <div style="min-width:0">
+              <div class="dzTitle">Upload your CV</div>
+            <div class="dzSub">Use your real CV. You can replace it anytime.</div>
+            </div>
+            <button class="btn primary cta" id="browseCvBtn" type="button">Choose file</button>
+          </div>
+          <div class="dzMeta">PDF only · 9MB max</div>
+        </div>
+        <input accept=".pdf,application/pdf" id="cvFile" type="file" style="display:none"/>
+
+        <div class="progressWrap" id="cvProgressWrap" style="display:none">
+          <div class="small" id="cvProgressText">Preparing…</div>
+          <div class="progressBar" aria-label="Upload progress">
+            <div id="cvProgressFill"></div>
+          </div>
+          <div class="small" id="cvProgressHint" style="margin-top:8px"></div>
+        </div>
+
+        <div class="statusStrip">
+          <div class="compactStatus">
+            <div class="compactLabel">Saved CV</div>
+            <div class="small" id="cvHint">No CV uploaded yet.</div>
+          </div>
+          <div class="compactStatus">
+            <div class="compactLabel">Text ready</div>
+            <div class="small" id="ocrHint"></div>
+            <button class="btn small" id="retryOcrBtn" type="button" style="display:none;margin-top:8px">Retry OCR</button>
+          </div>
+        </div>
+
+        <div class="actionsRow">
+          <a class="btn primary" href="./cv-mobile.html" data-nav="1" id="continueBtn" aria-disabled="true">Go to step 2</a>
+          <a class="btn ghost" href="./index.html" data-nav="1">Back to home</a>
+        </div>
+      </section>
+
+      <section class="card stepsCard">
+        <h2 class="stepsTitle">What happens next</h2>
+        <div class="miniGuideGrid">
+          <div class="miniGuideItem">
+            <strong>Add the job</strong>
+            <span>Paste the post or use a screenshot.</span>
+          </div>
+          <div class="miniGuideItem">
+            <strong>Review</strong>
+            <span>Check the preview and close the gaps.</span>
+          </div>
+          <div class="miniGuideItem">
+            <strong>Export</strong>
+            <span>Download a clean PDF.</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <footer class="footer">Support: <a href="mailto:team@jobmejob.com">team@jobmejob.com</a></footer>
+  </main>
+
+  <script src="./vendor/supabase-js-2.100.1.js"></script>
+  <script src="./auth.js?v=202604101215"></script>
+  <script src="./shared.js?v=202604102230"></script>
+  <script src="./cv-mobile-upload.app.js?v=202604110320"></script>
+</body>
+</html>

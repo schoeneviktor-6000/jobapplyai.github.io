@@ -1,5 +1,5 @@
 /* shared.js — JobMeJob multipage helpers (site-wide)
-   Version: 2026-04-10 (v4)
+   Version: 2026-04-10 (v5)
 
    Safe to include on every page.
    Includes:
@@ -15,9 +15,9 @@
   "use strict";
 
   // Avoid double-init
-  if (window.JobMeJobShared && window.JobMeJobShared.__loaded_v4) return;
+  if (window.JobMeJobShared && window.JobMeJobShared.__loaded_v5) return;
 
-  const VERSION = "2026-04-10-v4";
+  const VERSION = "2026-04-10-v5";
 
   const $ = (id) => document.getElementById(id);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -407,6 +407,109 @@
     return String(value || "").trim().toLowerCase();
   }
 
+  function parseBooleanish(value){
+    const v = trimLower(value);
+    if (!v) return null;
+    if (v === "1" || v === "true" || v === "yes" || v === "on" || v === "mobile") return true;
+    if (v === "0" || v === "false" || v === "no" || v === "off" || v === "desktop") return false;
+    return null;
+  }
+
+  function getCurrentUrl(){
+    try{
+      return new URL(window.location.href);
+    }catch(_){
+      return null;
+    }
+  }
+
+  function basenamePath(pathname){
+    const raw = String(pathname || "").trim();
+    if (!raw) return "";
+    const clean = raw.split("?")[0].split("#")[0].replace(/\/+$/, "");
+    const parts = clean.split("/");
+    return trimLower(parts[parts.length - 1] || "");
+  }
+
+  function readQueryBool(name){
+    try{
+      const u = getCurrentUrl();
+      if (!u) return null;
+      return parseBooleanish(u.searchParams.get(name));
+    }catch(_){
+      return null;
+    }
+  }
+
+  function isMobileCvFlowEnabled(){
+    const fromQuery = readQueryBool("cv_mobile_flow");
+    if (fromQuery !== null) return fromQuery;
+    const fromStorage = parseBooleanish(safeLocalGet("jm_cv_mobile_flow_enabled"));
+    if (fromStorage !== null) return fromStorage;
+    return true;
+  }
+
+  function readMobileCvDeviceOverride(){
+    const fromQuery = readQueryBool("cv_mobile");
+    if (fromQuery !== null) return fromQuery;
+    return parseBooleanish(safeLocalGet("jm_cv_mobile_override"));
+  }
+
+  function isNarrowViewport(maxWidth = 820){
+    try{
+      if (window.matchMedia && window.matchMedia(`(max-width: ${Number(maxWidth) || 820}px)`).matches){
+        return true;
+      }
+    }catch(_){}
+
+    try{
+      const width = Number(window.innerWidth || document.documentElement?.clientWidth || 0);
+      return Number.isFinite(width) && width > 0 && width <= maxWidth;
+    }catch(_){
+      return false;
+    }
+  }
+
+  function hasCoarsePointer(){
+    try{
+      if (window.matchMedia && (window.matchMedia("(pointer: coarse)").matches || window.matchMedia("(any-pointer: coarse)").matches)){
+        return true;
+      }
+    }catch(_){}
+    return false;
+  }
+
+  function hasTouchSupport(){
+    try{
+      if ("ontouchstart" in window) return true;
+    }catch(_){}
+    try{
+      if (Number(navigator?.maxTouchPoints || 0) > 0) return true;
+    }catch(_){}
+    try{
+      if (Number(navigator?.msMaxTouchPoints || 0) > 0) return true;
+    }catch(_){}
+    return false;
+  }
+
+  function isMobileCvDevice(){
+    const override = readMobileCvDeviceOverride();
+    if (override !== null) return override;
+    return isNarrowViewport(820) && (hasCoarsePointer() || hasTouchSupport());
+  }
+
+  function getMobileCvFlowPaths(){
+    return {
+      upload: "./cv-mobile-upload.html",
+      studio: "./cv-mobile.html"
+    };
+  }
+
+  function isMobileCvFlowPage(pathname = window.location.pathname){
+    const page = basenamePath(pathname);
+    return page === "cv-mobile-upload.html" || page === "cv-mobile.html";
+  }
+
   function readCachedState(){
     try{
       const auth = getAppAuth();
@@ -423,6 +526,74 @@
   function readCachedCvAccess(){
     const parsed = safeParseJson(safeLocalGet("jm_cv_access_cache_v1"));
     return parsed && typeof parsed === "object" ? parsed : null;
+  }
+
+  function hasUploadedCv(state){
+    if (!state || typeof state !== "object") return false;
+    if (state.cv_uploaded === true || state.cv_uploaded === 1) return true;
+    return trimLower(state.cv_uploaded) === "true";
+  }
+
+  function resolveMobileCvPath(opts = {}){
+    const paths = getMobileCvFlowPaths();
+    const prefer = trimLower(opts.prefer || "");
+    if (prefer === "upload") return paths.upload;
+    if (prefer === "studio") return paths.studio;
+    return hasUploadedCv(opts.state || readCachedState()) ? paths.studio : paths.upload;
+  }
+
+  async function enforceMobileCvFlow(opts = {}){
+    const enabled = opts.enabled === true || (opts.enabled !== false && isMobileCvFlowEnabled());
+    if (!enabled){
+      return { redirected:false, reason:"disabled", session:opts.session || null, state:opts.state || null, target:"" };
+    }
+    if (!isMobileCvDevice()){
+      return { redirected:false, reason:"desktop", session:opts.session || null, state:opts.state || null, target:"" };
+    }
+    if (isMobileCvFlowPage()){
+      return { redirected:false, reason:"already-mobile-flow", session:opts.session || null, state:opts.state || null, target:"" };
+    }
+
+    const auth = getAppAuth();
+    let session = opts.session || null;
+    let state = opts.state || readCachedState();
+
+    if (!session && auth && typeof auth.getSession === "function"){
+      try{ session = await auth.getSession(); }catch(_){ session = null; }
+    }
+
+    const signedIn = !!(session && session.user && session.user.email);
+    if (opts.signedInOnly !== false && !signedIn){
+      return { redirected:false, reason:"signed-out", session, state, target:"" };
+    }
+
+    if (!state && signedIn && auth && typeof auth.syncStateToLocalStorage === "function" && opts.fetchState !== false){
+      try{ state = await auth.syncStateToLocalStorage(session); }catch(_){ state = null; }
+    }
+
+    const target = resolveMobileCvPath({ state, prefer: opts.prefer || "" });
+    const currentPage = basenamePath(window.location.pathname);
+    const targetPage = basenamePath(new URL(target, window.location.href).pathname);
+    if (!targetPage || currentPage === targetPage){
+      return { redirected:false, reason:"already-target", session, state, target };
+    }
+
+    if (opts.replace === false){
+      window.location.href = target;
+    }else{
+      window.location.replace(target);
+    }
+    return { redirected:true, reason:"redirected", session, state, target };
+  }
+
+  async function handleBodyMobileCvRedirect(){
+    const mode = trimLower(document.body?.dataset?.mobileCvRedirect || "");
+    if (!mode) return { redirected:false, reason:"no-body-opt-in", target:"" };
+    return enforceMobileCvFlow({
+      signedInOnly: mode !== "guest",
+      fetchState: true,
+      replace: true
+    });
   }
 
   function planLabelFromId(planId){
@@ -848,7 +1019,6 @@ details[data-dd="1"]:not([open]) .navMenu{
   line-height:1.45;
 }
 .jmExtGuideMiniMetaIco,
-.jmExtGuideBenefitIco,
 .jmExtGuideNoteIco,
 .jmExtGuideStepIco{
   display:inline-flex;
@@ -864,7 +1034,6 @@ details[data-dd="1"]:not([open]) .navMenu{
   color:#0a5a2a;
 }
 .jmExtGuideMiniMetaIco svg,
-.jmExtGuideBenefitIco svg,
 .jmExtGuideNoteIco svg,
 .jmExtGuideStepIco svg,
 .jmExtGuideActionIco svg{
@@ -919,28 +1088,23 @@ details[data-dd="1"]:not([open]) .navMenu{
   line-height:1.45;
   color:rgba(17,19,24,.68);
 }
-.jmExtGuideBenefits{
+.jmExtGuideCapabilityRow{
   display:flex;
   flex-wrap:wrap;
-  gap:8px;
-  margin-top:14px;
-}
-.jmExtGuideBenefit{
-  display:inline-flex;
   align-items:center;
-  gap:8px;
-  padding:9px 12px;
-  border-radius:999px;
-  border:1px solid rgba(17,19,24,.08);
-  background:rgba(17,19,24,.04);
-  color:rgba(17,19,24,.82);
-  font-size:12px;
-  font-weight:850;
+  gap:8px 10px;
+  margin-top:14px;
+  color:rgba(17,19,24,.56);
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.1em;
+  text-transform:uppercase;
 }
-.jmExtGuideBenefitIco{
-  width:18px;
-  height:18px;
-  color:#0f6b32;
+.jmExtGuideCapabilityDot{
+  width:4px;
+  height:4px;
+  border-radius:999px;
+  background:rgba(17,19,24,.18);
 }
 .jmExtGuideNote{
   margin-top:14px;
@@ -981,6 +1145,86 @@ details[data-dd="1"]:not([open]) .navMenu{
   justify-content:center;
   flex:0 0 auto;
 }
+.jmExtGuideCta{
+  position:relative;
+  min-height:62px;
+  padding:0;
+  border:1px solid rgba(12,78,37,.16);
+  background:linear-gradient(135deg, #18b954 0%, #22c55e 54%, #6cf497 100%);
+  color:#071811;
+  box-shadow:0 18px 34px rgba(34,197,94,.28), inset 0 1px 0 rgba(255,255,255,.42);
+  overflow:hidden;
+}
+.jmExtGuideCta::before{
+  content:"";
+  position:absolute;
+  inset:1px;
+  border-radius:inherit;
+  background:linear-gradient(180deg, rgba(255,255,255,.24), rgba(255,255,255,0));
+  pointer-events:none;
+}
+.jmExtGuideCta:hover{
+  filter:none;
+  transform:translateY(-2px) scale(1.01);
+  box-shadow:0 24px 42px rgba(34,197,94,.34), inset 0 1px 0 rgba(255,255,255,.48);
+}
+.jmExtGuideCta .btnLabel{
+  position:relative;
+  z-index:1;
+  width:auto;
+  gap:14px;
+  padding:10px 14px 10px 12px;
+}
+.jmExtGuideCtaBadge{
+  width:42px;
+  height:42px;
+  border-radius:999px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+  background:rgba(255,255,255,.2);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4), 0 10px 18px rgba(7,24,17,.12);
+}
+.jmExtGuideCtaBadge svg{
+  width:26px;
+  height:26px;
+}
+.jmExtGuideCtaText{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:2px;
+  min-width:0;
+}
+.jmExtGuideCtaEyebrow{
+  color:rgba(7,24,17,.56);
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  line-height:1;
+}
+.jmExtGuideCtaMain{
+  color:#071811;
+  font-size:23px;
+  font-weight:950;
+  letter-spacing:-.04em;
+  line-height:1;
+  white-space:nowrap;
+}
+.jmExtGuideCtaTrail{
+  width:30px;
+  height:30px;
+  margin-left:6px;
+  border-radius:999px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+  background:rgba(7,24,17,.10);
+  color:#071811;
+}
 @media (min-width: 720px){
   .jmExtGuideHero{
     grid-template-columns:minmax(0, 1.35fr) minmax(260px, .95fr);
@@ -1006,6 +1250,17 @@ details[data-dd="1"]:not([open]) .navMenu{
   }
   .jmExtGuideNote{
     grid-template-columns:1fr;
+  }
+  .jmExtGuideCta{
+    width:100%;
+    justify-content:center;
+  }
+  .jmExtGuideCta .btnLabel{
+    width:100%;
+    justify-content:space-between;
+  }
+  .jmExtGuideCtaMain{
+    font-size:20px;
   }
 }
 `;
@@ -1067,6 +1322,12 @@ details[data-dd="1"]:not([open]) .navMenu{
         <path d="M14 5h5v5"></path>
         <path d="M10 14 19 5"></path>
         <path d="M19 13v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4"></path>
+      </svg>
+    `;
+    const arrowIcon = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M5 12h14"></path>
+        <path d="m13 6 6 6-6 6"></path>
       </svg>
     `;
     modal.innerHTML = `
@@ -1139,10 +1400,12 @@ details[data-dd="1"]:not([open]) .navMenu{
             </div>
           </div>
 
-          <div class="jmExtGuideBenefits" aria-label="What you can do in CV Studio">
-            <span class="jmExtGuideBenefit"><span class="jmExtGuideBenefitIco" aria-hidden="true">${checkIcon}</span>ATS gaps</span>
-            <span class="jmExtGuideBenefit"><span class="jmExtGuideBenefitIco" aria-hidden="true">${checkIcon}</span>Edit content</span>
-            <span class="jmExtGuideBenefit"><span class="jmExtGuideBenefitIco" aria-hidden="true">${checkIcon}</span>PDF export</span>
+          <div class="jmExtGuideCapabilityRow" aria-label="What happens in CV Studio">
+            <span>Tailor</span>
+            <span class="jmExtGuideCapabilityDot" aria-hidden="true"></span>
+            <span>Review</span>
+            <span class="jmExtGuideCapabilityDot" aria-hidden="true"></span>
+            <span>Export</span>
           </div>
 
           <div class="jmExtGuideNote">
@@ -1156,7 +1419,16 @@ details[data-dd="1"]:not([open]) .navMenu{
         <div class="modalActions">
           <a class="btn ghost" href="./cv.html" data-nav="1"><span class="btnLabel"><span class="jmExtGuideActionIco" aria-hidden="true">${openIcon}</span>Open CV Studio</span></a>
           <button class="btn" type="button" data-close-modal>Close</button>
-          <a class="btn primary" data-extension-link data-extension-disabled-label="Add to Chrome" data-extension-ready-label="Add to Chrome" href="https://chromewebstore.google.com/detail/jibmnlonajhoaanhoblhiciddggiohba?utm_source=item-share-cb"><span class="btnLabel"><span class="jmExtGuideActionIco" aria-hidden="true">${chromeIcon}</span><span data-extension-label>Add to Chrome</span></span></a>
+          <a class="btn primary jmExtGuideCta" data-extension-link data-extension-disabled-label="Add to Chrome" data-extension-ready-label="Add to Chrome" href="https://chromewebstore.google.com/detail/jibmnlonajhoaanhoblhiciddggiohba?utm_source=item-share-cb">
+            <span class="btnLabel">
+              <span class="jmExtGuideCtaBadge" aria-hidden="true">${chromeIcon}</span>
+              <span class="jmExtGuideCtaText">
+                <span class="jmExtGuideCtaEyebrow">Chrome Web Store</span>
+                <span class="jmExtGuideCtaMain" data-extension-label>Add to Chrome</span>
+              </span>
+              <span class="jmExtGuideCtaTrail" aria-hidden="true">${arrowIcon}</span>
+            </span>
+          </a>
         </div>
       </div>
     `;
@@ -1455,7 +1727,7 @@ details[data-dd="1"]:not([open]) .navMenu{
 
   // Export shared API (merge with existing)
   const api = {
-    __loaded_v4: true,
+    __loaded_v5: true,
     VERSION,
 
     $,
@@ -1465,6 +1737,11 @@ details[data-dd="1"]:not([open]) .navMenu{
     safeLocalGet,
     safeLocalSet,
     isLocalDebugHost,
+    isMobileCvFlowEnabled,
+    isMobileCvDevice,
+    getMobileCvFlowPaths,
+    resolveMobileCvPath,
+    enforceMobileCvFlow,
 
     normalizeBaseUrl,
     resolveApiBase,
@@ -1503,7 +1780,11 @@ details[data-dd="1"]:not([open]) .navMenu{
   app.shared = window.JobMeJobShared;
 
   // Auto-wire global behaviors
-  window.addEventListener("DOMContentLoaded", () => {
+  window.addEventListener("DOMContentLoaded", async () => {
+    try{
+      const redirect = await handleBodyMobileCvRedirect();
+      if (redirect && redirect.redirected) return;
+    }catch(_){}
     wireNavTransitions();
     wireDetailsDropdowns();
     wireExtensionGuideTriggers();

@@ -389,7 +389,7 @@ white-space:pre-wrap;
 
 <script src="./vendor/supabase-js-2.100.1.js"></script>
 <script src="./auth.js?v=202604101215"></script>
-<script src="./shared.js?v=202604101215"></script>
+<script src="./shared.js?v=202604102230"></script>
 <script>
 "use strict";
 
@@ -580,13 +580,25 @@ entry=String(url.searchParams.get("entry")||"").trim().toLowerCase();
 next=String(url.searchParams.get("next")||"").trim().toLowerCase();
 }catch(_){}
 const wantsCvStudio=entry==="cv-studio" || entry==="cv" || entry==="extension";
-if(next==="plan") return "./plan.html";
+const shared=window.JobMeJobShared || null;
+const wantsMobileCvFlow=!!(
+  wantsCvStudio &&
+  shared &&
+  typeof shared.isMobileCvFlowEnabled==="function" &&
+  typeof shared.isMobileCvDevice==="function" &&
+  typeof shared.resolveMobileCvPath==="function" &&
+  shared.isMobileCvFlowEnabled() &&
+  shared.isMobileCvDevice()
+);
+if(next==="plan" && !wantsMobileCvFlow) return "./plan.html";
 try{
 const st=await apiGetWithBearer("/me/state", session.access_token);
+if(wantsMobileCvFlow) return shared.resolveMobileCvPath({ state: st });
 if(st && st.profile_complete === false) return "./profile.html";
 if(wantsCvStudio) return "./cv.html";
 return "./dashboard.html";
 }catch(_){
+if(wantsMobileCvFlow) return shared.resolveMobileCvPath({});
 if(!hasProfileLocal()) return "./profile.html";
 if(wantsCvStudio) return "./cv.html";
 if(next==="plan") return "./plan.html";

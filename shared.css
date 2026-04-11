@@ -373,11 +373,47 @@ details[data-dd="1"]:not([open]) .navMenu{display:none}
   }
   .navcta{
     margin-left:0;
+    position:relative;
+  }
+  .navcta details.navDrop,
+  .navcta details[data-dd="1"]{
+    position:static;
   }
   .navMenu,
   .studioMenu{
     width:min(360px, calc(100vw - 20px));
-    right:-8px;
+    right:auto;
+    left:0;
+  }
+
+  body.mobileFlowPage .nav{
+    flex-wrap:nowrap;
+    align-items:center;
+  }
+  body.mobileFlowPage .navcta{
+    width:auto;
+    margin-left:auto;
+    flex:0 0 auto;
+  }
+  body.mobileFlowPage .navcta details.navDrop,
+  body.mobileFlowPage .navcta details[data-dd="1"]{
+    position:relative;
+  }
+  body.mobileFlowPage .navMenu,
+  body.mobileFlowPage .studioMenu{
+    left:auto;
+    right:0;
+  }
+  body.mobileFlowPage .jmNavTrigger{
+    max-width:min(46vw, 176px);
+  }
+  body.mobileFlowPage .jmNavTriggerLabel,
+  body.mobileFlowPage #navAccountLabel{
+    display:block;
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
   }
 }
 
