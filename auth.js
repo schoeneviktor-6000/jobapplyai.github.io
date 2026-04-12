@@ -9,7 +9,7 @@ IMPORTANT:
 /* ============================================================
 1) Defaults (frontend-safe)
 ============================================================ */
-const SUPABASE_URL_DEFAULT = "https://auth.jobmejob.com";
+const SUPABASE_URL_DEFAULT = "https://awlzvhcnjegfhjedswko.supabase.co";
 
 // Supabase ANON key (public, safe to ship to browser)
 const SUPABASE_ANON_KEY_DEFAULT =

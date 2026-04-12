@@ -11,7 +11,7 @@ if (S && S.wireNavTransitions) { try { S.wireNavTransitions(); } catch {} }
 
 const API_BASE = (APP_CONFIG && APP_CONFIG.API_BASE)
   || (S && S.resolveApiBase ? S.resolveApiBase("https://jobmejob.schoene-viktor.workers.dev") : "https://jobmejob.schoene-viktor.workers.dev");
-const SUPABASE_URL = (APP_CONFIG && APP_CONFIG.SUPABASE_URL) || "https://auth.jobmejob.com";
+const SUPABASE_URL = (APP_CONFIG && APP_CONFIG.SUPABASE_URL) || "https://awlzvhcnjegfhjedswko.supabase.co";
 const SUPABASE_ANON_KEY = (APP_CONFIG && APP_CONFIG.SUPABASE_ANON_KEY) || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bHp2aGNuamVnZmhqZWRzd2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTE2OTgsImV4cCI6MjA4MjIyNzY5OH0.-UmHiVi0_g9tKDkr6ldfROeBrOk8hm18YVPRfnb8luY";
 
 const AI_CACHE_KEY="jm_ai_titles_cache_v1";
