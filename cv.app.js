@@ -492,15 +492,18 @@ let genStepsState = "idle";
       // Step 1 chooser cards (Gate)
       try{
         if(uiLang==="de"){
-          $("gatePickExtensionTitle") && ($("gatePickExtensionTitle").textContent = "Chrome-Erweiterung holen");
-          $("gatePickExtensionDesc") && ($("gatePickExtensionDesc").textContent = "Importiere die offene Stellenanzeige von LinkedIn oder einer unterstuetzten Unternehmensseite.");
-          $("gatePickExtensionHint") && ($("gatePickExtensionHint").textContent = "Oeffne die Rolle in Chrome und sende sie direkt in CV Studio.");
+          $("gatePickExtensionTitle") && ($("gatePickExtensionTitle").textContent = "Chrome-Erweiterung");
+          $("gatePickExtensionDesc") && ($("gatePickExtensionDesc").textContent = "Importiere den Job direkt von der Seite, die du gerade ansiehst.");
+          $("gatePickExtensionHint") && ($("gatePickExtensionHint").textContent = "Ideal fuer LinkedIn, Greenhouse, Lever, Workday und aehnliche Jobseiten.");
           $("gatePickExtensionTag") && ($("gatePickExtensionTag").textContent = "Empfohlen");
+          $("gatePickExtensionAction") && ($("gatePickExtensionAction").textContent = "Chrome-Erweiterung nutzen");
 
-          $("gatePickPasteTitle") && ($("gatePickPasteTitle").textContent = "Beschreibung einfügen");
-          $("gatePickPasteDesc") && ($("gatePickPasteDesc").textContent = "Füge eine beliebige Stellenbeschreibung (z.B. LinkedIn oder Website) ein.");
-          $("gatePickPasteHint") && ($("gatePickPasteHint").textContent = "Tipp: Aufgaben + Anforderungen + Tech-Stack einfügen.");
+          $("gatePickPasteTitle") && ($("gatePickPasteTitle").textContent = "Stellenbeschreibung einfuegen");
+          $("gatePickPasteDesc") && ($("gatePickPasteDesc").textContent = "Fuege den kompletten Jobpost manuell ein, wenn du die Erweiterung nicht nutzen willst.");
+          $("gatePickPasteHint") && ($("gatePickPasteHint").textContent = "Am besten mit Aufgaben, Anforderungen und Tech-Stack.");
           $("gatePickPasteTag") && ($("gatePickPasteTag").textContent = "Manuell");
+          $("gatePickPasteAction") && ($("gatePickPasteAction").textContent = "Stellenbeschreibung einfuegen");
+          $("gateHelperText") && ($("gateHelperText").textContent = "Du kannst jederzeit zwischen den Methoden wechseln.");
         }
       }catch(_){}
 
@@ -1594,11 +1597,11 @@ function setGateView(view){
     // The stepper already communicates the step number — keep this header clean.
     if(st) st.textContent = t("setupTitle") || "Setup";
     if(title) title.textContent = (uiLang==="de")
-      ? "Job-Quelle wählen"
-      : "Choose your job source";
+      ? "Waehle, wie du den Job importieren willst"
+      : "Choose how you want to import the job";
     if(hint) hint.textContent = (uiLang==="de")
-      ? "Wähle den schnellsten Weg zu deinem angepassten CV."
-      : "Choose the fastest path to your tailored CV.";
+      ? "Waehle den schnellsten Weg zu deinem angepassten CV."
+      : "Pick the fastest way to create your tailored CV.";
     try{ renderGateStepper(1); }catch(_){ }
     return;
   }

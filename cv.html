@@ -166,37 +166,42 @@ body.cvGate.cvGateForm #gateBackBadge{ display:none !important; }
 .gateCards{
   display:grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap:10px;
-  margin-top:12px;
+  gap:14px;
+  margin-top:14px;
+  align-items:stretch;
 }
 
 @media (max-width: 860px){
-  .gateCards{ grid-template-columns: 1fr; }
+  .gateCards{
+    grid-template-columns: 1fr;
+    gap:12px;
+  }
 }
 
 .gateCard{
   appearance:none;
   border:1px solid rgba(17,19,24,.12);
-  background: rgba(255,255,255,.78);
-  border-radius:18px;
-  padding:14px;
+  background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.86));
+  border-radius:20px;
+  padding:18px;
   text-align:left;
   width:100%;
   cursor:pointer;
 
   display:flex;
   flex-direction:column;
-  gap:10px;
+  gap:14px;
+  min-height:100%;
 
-  box-shadow: 0 10px 26px rgba(17,19,24,.06);
+  box-shadow: 0 12px 28px rgba(17,19,24,.07);
   transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease;
 }
 
 .gateCard:hover{
   transform: translateY(-1px);
-  box-shadow: 0 16px 34px rgba(17,19,24,.10);
+  box-shadow: 0 18px 38px rgba(17,19,24,.11);
   border-color: rgba(17,19,24,.18);
-  background: rgba(255,255,255,.88);
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.90));
 }
 
 .gateCard:active{ transform: translateY(0px) scale(.996); }
@@ -204,17 +209,17 @@ body.cvGate.cvGateForm #gateBackBadge{ display:none !important; }
 .gateCard:focus-visible{
   outline:none;
   border-color: rgba(34,197,94,.55);
-  box-shadow: 0 0 0 4px rgba(34,197,94,.18), 0 16px 34px rgba(17,19,24,.10);
+  box-shadow: 0 0 0 4px rgba(34,197,94,.16), 0 18px 38px rgba(17,19,24,.12);
 }
 
-/* Visual variants */
 .gateCard[data-variant="recommended"]{
-  border-color: rgba(34,197,94,.22);
-  background: linear-gradient(180deg, rgba(34,197,94,.08), rgba(255,255,255,.86));
+  border-color: rgba(34,197,94,.28);
+  background: linear-gradient(180deg, rgba(34,197,94,.11), rgba(255,255,255,.90));
+  box-shadow: 0 16px 34px rgba(34,197,94,.10), 0 10px 24px rgba(17,19,24,.05);
 }
-.gateCard[data-variant="fast"]{
-  border-color: rgba(245,158,11,.22);
-  background: linear-gradient(180deg, rgba(245,158,11,.08), rgba(255,255,255,.86));
+.gateCard[data-variant="manual"]{
+  border-color: rgba(17,19,24,.12);
+  background: linear-gradient(180deg, rgba(17,19,24,.03), rgba(255,255,255,.88));
 }
 
 .gateCardTop{
@@ -222,226 +227,127 @@ body.cvGate.cvGateForm #gateBackBadge{ display:none !important; }
   align-items:flex-start;
   justify-content:space-between;
   gap:12px;
+  flex-wrap:wrap;
 }
 
-.gateCardTop .badge{ align-self:flex-start; margin-top:2px; }
+.gateCardTop .badge{
+  align-self:flex-start;
+  margin-top:2px;
+}
 
 .gateCardTitleRow{
   display:flex;
   gap:12px;
-  align-items:flex-start;
+  align-items:center;
   min-width:0;
+  flex:1 1 240px;
 }
 
 .gateCardIcon{
-  width:36px;
-  height:36px;
-  border-radius:12px;
+  width:42px;
+  height:42px;
+  border-radius:14px;
   border:1px solid rgba(17,19,24,.10);
-  background: rgba(255,255,255,.78);
+  background: rgba(255,255,255,.86);
   display:flex;
   align-items:center;
   justify-content:center;
   flex:0 0 auto;
-  box-shadow: 0 8px 18px rgba(17,19,24,.06);
+  box-shadow: 0 10px 22px rgba(17,19,24,.07);
   color: rgba(17,19,24,.66);
 }
-.gateCard[data-variant="recommended"] .gateCardIcon{ color: rgba(22,163,74,.92); }
-.gateCard[data-variant="fast"] .gateCardIcon{ color: rgba(245,158,11,.95); }
-.gateCardIcon svg{ width:20px; height:20px; }
-
-.gateCardTitleWrap{
-  min-width:0;
-  display:flex;
-  flex-direction:column;
-  gap:6px;
+.gateCard[data-variant="recommended"] .gateCardIcon{
+  color: rgba(22,163,74,.92);
+  border-color: rgba(34,197,94,.18);
+  background: rgba(255,255,255,.96);
 }
+.gateCard[data-variant="manual"] .gateCardIcon{
+  color: rgba(17,19,24,.70);
+}
+.gateCardIcon svg{ width:20px; height:20px; }
 
 .gateCardTitle{
   font-weight: 1000;
-  font-size: 15px;
-  line-height:1.18;
-  letter-spacing:-.2px;
+  font-size: 17px;
+  line-height:1.15;
+  letter-spacing:-.24px;
   color: rgba(17,19,24,.92);
 }
 
+.gateCardBody{
+  display:grid;
+  gap:8px;
+}
+
 .gateCardDesc{
-  margin-top:0;
-  font-weight: 760;
-  color: rgba(17,19,24,.62);
-  line-height:1.35;
-}
-
-.gateCardHint{
-  font-weight: 820;
-  color: rgba(17,19,24,.54);
-  font-size: 12px;
-  line-height:1.35;
-}
-
-.gateCardMeta{
-  display:flex;
-  gap:6px;
-  flex-wrap:wrap;
-  margin-top:0;
-}
-
-.gateMetaPill{
-  font-size:10.5px;
-  font-weight:920;
-  padding:3px 7px;
-  border-radius:999px;
-  border:1px solid rgba(17,19,24,.10);
-  background: rgba(255,255,255,.80);
-  color: rgba(17,19,24,.64);
-  white-space:nowrap;
-}
-
-/* Mini visualization (simplified + distinct) */
-/* Mini visualization (simplified + distinct) */
-.gateMiniFlow{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:10px 12px;
-  border:1px solid rgba(17,19,24,.10);
-  border-radius:14px;
-  background: rgba(255,255,255,.70);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.70);
-}
-
-.flowChip{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:6px 10px;
-  border-radius:999px;
-  border:1px solid rgba(17,19,24,.10);
-  background: rgba(255,255,255,.82);
-  font-weight:950;
-  font-size:11px;
-  color: rgba(17,19,24,.82);
-  white-space:nowrap;
-}
-
-.flowArrow{
-  font-weight:1000;
-  color: rgba(17,19,24,.32);
-  line-height:1;
-  margin-top:-1px;
-}
-
-.flowNote{
-  margin-left:auto;
-  font-size:11px;
-  font-weight:900;
-  color: rgba(17,19,24,.56);
-  white-space:nowrap;
-}
-
-.flowDot{
-  width:10px;
-  height:10px;
-  border-radius:999px;
-  background: rgba(17,19,24,.28);
-  box-shadow: 0 0 0 3px rgba(17,19,24,.06);
-  flex:0 0 auto;
-}
-
-.gateCard[data-variant="recommended"] .flowDot.src{
-  background: rgba(22,163,74,.92);
-  box-shadow: 0 0 0 3px rgba(34,197,94,.14);
-}
-.gateCard[data-variant="fast"] .flowDot.src{
-  background: rgba(245,158,11,.95);
-  box-shadow: 0 0 0 3px rgba(245,158,11,.14);
-}
-.flowDot.out{
-  background: rgba(17,19,24,.52);
-  box-shadow: 0 0 0 3px rgba(17,19,24,.08);
-}
-
-@media (max-width: 480px){
-  .gateMiniFlow{ flex-wrap:wrap; }
-  .flowNote{ margin-left:0; width:100%; }
-}
-
-
-/* Bullet list (short “why choose this”) */
-.gateBullets{
-  list-style:none;
-  padding:0;
   margin:0;
-  display:grid;
-  gap:6px;
-  color: rgba(17,19,24,.72);
-  font-weight: 780;
-  font-size:12px;
-  line-height:1.35;
+  font-weight: 820;
+  font-size: 14px;
+  color: rgba(17,19,24,.78);
+  line-height:1.45;
 }
 
-.gateBullets li{
-  display:flex;
-  gap:8px;
-  align-items:flex-start;
+.gateCardSupport{
+  margin:0;
+  font-weight: 760;
+  color: rgba(17,19,24,.56);
+  font-size: 13px;
+  line-height:1.45;
 }
 
-.gateBulletMark{
-  width:18px;
-  height:18px;
-  border-radius:999px;
-  border:1px solid rgba(34,197,94,.28);
-  background: rgba(34,197,94,.14);
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  font-size:12px;
-  line-height:1;
-  flex:0 0 auto;
-  margin-top:1px;
-}
-.gateCard[data-variant="fast"] .gateBulletMark{
-  border-color: rgba(245,158,11,.30);
-  background: rgba(245,158,11,.14);
-}
-
-/* Footer CTA */
-.gateCardFooter{
-  display:grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items:end;
-  gap:10px;
-  margin-top:2px;
-}
-
-.gateCta{
-  font-weight:950;
-  color: rgba(17,19,24,.66);
-  font-size:12px;
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  white-space:nowrap;
-}
-
-.gateCtaArrow{
-  width:18px;
-  height:18px;
-  border-radius:999px;
+.gateCardAction{
+  margin-top:auto;
+  width:100%;
+  min-height:46px;
+  padding:11px 14px;
+  border-radius:14px;
   border:1px solid rgba(17,19,24,.10);
-  background: rgba(255,255,255,.75);
+  background: rgba(255,255,255,.86);
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  transition: transform .15s ease;
+  font-size: 13px;
+  font-weight: 960;
+  letter-spacing:-.12px;
+  color: rgba(17,19,24,.88);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
 }
 
-.gateCard:hover .gateCtaArrow{ transform: translateX(2px); }
+.gateCard[data-variant="recommended"] .gateCardAction{
+  border-color: rgba(34,197,94,.22);
+  background: rgba(34,197,94,.12);
+  color:#0a5a2a;
+}
+
+.gateCard:hover .gateCardAction{
+  border-color: rgba(17,19,24,.16);
+  background: rgba(255,255,255,.94);
+}
+
+.gateCard[data-variant="recommended"]:hover .gateCardAction{
+  border-color: rgba(34,197,94,.28);
+  background: rgba(34,197,94,.15);
+}
+
+.gateHelperText{
+  margin-top:10px;
+  color: rgba(17,19,24,.48);
+  font-size: 12px;
+  font-weight: 760;
+  line-height:1.4;
+}
 
 @media (max-width: 420px){
-  .gateCard{ padding:12px; }
-  .gateCardIcon{ width:34px; height:34px; }
-  .gateMiniFlow{ padding:9px 10px; }
+  .gateCard{
+    padding:15px;
+    gap:12px;
+  }
+  .gateCardIcon{
+    width:38px;
+    height:38px;
+  }
+  .gateCardTitle{ font-size:16px; }
 }
 .gateBackRow{
   display:flex;
@@ -3066,8 +2972,8 @@ body.fromJobsLink #settingsDetails{
           </div>
 
           <div class="gateIntro" id="gateIntro" style="display:none">
-            <div class="gateStepTitle" id="gateStepTitle">Choose your job source</div>
-            <div class="hint" id="gateStepHint">Choose one option. Next you’ll add the details and start tailoring.</div>
+            <div class="gateStepTitle" id="gateStepTitle">Choose how you want to import the job</div>
+            <div class="hint" id="gateStepHint">Pick the fastest way to create your tailored CV.</div>
 
             <div class="stepper" id="gateStepper" aria-label="Progress">
               <div class="stepperItem" id="stepper1">
@@ -3089,7 +2995,7 @@ body.fromJobsLink #settingsDetails{
         </div>
 
         <div class="gateChooser" id="gateChooser" style="display:none">
-          <div class="gateCards" role="list" aria-label="Choose your job source">
+          <div class="gateCards" role="list" aria-label="Choose how you want to import the job">
   <!-- Option 1: Chrome extension -->
   <button class="gateCard" id="gatePickExtension" type="button" data-variant="recommended" data-extension-modal-open="1" aria-describedby="gatePickExtensionDesc gatePickExtensionHint" title="See how the Chrome extension works">
     <div class="gateCardTop">
@@ -3103,36 +3009,22 @@ body.fromJobsLink #settingsDetails{
             <path d="M11 7h.01"></path>
           </svg>
         </div>
-
-        <div class="gateCardTitleWrap">
-          <div class="gateCardTitle" id="gatePickExtensionTitle">Get Chrome extension</div>
-          <div class="gateCardDesc" id="gatePickExtensionDesc">Import the active job page from LinkedIn or any supported company site.</div>
-        </div>
+        <div class="gateCardTitle" id="gatePickExtensionTitle">Chrome extension</div>
       </div>
 
       <span class="badge prio" id="gatePickExtensionTag">Recommended</span>
     </div>
 
-    <div class="gateMiniFlow" aria-hidden="true">
-      <span class="flowChip"><span class="flowDot src" aria-hidden="true"></span><span>Chrome extension</span></span>
-      <span class="flowArrow" aria-hidden="true">→</span>
-      <span class="flowChip"><span class="flowDot out" aria-hidden="true"></span><span>Tailored CV</span></span>
-      <span class="flowNote">One-click import</span>
+    <div class="gateCardBody">
+      <p class="gateCardDesc" id="gatePickExtensionDesc">Import the job directly from the page you are viewing.</p>
+      <p class="gateCardSupport" id="gatePickExtensionHint">Best for LinkedIn, Greenhouse, Lever, Workday, and similar job sites.</p>
     </div>
 
-    <ul class="gateBullets">
-      <li><span class="gateBulletMark" aria-hidden="true">✓</span><span>Imports title, company, apply link &amp; job description</span></li>
-      <li><span class="gateBulletMark" aria-hidden="true">✓</span><span>Best for LinkedIn, Greenhouse, Lever, Workday, and more</span></li>
-    </ul>
-
-    <div class="gateCardFooter">
-      <div class="gateCardHint" id="gatePickExtensionHint">Open the role in Chrome, then send it straight into CV Studio.</div>
-      <div class="gateCta" aria-hidden="true"><span>Get extension</span><span class="gateCtaArrow">→</span></div>
-    </div>
+    <span class="gateCardAction" id="gatePickExtensionAction" aria-hidden="true">Use Chrome extension</span>
   </button>
 
   <!-- Option 2: Paste job description -->
-  <button class="gateCard" id="gatePickPaste" type="button" data-variant="fast" aria-describedby="gatePickPasteDesc gatePickPasteHint">
+  <button class="gateCard" id="gatePickPaste" type="button" data-variant="manual" aria-describedby="gatePickPasteDesc gatePickPasteHint">
     <div class="gateCardTop">
       <div class="gateCardTitleRow">
         <div class="gateCardIcon" aria-hidden="true">
@@ -3144,34 +3036,21 @@ body.fromJobsLink #settingsDetails{
             <path d="M8 16h8"/>
           </svg>
         </div>
-
-        <div class="gateCardTitleWrap">
-          <div class="gateCardTitle" id="gatePickPasteTitle">Paste job description</div>
-          <div class="gateCardDesc" id="gatePickPasteDesc">Paste a job description from LinkedIn or any company site.</div>
-        </div>
+        <div class="gateCardTitle" id="gatePickPasteTitle">Paste job description</div>
       </div>
 
       <span class="badge warn" id="gatePickPasteTag">Manual</span>
     </div>
 
-    <div class="gateMiniFlow" aria-hidden="true">
-      <span class="flowChip"><span class="flowDot src" aria-hidden="true"></span><span>Paste JD</span></span>
-      <span class="flowArrow" aria-hidden="true">→</span>
-      <span class="flowChip"><span class="flowDot out" aria-hidden="true"></span><span>Tailored CV</span></span>
-      <span class="flowNote">Start instantly</span>
+    <div class="gateCardBody">
+      <p class="gateCardDesc" id="gatePickPasteDesc">Paste the full job post manually when you do not want to use the extension.</p>
+      <p class="gateCardSupport" id="gatePickPasteHint">Works best when you include responsibilities, requirements, and tech stack.</p>
     </div>
 
-    <ul class="gateBullets">
-      <li><span class="gateBulletMark" aria-hidden="true">✓</span><span>Works with LinkedIn, company sites, PDF text</span></li>
-      <li><span class="gateBulletMark" aria-hidden="true">✓</span><span>Best results when you paste the full posting</span></li>
-    </ul>
-
-    <div class="gateCardFooter">
-      <div class="gateCardHint" id="gatePickPasteHint">Tip: include Responsibilities + Requirements + Tech stack.</div>
-      <div class="gateCta" aria-hidden="true"><span>Choose</span><span class="gateCtaArrow">→</span></div>
-    </div>
+    <span class="gateCardAction" id="gatePickPasteAction" aria-hidden="true">Paste job description</span>
   </button>
 </div>
+          <div class="gateHelperText" id="gateHelperText">You can switch methods anytime.</div>
         </div>
 
         <div id="gateFormWrap">
