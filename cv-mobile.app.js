@@ -2002,8 +2002,69 @@
     return pdfDoc.save();
   }
 
-  function downloadBlobFile(blob, filename){
+  function isTouchPrimaryDevice(){
+    try{
+      if (S && typeof S.isMobileCvDevice === "function" && S.isMobileCvDevice()) return true;
+    }catch(_){}
+    try{
+      if (window.matchMedia && (window.matchMedia("(pointer: coarse)").matches || window.matchMedia("(any-pointer: coarse)").matches)) return true;
+    }catch(_){}
+    try{
+      if (Number(navigator?.maxTouchPoints || 0) > 0) return true;
+    }catch(_){}
+    return false;
+  }
+
+  function openPdfExportTarget(filename){
+    if (!isTouchPrimaryDevice()) return null;
+    try{
+      const target = window.open("", "_blank");
+      if (!target) return null;
+      const safeTitle = escapeHtml(filename || "Tailored CV.pdf");
+      target.document.write(
+        "<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">" +
+        "<title>" + safeTitle + "</title>" +
+        "<style>" +
+        "html,body{margin:0;padding:0;background:#f4f7f3;color:#111318;font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;}" +
+        "body{display:flex;min-height:100vh;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;}" +
+        ".card{max-width:420px;border:1px solid rgba(17,19,24,.1);background:#fff;border-radius:20px;padding:22px;box-shadow:0 18px 44px rgba(17,19,24,.10);}" +
+        ".eyebrow{font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#0b7a35;margin-bottom:10px;}" +
+        "h1{margin:0 0 8px;font-size:24px;line-height:1.1;}" +
+        "p{margin:0;color:rgba(17,19,24,.72);line-height:1.5;font-size:15px;}" +
+        "</style></head><body><div class=\"card\"><div class=\"eyebrow\">jobmejob</div><h1>Preparing your PDF</h1><p>This tab will open the exported CV as soon as it is ready. From there you can save or share the PDF.</p></div></body></html>"
+      );
+      target.document.close();
+      return target;
+    }catch(_){
+      return null;
+    }
+  }
+
+  function setPdfExportTargetError(target, message){
+    if (!target || target.closed) return;
+    try{
+      target.document.title = "PDF export failed";
+      target.document.body.innerHTML =
+        "<div style=\"max-width:420px;margin:0 auto;padding:24px;font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;color:#111318;\">" +
+        "<div style=\"font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#b42318;margin-bottom:10px;\">jobmejob</div>" +
+        "<h1 style=\"margin:0 0 8px;font-size:24px;line-height:1.1;\">We could not prepare the PDF</h1>" +
+        "<p style=\"margin:0;line-height:1.5;color:rgba(17,19,24,.72);\">" + escapeHtml(message || "Please go back and try again.") + "</p>" +
+        "</div>";
+    }catch(_){}
+  }
+
+  function downloadBlobFile(blob, filename, opts){
+    const target = opts && opts.targetWindow ? opts.targetWindow : null;
     const url = URL.createObjectURL(blob);
+    if (target && !target.closed){
+      try{
+        target.location.replace(url);
+        setTimeout(() => {
+          try{ URL.revokeObjectURL(url); }catch(_){}
+        }, 60000);
+        return "preview";
+      }catch(_){}
+    }
     const a = document.createElement("a");
     a.href = url;
     a.download = filename;
@@ -2012,7 +2073,8 @@
     setTimeout(() => {
       try{ a.remove(); }catch(_){}
       try{ URL.revokeObjectURL(url); }catch(_){}
-    }, 250);
+    }, 60000);
+    return "download";
   }
 
   function buildFilename(){
@@ -2038,6 +2100,8 @@
     updateGenerateButton();
     const btn = $("downloadPdfBtn");
     const old = btn ? btn.textContent : "";
+    const filename = buildFilename();
+    const exportTarget = openPdfExportTarget(filename);
     if (btn) btn.textContent = "Preparing PDF…";
     try{
       const exportTitle = String(currentJobMeta.title || currentCvDoc?.target_role || "Tailored CV").trim() || "Tailored CV";
@@ -2045,8 +2109,14 @@
       const bytes = useTextExport
         ? await buildPlainTextPdfBytes(exportTitle, currentCvText)
         : await buildStructuredPdfBytes(currentCvDoc, currentLang, exportTitle);
-      downloadBlobFile(new Blob([bytes], { type:"application/pdf" }), buildFilename());
+      const mode = downloadBlobFile(new Blob([bytes], { type:"application/pdf" }), filename, { targetWindow: exportTarget });
+      if (mode === "preview"){
+        try{
+          S?.toast?.("PDF opened in a new tab. Save or share it from there.", { kind:"good", title:"PDF ready" });
+        }catch(_){}
+      }
     }catch(err){
+      setPdfExportTargetError(exportTarget, err?.message || String(err));
       showTopError(err?.message || String(err));
     }finally{
       if (btn) btn.textContent = old || "Download PDF";
