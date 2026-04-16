@@ -11,6 +11,7 @@
   const LONG_TIMEOUT_MS = 120000;
   const OCR_STATUS_TIMEOUT_MS = 60000;
   const CV_POLL_MS = 5000;
+  const TOKEN_REFRESH_SKEW_SEC = 90;
   const PDF_FONT_THEME = "serif";
   const CONTACT_STYLE_THEMES = Object.freeze({
     plain: {
@@ -120,12 +121,6 @@
     showTopError("");
   }
 
-  function ensureSessionToken(){
-    const token = String(session && session.access_token ? session.access_token : "").trim();
-    if (!token) throw new Error("Your session expired. Please sign in again.");
-    return token;
-  }
-
   async function fetchWithTimeout(url, options, timeoutMs){
     const ms = Number(timeoutMs) || FETCH_TIMEOUT_MS;
     if (typeof AbortController === "undefined"){
@@ -140,11 +135,72 @@
     }
   }
 
+  async function getSessionFresh(forceRefresh){
+    const fallbackSession = session || null;
+    try{
+      if (!auth || typeof auth.getSession !== "function"){
+        return fallbackSession;
+      }
+
+      let nextSession = await auth.getSession();
+      const expiresAt = Number(nextSession && nextSession.expires_at ? nextSession.expires_at : 0);
+      const now = Math.floor(Date.now() / 1000);
+      const needsRefresh = !!forceRefresh || (expiresAt && (expiresAt - now) <= TOKEN_REFRESH_SKEW_SEC);
+
+      if (needsRefresh){
+        const sb = auth.supabaseClient;
+        if (sb && sb.auth && typeof sb.auth.refreshSession === "function"){
+          const refreshed = await sb.auth.refreshSession();
+          if (refreshed && refreshed.data && refreshed.data.session){
+            nextSession = refreshed.data.session;
+          }
+        }
+      }
+
+      if (nextSession && nextSession.access_token){
+        session = nextSession;
+        try{ sessionStorage.setItem("sb_access_token", nextSession.access_token); }catch(_){}
+        return nextSession;
+      }
+      session = null;
+      return null;
+    }catch(_){}
+    return fallbackSession;
+  }
+
+  async function authFetch(path, options, timeoutMs){
+    const s1 = await getSessionFresh(false);
+    const token1 = String(s1 && s1.access_token ? s1.access_token : "").trim();
+    if (!token1) throw new Error("Your session expired. Please sign in again.");
+
+    const requestOptions = { ...(options || {}) };
+    let headers = new Headers(requestOptions.headers || {});
+    headers.set("Authorization", "Bearer " + token1);
+
+    let res = await fetchWithTimeout(API_BASE + path, {
+      ...requestOptions,
+      headers
+    }, timeoutMs);
+
+    if (res.status === 401){
+      const s2 = await getSessionFresh(true);
+      const token2 = String(s2 && s2.access_token ? s2.access_token : "").trim();
+      if (token2 && token2 !== token1){
+        headers = new Headers(requestOptions.headers || {});
+        headers.set("Authorization", "Bearer " + token2);
+        res = await fetchWithTimeout(API_BASE + path, {
+          ...requestOptions,
+          headers
+        }, timeoutMs);
+      }
+    }
+
+    return res;
+  }
+
   async function apiGet(path, timeoutMs){
-    const token = ensureSessionToken();
-    const res = await fetchWithTimeout(API_BASE + path, {
-      method: "GET",
-      headers: { Authorization: "Bearer " + token }
+    const res = await authFetch(path, {
+      method: "GET"
     }, timeoutMs);
     const text = await res.text().catch(() => "");
     let json = null;
@@ -157,11 +213,9 @@
   }
 
   async function apiPostJson(path, body, timeoutMs){
-    const token = ensureSessionToken();
-    const res = await fetchWithTimeout(API_BASE + path, {
+    const res = await authFetch(path, {
       method: "POST",
       headers: {
-        Authorization: "Bearer " + token,
         "content-type": "application/json"
       },
       body: JSON.stringify(body || {})
@@ -177,10 +231,8 @@
   }
 
   async function apiPostForm(path, formData, timeoutMs){
-    const token = ensureSessionToken();
-    const res = await fetchWithTimeout(API_BASE + path, {
+    const res = await authFetch(path, {
       method: "POST",
-      headers: { Authorization: "Bearer " + token },
       body: formData
     }, timeoutMs);
     const text = await res.text().catch(() => "");
@@ -2101,7 +2153,7 @@
       return;
     }
 
-    session = await auth.getSession();
+    session = await getSessionFresh(false);
     if (!session || !session.user || !session.user.email){
       try{ auth.rememberPostAuthRedirect?.(window.location.pathname + window.location.search + window.location.hash); }catch(_){}
       window.location.replace("./signup.html?entry=cv-studio");
