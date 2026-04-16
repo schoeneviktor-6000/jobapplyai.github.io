@@ -3203,6 +3203,150 @@ function detectLanguageHint(jobText) {
   return hits >= 2 ? "de" : "en";
 }
 
+function normalizeContentLanguage(value) {
+  const lang = String(value || "").trim().toLowerCase();
+  if (lang.startsWith("de")) return "de";
+  if (lang.startsWith("en")) return "en";
+  return "";
+}
+
+function guessCvContentLanguage(text) {
+  const raw = String(text || "").trim().toLowerCase();
+  if (!raw) return "";
+
+  const t = ` ${raw} `;
+  const deSignals = [
+    " und ",
+    " der ",
+    " die ",
+    " das ",
+    " mit ",
+    " für ",
+    " fuer ",
+    " von ",
+    " als ",
+    " auf ",
+    " bei ",
+    " nicht ",
+    " sowie ",
+    " wurden ",
+    " durch ",
+    " erfahrung ",
+    " kenntnisse ",
+    " zusammenarbeit ",
+    " verantwortlich "
+  ];
+  const enSignals = [
+    " and ",
+    " the ",
+    " with ",
+    " for ",
+    " from ",
+    " as ",
+    " on ",
+    " at ",
+    " not ",
+    " through ",
+    " including ",
+    " experience ",
+    " responsible ",
+    " developed ",
+    " built ",
+    " led ",
+    " managed "
+  ];
+  const deHeadings = ["berufserfahrung", "erfahrung", "kenntnisse", "sprachen", "ausbildung", "profil"];
+  const enHeadings = ["experience", "skills", "languages", "education", "summary", "profile"];
+
+  let deScore = /[äöüß]/.test(t) ? 2 : 0;
+  let enScore = 0;
+
+  for (const w of deSignals) deScore += Math.max(0, t.split(w).length - 1);
+  for (const w of enSignals) enScore += Math.max(0, t.split(w).length - 1);
+  for (const w of deHeadings) if (t.includes(` ${w} `)) deScore += 2;
+  for (const w of enHeadings) if (t.includes(` ${w} `)) enScore += 2;
+
+  if (!deScore && !enScore) return "";
+  if (deScore > enScore * 1.2) return "de";
+  if (enScore > deScore * 1.2) return "en";
+  return "";
+}
+
+function sampleCvDocLanguageText(cvDoc) {
+  if (!cvDoc || typeof cvDoc !== "object") return "";
+  const parts = [];
+  const push = (value) => {
+    const s = String(value || "").trim();
+    if (s) parts.push(s);
+  };
+
+  push(cvDoc.summary);
+
+  const exp = Array.isArray(cvDoc.experience) ? cvDoc.experience : [];
+  exp.slice(0, 6).forEach((entry) => {
+    push(entry?.title);
+    push(entry?.company);
+    const bullets = Array.isArray(entry?.bullets) ? entry.bullets : [];
+    bullets.slice(0, 4).forEach(push);
+  });
+
+  const skills = (cvDoc.skills && typeof cvDoc.skills === "object") ? cvDoc.skills : {};
+  const groups = Array.isArray(skills.groups) ? skills.groups : [];
+  groups.slice(0, 4).forEach((group) => {
+    push(group?.label);
+    const items = Array.isArray(group?.items) ? group.items : [];
+    items.slice(0, 6).forEach(push);
+  });
+  const additional = Array.isArray(skills.additional) ? skills.additional : [];
+  additional.slice(0, 10).forEach(push);
+
+  return parts.join(" ").slice(0, 4000);
+}
+
+function resolveKeywordLanguage({ requestedLang, languageSource, context, textCandidates = [], cvDoc = null }) {
+  const ctx = (context && typeof context === "object") ? context : {};
+  const requested = normalizeContentLanguage(requestedLang);
+  const source = String(languageSource || "").trim().toLowerCase();
+  const cvLang = normalizeContentLanguage(ctx.cv_language || ctx.cv_lang || "");
+  const targetLang = normalizeContentLanguage(ctx.target_language || ctx.lang || "");
+
+  const samples = [];
+  for (const item of textCandidates) {
+    const s = String(item || "").trim();
+    if (s) samples.push(s);
+  }
+  const docSample = sampleCvDocLanguageText(cvDoc);
+  if (docSample) samples.push(docSample);
+
+  let guessed = "";
+  for (const sample of samples) {
+    guessed = guessCvContentLanguage(sample);
+    if (guessed) break;
+  }
+
+  if (requested && source === "manual") return requested;
+  if (requested && (source === "de" || source === "en")) return requested;
+
+  if (source === "auto") {
+    return guessed || cvLang || requested || targetLang || "en";
+  }
+
+  if (!source && requested && guessed && guessed !== requested) {
+    return guessed;
+  }
+
+  if (requested && targetLang && cvLang && requested === targetLang && cvLang !== targetLang) {
+    if (!guessed || guessed === cvLang) return cvLang;
+  }
+
+  if (guessed && cvLang && guessed === cvLang) return guessed;
+  if (requested) return requested;
+  if (guessed) return guessed;
+  if (cvLang) return cvLang;
+  if (targetLang) return targetLang;
+  return "en";
+}
+
 function normLowerStringArray(v, { maxItems = 30, maxLen = 60 } = {}) {
   const arr = Array.isArray(v) ? v : [];
   const out = [];
@@ -6634,6 +6778,8 @@ function buildKeywordInsertPrompt({ mode, lang, keyword, currentBullet, note, co
   const avoidRewrites = Array.isArray(ctx.avoid_rewrites) ? ctx.avoid_rewrites.map(x => String(x || "").trim()).filter(Boolean).slice(0, 8) : [];
   const variation = Number(ctx.variation || ctx.rewrite_attempt || 0) || 0;
   const ctxSlim = {
+    cv_language: normalizeContentLanguage(ctx.cv_language || ctx.cv_lang || lang || ""),
+    target_language: normalizeContentLanguage(ctx.target_language || ctx.lang || lang || ""),
     role_title: String(ctx.role_title || "").trim(),
     company: String(ctx.company || "").trim(),
     job_title: String(ctx.job_title || "").trim(),
@@ -6655,18 +6801,21 @@ function buildKeywordInsertPrompt({ mode, lang, keyword, currentBullet, note, co
     "- Keep it concise (ideally <= 180 characters).",
     "- Avoid generic filler like 'responsible for' when possible (use clear action verbs).",
     "- Integrate the keyword into the sentence naturally instead of tacking it onto the end.",
+    "- Match the CV language and keep German bullets fully German except fixed product, tool, or proper names.",
     "- If the bullet already contains a result clause like 'resulting in' or 'leading to', place the keyword before that result clause when possible.",
     "- Avoid parenthetical keyword add-ons unless absolutely necessary."
   ];
 
   if (mode === "rewrite") {
     hard.push("- REWRITE mode: keep meaning and facts identical to the input bullet; only rephrase to naturally include the keyword.");
+    hard.push("- Preserve the language of INPUT_BULLET. Do not switch a German bullet into English.");
     if (ctx.require_distinct || avoidRewrites.length || variation > 1) {
       hard.push("- Generate a materially different rewrite from the blocked alternatives below. Do NOT return the same sentence with only trivial punctuation or casing changes.");
       hard.push("- Change clause order, sentence rhythm, or integration point while preserving the same facts.");
     }
   } else {
     hard.push("- NEW mode: create the bullet ONLY from the user note. Do not add details beyond the note.");
+    hard.push("- Match the language of the surrounding CV context from Context.cv_language when it is provided.");
   }
 
   return [
@@ -6754,6 +6903,7 @@ function buildKeywordSuggestPrompt({ lang, keyword, bulletCandidates, skillGroup
 
   const ctx = (context && typeof context === "object") ? context : {};
   const ctxSlim = {
+    cv_language: normalizeContentLanguage(ctx?.cv_language || ctx?.cv_lang || ""),
     target_language: String(ctx?.target_language || ctx?.lang || lang || "").trim(),
     job_title: String(ctx?.job?.title || ctx?.job_title || "").trim(),
     job_company: String(ctx?.job?.company_name || ctx?.job_company || "").trim()
@@ -6767,6 +6917,7 @@ function buildKeywordSuggestPrompt({ lang, keyword, bulletCandidates, skillGroup
     "If the keyword is a tool, software, certification, methodology, or hard skill, prefer placing it under Skills.",
     "If the keyword is a responsibility/process, prefer Experience only if it fits naturally without changing meaning.",
     "For Experience rewrites: use natural grammar. Avoid awkward patterns like 'by <keyword>' for noun phrases; prefer 'including/with/covering' or integrate as a clause.",
+    "For Experience rewrites: match the language of the selected CV bullet. Do not insert English phrasing into a German bullet except fixed tool or product names.",
     "If the bullet already contains a result clause like 'resulting in' or 'leading to', place the keyword before that result clause when possible.",
     "Do NOT tack the keyword onto the end as a loose clause or parenthetical if a more natural integration is possible.",
     "The keyword must appear in the rewritten bullet OR the suggested skill item.",
@@ -6821,6 +6972,7 @@ function buildKeywordSuggestForceExperiencePrompt({ lang, keyword, bulletCandida
 
   const ctx = (context && typeof context === "object") ? context : {};
   const ctxSlim = {
+    cv_language: normalizeContentLanguage(ctx.cv_language || ctx.cv_lang || ""),
     target_language: String(ctx.target_language || ctx.lang || "").slice(0, 8),
     role_title: String(ctx.role_title || "").slice(0, 80),
     company: String(ctx.company || "").slice(0, 80),
@@ -6845,6 +6997,7 @@ function buildKeywordSuggestForceExperiencePrompt({ lang, keyword, bulletCandida
     `- Keep the original meaning of the chosen bullet.`,
     `- Do NOT add new tools, numbers, achievements, employers, or responsibilities not already implied.`,
     `- Make it sound natural and ATS-friendly.`,
+    `- Match the language of the chosen CV bullet. If it is German, keep the rewrite German except fixed tool or product names.`,
     `- Avoid awkward phrasing like "by <keyword>" for noun phrases. Prefer "including/with/covering" (EN) or "einschließlich/mit" (DE).`,
     `- If the bullet already contains a result clause like "resulting in" or "leading to", place the keyword before that result clause when possible.`,
     `- Do NOT tack the keyword onto the end as a loose afterthought or parenthetical.`,
@@ -6878,14 +7031,6 @@ async function handleMeCvKeywordSuggest(request, env) {
     return jsonResponse({ ok: false, error: "keyword is required" }, 400);
   }
 
-  // Language: frontend usually sends 'en'/'de'. Keep a safe fallback.
-  let lang = String(body.language || body.lang || "").trim().toLowerCase();
-  if (!lang || lang === "auto") {
-    lang = String(body?.context?.target_language || body?.context?.lang || "").trim().toLowerCase();
-  }
-  if (!lang.startsWith("de")) lang = "en";
-  if (lang.startsWith("de")) lang = "de";
-
   const cvDoc = (body.cv_doc && typeof body.cv_doc === "object")
     ? body.cv_doc
     : (body.cvDoc && typeof body.cvDoc === "object")
@@ -6897,6 +7042,14 @@ async function handleMeCvKeywordSuggest(request, env) {
   if (!cvDoc) {
     return jsonResponse({ ok: false, error: "cv_doc is required" }, 400);
   }
+
+  const ctx = (body.context && typeof body.context === "object") ? body.context : {};
+  const lang = resolveKeywordLanguage({
+    requestedLang: body.language || body.lang || "",
+    languageSource: body.language_source || body.languageSource || body.lang_source || "",
+    context: ctx,
+    cvDoc
+  });
 
   const exp = Array.isArray(cvDoc.experience) ? cvDoc.experience : [];
   const rawCandidates = [];
@@ -6943,7 +7096,7 @@ async function handleMeCvKeywordSuggest(request, env) {
     bulletCandidates,
     skillGroups,
     skillAdditional,
-    context: body.context || {}
+    context: ctx
   });
 
   const models =
@@ -7028,7 +7181,7 @@ async function handleMeCvKeywordSuggest(request, env) {
           lang,
           keyword,
           bulletCandidates: bulletCandidates.slice(0, 18),
-          context: body.context || {}
+          context: ctx
         });
 
         const forcedGen = await geminiGenerateJsonWithModels(env, {
@@ -7087,7 +7240,7 @@ async function handleMeCvKeywordSuggest(request, env) {
             lang,
             keyword,
             currentBullet: original,
-            context: body.context || {}
+            context: ctx
           });
           if (polished) out = polished;
         } catch (_) {
@@ -7150,22 +7303,12 @@ async function handleMeCvKeywordInsert(request, env) {
     return jsonResponse({ ok: false, error: "note is required for new mode" }, 400);
   }
 
-  // Target language:
-  // - prefer explicit request
-  // - else prefer context.target_language if provided
-  // - else detect from bullet/note (best effort)
-  let lang = String(body.language || body.lang || "").trim().toLowerCase();
-  if (lang !== "de" && lang !== "en") lang = "auto";
-
-  const ctxTarget = String(ctx.target_language || "").trim().toLowerCase();
-  if ((lang === "auto" || !lang) && (ctxTarget === "de" || ctxTarget === "en")) {
-    lang = ctxTarget;
-  }
-
-  if (lang === "auto" || !lang) {
-    const basis = (currentBullet || note || keyword).trim();
-    lang = detectLanguageHint(basis) || "en";
-  }
+  const lang = resolveKeywordLanguage({
+    requestedLang: body.language || body.lang || "",
+    languageSource: body.language_source || body.languageSource || body.lang_source || "",
+    context: ctx,
+    textCandidates: [currentBullet, note]
+  });
 
   // Keep payload small + safe
   const bulletIn = currentBullet.slice(0, 500);

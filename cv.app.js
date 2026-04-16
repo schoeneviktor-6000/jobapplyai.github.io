@@ -2191,6 +2191,69 @@ function updatePasteQuality(){
       return l.startsWith("de");
     }
 
+    function normalizeSupportedLang(lang){
+      const l = String(lang || "").trim().toLowerCase();
+      if(l.startsWith("de")) return "de";
+      if(l.startsWith("en")) return "en";
+      return "";
+    }
+
+    function sampleCvDocTextForLanguage(doc){
+      if(!doc || typeof doc !== "object") return "";
+      const parts = [];
+      const push = (value) => {
+        const s = String(value || "").trim();
+        if(s) parts.push(s);
+      };
+
+      push(doc?.summary);
+
+      const exp = Array.isArray(doc?.experience) ? doc.experience : [];
+      exp.slice(0, 6).forEach((e) => {
+        push(e?.title);
+        push(e?.company);
+        asStringArr(e?.bullets, 4).forEach(push);
+      });
+
+      const skills = (doc?.skills && typeof doc.skills === "object") ? doc.skills : {};
+      const groups = Array.isArray(skills.groups) ? skills.groups : [];
+      groups.slice(0, 4).forEach((g) => {
+        push(g?.label);
+        asStringArr(g?.items, 6).forEach(push);
+      });
+      asStringArr(skills.additional, 10).forEach(push);
+
+      return parts.join(" ").slice(0, 4000);
+    }
+
+    function detectCvLanguagePreference({ preferredText="", doc=lastCvDoc, rawText="", fallback=lastLang } = {}){
+      const seen = new Set();
+      const samples = [
+        String(preferredText || ""),
+        String(rawText || ""),
+        String(lastCvText || ""),
+        sampleCvDocTextForLanguage(doc),
+        String($("cvText")?.value || "")
+      ];
+
+      for(const sample of samples){
+        const trimmed = String(sample || "").trim();
+        if(!trimmed) continue;
+        const key = trimmed.slice(0, 240).toLowerCase();
+        if(seen.has(key)) continue;
+        seen.add(key);
+        const guessed = guessLangFromText(trimmed);
+        if(guessed === "de" || guessed === "en") return guessed;
+      }
+
+      return normalizeSupportedLang(fallback);
+    }
+
+    function chosenKwLangMode(){
+      const v = String($("kwLang")?.value || "auto").trim().toLowerCase();
+      return (v === "de" || v === "en") ? "manual" : "auto";
+    }
+
     /* Keyword casing + matching */
     const ACRONYMS = new Set([
       "API","APIs","SQL","AWS","GCP","AZURE","KPI","KPIs","OKR","OKRs","CRM","ERP","ETL","CI/CD","CI","CD","SaaS","B2B","B2C","GDPR","DSGVO","HR","UX","UI","QA","SEO","SEA"
@@ -2655,6 +2718,7 @@ function updatePasteQuality(){
         keyword: String(keyword || ""),
         language: String(lang || ""),
         lang: String(lang || ""),
+        language_source: chosenKwLangMode(),
         ui_language: String(uiLang || ""),
         mode: String(mode || ""),
         current_bullet: String(current_bullet || ""),
@@ -5236,7 +5300,9 @@ ${bodyHtml}
       lastCvText = String(text || "").trim();
       lastCvDoc = doc || null;
       if(lastCvDoc) ensureDocHeader(lastCvDoc);
-      lastLang = lang || "en";
+      lastLang = normalizeSupportedLang(lang)
+        || detectCvLanguagePreference({ preferredText: lastCvText, doc: lastCvDoc, rawText: lastCvText, fallback: lastLang })
+        || "en";
 
       // New CV output => QA should run again
       qaLastRunAt = 0;
@@ -5274,7 +5340,9 @@ ${bodyHtml}
       if(!snap) return;
       lastCvDoc = deepCopy(snap.cv_doc);
       if(lastCvDoc) ensureDocHeader(lastCvDoc);
-      lastLang = snap.lang || lastLang || "en";
+      lastLang = normalizeSupportedLang(snap.lang)
+        || detectCvLanguagePreference({ preferredText: snap.cv_text, doc: lastCvDoc, rawText: snap.cv_text, fallback: lastLang })
+        || "en";
       $("cvText").value = String(snap.cv_text || "");
       lastUsed = Array.isArray(snap.used) ? snap.used : [];
       lastMissing = Array.isArray(snap.missing) ? snap.missing : [];
@@ -6938,9 +7006,16 @@ ${bodyHtml}
     }
 
     function chosenKwLang(){
-      const v = String($("kwLang").value || "auto");
-      if(v === "de" || v === "en") return v;
-      // auto
+      const manual = normalizeSupportedLang($("kwLang")?.value || "");
+      if(manual) return manual;
+
+      const inferred = detectCvLanguagePreference({
+        preferredText: getCurrentSelectedBulletText(),
+        rawText: String($("cvText")?.value || lastCvText || ""),
+        fallback: lastLang
+      });
+      if(inferred) return inferred;
+
       return isLikelyGerman(lastLang) ? "de" : "en";
     }
 
@@ -7394,8 +7469,9 @@ ${bodyHtml}
       renderKwInlineUi();
 
       try{
+        const cvLang = detectCvLanguagePreference({ preferredText: current, rawText: current, fallback: lastLang }) || "en";
         const ctx = {
-          cv_language: lastLang,
+          cv_language: cvLang,
           target_language: lang,
           role_title: exp?.title || "",
           company: exp?.company || "",
@@ -7453,7 +7529,10 @@ ${bodyHtml}
 
       H.hideModal("kwModal");
       activeKeywordRaw = String(keywordRaw || "").trim();
-      activeKeywordDisplay = prettyKeyword(activeKeywordRaw, lastLang);
+      activeKeywordDisplay = prettyKeyword(
+        activeKeywordRaw,
+        detectCvLanguagePreference({ doc: lastCvDoc, rawText: String($("cvText")?.value || lastCvText || ""), fallback: lastLang }) || lastLang
+      );
       kwSurface = "inline";
       kwInlinePickMode = false;
       kwInlineDraftLoading = false;
@@ -7645,6 +7724,7 @@ ${bodyHtml}
         keyword: String(keyword || ""),
         language: String(lang || ""),
         lang: String(lang || ""),
+        language_source: chosenKwLangMode(),
         cv_doc: cv_doc || null,
         context: context || {}
       };
@@ -7714,9 +7794,14 @@ ${bodyHtml}
       setKwAiRecoLoading();
 
       try{
+        const cvLang = detectCvLanguagePreference({
+          doc: lastCvDoc,
+          rawText: String($("cvText")?.value || lastCvText || ""),
+          fallback: lastLang
+        }) || "en";
         const ctx = {
           target_language: lang,
-          cv_language: lastLang,
+          cv_language: cvLang,
           job: getActiveJobMeta(),
           source: source
         };
@@ -7769,7 +7854,10 @@ ${bodyHtml}
       kwRewriteLoading = false;
       renderKwInlineUi();
       activeKeywordRaw = String(keywordRaw || "").trim();
-      activeKeywordDisplay = prettyKeyword(activeKeywordRaw, lastLang);
+      activeKeywordDisplay = prettyKeyword(
+        activeKeywordRaw,
+        detectCvLanguagePreference({ doc: lastCvDoc, rawText: String($("cvText")?.value || lastCvText || ""), fallback: lastLang }) || lastLang
+      );
       $("kwChip").textContent = activeKeywordDisplay || "—";
 
       // Reset AI recommendation for this keyword
@@ -8111,8 +8199,9 @@ ${bodyHtml}
 
         for(let attempt = 0; attempt < maxAttempts; attempt++){
           const avoid = getKwRewriteAvoidTexts();
+          const cvLang = detectCvLanguagePreference({ preferredText: current, rawText: current, fallback: lastLang }) || "en";
           const ctx = {
-            cv_language: lastLang,
+            cv_language: cvLang,
             target_language: lang,
             role_title: exp?.title || "",
             company: exp?.company || "",
@@ -8357,8 +8446,9 @@ ${bodyHtml}
           }
 
           if(kwMode === "ai"){
+            const cvLang = detectCvLanguagePreference({ preferredText: note, rawText: note, fallback: lastLang }) || "en";
             const ctx = {
-              cv_language: lastLang,
+              cv_language: cvLang,
               target_language: lang,
               role_title: exp?.title || "",
               company: exp?.company || "",
@@ -8414,34 +8504,35 @@ ${bodyHtml}
                 usedAi = true;
                 changed = true;
               }else{
-              const ctx = {
-                cv_language: lastLang,
-                target_language: lang,
-                role_title: exp?.title || "",
-                company: exp?.company || "",
-                job_title: selectedJob?.title || "",
-                job_company: selectedJob?.company_name || "",
-                intent: how
-              };
-              const ai = await tryAiRewriteOrCraft({
-                mode: "rewrite",
-                keyword: kwRaw,
-                lang,
-                current_bullet: current,
-                note: "",
-                context: ctx
-              });
-              if(ai.ok){
-                exp.bullets[bulletIdx] = ai.text;
-                usedAi = true;
-                changed = true;
-              }else{
-                aiNote = t("aiFallback");
-                exp.bullets[bulletIdx] = (how === "append")
-                  ? localAppendKeyword(current, kwRaw, lang)
-                  : localRewriteBullet(current, kwRaw, lang);
-                changed = true;
-              }
+                const cvLang = detectCvLanguagePreference({ preferredText: current, rawText: current, fallback: lastLang }) || "en";
+                const ctx = {
+                  cv_language: cvLang,
+                  target_language: lang,
+                  role_title: exp?.title || "",
+                  company: exp?.company || "",
+                  job_title: selectedJob?.title || "",
+                  job_company: selectedJob?.company_name || "",
+                  intent: how
+                };
+                const ai = await tryAiRewriteOrCraft({
+                  mode: "rewrite",
+                  keyword: kwRaw,
+                  lang,
+                  current_bullet: current,
+                  note: "",
+                  context: ctx
+                });
+                if(ai.ok){
+                  exp.bullets[bulletIdx] = ai.text;
+                  usedAi = true;
+                  changed = true;
+                }else{
+                  aiNote = t("aiFallback");
+                  exp.bullets[bulletIdx] = (how === "append")
+                    ? localAppendKeyword(current, kwRaw, lang)
+                    : localRewriteBullet(current, kwRaw, lang);
+                  changed = true;
+                }
               }
             } else if(how === "append"){
               exp.bullets[bulletIdx] = localAppendKeyword(current, kwRaw, lang);
