@@ -1,3 +1,6 @@
+var __defProp = Object.defineProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+
 // jobmejob-worker.js
 var jobmejob_worker_default = {
   async fetch(request, env) {
