@@ -424,6 +424,9 @@ body.cvGate.cvGateForm #jobSourceHint{
         max-height: none;
         overflow: visible;
       }
+      .previewProgressLayer{
+        width:min(100%, calc(100% - 24px));
+      }
     }
 
     /* Bigger canvas (preview feels like the primary surface) */
@@ -1070,8 +1073,9 @@ body.cvGate.cvGateForm #jobSourceHint{
     }
     .cvHeaderBlock{
       border-radius:18px;
-      padding:4px 10px 2px;
-      margin:0 -10px 10px;
+      padding:4px 10px 12px;
+      margin:0 -10px 12px;
+      border-bottom:1px solid rgba(17,19,24,.12);
       transition:background-color .18s ease, box-shadow .18s ease;
     }
     .cvHeaderBlock.isHeaderFocus{
@@ -1192,6 +1196,49 @@ body.cvGate.cvGateForm #jobSourceHint{
       color:rgba(17,19,24,.90);
       font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
+    .cvPreviewLoadingCanvas{
+      min-height:720px;
+      display:grid;
+      align-content:start;
+      padding:58px 34px 34px;
+    }
+    .cvPreviewLoadingSheet{
+      display:grid;
+      gap:14px;
+      border-radius:18px;
+      border:1px solid rgba(17,19,24,.08);
+      background:rgba(255,255,255,.88);
+      box-shadow:0 18px 40px rgba(17,19,24,.06);
+      padding:28px 30px;
+    }
+    .cvPreviewLoadingLine{
+      display:block;
+      height:12px;
+      border-radius:999px;
+      background:linear-gradient(90deg,
+        rgba(17,19,24,.05),
+        rgba(17,19,24,.12),
+        rgba(17,19,24,.05));
+      background-size:200% 100%;
+      animation:cvPreviewLoadingShimmer 1.35s ease-in-out infinite;
+    }
+    .cvPreviewLoadingLine.isWide{ width:78%; height:14px; }
+    .cvPreviewLoadingLine.isMid{ width:62%; }
+    .cvPreviewLoadingLine.isSoft{ width:48%; opacity:.78; }
+    .cvPreviewLoadingSection{
+      display:grid;
+      gap:10px;
+      padding-top:4px;
+    }
+    .cvPreviewLoadingSection + .cvPreviewLoadingSection{
+      margin-top:10px;
+      padding-top:18px;
+      border-top:1px solid rgba(17,19,24,.06);
+    }
+    @keyframes cvPreviewLoadingShimmer{
+      0%{ background-position: 0 0; }
+      100%{ background-position: -200% 0; }
+    }
     .cvItem{ margin-top:11px; }
     .cvItemHead{
       display:flex;
@@ -1216,8 +1263,48 @@ body.cvGate.cvGateForm #jobSourceHint{
     }
     .cvUl{ margin:6px 0 0 18px; padding:0; }
     .cvUl li{ margin:0 0 3px 0; font-size:12.4px; line-height:1.42; }
+    .cvSection[data-section-key="achievements"] .cvUl li{ margin-bottom:6px; }
     .cvPara{ font-size:12.5px; line-height:1.54; margin:0; }
     .cvSkillLine{ font-size:12.4px; line-height:1.48; margin:2px 0; }
+    .cvSkillGrid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:10px;
+      margin-top:2px;
+    }
+    .cvSkillGroup{
+      border:1px solid rgba(17,19,24,.10);
+      border-radius:14px;
+      padding:10px 11px 11px;
+      background:linear-gradient(180deg, rgba(248,249,251,.96), rgba(255,255,255,.98));
+      box-shadow:0 10px 24px rgba(17,19,24,.04);
+    }
+    .cvSkillGroupLabel{
+      margin-bottom:8px;
+      color:rgba(17,19,24,.54);
+      font-size:10.7px;
+      line-height:1.25;
+      font-weight:850;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+    .cvSkillChips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+    .cvSkillChip{
+      display:inline-flex;
+      align-items:center;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid rgba(17,19,24,.10);
+      background:#fff;
+      color:rgba(17,19,24,.88);
+      font-size:10.9px;
+      line-height:1.25;
+      font-weight:700;
+    }
 
     .pageStage{
       position:relative;
@@ -1231,6 +1318,141 @@ body.cvGate.cvGateForm #jobSourceHint{
       min-width:0;
       display:flex;
       justify-content:center;
+      position:relative;
+    }
+    .pageZoom{
+      position:relative;
+      display:flex;
+      justify-content:center;
+    }
+    .previewProgressLayer{
+      position:absolute;
+      top:24px;
+      left:50%;
+      transform:translateX(-50%);
+      width:min(640px, calc(100% - 36px));
+      z-index:4;
+      pointer-events:none;
+    }
+    .previewProgressLayer[hidden]{
+      display:none !important;
+    }
+    .previewProgressCard{
+      display:grid;
+      gap:12px;
+      border-radius:20px;
+      border:1px solid rgba(34,197,94,.16);
+      background:rgba(255,255,255,.96);
+      box-shadow:0 18px 46px rgba(17,19,24,.12);
+      backdrop-filter:blur(12px);
+      padding:16px 18px 18px;
+    }
+    .previewProgressTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .previewProgressMeta{
+      font-size:12px;
+      line-height:1.4;
+      font-weight:760;
+      color:rgba(17,19,24,.54);
+    }
+    .previewProgressTitle{
+      font-size:18px;
+      line-height:1.15;
+      letter-spacing:-.02em;
+      font-weight:980;
+      color:rgba(17,19,24,.90);
+    }
+    .previewProgressText{
+      font-size:13px;
+      line-height:1.5;
+      font-weight:760;
+      color:rgba(17,19,24,.62);
+    }
+    .previewProgressStats{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .previewProgressStage{
+      font-size:12px;
+      line-height:1.35;
+      font-weight:900;
+      color:rgba(17,19,24,.72);
+    }
+    .previewProgressPercent{
+      font-size:13px;
+      line-height:1;
+      font-weight:980;
+      color:rgba(17,19,24,.88);
+      letter-spacing:-.01em;
+    }
+    .previewProgressBar{
+      position:relative;
+      overflow:hidden;
+      height:10px;
+      border-radius:999px;
+      background:rgba(17,19,24,.08);
+      border:1px solid rgba(17,19,24,.06);
+    }
+    .previewProgressBar > span{
+      display:block;
+      height:100%;
+      width:0;
+      border-radius:inherit;
+      background:linear-gradient(90deg, #22c55e, #86efac);
+      box-shadow:0 0 0 1px rgba(34,197,94,.08) inset;
+      position:relative;
+      transition:width .55s ease;
+    }
+    .previewProgressBar > span::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(110deg,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,.52) 46%,
+        rgba(255,255,255,0) 100%);
+      background-size:180% 100%;
+      animation:previewProgressSweep 1.25s linear infinite;
+    }
+    @keyframes previewProgressSweep{
+      0%{ background-position:180% 0; }
+      100%{ background-position:-180% 0; }
+    }
+    .previewProgressSteps{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .previewProgressStep{
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(17,19,24,.09);
+      background:rgba(17,19,24,.03);
+      color:rgba(17,19,24,.54);
+      font-size:11.5px;
+      line-height:1;
+      font-weight:900;
+      letter-spacing:.01em;
+      transition:.2s ease;
+    }
+    .previewProgressStep.isDone{
+      border-color:rgba(34,197,94,.18);
+      background:rgba(34,197,94,.09);
+      color:rgba(17,19,24,.72);
+    }
+    .previewProgressStep.isActive{
+      border-color:rgba(34,197,94,.28);
+      background:rgba(34,197,94,.14);
+      color:rgba(17,19,24,.86);
+      box-shadow:0 8px 20px rgba(34,197,94,.10);
     }
     .pageStage.hasKwInspector{
       display:grid;
@@ -2295,6 +2517,8 @@ body.cvGate.cvGateForm #jobSourceHint{
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce){
   .genViz *{ animation: none !important; }
+  .cvPreviewLoadingLine,
+  .previewProgressBar > span::after{ animation: none !important; }
 }
 
 
@@ -2477,14 +2701,31 @@ body.cvGate.cvGateForm #jobSourceHint{
 @media print{
   body{ background:#fff !important; }
   .topbar, .studioBar, .studioLeft, .studioRight, .zoomHud{ display:none !important; }
+  #previewProgressLayer{ display:none !important; }
   .studio{ display:block !important; }
   .studioCanvas{ border:none !important; box-shadow:none !important; padding:0 !important; }
   #sectionWorkspace{ display:none !important; }
+  #cvBox{
+    border:none !important;
+    background:#fff !important;
+    padding:0 !important;
+    max-height:none !important;
+    overflow:visible !important;
+    margin-top:0 !important;
+  }
   .pageStage{ display:block !important; }
   .paperWrap{ padding:0 !important; overflow:visible !important; }
   .kwInspectorWrap{ display:none !important; }
   #pageZoom{ transform:none !important; }
-  .paperA4{ box-shadow:none !important; border:none !important; margin:0 !important; width:210mm !important; min-height:297mm !important; }
+  .paperA4{
+    box-shadow:none !important;
+    border:none !important;
+    border-radius:0 !important;
+    margin:0 !important;
+    width:auto !important;
+    min-height:auto !important;
+    padding:16mm 14mm !important;
+  }
 }
 
 .modeTab[disabled]{opacity:.55;cursor:not-allowed;transform:none;}
@@ -2865,15 +3106,13 @@ body.fromJobsLink #settingsDetails{
 <body data-mobile-cv-redirect="app">
   <header class="topbar">
     <nav class="nav">
-      <a class="brand" href="./dashboard.html" data-nav="1" aria-label="Dashboard">
+      <a class="brand" href="./cv.html" data-nav="1" aria-label="CV Studio">
         <span class="logo" aria-hidden="true"></span>
         <span>jobmejob</span>
       </a>
 
       <div class="navlinks">
-        <a class="pill" href="./dashboard.html" data-nav="1">Dashboard</a>
-        <a class="pill active" href="./cv.html" data-nav="1">CV Studio</a>
-        <a class="pill" href="./jobs.html" data-nav="1">Jobs</a>
+        <a class="pill active" href="./cv.html?entry=chooser" data-nav="1">CV Studio</a>
         <a class="pill" href="./plan.html" data-nav="1">Pricing</a>
       </div>
       <div class="navcta">
@@ -2897,9 +3136,7 @@ body.fromJobsLink #settingsDetails{
               <div class="jmAccountHint" id="navUsageMeta">Usage updates after each tailored CV.</div>
             </div>
             <div class="menuLabel">Go to</div>
-            <a class="jmNavItem" href="./dashboard.html" data-nav="1" role="menuitem">Dashboard</a>
-            <a class="jmNavItem" href="./cv.html" data-nav="1" role="menuitem">CV Studio</a>
-            <a class="jmNavItem" href="./jobs.html" data-nav="1" role="menuitem">Jobs</a>
+            <a class="jmNavItem" href="./cv.html?entry=chooser" data-nav="1" role="menuitem">CV Studio</a>
             <a class="jmNavItem" href="./profile.html" data-nav="1" role="menuitem">Profile</a>
             <a class="jmNavItem" href="./profile.html#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Manage billing</a>
             <a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Plans & pricing</a>
@@ -3058,22 +3295,21 @@ body.fromJobsLink #settingsDetails{
             <button class="btn small ghost" id="gateBackBtn" type="button">← Back</button>
 </div>
 
-          <div class="label" id="jobSourceLbl">Job source</div>
+          <div class="label" id="jobSourceLbl">Import method</div>
         <div class="strengthPills" id="sourcePills">
-          <span class="miniPill active" data-src="queue" id="srcQueue">From my Jobs</span>
+          <span class="miniPill active" data-src="queue" id="srcQueue">Chrome extension</span>
           <span class="miniPill" data-src="paste" id="srcPaste">Paste description</span>
         </div>
-        <div class="hint" id="jobSourceHint">Use a saved job from your queue, or paste any job description.</div>
+        <div class="hint" id="jobSourceHint">Use a job imported by the Chrome extension, or paste any job description.</div>
 
         <div id="queueBox">
-          <div class="label" id="jobToTailorLbl">Job to tailor</div>
+          <div class="label" id="jobToTailorLbl">Imported job</div>
           <div class="row">
             <select id="jobSelect" class="selectWide">
               <option value="">Loading…</option>
             </select>
-            <a class="btn" href="./jobs.html" data-nav="1" style="flex:0 0 auto" id="openJobsBtn">Open Jobs</a>
           </div>
-          <div class="hint" id="jobHint">Pick a job from your queue.</div>
+          <div class="hint" id="jobHint">Pick a job imported by the Chrome extension.</div>
           <div class="jobMeta" id="jobMeta"></div>
         </div>
 
@@ -3119,7 +3355,7 @@ body.fromJobsLink #settingsDetails{
         <div id="autoStartBar" class="autoStartBar" style="display:none; margin-top:10px">
           <div class="autoStartTop">
             <div class="autoStartTitle" id="autoStartTitle">Review settings</div>
-            <span class="badge good" id="autoStartBadge">From Jobs</span>
+            <span class="badge good" id="autoStartBadge">Imported job</span>
           </div>
           <div class="autoStartDesc" id="autoStartDesc">Pick a strength, then tailor.</div>
           <div class="row" style="margin-top:8px">
@@ -3246,6 +3482,29 @@ body.fromJobsLink #settingsDetails{
                 <div class="pageZoom paperZoom" id="pageZoom">
                   <div id="cvPreview" class="cvPreview page paperA4">
                     <div class="hint">No tailored CV yet.</div>
+                  </div>
+                  <div class="previewProgressLayer" id="previewProgressLayer" hidden aria-live="polite" aria-hidden="true">
+                    <div class="previewProgressCard">
+                      <div class="previewProgressTop">
+                        <span class="badge warn" id="previewProgressBadge">Tailoring in progress</span>
+                        <span class="previewProgressMeta" id="previewProgressMeta">This usually takes under a minute.</span>
+                      </div>
+                      <div class="previewProgressTitle" id="previewProgressTitle">Building your tailored CV</div>
+                      <div class="previewProgressText" id="previewProgressText">We’re matching your experience to the role and preparing the first preview.</div>
+                      <div class="previewProgressStats">
+                        <span class="previewProgressStage" id="previewProgressStage">Step 1 of 4 · Job match</span>
+                        <span class="previewProgressPercent" id="previewProgressPercent">18%</span>
+                      </div>
+                      <div class="previewProgressBar" id="previewProgressBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="18">
+                        <span id="previewProgressBarFill"></span>
+                      </div>
+                      <div class="previewProgressSteps" id="previewProgressSteps">
+                        <span class="previewProgressStep isActive" id="previewProgressStep1">Job match</span>
+                        <span class="previewProgressStep" id="previewProgressStep2">Tailoring</span>
+                        <span class="previewProgressStep" id="previewProgressStep3">ATS review</span>
+                        <span class="previewProgressStep" id="previewProgressStep4">Preview</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -3919,7 +4178,6 @@ body.fromJobsLink #settingsDetails{
       </div>
 
       <div class="modalActions">
-        <a class="btn ghost" href="./dashboard.html" data-nav="1">Open dashboard</a>
         <button class="btn" id="activityClose" type="button">Close</button>
       </div>
     </div>
@@ -3929,8 +4187,8 @@ body.fromJobsLink #settingsDetails{
   <script src="./vendor/supabase-js-2.100.1.js"></script>
   <script src="./vendor/pdf-lib-1.17.1.min.js"></script>
   <script src="./auth.js?v=202604121905"></script>
-  <script src="./shared.js?v=202604102230"></script>
+  <script src="./shared.js?v=202604160830"></script>
 
-  <script src="./cv.app.js?v=202604100312"></script>
+  <script src="./cv.app.js?v=202604201215"></script>
 </body>
 </html>

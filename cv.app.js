@@ -78,7 +78,7 @@
         pdf: { phone:"tel", email:"mail", location:"loc", linkedin:"in", portfolio:"web" }
       }
     });
-    const CV_SECTION_KEYS = [
+    const LEGACY_CV_SECTION_KEYS = [
       "summary",
       "experience",
       "education",
@@ -88,8 +88,18 @@
       "interests",
       "languages"
     ];
+    const CV_SECTION_KEYS = [
+      "summary",
+      "skills",
+      "experience",
+      "achievements",
+      "education",
+      "courses",
+      "languages",
+      "interests"
+    ];
 
-    // Job source: queue (your saved jobs) vs paste (manual job description)
+    // Job source: extension-imported jobs vs pasted description
     let jobSource = "queue"; // "queue" | "paste"
     let pasteDraft = { title:"", company:"", apply:"", lang_hint:"auto", desc:"" };
 let pasteCacheKey = "";
@@ -114,6 +124,8 @@ let setupAutoCollapsedOnce = false;
 // UI: generation steps modal (auto-open while generating)
 let genModalAuto = false;
 let genStepsState = "idle";
+let previewProgressTimer = 0;
+let previewProgressStartedAt = 0;
 
 
     let lastCvText = "";
@@ -176,8 +188,8 @@ let genStepsState = "idle";
       de: {
         subTitle: "Importiere einen Job mit der Chrome-Erweiterung oder fuege ihn manuell ein. Wir passen deinen CV an, zeigen ATS-Luecken und bringen dich schnell zum Export.",
         setupTitle: "Setup",
-        jobToTailorLbl: "Job auswählen",
-        openJobsBtn: "Jobs öffnen",
+        jobToTailorLbl: "Importierter Job",
+        openJobsBtn: "Erweiterungsanleitung",
         btnViewDesc: "Beschreibung ansehen",
         btnCopyDesc: "Beschreibung kopieren",
         templateLbl: "Vorlage",
@@ -315,10 +327,10 @@ let genStepsState = "idle";
       en: {
         subTitle: "Import a job with the Chrome extension or paste it manually. We tailor your CV, show the ATS gaps, and get you ready to send.",
         setupTitle: "Setup",
-        jobSourceLbl: "Job source",
-        sourceJobs: "From my Jobs",
+        jobSourceLbl: "Import method",
+        sourceJobs: "Chrome extension",
         sourcePaste: "Paste description",
-        jobSourceHint: "Use a saved job from your queue, or paste any job description.",
+        jobSourceHint: "Use a job imported by the Chrome extension, or paste any job description.",
         pasteJobLbl: "Pasted job (not saved)",
         pasteDescLbl: "Job description",
         pasteHint: "Tip: include Responsibilities + Requirements + Tech stack. Don’t paste confidential info.",
@@ -331,8 +343,8 @@ let genStepsState = "idle";
         pasteTooShort: "Please paste a longer job description (at least 200 characters recommended).",
         pasteTooLong: "Job description is too long. Please shorten it (max 20,000 characters).",
         pasteNotSupported: "Your backend does not support tailoring from pasted job descriptions yet. Implement /me/cv/tailor_from_text in your Worker.",
-        jobToTailorLbl: "Job to tailor",
-        openJobsBtn: "Open Jobs",
+        jobToTailorLbl: "Imported job",
+        openJobsBtn: "Extension guide",
         btnViewDesc: "View description",
         btnCopyDesc: "Copy description",
         templateLbl: "Template",
@@ -478,8 +490,8 @@ let genStepsState = "idle";
     function applyUiTexts(){
       uiLang = guessUiLang();
       // top
-      $("subTitle").textContent = t("subTitle");
-      $("setupTitle").textContent = t("setupTitle");
+      setText("subTitle", t("subTitle"));
+      setText("setupTitle", t("setupTitle"));
 
       // CV Studio: top actions
       try{
@@ -516,17 +528,17 @@ let genStepsState = "idle";
 
 
       // Job source (queue vs paste)
-      $("jobSourceLbl").textContent = t("jobSourceLbl");
-      $("srcQueue").textContent = t("sourceJobs");
-      $("srcPaste").textContent = t("sourcePaste");
-      $("jobSourceHint").textContent = t("jobSourceHint");
+      setText("jobSourceLbl", t("jobSourceLbl"));
+      setText("srcQueue", t("sourceJobs"));
+      setText("srcPaste", t("sourcePaste"));
+      setText("jobSourceHint", t("jobSourceHint"));
 
-      $("pasteJobLbl").textContent = t("pasteJobLbl");
-      $("pasteDescLbl").textContent = t("pasteDescLbl");
-      $("pasteHint").textContent = t("pasteHint");
-      $("pasteTitle").setAttribute("placeholder", t("pasteTitlePh"));
-      $("pasteCompany").setAttribute("placeholder", t("pasteCompanyPh"));
-      $("pasteApply").setAttribute("placeholder", t("pasteApplyPh"));
+      setText("pasteJobLbl", t("pasteJobLbl"));
+      setText("pasteDescLbl", t("pasteDescLbl"));
+      setText("pasteHint", t("pasteHint"));
+      $("pasteTitle")?.setAttribute("placeholder", t("pasteTitlePh"));
+      $("pasteCompany")?.setAttribute("placeholder", t("pasteCompanyPh"));
+      $("pasteApply")?.setAttribute("placeholder", t("pasteApplyPh"));
 
       const langSel = $("pasteLangHint");
       if(langSel && langSel.options && langSel.options.length >= 3){
@@ -535,16 +547,16 @@ let genStepsState = "idle";
         langSel.options[2].textContent = t("pasteLangDe");
       }
 
-      $("jobToTailorLbl").textContent = t("jobToTailorLbl");
-      $("openJobsBtn").textContent = t("openJobsBtn");
-      $("btnViewDesc").textContent = t("btnViewDesc");
-      $("btnCopyDesc").textContent = t("btnCopyDesc");
-      $("templateLbl").textContent = t("templateLbl");
-      $("atsHintLine").textContent = t("atsHintLine");
-      $("tailorStrengthLbl").textContent = t("tailorStrengthLbl");
-      $("pillLight").textContent = t("light");
-      $("pillBalanced").textContent = t("balanced");
-      $("pillAggressive").textContent = t("aggressive");
+      setText("jobToTailorLbl", t("jobToTailorLbl"));
+      setText("openJobsBtn", t("openJobsBtn"));
+      setText("btnViewDesc", t("btnViewDesc"));
+      setText("btnCopyDesc", t("btnCopyDesc"));
+      setText("templateLbl", t("templateLbl"));
+      setText("atsHintLine", t("atsHintLine"));
+      setText("tailorStrengthLbl", t("tailorStrengthLbl"));
+      setText("pillLight", t("light"));
+      setText("pillBalanced", t("balanced"));
+      setText("pillAggressive", t("aggressive"));
       setText("strengthModalTitle", t("strengthModalTitle"));
       setText("strengthModalIntro", t("strengthModalIntro"));
       setText("startLightTitle", t("light"));
@@ -554,8 +566,8 @@ let genStepsState = "idle";
       setText("startBalancedDesc", t("startBalancedDesc"));
       setText("startAggressiveDesc", t("startAggressiveDesc"));
       setText("strengthClose", t("close"));
-      $("btnGenerate").textContent = t("gen");
-      $("btnGenerateAgain").textContent = t("genAgain");
+      setText("btnGenerate", t("gen"));
+      setText("btnGenerateAgain", t("genAgain"));
 
       setText("stepsTitle", t("stepsTitle"));
       setText("stepsIntro", t("stepsIntro"));
@@ -575,23 +587,23 @@ let genStepsState = "idle";
       setText("genFocusTag3", t("genFocusTag3"));
       setText("pipelineTitle", t("pipelineTitle"));
 
-      $("tailoredTitle").textContent = t("tailoredTitle");
+      setText("tailoredTitle", t("tailoredTitle"));
       // outHint is dynamic, leave default value for now
       setText("templateValuePill", t("templateProfessional"));
-      $("kpiAts").textContent = t("kpiAts");
-      $("atsHint").textContent = t("atsHint");
-      $("kpiUsed").textContent = t("kpiUsed");
-      $("kpiUsedHint").textContent = t("kpiUsedHint");
-      $("kpiMissing").textContent = t("kpiMissing");
-      $("kpiMissingHint").textContent = t("kpiMissingHint");
+      setText("kpiAts", t("kpiAts"));
+      setText("atsHint", t("atsHint"));
+      setText("kpiUsed", t("kpiUsed"));
+      setText("kpiUsedHint", t("kpiUsedHint"));
+      setText("kpiMissing", t("kpiMissing"));
+      setText("kpiMissingHint", t("kpiMissingHint"));
 
       setText("tabPreview", t("tabPreview"));
       setText("tabText", t("tabText"));
-      $("tabChanges").textContent = t("tabChanges");
-      $("btnCopy").textContent = t("copy");
-      $("btnDownload").textContent = t("download");
+      setText("tabChanges", t("tabChanges"));
+      setText("btnCopy", t("copy"));
+      setText("btnDownload", t("download"));
       setText("btnToImprove", t("nextImprove"));
-      $("btnPrint").textContent = pdfExportLoading ? t("printBusy") : t("print");
+      setText("btnPrint", pdfExportLoading ? t("printBusy") : t("print"));
       setText("sectionsTitle", t("sectionsTitle"));
       setText("sectionsHint", t("sectionsHint"));
       setText("btnAddSection", t("sectionsAdd"));
@@ -602,41 +614,41 @@ let genStepsState = "idle";
       setText("fontSansLbl", t("fontSans"));
       applyCvFontUi();
 
-      $("atsKwTitle").textContent = t("atsKwTitle");
-      $("btnUndoEdit").textContent = t("undo");
-      $("btnResetEdits").textContent = t("reset");
-      $("btnCopyMissing").textContent = t("copyMissing");
-      $("atsKwHint").textContent = t("atsKwHint");
-      $("missingLbl").textContent = t("missingLbl");
+      setText("atsKwTitle", t("atsKwTitle"));
+      setText("btnUndoEdit", t("undo"));
+      setText("btnResetEdits", t("reset"));
+      setText("btnCopyMissing", t("copyMissing"));
+      setText("atsKwHint", t("atsKwHint"));
+      setText("missingLbl", t("missingLbl"));
       setText("usedKeywordsSummary", t("usedLbl"));
-      $("debugTitle").textContent = t("debugTitle");
+      setText("debugTitle", t("debugTitle"));
 
       // Keyword modal
-      $("kwH").textContent = t("kwH");
-      $("kwSub").textContent = t("kwSub");
-      $("kwClose").textContent = t("close");
+      setText("kwH", t("kwH"));
+      setText("kwSub", t("kwSub"));
+      setText("kwClose", t("close"));
       setText("kwTruthLbl", t("kwTruthLbl"));
       setText("kwTruthNote", t("kwTruthNote"));
-      $("kwWhereLbl").textContent = t("kwWhereLbl");
-      $("kwWhereNote").textContent = t("kwWhereNote");
-      $("kwLangLbl").textContent = t("kwLangLbl");
-      $("kwLangNote").textContent = t("kwLangNote");
-      $("kwModeLbl").textContent = t("kwModeLbl");
-      $("kwModeAi").textContent = t("kwModeAi");
-      $("kwModeQuick").textContent = t("kwModeQuick");
-      $("kwModeNote").textContent = t("kwModeNote");
-      $("kwSkillsGroupLbl").textContent = t("kwSkillsGroupLbl");
-      $("kwSkillsGroupNote").textContent = t("kwSkillsGroupNote");
-      $("kwExpRoleLbl").textContent = t("kwExpRoleLbl");
-      $("kwExpHowLbl").textContent = t("kwExpHowLbl");
-      $("kwExpHowNote").textContent = t("kwExpHowNote");
-      $("kwExpBulletLbl").textContent = t("kwExpBulletLbl");
-      $("kwNoteLbl").textContent = t("kwNoteLbl");
-      $("kwNoteHelp").textContent = t("kwNoteHelp");
-      $("kwPreviewLbl").textContent = t("kwPreviewLbl");
-      $("kwPreviewNote").textContent = t("kwPreviewNote");
-      $("kwCancel").textContent = t("kwCancel");
-      $("kwApply").textContent = t("kwApply");
+      setText("kwWhereLbl", t("kwWhereLbl"));
+      setText("kwWhereNote", t("kwWhereNote"));
+      setText("kwLangLbl", t("kwLangLbl"));
+      setText("kwLangNote", t("kwLangNote"));
+      setText("kwModeLbl", t("kwModeLbl"));
+      setText("kwModeAi", t("kwModeAi"));
+      setText("kwModeQuick", t("kwModeQuick"));
+      setText("kwModeNote", t("kwModeNote"));
+      setText("kwSkillsGroupLbl", t("kwSkillsGroupLbl"));
+      setText("kwSkillsGroupNote", t("kwSkillsGroupNote"));
+      setText("kwExpRoleLbl", t("kwExpRoleLbl"));
+      setText("kwExpHowLbl", t("kwExpHowLbl"));
+      setText("kwExpHowNote", t("kwExpHowNote"));
+      setText("kwExpBulletLbl", t("kwExpBulletLbl"));
+      setText("kwNoteLbl", t("kwNoteLbl"));
+      setText("kwNoteHelp", t("kwNoteHelp"));
+      setText("kwPreviewLbl", t("kwPreviewLbl"));
+      setText("kwPreviewNote", t("kwPreviewNote"));
+      setText("kwCancel", t("kwCancel"));
+      setText("kwApply", t("kwApply"));
       setText("kwRewriteAgain", t("kwRewriteAgain"));
       setText("kwRewriteHelp", t("kwRewriteHelp"));
       try{ updateSettingsSurfaceUi(); }catch(_){ }
@@ -879,11 +891,35 @@ let genStepsState = "idle";
       return getAvailableSectionKeys(doc).includes(String(key || "").trim());
     }
 
+    function buildPreferredSectionOrder(keys, preferredOrder = CV_SECTION_KEYS){
+      const seen = new Set();
+      const out = [];
+      preferredOrder.forEach((key) => {
+        if(keys.includes(key) && !seen.has(key)){
+          seen.add(key);
+          out.push(key);
+        }
+      });
+      keys.forEach((key) => {
+        if(!seen.has(key)){
+          seen.add(key);
+          out.push(key);
+        }
+      });
+      return out;
+    }
+
+    function matchesPreferredSectionOrder(order, keys, preferredOrder = CV_SECTION_KEYS){
+      const expected = buildPreferredSectionOrder(keys, preferredOrder);
+      if(order.length !== expected.length) return false;
+      return expected.every((key, idx) => key === order[idx]);
+    }
+
     function defaultCvSectionPrefs(doc = lastCvDoc, raw = null){
       const hidden = {};
       const keys = getAvailableSectionKeys(doc, raw);
       keys.forEach((key) => { hidden[key] = false; });
-      return { order: [...keys], hidden };
+      return { order: buildPreferredSectionOrder(keys), hidden };
     }
 
     function getCustomSectionByKey(doc, key){
@@ -898,11 +934,16 @@ let genStepsState = "idle";
       const allowed = new Set(allowedKeys);
       const hiddenRaw = (raw && typeof raw.hidden === "object" && raw.hidden) ? raw.hidden : {};
       const orderRaw = Array.isArray(raw?.order) ? raw.order.map((x) => String(x || "").trim()) : [];
-      const order = [];
+      const normalizedRawOrder = [];
       orderRaw.forEach((key) => {
-        if(!allowed.has(key) || order.includes(key)) return;
-        order.push(key);
+        if(!allowed.has(key) || normalizedRawOrder.includes(key)) return;
+        normalizedRawOrder.push(key);
       });
+      const shouldUpgradeLegacyDefault = normalizedRawOrder.length > 0
+        && matchesPreferredSectionOrder(normalizedRawOrder, allowedKeys, LEGACY_CV_SECTION_KEYS);
+      const order = shouldUpgradeLegacyDefault
+        ? buildPreferredSectionOrder(allowedKeys)
+        : [...normalizedRawOrder];
       allowedKeys.forEach((key) => {
         if(!order.includes(key)) order.push(key);
         base.hidden[key] = !!hiddenRaw[key];
@@ -1530,8 +1571,8 @@ function armAutoStartFromJobs(){
     try{
       window.JobMeJobShared?.toast?.(
         uiLang==="de"
-          ? "Dieser Job ist nicht in deiner Queue. Öffne Jobs und lade (fetch) erneut."
-          : "This job isn’t in your queue. Open Jobs and fetch again.",
+          ? "Dieser importierte Job ist nicht mehr verfügbar. Importiere ihn erneut oder füge die Stellenbeschreibung ein."
+          : "This imported job is no longer available. Import it again or paste the job description.",
         { kind:"warn", title:"CV Studio" }
       );
     }catch(_){}
@@ -1684,7 +1725,13 @@ function cameFromJobsPage(){
   return false;
 }
 
+function shouldForceGateChooser(){
+  const entry = String(qs("entry") || "").trim().toLowerCase();
+  return entry === "upload" || entry === "chooser";
+}
+
 function shouldShowGate(){
+  if(shouldForceGateChooser()) return true;
   if(cameFromJobsPage()) return false;
   try{
     if(sessionStorage.getItem("cvstudio_started") === "1") return false;
@@ -1799,7 +1846,7 @@ function getPasteDesc(){
 
       let full = title || (jobSource === "paste"
         ? (uiLang==="de" ? "Eingefügte Beschreibung" : "Pasted description")
-        : (uiLang==="de" ? "Ausgewählter Job" : "Selected job")
+        : (uiLang==="de" ? "Importierter Job" : "Imported job")
       );
 
       if(company) full = full + " · " + company;
@@ -2021,11 +2068,7 @@ function loadJobSource(){
 
       if(jobSource === "queue"){
         if(!selectedJob){
-          if(jobs && jobs.length === 0){
-            try{ $("openJobsBtn").classList.add("needAttention"); }catch(_){}
-          }else{
-            try{ $("jobSelect").classList.add("needAttention"); }catch(_){}
-          }
+          try{ $("jobSelect").classList.add("needAttention"); }catch(_){}
         }
         return;
       }
@@ -2095,8 +2138,8 @@ function loadJobSource(){
         if(!selectedJob){
           if(jobs && jobs.length === 0){
             cta.textContent = (uiLang==="de")
-              ? "Deine Job-Liste ist leer. Hole zuerst Jobs auf der Jobs-Seite."
-              : "Your Jobs list is empty. Fetch jobs first on the Jobs page.";
+              ? "Noch keine importierten Jobs. Nutze die Chrome-Erweiterung oder füge die Stellenbeschreibung manuell ein."
+              : "No imported jobs yet. Use the Chrome extension or paste the job description manually.";
           }else{
             cta.textContent = (uiLang==="de")
               ? "Wähle einen Job, um „CV anpassen“ zu aktivieren."
@@ -2189,6 +2232,69 @@ function updatePasteQuality(){
     function isLikelyGerman(lang){
       const l = String(lang || "").toLowerCase();
       return l.startsWith("de");
+    }
+
+    function normalizeSupportedLang(lang){
+      const l = String(lang || "").trim().toLowerCase();
+      if(l.startsWith("de")) return "de";
+      if(l.startsWith("en")) return "en";
+      return "";
+    }
+
+    function sampleCvDocTextForLanguage(doc){
+      if(!doc || typeof doc !== "object") return "";
+      const parts = [];
+      const push = (value) => {
+        const s = String(value || "").trim();
+        if(s) parts.push(s);
+      };
+
+      push(doc?.summary);
+
+      const exp = Array.isArray(doc?.experience) ? doc.experience : [];
+      exp.slice(0, 6).forEach((e) => {
+        push(e?.title);
+        push(e?.company);
+        asStringArr(e?.bullets, 4).forEach(push);
+      });
+
+      const skills = (doc?.skills && typeof doc.skills === "object") ? doc.skills : {};
+      const groups = Array.isArray(skills.groups) ? skills.groups : [];
+      groups.slice(0, 4).forEach((g) => {
+        push(g?.label);
+        asStringArr(g?.items, 6).forEach(push);
+      });
+      asStringArr(skills.additional, 10).forEach(push);
+
+      return parts.join(" ").slice(0, 4000);
+    }
+
+    function detectCvLanguagePreference({ preferredText="", doc=lastCvDoc, rawText="", fallback=lastLang } = {}){
+      const seen = new Set();
+      const samples = [
+        String(preferredText || ""),
+        String(rawText || ""),
+        String(lastCvText || ""),
+        sampleCvDocTextForLanguage(doc),
+        String($("cvText")?.value || "")
+      ];
+
+      for(const sample of samples){
+        const trimmed = String(sample || "").trim();
+        if(!trimmed) continue;
+        const key = trimmed.slice(0, 240).toLowerCase();
+        if(seen.has(key)) continue;
+        seen.add(key);
+        const guessed = guessLangFromText(trimmed);
+        if(guessed === "de" || guessed === "en") return guessed;
+      }
+
+      return normalizeSupportedLang(fallback);
+    }
+
+    function chosenKwLangMode(){
+      const v = String($("kwLang")?.value || "auto").trim().toLowerCase();
+      return (v === "de" || v === "en") ? "manual" : "auto";
     }
 
     /* Keyword casing + matching */
@@ -2599,6 +2705,101 @@ function updatePasteQuality(){
       return json;
     }
 
+    function storedCvHasReadyText(cv){
+      if(!cv || typeof cv !== "object") return false;
+      if(cv.cv_has_ready_text === true || cv.cv_has_text === true || cv.cv_has_ocr_text === true) return true;
+      const chars = Number(cv.cv_text_chars || cv.cv_ocr_text_chars || 0);
+      if(Number.isFinite(chars) && chars > 40) return true;
+      return String(cv.cv_ocr_status || "").trim().toLowerCase() === "done";
+    }
+
+    function storedCvIsPdf(cv){
+      const mime = String(cv?.cv_mime || "").trim().toLowerCase();
+      const label = String(cv?.cv_filename || cv?.cv_path || "").trim().toLowerCase();
+      return mime === "application/pdf" || label.endsWith(".pdf");
+    }
+
+    async function refreshStoredCvAfterOcrStatus(cv){
+      if(!cv || storedCvHasReadyText(cv) || !storedCvIsPdf(cv)) return cv;
+
+      const status = String(cv?.cv_ocr_status || "").trim().toLowerCase();
+      const operation = String(cv?.cv_ocr_operation || "").trim();
+      const shouldCheckOcrStatus = status === "processing" || status === "done" || !!operation;
+      if(!shouldCheckOcrStatus) return cv;
+
+      try{
+        setText("outHint", uiLang === "de"
+          ? "Wir pruefen, ob dein CV jetzt fertig ist…"
+          : "Checking whether your CV is ready now…");
+      }catch(_){}
+
+      try{
+        // /me/cv/ocr/status finalizes finished OCR jobs by storing the extracted text in DB.
+        await apiGet("/me/cv/ocr/status", { timeoutMs: 90000 });
+      }catch(_){
+        return cv;
+      }
+
+      try{
+        const refreshed = await apiGet("/me/cv");
+        return refreshed && refreshed.cv ? refreshed.cv : cv;
+      }catch(_){
+        return cv;
+      }
+    }
+
+    async function ensureCvReadyForGeneration(){
+      let cv = null;
+      try{
+        const res = await apiGet("/me/cv");
+        cv = res && res.cv ? res.cv : null;
+      }catch(_){
+        const msg = uiLang === "de"
+          ? "Wir konnten deinen Basis-CV gerade nicht prüfen. Bitte versuche es erneut."
+          : "We couldn't verify your base CV right now. Please try again.";
+        showError(msg);
+        try{ setText("outHint", msg); }catch(_){}
+        return false;
+      }
+
+      if(!cv || !cv.cv_path){
+        const msg = uiLang === "de"
+          ? "Bitte lade zuerst deinen Basis-CV im Profil hoch."
+          : "Upload your base CV in Profile first.";
+        showError(msg);
+        try{ setText("outHint", msg); }catch(_){}
+        return false;
+      }
+
+      if(!storedCvHasReadyText(cv)){
+        cv = await refreshStoredCvAfterOcrStatus(cv);
+      }
+
+      if(storedCvHasReadyText(cv)) return true;
+
+      const status = String(cv.cv_ocr_status || "").trim().toLowerCase();
+      const hasOperation = !!String(cv?.cv_ocr_operation || "").trim();
+      const msg = !storedCvIsPdf(cv)
+        ? (uiLang === "de"
+            ? "Dein CV ist hochgeladen, aber noch nicht lesbar. Lade ihn bitte als DOCX erneut hoch oder nutze eine PDF-Version im Profil."
+            : "Your CV is uploaded, but it isn't readable yet. Re-upload it as DOCX or use a PDF version in Profile.")
+        : ((status === "failed" || status === "done")
+            ? (uiLang === "de"
+                ? "Wir konnten deinen CV noch nicht fertig vorbereiten. Bitte lade die PDF erneut hoch oder starte OCR im Profil neu."
+                : "We couldn't finish preparing your CV yet. Re-upload the PDF or retry OCR in Profile.")
+            : ((status === "processing" || hasOperation)
+                ? (uiLang === "de"
+                ? "Wir bereiten deinen CV noch vor. Gib uns einen Moment und versuche es dann erneut."
+                : "We're still preparing your CV. Give it a moment, then try again.")
+                : (uiLang === "de"
+                    ? "Deine PDF braucht noch OCR, bevor wir sie anpassen koennen. Oeffne Profil und starte OCR erneut."
+                    : "Your PDF still needs OCR before we can tailor it. Open Profile and retry OCR.")));
+
+      showError(msg);
+      try{ setText("outHint", msg); }catch(_){}
+      return false;
+    }
+
     async function apiPostJson(path, body, options = {}){
       const headers = new Headers(options.headers || {});
       headers.set("content-type","application/json");
@@ -2655,6 +2856,7 @@ function updatePasteQuality(){
         keyword: String(keyword || ""),
         language: String(lang || ""),
         lang: String(lang || ""),
+        language_source: chosenKwLangMode(),
         ui_language: String(uiLang || ""),
         mode: String(mode || ""),
         current_bullet: String(current_bullet || ""),
@@ -2717,6 +2919,169 @@ function updatePasteQuality(){
       }
     }
 
+    function clearPreviewProgressTimer(){
+      if(previewProgressTimer){
+        try{ clearInterval(previewProgressTimer); }catch(_){}
+        previewProgressTimer = 0;
+      }
+    }
+
+    function getPreviewProgressSnapshot(){
+      const elapsed = previewProgressStartedAt ? Math.max(0, Date.now() - previewProgressStartedAt) : 0;
+      const de = uiLang === "de";
+      const stages = [
+        {
+          until: 3500,
+          step: 0,
+          pctFrom: 12,
+          pctTo: 28,
+          title: de ? "Wir analysieren den Job" : "We’re analyzing the job",
+          text: de
+            ? "Wir ziehen die wichtigsten Anforderungen und ATS-Begriffe aus der Stellenbeschreibung."
+            : "We’re pulling the most relevant requirements and ATS terms from the job description."
+        },
+        {
+          until: 9000,
+          step: 1,
+          pctFrom: 28,
+          pctTo: 56,
+          title: de ? "Wir passen Inhalte an" : "We’re tailoring the content",
+          text: de
+            ? "Wir gleichen Summary und Experience-Bullets mit der Rolle ab und bleiben dabei wahr."
+            : "We’re matching your summary and experience bullets to the role while staying truthful."
+        },
+        {
+          until: 15000,
+          step: 2,
+          pctFrom: 56,
+          pctTo: 82,
+          title: de ? "Wir prüfen die ATS-Struktur" : "We’re checking ATS structure",
+          text: de
+            ? "Wir halten Layout, Keywords und Struktur sauber, damit die Vorschau sofort nutzbar ist."
+            : "We’re keeping the layout, keywords, and structure clean so the preview is ready to use."
+        },
+        {
+          until: Infinity,
+          step: 3,
+          pctFrom: 82,
+          pctTo: 94,
+          title: de ? "Wir bauen die Vorschau auf" : "We’re preparing the preview",
+          text: de
+            ? "Die erste strukturierte Vorschau wird gerade finalisiert und erscheint gleich hier."
+            : "The first structured preview is being finalized and will appear here in a moment."
+        }
+      ];
+
+      let totalBefore = 0;
+      let active = stages[stages.length - 1];
+      for(const stage of stages){
+        if(elapsed <= stage.until){
+          active = stage;
+          break;
+        }
+        totalBefore = stage.until;
+      }
+
+      const span = Number.isFinite(active.until) ? Math.max(1, active.until - totalBefore) : 5000;
+      const localElapsed = Math.max(0, elapsed - totalBefore);
+      const pct = Math.min(active.pctTo, Math.round(active.pctFrom + ((active.pctTo - active.pctFrom) * Math.min(1, localElapsed / span))));
+
+      return {
+        pct,
+        step: active.step,
+        title: active.title,
+        text: active.text,
+        meta: de ? "Das dauert meist weniger als eine Minute." : "This usually takes under a minute.",
+        stageLabel: de
+          ? (`Schritt ${active.step + 1} von 4`)
+          : (`Step ${active.step + 1} of 4`)
+      };
+    }
+
+    function buildPreviewLoadingSkeletonHtml(){
+      return `
+        <div class="cvPreviewLoadingCanvas" aria-hidden="true">
+          <div class="cvPreviewLoadingSheet">
+            <span class="cvPreviewLoadingLine isWide"></span>
+            <span class="cvPreviewLoadingLine isMid"></span>
+            <div class="cvPreviewLoadingSection">
+              <span class="cvPreviewLoadingLine"></span>
+              <span class="cvPreviewLoadingLine"></span>
+              <span class="cvPreviewLoadingLine isSoft"></span>
+            </div>
+            <div class="cvPreviewLoadingSection">
+              <span class="cvPreviewLoadingLine"></span>
+              <span class="cvPreviewLoadingLine isMid"></span>
+              <span class="cvPreviewLoadingLine"></span>
+            </div>
+            <div class="cvPreviewLoadingSection">
+              <span class="cvPreviewLoadingLine isMid"></span>
+              <span class="cvPreviewLoadingLine"></span>
+              <span class="cvPreviewLoadingLine isSoft"></span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function updatePreviewProgressUi(){
+      const layer = $("previewProgressLayer");
+      if(!layer) return;
+
+      if(genStepsState !== "running"){
+        clearPreviewProgressTimer();
+        previewProgressStartedAt = 0;
+        layer.hidden = true;
+        layer.setAttribute("aria-hidden", "true");
+        const bar = $("previewProgressBar");
+        if(bar) bar.setAttribute("aria-valuenow", "0");
+        const fill = $("previewProgressBarFill");
+        if(fill) fill.style.width = "0%";
+        return;
+      }
+
+      if(!previewProgressStartedAt) previewProgressStartedAt = Date.now();
+      if(!previewProgressTimer){
+        previewProgressTimer = setInterval(() => {
+          if(genStepsState !== "running"){
+            updatePreviewProgressUi();
+            return;
+          }
+          updatePreviewProgressUi();
+        }, 700);
+      }
+
+      const snapshot = getPreviewProgressSnapshot();
+      layer.hidden = false;
+      layer.setAttribute("aria-hidden", "false");
+
+      setText("previewProgressBadge", uiLang === "de" ? "Anpassung läuft" : "Tailoring in progress");
+      setText("previewProgressMeta", snapshot.meta);
+      setText("previewProgressTitle", snapshot.title);
+      setText("previewProgressText", snapshot.text);
+      setText("previewProgressPercent", snapshot.pct + "%");
+
+      const bar = $("previewProgressBar");
+      if(bar){
+        bar.setAttribute("aria-valuenow", String(snapshot.pct));
+        bar.setAttribute("aria-valuetext", `${snapshot.stageLabel} - ${snapshot.pct}%`);
+      }
+      const fill = $("previewProgressBarFill");
+      if(fill) fill.style.width = snapshot.pct + "%";
+
+      const labels = uiLang === "de"
+        ? ["Job-Match", "Inhalte", "ATS-Check", "Preview"]
+        : ["Job match", "Tailoring", "ATS review", "Preview"];
+      setText("previewProgressStage", `${snapshot.stageLabel} · ${labels[snapshot.step] || ""}`.trim());
+      labels.forEach((label, index) => {
+        const el = $("previewProgressStep" + String(index + 1));
+        if(!el) return;
+        el.textContent = label;
+        el.classList.toggle("isDone", index < snapshot.step);
+        el.classList.toggle("isActive", index === snapshot.step);
+      });
+    }
+
     function setGenVizState(state){
   genStepsState = state || "idle";
   const el = $("genViz");
@@ -2757,9 +3122,11 @@ function markSteps(state){
     setBadge("genBadge", cls, txt);
   };
 
-  if(state === "idle"){ setBoth("", uiLang==="de" ? "Bereit" : "Ready"); return; }
-  if(state === "running"){ setBoth("warn", uiLang==="de" ? "Generiere…" : "Generating…"); return; }
-  if(state === "done"){
+  if(state === "idle"){
+    setBoth("", uiLang==="de" ? "Bereit" : "Ready");
+  }else if(state === "running"){
+    setBoth("warn", uiLang==="de" ? "Generiere…" : "Generating…");
+  }else if(state === "done"){
     setBoth("good", uiLang==="de" ? "Fertig" : "Done");
     ids.forEach(id => {
       const el = $(id); if(!el) return;
@@ -2767,13 +3134,13 @@ function markSteps(state){
       el.style.fontWeight = "900";
     });
     if(genModalAuto) closeGenModal();
-    return;
-  }
-  if(state === "error"){
+  }else if(state === "error"){
     setBoth("bad", uiLang==="de" ? "Fehlgeschlagen" : "Failed");
     if(genModalAuto) closeGenModal();
-    return;
   }
+
+  try{ updatePreviewProgressUi(); }catch(_){}
+  try{ renderCvPreviewFromDoc(lastCvDoc, lastLang); }catch(_){}
 }
 
     function setOutputEnabled(enabled){
@@ -2872,6 +3239,433 @@ function markSteps(state){
     /* -------------------------
        CV doc formatting (ported from dashboard)
        ------------------------- */
+    function looksLikePlainTextCvHeading(line){
+      const text = String(line || "").trim().replace(/[:.]+$/g, "");
+      if(!text || text.length > 42) return false;
+      return /^[A-ZÄÖÜ][A-Z0-9ÄÖÜß &/()+.,-]{2,}$/.test(text);
+    }
+
+    function plainTextHeadingKey(line){
+      const text = String(line || "").trim().replace(/[:.]+$/g, "").toUpperCase();
+      const map = {
+        contact: ["CONTACT", "KONTAKT"],
+        summary: ["PROFESSIONAL SUMMARY", "SUMMARY", "PROFILE", "PROFIL"],
+        experience: ["WORK EXPERIENCE", "EXPERIENCE", "BERUFSERFAHRUNG"],
+        education: ["EDUCATION", "AUSBILDUNG"],
+        achievements: ["KEY ACHIEVEMENTS", "ACHIEVEMENTS", "ERFOLGE"],
+        skills: ["KEY SKILLS", "SKILLS", "KOMPETENZEN", "KERNKOMPETENZEN"],
+        courses: ["COURSES", "KURSE", "CERTIFICATIONS", "ZERTIFIKATE"],
+        interests: ["INTERESTS", "INTERESSEN"],
+        languages: ["LANGUAGES", "SPRACHEN"]
+      };
+      for(const [key, aliases] of Object.entries(map)){
+        if(aliases.includes(text)) return key;
+      }
+      return "";
+    }
+
+    function stripPlainTextBullet(line){
+      return String(line || "").replace(/^\s*[-•*]\s+/, "").trim();
+    }
+
+    function looksLikePlainTextBullet(line){
+      return /^\s*[-•*]\s+/.test(String(line || ""));
+    }
+
+    function looksLikeDateMetaLine(line){
+      const text = String(line || "").trim();
+      if(!text) return false;
+      if(/\b(?:19|20)\d{2}\b/.test(text)) return true;
+      if(/\b(?:current|present|heute|aktuell)\b/i.test(text)) return true;
+      if(/\b(?:jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|sep|sept|september|oct|october|nov|november|dec|december)\b/i.test(text)) return true;
+      if(/\b(?:jan|januar|feb|februar|mär|maerz|märz|apr|april|mai|jun|juni|jul|juli|aug|august|sep|sept|september|okt|oktober|nov|november|dez|dezember)\b/i.test(text)) return true;
+      return /\s(?:–|—|-)\s/.test(text);
+    }
+
+    function splitCvMetaRange(line){
+      const text = String(line || "").trim();
+      if(!text) return { start:"", end:"" };
+      const match = text.match(/^(.+?)\s*(?:–|—|-|to)\s+(.+)$/i);
+      if(match){
+        return { start: String(match[1] || "").trim(), end: String(match[2] || "").trim() };
+      }
+      return { start:text, end:"" };
+    }
+
+    function splitCompanyAndLocation(line){
+      const text = String(line || "").trim();
+      if(!text) return { company:"", location:"" };
+      const separators = [",", " · "];
+      for(const sep of separators){
+        const idx = text.lastIndexOf(sep);
+        if(idx > 0){
+          return {
+            company: text.slice(0, idx).trim(),
+            location: text.slice(idx + sep.length).trim()
+          };
+        }
+      }
+      return { company:text, location:"" };
+    }
+
+    function splitDegreeAndField(line){
+      const text = String(line || "").trim();
+      if(!text) return { degree:"", field:"" };
+      const idx = text.indexOf(" · ");
+      if(idx > 0){
+        return {
+          degree: text.slice(0, idx).trim(),
+          field: text.slice(idx + 3).trim()
+        };
+      }
+      return { degree:text, field:"" };
+    }
+
+    function parsePlainTextParagraphs(lines){
+      const blocks = [];
+      let current = [];
+      (Array.isArray(lines) ? lines : []).forEach((line) => {
+        const text = stripPlainTextBullet(line);
+        if(!text){
+          if(current.length){
+            blocks.push(current.join(" "));
+            current = [];
+          }
+          return;
+        }
+        current.push(text);
+      });
+      if(current.length) blocks.push(current.join(" "));
+      return blocks;
+    }
+
+    function parsePlainTextList(lines){
+      const items = [];
+      (Array.isArray(lines) ? lines : []).forEach((line) => {
+        const text = stripPlainTextBullet(line);
+        if(!text) return;
+        const parts = text.includes(" · ") ? text.split(/\s+·\s+/g) : [text];
+        parts.map((part) => String(part || "").trim()).filter(Boolean).forEach((part) => items.push(part));
+      });
+      return items;
+    }
+
+    function parsePlainTextSkills(lines){
+      const groups = [];
+      const additional = [];
+      (Array.isArray(lines) ? lines : []).forEach((line) => {
+        const text = stripPlainTextBullet(line);
+        if(!text) return;
+        const colonIdx = text.indexOf(":");
+        if(colonIdx > 0){
+          const label = text.slice(0, colonIdx).trim();
+          const rawItems = text.slice(colonIdx + 1).trim();
+          const items = rawItems.split(/\s*,\s*|\s+·\s+/g).map((item) => String(item || "").trim()).filter(Boolean);
+          if(items.length){
+            groups.push({ label, items });
+          }
+          return;
+        }
+        additional.push(text);
+      });
+      return { groups, additional };
+    }
+
+    function parsePlainTextEntries(lines, kind = "experience"){
+      const out = [];
+      const src = Array.isArray(lines) ? lines.map((line) => String(line || "").trim()) : [];
+      let idx = 0;
+
+      while(idx < src.length){
+        while(idx < src.length && !src[idx]) idx += 1;
+        if(idx >= src.length) break;
+        if(looksLikePlainTextCvHeading(src[idx])) break;
+
+        const title = src[idx];
+        idx += 1;
+        let sub = "";
+        let meta = "";
+        const bullets = [];
+
+        while(idx < src.length){
+          const line = src[idx];
+          if(!line){
+            idx += 1;
+            if(bullets.length) break;
+            continue;
+          }
+          if(looksLikePlainTextCvHeading(line)) break;
+          if(looksLikePlainTextBullet(line)) break;
+          if(!sub && !looksLikeDateMetaLine(line)){
+            sub = line;
+            idx += 1;
+            continue;
+          }
+          if(!meta && looksLikeDateMetaLine(line)){
+            meta = line;
+            idx += 1;
+            continue;
+          }
+          break;
+        }
+
+        while(idx < src.length){
+          const line = src[idx];
+          if(!line){
+            idx += 1;
+            const next = src.slice(idx).find((value) => String(value || "").trim());
+            if(!next || !looksLikePlainTextBullet(next)) break;
+            continue;
+          }
+          if(looksLikePlainTextCvHeading(line)) break;
+          if(!looksLikePlainTextBullet(line)) break;
+          bullets.push(stripPlainTextBullet(line));
+          idx += 1;
+        }
+
+        if(kind === "education"){
+          const degreeField = splitDegreeAndField(title);
+          const schoolLoc = splitCompanyAndLocation(sub);
+          const range = splitCvMetaRange(meta);
+          out.push({
+            degree: degreeField.degree,
+            field: degreeField.field,
+            school: schoolLoc.company,
+            location: schoolLoc.location,
+            start: range.start,
+            end: range.end,
+            bullets
+          });
+        }else{
+          const companyLoc = splitCompanyAndLocation(sub);
+          const range = splitCvMetaRange(meta);
+          out.push({
+            title,
+            company: companyLoc.company,
+            location: companyLoc.location,
+            start: range.start,
+            end: range.end,
+            bullets
+          });
+        }
+      }
+
+      return out.filter((entry) => kind === "education" ? hasEducationEntryContent(entry) : hasExperienceEntryContent(entry));
+    }
+
+    function classifyHeaderContactLine(line){
+      const text = String(line || "").trim();
+      if(!text) return "";
+      if(/@/.test(text)) return "email";
+      if(/linkedin/i.test(text)) return "linkedin";
+      if(/\b(?:https?:\/\/|www\.)/i.test(text)) return "portfolio";
+      if(/^\[[^\]]*(?:phone|telefon|mobile|tel)[^\]]*\]$/i.test(text)) return "phone";
+      if(/^\[[^\]]*(?:mail|email|e-mail)[^\]]*\]$/i.test(text)) return "email";
+      if(/^\[[^\]]*(?:linkedin)[^\]]*\]$/i.test(text)) return "linkedin";
+      if(/^\[[^\]]*(?:website|portfolio|webseite|url)[^\]]*\]$/i.test(text)) return "portfolio";
+      if(/^\[?phone\]?$/i.test(text)) return "phone";
+      if(/^\+?[\d\s()./-]{6,}$/.test(text)) return "phone";
+      return "";
+    }
+
+    function applyPlainTextHeaderLines(doc, lines){
+      const pending = (Array.isArray(lines) ? lines : [])
+        .map((line) => String(line || "").trim())
+        .filter(Boolean);
+      if(!pending.length) return;
+
+      if(!doc.name){
+        const first = String(pending[0] || "").trim();
+        if(first && !classifyHeaderContactLine(first) && !looksLikePlainTextCvHeading(first)){
+          doc.name = first;
+          pending.shift();
+        }
+      }
+
+      if(!doc.target_role && pending.length){
+        const maybeRole = String(pending[0] || "").trim();
+        if(maybeRole && !classifyHeaderContactLine(maybeRole) && !looksLikePlainTextCvHeading(maybeRole) && !looksLikeDateMetaLine(maybeRole)){
+          doc.target_role = maybeRole;
+          pending.shift();
+        }
+      }
+
+      pending.forEach((line) => {
+        const kind = classifyHeaderContactLine(line);
+        if(kind){
+          if(!doc.contact[kind]) doc.contact[kind] = line;
+          return;
+        }
+        if(!doc.contact.location){
+          doc.contact.location = line;
+        }else if(!doc.target_role){
+          doc.target_role = line;
+        }else if(!doc.contact.portfolio){
+          doc.contact.portfolio = line;
+        }
+      });
+    }
+
+    function hydrateCvDocFromText(text, lang = lastLang){
+      const rawLines = String(text || "")
+        .replace(/\r\n/g, "\n")
+        .replace(/\r/g, "\n")
+        .split("\n")
+        .map((line) => String(line || "").replace(/\s+$/g, ""));
+
+      while(rawLines.length && !String(rawLines[0] || "").trim()) rawLines.shift();
+      while(rawLines.length && !String(rawLines[rawLines.length - 1] || "").trim()) rawLines.pop();
+      if(!rawLines.length) return null;
+
+      const headingIndex = rawLines.findIndex((line) => looksLikePlainTextCvHeading(line));
+      const headerLines = (headingIndex > 0 ? rawLines.slice(0, headingIndex) : [])
+        .map((line) => String(line || "").trim())
+        .filter(Boolean);
+      const bodyLines = headingIndex >= 0 ? rawLines.slice(headingIndex) : [];
+
+      const doc = {
+        name: "",
+        target_role: "",
+        summary: [],
+        experience: [],
+        education: [],
+        key_achievements: [],
+        skills: { groups: [], additional: [] },
+        courses: [],
+        interests: [],
+        languages: [],
+        contact: {},
+        header: {
+          show_role: true,
+          contact_style: normalizeContactStyle(lastCvDoc?.header?.contact_style || "")
+        }
+      };
+
+      applyPlainTextHeaderLines(doc, headerLines);
+
+      const sectionLines = new Map();
+      let currentKey = "";
+      bodyLines.forEach((line) => {
+        const headingKey = plainTextHeadingKey(line);
+        if(headingKey){
+          currentKey = headingKey;
+          if(!sectionLines.has(currentKey)) sectionLines.set(currentKey, []);
+          return;
+        }
+        if(!currentKey) return;
+        sectionLines.get(currentKey).push(line);
+      });
+
+      applyPlainTextHeaderLines(doc, sectionLines.get("contact") || []);
+      doc.header.show_role = !!String(doc.target_role || "").trim();
+
+      doc.summary = parsePlainTextParagraphs(sectionLines.get("summary") || []);
+      doc.experience = parsePlainTextEntries(sectionLines.get("experience") || [], "experience");
+      doc.education = parsePlainTextEntries(sectionLines.get("education") || [], "education");
+      doc.key_achievements = parsePlainTextList(sectionLines.get("achievements") || []);
+      doc.skills = parsePlainTextSkills(sectionLines.get("skills") || []);
+      doc.courses = parsePlainTextList(sectionLines.get("courses") || []);
+      doc.interests = parsePlainTextList(sectionLines.get("interests") || []);
+      doc.languages = parsePlainTextList(sectionLines.get("languages") || []);
+
+      ensureDocHeader(doc);
+      ensureDocSkills(doc);
+      const hasBodyContent = getCvSectionEntries(doc, lang).some((section) => section.hasContent);
+      if(!doc.name && !hasBodyContent) return null;
+      return (doc.name || hasBodyContent) ? doc : null;
+    }
+
+    function arrayHasStructuredContent(arr){
+      return Array.isArray(arr) && arr.some((item) => {
+        if(Array.isArray(item)) return item.some((part) => String(part || "").trim());
+        if(item && typeof item === "object"){
+          return Object.values(item).some((value) => {
+            if(Array.isArray(value)) return value.some((part) => String(part || "").trim());
+            return String(value || "").trim();
+          });
+        }
+        return String(item || "").trim();
+      });
+    }
+
+    function skillsHaveStructuredContent(skills){
+      if(!skills || typeof skills !== "object") return false;
+      const groups = Array.isArray(skills.groups) ? skills.groups : [];
+      const additional = Array.isArray(skills.additional) ? skills.additional : [];
+      return groups.some((group) => String(group?.label || "").trim() || arrayHasStructuredContent(group?.items))
+        || arrayHasStructuredContent(additional);
+    }
+
+    function isHeaderPlaceholderValue(value){
+      const text = String(value || "").trim();
+      if(!text) return true;
+      return /^\[[A-Za-zÄÖÜäöüß][A-Za-zÄÖÜäöüß\s/.-]*\]$/.test(text)
+        || /^(?:your name|curriculum vitae|resume)$/i.test(text);
+    }
+
+    function mergeCvDocWithTextFallback(doc, text, lang = lastLang){
+      const primary = (doc && typeof doc === "object") ? (deepCopy(doc) || doc) : null;
+      const fallback = hydrateCvDocFromText(text, lang);
+      if(!primary) return fallback;
+
+      ensureDocHeader(primary);
+      ensureDocSkills(primary);
+      if(!fallback) return primary;
+
+      ensureDocHeader(fallback);
+      ensureDocSkills(fallback);
+
+      const primaryName = String(primary.name || "").trim();
+      const fallbackName = String(fallback.name || "").trim();
+      if((!primaryName || /^YOUR NAME$/i.test(primaryName)) && fallbackName && !isHeaderPlaceholderValue(fallbackName)){
+        primary.name = fallbackName;
+      }
+
+      const primaryRole = String(primary.target_role || "").trim();
+      const fallbackRole = String(fallback.target_role || "").trim();
+      if(!primaryRole && fallbackRole && !isHeaderPlaceholderValue(fallbackRole)){
+        primary.target_role = fallbackRole;
+      }
+
+      ["phone","email","location","linkedin","portfolio"].forEach((field) => {
+        const current = String(primary.contact?.[field] || "").trim();
+        const replacement = String(fallback.contact?.[field] || "").trim();
+        if(!current && replacement && !isHeaderPlaceholderValue(replacement)){
+          primary.contact[field] = replacement;
+          if(!String(primary[field] || "").trim()) primary[field] = replacement;
+        }
+      });
+
+      if(!arrayHasStructuredContent(primary.summary)) primary.summary = deepCopy(fallback.summary) || [];
+      if(!arrayHasStructuredContent(primary.experience)) primary.experience = deepCopy(fallback.experience) || [];
+      if(!arrayHasStructuredContent(primary.education)) primary.education = deepCopy(fallback.education) || [];
+      if(!arrayHasStructuredContent(primary.key_achievements)) primary.key_achievements = deepCopy(fallback.key_achievements) || [];
+      if(!skillsHaveStructuredContent(primary.skills)) primary.skills = deepCopy(fallback.skills) || { groups: [], additional: [] };
+      if(!arrayHasStructuredContent(primary.courses)) primary.courses = deepCopy(fallback.courses) || [];
+      if(!arrayHasStructuredContent(primary.interests)) primary.interests = deepCopy(fallback.interests) || [];
+      if(!arrayHasStructuredContent(primary.languages)) primary.languages = deepCopy(fallback.languages) || [];
+
+      if(primary.header?.show_role !== false){
+        primary.header.show_role = String(primary.target_role || "").trim()
+          ? true
+          : fallback.header?.show_role !== false;
+      }
+      primary.header.contact_style = normalizeContactStyle(primary.header?.contact_style || fallback.header?.contact_style || "");
+
+      ensureDocHeader(primary);
+      ensureDocSkills(primary);
+      return primary;
+    }
+
+    function ensureLastCvDoc(){
+      if(lastCvDoc) return lastCvDoc;
+      const sourceText = String($("cvText")?.value || lastCvText || "").trim();
+      if(!sourceText) return null;
+      lastCvDoc = mergeCvDocWithTextFallback(null, sourceText, lastLang);
+      if(lastCvDoc) ensureDocHeader(lastCvDoc);
+      return lastCvDoc;
+    }
+
     function cvLabels(lang){
       const de = isLikelyGerman(lang);
       return de ? {
@@ -2880,6 +3674,7 @@ function markSteps(state){
         education: "Ausbildung",
         achievements: "Erfolge",
         skills: "Kompetenzen",
+        additionalSkills: "Weitere Skills",
         courses: "Kurse",
         interests: "Interessen",
         languages: "Sprachen"
@@ -2889,6 +3684,7 @@ function markSteps(state){
         education: "Education",
         achievements: "Key achievements",
         skills: "Skills",
+        additionalSkills: "Additional skills",
         courses: "Courses",
         interests: "Interests",
         languages: "Languages"
@@ -3193,6 +3989,30 @@ function markSteps(state){
       return doc.skills;
     }
 
+    function buildSkillGroupsForDisplay(skills, lang){
+      const groups = [];
+      const labels = cvLabels(lang);
+      const skillGroups = Array.isArray(skills?.groups) ? skills.groups : [];
+      skillGroups.forEach((group) => {
+        const items = asStringArr(group?.items, 30);
+        if(!items.length) return;
+        groups.push({
+          label: String(group?.label || "").trim(),
+          items,
+          isAdditional: false
+        });
+      });
+      const additional = asStringArr(skills?.additional, 24);
+      if(additional.length){
+        groups.push({
+          label: labels.additionalSkills,
+          items: additional,
+          isAdditional: true
+        });
+      }
+      return groups;
+    }
+
     function hasCustomSectionContent(section){
       if(!section || typeof section !== "object") return false;
       return Array.isArray(section.items) && section.items.some((item) => String(item || "").trim());
@@ -3202,6 +4022,28 @@ function markSteps(state){
       const arr = asStringArr(items, 999);
       if(!arr.length) return "";
       return `<ul class="cvUl">${arr.map(x => `<li>${H.escapeHtml(x)}</li>`).join("")}</ul>`;
+    }
+
+    function renderSkillsSection(section){
+      const groups = Array.isArray(section?.groups) ? section.groups : [];
+      if(!groups.length) return "";
+      return `
+        <div class="cvSkillGrid">
+          ${groups.map((group) => {
+            const label = String(group?.label || "").trim();
+            const items = asStringArr(group?.items, 40);
+            if(!items.length) return "";
+            return `
+              <div class="cvSkillGroup${group?.isAdditional ? " isAdditional" : ""}">
+                ${label ? `<div class="cvSkillGroupLabel">${H.escapeHtml(label)}</div>` : ""}
+                <div class="cvSkillChips">
+                  ${items.map((item) => `<span class="cvSkillChip">${H.escapeHtml(item)}</span>`).join("")}
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
     }
 
     function sec(title, inner, key = ""){
@@ -3271,20 +4113,16 @@ function markSteps(state){
       const edu = (Array.isArray(doc?.education) ? doc.education : []).filter(hasEducationEntryContent);
       const ach = asStringArr(doc?.key_achievements, 10);
       const skills = doc?.skills || {};
-      const skillGroups = Array.isArray(skills?.groups) ? skills.groups : [];
-      const addSkills = asStringArr(skills?.additional, 24);
+      const skillGroups = buildSkillGroupsForDisplay(skills, lang);
       const courses = asStringArr(doc?.courses, 12);
       const interests = asStringArr(doc?.interests, 12);
       const langs = asStringArr(doc?.languages, 12);
 
-      const skillLines = [];
-      skillGroups.forEach((g) => {
-        const label = String(g?.label || "").trim();
-        const items = asStringArr(g?.items, 30);
-        if(!items.length) return;
-        skillLines.push(label ? (label + ": " + items.join(", ")) : items.join(", "));
+      const skillLines = skillGroups.map((group) => {
+        const label = String(group?.label || "").trim();
+        const items = asStringArr(group?.items, 40);
+        return label ? (label + ": " + items.join(", ")) : items.join(", ");
       });
-      if(addSkills.length) skillLines.push(addSkills.join(", "));
 
       const customSections = ensureDocCustomSections(doc).map((section) => {
         const items = Array.isArray(section.items) ? section.items.map((item) => String(item || "").trim()).filter(Boolean) : [];
@@ -3332,8 +4170,9 @@ function markSteps(state){
         {
           key: "skills",
           title: L.skills,
-          kind: "lines",
-          hasContent: skillLines.length > 0,
+          kind: "skills",
+          hasContent: skillGroups.length > 0,
+          groups: skillGroups,
           items: skillLines
         },
         {
@@ -3383,6 +4222,9 @@ function markSteps(state){
       }
       if(section.kind === "bullets"){
         return ul(section.items);
+      }
+      if(section.kind === "skills"){
+        return renderSkillsSection(section);
       }
       if(section.kind === "lines"){
         return (Array.isArray(section.items) ? section.items : []).map((line) => `<div class="cvSkillLine">${H.escapeHtml(line)}</div>`).join("");
@@ -3746,6 +4588,7 @@ function markSteps(state){
     function renderSectionManager(){
       const wrap = $("sectionManager");
       if(!wrap) return;
+      ensureLastCvDoc();
       const copy = sectionEditorCopy();
       const entries = getSectionManagerEntries(lastCvDoc || {}, lastLang);
       wrap.innerHTML = entries.map((entry) => `
@@ -3775,6 +4618,7 @@ function markSteps(state){
     function renderSectionEditor(){
       const wrap = $("sectionEditorPanel");
       if(!wrap) return;
+      ensureLastCvDoc();
       const copy = sectionEditorCopy();
       if(!lastCvDoc){
         wrap.innerHTML = "";
@@ -4170,6 +5014,13 @@ function markSteps(state){
           });
         }else if(section.kind === "bullets"){
           (section.items || []).forEach((entry) => lines.push("- " + entry));
+        }else if(section.kind === "skills"){
+          (section.groups || []).forEach((group) => {
+            const label = String(group?.label || "").trim();
+            const items = asStringArr(group?.items, 40);
+            if(!items.length) return;
+            lines.push(label ? (label + ": " + items.join(", ")) : items.join(", "));
+          });
         }else if(section.kind === "lines"){
           (section.items || []).forEach((entry) => lines.push(entry));
         }
@@ -4215,6 +5066,7 @@ function markSteps(state){
         .cvPaper{ max-width:820px; margin:0 auto; }
         .cvPaper.cvFontSerif{ font-family: "Georgia", "Times New Roman", serif; }
         .cvPaper.cvFontSans{ font-family: "Helvetica Neue", Arial, "Segoe UI", sans-serif; }
+        .cvHeaderBlock{ border-bottom:1px solid rgba(17,19,24,.12); padding-bottom:10px; margin-bottom:4px; }
         .cvName{ font-size:32px; font-weight:700; letter-spacing:0; color:#111318; text-align:center; }
         .cvPaper.cvFontSans .cvName{ font-weight:800; letter-spacing:-.04em; }
         .cvRole{ margin-top:4px; font-size:13.5px; font-weight:600; color:#3b3f46; text-align:center; }
@@ -4231,12 +5083,24 @@ function markSteps(state){
         .cvMetaLine{ margin-top:1px; font-size:11.8px; color:#626872; font-style:italic; white-space:nowrap; }
         .cvUl{ margin:6px 0 0 18px; padding:0; }
         .cvUl li{ margin:0 0 3px 0; font-size:12.4px; line-height:1.42; }
+        .cvSection[data-section-key="achievements"] .cvUl li{ margin-bottom:6px; }
         .cvPara{ font-size:12.5px; line-height:1.52; margin:0; }
         .cvSkillLine{ font-size:12.4px; line-height:1.46; margin:2px 0; }
+        .cvSkillGrid{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; margin-top:2px; }
+        .cvSkillGroup{ break-inside:avoid; border:1px solid rgba(17,19,24,.10); border-radius:14px; padding:10px 11px 11px; background:linear-gradient(180deg, rgba(248,249,251,.96), rgba(255,255,255,.98)); }
+        .cvSkillGroupLabel{ font-size:10.6px; line-height:1.25; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#5b6470; margin-bottom:8px; }
+        .cvSkillChips{ display:flex; flex-wrap:wrap; gap:6px; }
+        .cvSkillChip{ display:inline-flex; align-items:center; padding:3px 8px; border-radius:999px; border:1px solid rgba(17,19,24,.10); background:#fff; color:#111318; font-size:10.7px; line-height:1.25; font-weight:700; }
       `;
 
       const safeTitle = H.escapeHtml(title || "Curriculum Vitae");
-      const bodyHtml = cvDocToPreviewHtml(cvDoc, lang).replace(/<div class="cvPreview([^"]*)">/, '<div class="cvPaper$1">');
+      const bodyHtml = cvDocToPreviewHtml(cvDoc, lang).replace(/<div class="cvPreview([^"]*)">/, (_match, classes) => {
+        const extra = String(classes || "")
+          .split(/\s+/)
+          .map((name) => name.trim())
+          .filter((name) => name && name !== "page" && name !== "paperA4");
+        return `<div class="cvPaper${extra.length ? (" " + extra.join(" ")) : ""}">`;
+      });
 
       return `<!doctype html>
 <html>
@@ -4305,7 +5169,7 @@ ${bodyHtml}
 
     function updateStudioFlowUi(){
       const hasOutput = hasGeneratedOutput();
-      const hasStructuredOutput = !!lastCvDoc;
+      const hasStructuredOutput = !!ensureLastCvDoc();
       const showPostGenerateStages = hasOutput && !gateActive;
       if(studioRoot) studioRoot.classList.toggle("fullTailorMode", showPostGenerateStages && studioMode !== "customize");
       const modeTailor = $("modeTailor");
@@ -4486,21 +5350,21 @@ ${bodyHtml}
 
       // Inspector header copy
       if(studioMode === "review"){
-        $("inspectorTitle").textContent = "Final check";
-        $("inspectorHint").textContent = "Run one last check before export. We flag the highest-impact fixes first.";
-        $("inspectorBadge").textContent = "Final";
+        setText("inspectorTitle", "Final check");
+        setText("inspectorHint", "Run one last check before export. We flag the highest-impact fixes first.");
+        setText("inspectorBadge", "Final");
       }else if(studioMode === "customize"){
-        $("inspectorTitle").textContent = "Content";
-        $("inspectorHint").textContent = "Edit sections, adjust content, and shape the final layout while keeping the full CV visible.";
-        $("inspectorBadge").textContent = "Content";
+        setText("inspectorTitle", "Content");
+        setText("inspectorHint", "Edit sections, adjust content, and shape the final layout while keeping the full CV visible.");
+        setText("inspectorBadge", "Content");
       }else if(studioMode === "edit"){
-        $("inspectorTitle").textContent = "Improve";
-        $("inspectorHint").textContent = "Add true missing ATS terms directly in the preview and refine the wording where it matters most.";
-        $("inspectorBadge").textContent = "Improve";
+        setText("inspectorTitle", "Improve");
+        setText("inspectorHint", "Add true missing ATS terms directly in the preview and refine the wording where it matters most.");
+        setText("inspectorBadge", "Improve");
       }else{
-        $("inspectorTitle").textContent = "Inspector";
-        $("inspectorHint").textContent = "Start with the missing ATS terms. When the match looks good, run the final check and export.";
-        $("inspectorBadge").textContent = hasOutput ? "Next" : "Live";
+        setText("inspectorTitle", "Inspector");
+        setText("inspectorHint", "Start with the missing ATS terms. When the match looks good, run the final check and export.");
+        setText("inspectorBadge", hasOutput ? "Next" : "Live");
       }
 
       // Close the download dropdown if it's open (keeps things tidy)
@@ -5211,10 +6075,13 @@ ${bodyHtml}
     function renderCvPreviewFromDoc(doc = lastCvDoc, lang = lastLang){
       const preview = $("cvPreview");
       if(!preview) return;
+      const renderDoc = doc || ensureLastCvDoc();
       const fallbackText = String($("cvText")?.value || lastCvText || "").trim();
 
-      if(doc){
-        preview.innerHTML = cvDocToPreviewHtml(doc, lang);
+      if(renderDoc){
+        preview.innerHTML = cvDocToPreviewHtml(renderDoc, lang);
+      }else if(genStepsState === "running"){
+        preview.innerHTML = buildPreviewLoadingSkeletonHtml();
       }else if(fallbackText){
         const fallbackNote = uiLang==="de"
           ? "Strukturierte Preview gerade nicht verfügbar. Wir zeigen deinen CV als Textvorschau."
@@ -5230,13 +6097,16 @@ ${bodyHtml}
       }
 
       try{ renderKwInlineUi(); }catch(_){ }
+      try{ updatePreviewProgressUi(); }catch(_){ }
     }
 
     function setCvOutput({ text, doc, lang }){
       lastCvText = String(text || "").trim();
-      lastCvDoc = doc || null;
+      lastCvDoc = mergeCvDocWithTextFallback(doc, lastCvText, lang || lastLang);
       if(lastCvDoc) ensureDocHeader(lastCvDoc);
-      lastLang = lang || "en";
+      lastLang = normalizeSupportedLang(lang)
+        || detectCvLanguagePreference({ preferredText: lastCvText, doc: lastCvDoc, rawText: lastCvText, fallback: lastLang })
+        || "en";
 
       // New CV output => QA should run again
       qaLastRunAt = 0;
@@ -5272,9 +6142,11 @@ ${bodyHtml}
 
     function restoreSnapshot(snap){
       if(!snap) return;
-      lastCvDoc = deepCopy(snap.cv_doc);
+      lastCvDoc = mergeCvDocWithTextFallback(deepCopy(snap.cv_doc), String(snap.cv_text || ""), snap.lang || lastLang);
       if(lastCvDoc) ensureDocHeader(lastCvDoc);
-      lastLang = snap.lang || lastLang || "en";
+      lastLang = normalizeSupportedLang(snap.lang)
+        || detectCvLanguagePreference({ preferredText: snap.cv_text, doc: lastCvDoc, rawText: snap.cv_text, fallback: lastLang })
+        || "en";
       $("cvText").value = String(snap.cv_text || "");
       lastUsed = Array.isArray(snap.used) ? snap.used : [];
       lastMissing = Array.isArray(snap.missing) ? snap.missing : [];
@@ -5303,8 +6175,8 @@ ${bodyHtml}
       sel.innerHTML = "";
 
       if(!jobs.length){
-        sel.innerHTML = `<option value="">${uiLang==="de" ? "Keine Jobs in der Queue" : "No jobs in queue"}</option>`;
-        setText("jobHint", uiLang==="de" ? "Keine Jobs gefunden. Öffne Jobs und lade neue Jobs." : "No jobs found. Go to Jobs and fetch new jobs.");
+        sel.innerHTML = `<option value="">${uiLang==="de" ? "Noch keine importierten Jobs" : "No imported jobs yet"}</option>`;
+        setText("jobHint", uiLang==="de" ? "Noch keine importierten Jobs. Nutze die Chrome-Erweiterung oder füge die Stellenbeschreibung manuell ein." : "No imported jobs yet. Use the Chrome extension or paste the job description manually.");
         setText("jobMeta", "");
         selectedJob = null;
 
@@ -5441,6 +6313,7 @@ ${bodyHtml}
       }
 
       if(blockCvGenerationIfNeeded()) return;
+      if(!(await ensureCvReadyForGeneration())) return;
 
       // Leaving Step 1 gate (if active) opens the full studio view
       exitGate();
@@ -5619,6 +6492,7 @@ ${bodyHtml}
       }
 
       if(blockCvGenerationIfNeeded()) return;
+      if(!(await ensureCvReadyForGeneration())) return;
 
       // Leaving Step 1 gate (if active) opens the full studio view
       exitGate();
@@ -6123,7 +6997,10 @@ ${bodyHtml}
         italic: await pdfDoc.embedFont(family.italic),
         base: rgb(17/255, 19/255, 24/255),
         muted: rgb(97/255, 104/255, 114/255),
-        rule: rgb(76/255, 82/255, 92/255)
+        rule: rgb(76/255, 82/255, 92/255),
+        panelFill: rgb(248/255, 250/255, 252/255),
+        panelStroke: rgb(221/255, 227/255, 235/255),
+        softLabel: rgb(88/255, 96/255, 108/255)
       };
     }
 
@@ -6235,6 +7112,93 @@ ${bodyHtml}
         maxWidth
       });
       composer.y = topY - block.height - 1;
+    }
+
+    function measurePdfSkillGroupBlock(fonts, group, width){
+      const label = String(group?.label || "").trim();
+      const items = asStringArr(group?.items, 40);
+      const paddingX = 9;
+      const paddingY = 8;
+      const innerWidth = Math.max(80, width - (paddingX * 2));
+      const labelBlock = label
+        ? measurePdfTextBlock(fonts.bold, 7.6, label.toLocaleUpperCase(), innerWidth, 9.7)
+        : null;
+      const itemsBlock = measurePdfTextBlock(fonts.regular, 8.9, items.join("  ·  "), innerWidth, 11.4);
+      const contentHeight = (labelBlock ? (labelBlock.height + 5) : 0) + itemsBlock.height;
+      return {
+        width,
+        height: Math.max(42, (paddingY * 2) + contentHeight),
+        paddingX,
+        paddingY,
+        labelBlock,
+        itemsBlock
+      };
+    }
+
+    function drawPdfSkillGroupBlock(page, fonts, block, x, topY){
+      const y = topY - block.height;
+      page.drawRectangle({
+        x,
+        y,
+        width: block.width,
+        height: block.height,
+        color: fonts.panelFill,
+        borderColor: fonts.panelStroke,
+        borderWidth: 0.8
+      });
+
+      let cursorY = topY - block.paddingY;
+      if(block.labelBlock){
+        drawPdfTextLinesAt(page, block.labelBlock.lines, {
+          x: x + block.paddingX,
+          topY: cursorY,
+          size: 7.6,
+          font: fonts.bold,
+          color: fonts.softLabel,
+          lineHeight: block.labelBlock.lineHeight,
+          maxWidth: block.width - (block.paddingX * 2)
+        });
+        cursorY -= block.labelBlock.height + 5;
+      }
+
+      drawPdfTextLinesAt(page, block.itemsBlock.lines, {
+        x: x + block.paddingX,
+        topY: cursorY,
+        size: 8.9,
+        font: fonts.regular,
+        color: fonts.base,
+        lineHeight: block.itemsBlock.lineHeight,
+        maxWidth: block.width - (block.paddingX * 2)
+      });
+    }
+
+    function drawPdfSkillsSection(composer, fonts, groups){
+      const cleanGroups = (Array.isArray(groups) ? groups : [])
+        .map((group) => ({
+          label: String(group?.label || "").trim(),
+          items: asStringArr(group?.items, 40)
+        }))
+        .filter((group) => group.items.length);
+      if(!cleanGroups.length) return;
+
+      const totalWidth = composer.pageWidth - composer.margins.left - composer.margins.right;
+      const gap = 10;
+
+      for(let idx = 0; idx < cleanGroups.length; idx += 2){
+        const rowGroups = cleanGroups.slice(idx, idx + 2);
+        const columnCount = rowGroups.length === 1 ? 1 : 2;
+        const blockWidth = columnCount === 1 ? totalWidth : ((totalWidth - gap) / 2);
+        const blocks = rowGroups.map((group) => measurePdfSkillGroupBlock(fonts, group, blockWidth));
+        const rowHeight = Math.max(...blocks.map((block) => block.height));
+        composer.ensure(rowHeight + 8);
+
+        const topY = composer.y;
+        blocks.forEach((block, blockIdx) => {
+          const x = composer.margins.left + (columnCount === 1 ? 0 : blockIdx * (blockWidth + gap));
+          drawPdfSkillGroupBlock(composer.page, fonts, block, x, topY);
+        });
+        composer.y = topY - rowHeight - 6;
+      }
     }
 
     function drawPdfExperienceItem(composer, fonts, itemData){
@@ -6402,6 +7366,9 @@ ${bodyHtml}
         }else if(section.kind === "bullets"){
           (section.items || []).forEach((entry) => drawPdfBullet(composer, fonts, entry));
           composer.y -= 4;
+        }else if(section.kind === "skills"){
+          drawPdfSkillsSection(composer, fonts, section.groups || []);
+          composer.y -= 2;
         }else if(section.kind === "lines"){
           (section.items || []).forEach((entry) => {
             drawPdfWrappedText(composer, entry, {
@@ -6938,9 +7905,16 @@ ${bodyHtml}
     }
 
     function chosenKwLang(){
-      const v = String($("kwLang").value || "auto");
-      if(v === "de" || v === "en") return v;
-      // auto
+      const manual = normalizeSupportedLang($("kwLang")?.value || "");
+      if(manual) return manual;
+
+      const inferred = detectCvLanguagePreference({
+        preferredText: getCurrentSelectedBulletText(),
+        rawText: String($("cvText")?.value || lastCvText || ""),
+        fallback: lastLang
+      });
+      if(inferred) return inferred;
+
       return isLikelyGerman(lastLang) ? "de" : "en";
     }
 
@@ -7394,8 +8368,9 @@ ${bodyHtml}
       renderKwInlineUi();
 
       try{
+        const cvLang = detectCvLanguagePreference({ preferredText: current, rawText: current, fallback: lastLang }) || "en";
         const ctx = {
-          cv_language: lastLang,
+          cv_language: cvLang,
           target_language: lang,
           role_title: exp?.title || "",
           company: exp?.company || "",
@@ -7453,7 +8428,10 @@ ${bodyHtml}
 
       H.hideModal("kwModal");
       activeKeywordRaw = String(keywordRaw || "").trim();
-      activeKeywordDisplay = prettyKeyword(activeKeywordRaw, lastLang);
+      activeKeywordDisplay = prettyKeyword(
+        activeKeywordRaw,
+        detectCvLanguagePreference({ doc: lastCvDoc, rawText: String($("cvText")?.value || lastCvText || ""), fallback: lastLang }) || lastLang
+      );
       kwSurface = "inline";
       kwInlinePickMode = false;
       kwInlineDraftLoading = false;
@@ -7645,6 +8623,7 @@ ${bodyHtml}
         keyword: String(keyword || ""),
         language: String(lang || ""),
         lang: String(lang || ""),
+        language_source: chosenKwLangMode(),
         cv_doc: cv_doc || null,
         context: context || {}
       };
@@ -7714,9 +8693,14 @@ ${bodyHtml}
       setKwAiRecoLoading();
 
       try{
+        const cvLang = detectCvLanguagePreference({
+          doc: lastCvDoc,
+          rawText: String($("cvText")?.value || lastCvText || ""),
+          fallback: lastLang
+        }) || "en";
         const ctx = {
           target_language: lang,
-          cv_language: lastLang,
+          cv_language: cvLang,
           job: getActiveJobMeta(),
           source: source
         };
@@ -7769,7 +8753,10 @@ ${bodyHtml}
       kwRewriteLoading = false;
       renderKwInlineUi();
       activeKeywordRaw = String(keywordRaw || "").trim();
-      activeKeywordDisplay = prettyKeyword(activeKeywordRaw, lastLang);
+      activeKeywordDisplay = prettyKeyword(
+        activeKeywordRaw,
+        detectCvLanguagePreference({ doc: lastCvDoc, rawText: String($("cvText")?.value || lastCvText || ""), fallback: lastLang }) || lastLang
+      );
       $("kwChip").textContent = activeKeywordDisplay || "—";
 
       // Reset AI recommendation for this keyword
@@ -8111,8 +9098,9 @@ ${bodyHtml}
 
         for(let attempt = 0; attempt < maxAttempts; attempt++){
           const avoid = getKwRewriteAvoidTexts();
+          const cvLang = detectCvLanguagePreference({ preferredText: current, rawText: current, fallback: lastLang }) || "en";
           const ctx = {
-            cv_language: lastLang,
+            cv_language: cvLang,
             target_language: lang,
             role_title: exp?.title || "",
             company: exp?.company || "",
@@ -8357,8 +9345,9 @@ ${bodyHtml}
           }
 
           if(kwMode === "ai"){
+            const cvLang = detectCvLanguagePreference({ preferredText: note, rawText: note, fallback: lastLang }) || "en";
             const ctx = {
-              cv_language: lastLang,
+              cv_language: cvLang,
               target_language: lang,
               role_title: exp?.title || "",
               company: exp?.company || "",
@@ -8414,34 +9403,35 @@ ${bodyHtml}
                 usedAi = true;
                 changed = true;
               }else{
-              const ctx = {
-                cv_language: lastLang,
-                target_language: lang,
-                role_title: exp?.title || "",
-                company: exp?.company || "",
-                job_title: selectedJob?.title || "",
-                job_company: selectedJob?.company_name || "",
-                intent: how
-              };
-              const ai = await tryAiRewriteOrCraft({
-                mode: "rewrite",
-                keyword: kwRaw,
-                lang,
-                current_bullet: current,
-                note: "",
-                context: ctx
-              });
-              if(ai.ok){
-                exp.bullets[bulletIdx] = ai.text;
-                usedAi = true;
-                changed = true;
-              }else{
-                aiNote = t("aiFallback");
-                exp.bullets[bulletIdx] = (how === "append")
-                  ? localAppendKeyword(current, kwRaw, lang)
-                  : localRewriteBullet(current, kwRaw, lang);
-                changed = true;
-              }
+                const cvLang = detectCvLanguagePreference({ preferredText: current, rawText: current, fallback: lastLang }) || "en";
+                const ctx = {
+                  cv_language: cvLang,
+                  target_language: lang,
+                  role_title: exp?.title || "",
+                  company: exp?.company || "",
+                  job_title: selectedJob?.title || "",
+                  job_company: selectedJob?.company_name || "",
+                  intent: how
+                };
+                const ai = await tryAiRewriteOrCraft({
+                  mode: "rewrite",
+                  keyword: kwRaw,
+                  lang,
+                  current_bullet: current,
+                  note: "",
+                  context: ctx
+                });
+                if(ai.ok){
+                  exp.bullets[bulletIdx] = ai.text;
+                  usedAi = true;
+                  changed = true;
+                }else{
+                  aiNote = t("aiFallback");
+                  exp.bullets[bulletIdx] = (how === "append")
+                    ? localAppendKeyword(current, kwRaw, lang)
+                    : localRewriteBullet(current, kwRaw, lang);
+                  changed = true;
+                }
               }
             } else if(how === "append"){
               exp.bullets[bulletIdx] = localAppendKeyword(current, kwRaw, lang);
@@ -8550,8 +9540,10 @@ ${bodyHtml}
       cvSectionPrefs = readCvSectionPrefs(lastCvDoc);
       renderSectionManager();
 
-      // Step 1 Gate: if user didn't come from Jobs, start with job selection/paste as the main screen
-      try{ setGateActive(shouldShowGate()); }catch(_){ }
+      if(shouldForceGateChooser()){
+        try{ sessionStorage.removeItem("cvstudio_started"); }catch(_){}
+      }
+
       // If user clicked “Tailor in CV Studio” from Jobs, we arrive with ?job_id=...
       try{
         incomingJobId = String(qs("job_id") || "").trim();
@@ -8600,10 +9592,16 @@ ${bodyHtml}
         if(extImport) applyExtensionImportToDraft(extImport);
       }catch(_){}
 
+      // Decide the entry experience late in boot, after we know whether an
+      // extension import is waiting and after restored session/local state is loaded.
+      try{ setGateActive(shouldShowGate() || !!pendingExtensionImport); }catch(_){ }
       if(pendingExtensionImport){
         try{ sessionStorage.removeItem("cvstudio_started"); }catch(_){}
-        try{ setGateActive(true); }catch(_){}
         try{ setGateView("form"); }catch(_){}
+      }else if(shouldForceGateChooser()){
+        try{ sessionStorage.removeItem("cvstudio_started"); }catch(_){}
+        try{ setGateActive(true); }catch(_){}
+        try{ setGateView("choose"); }catch(_){}
       }
 
       applyPasteDraftToInputs();
