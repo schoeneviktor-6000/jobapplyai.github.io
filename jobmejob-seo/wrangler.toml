@@ -1,0 +1,14 @@
+name = "jobmejob-seo"
+main = "worker.js"
+compatibility_date = "2026-01-18"
+workers_dev = true
+preview_urls = false
+
+routes = [
+  { pattern = "jobmejob.com/api/*", zone_name = "jobmejob.com" },
+  { pattern = "jobmejob.com/sitemap.xml", zone_name = "jobmejob.com" },
+  { pattern = "jobmejob.com/robots.txt", zone_name = "jobmejob.com" }
+]
+
+[vars]
+UPSTREAM_ORIGIN = "https://jobmejob.schoene-viktor.workers.dev"

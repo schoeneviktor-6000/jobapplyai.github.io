@@ -1,18 +1,10 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-const SITEMAP_SITE_ORIGIN = "https://jobmejob.com";
-const SITEMAP_LASTMOD = "2026-04-21";
-const SITEMAP_LOCALES = ["en", "de", "es", "ko"];
-const SITEMAP_LOCALIZED_PATHS = ["/", "/cv-studio", "/plan", "/signup"];
-
 // jobmejob-worker.js
 var jobmejob_worker_default = {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (url.pathname === "/sitemap.xml" && request.method === "GET") {
-      return handleSiteSitemapRequest();
-    }
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: corsHeaders(request) });
     }
@@ -228,70 +220,6 @@ var jobmejob_worker_default = {
     ctx.waitUntil(runNightlyCron(env));
   }
 };
-
-function escapeSitemapXml(value) {
-  return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
-}
-__name(escapeSitemapXml, "escapeSitemapXml");
-function buildSitemapUrl(locale, path) {
-  const normalizedPath = path === "/" ? "/" : String(path || "/").replace(/\/+$/, "");
-  return `${SITEMAP_SITE_ORIGIN}/${locale}${normalizedPath === "/" ? "/" : normalizedPath}`;
-}
-__name(buildSitemapUrl, "buildSitemapUrl");
-function renderSitemapUrlEntry({ loc, alternates = [], changefreq, priority }) {
-  const alternateLinks = alternates.map((item) => `    <xhtml:link rel="alternate" hreflang="${escapeSitemapXml(item.hreflang)}" href="${escapeSitemapXml(item.href)}" />`).join("\n");
-  return [
-    "  <url>",
-    `    <loc>${escapeSitemapXml(loc)}</loc>`,
-    `    <lastmod>${SITEMAP_LASTMOD}</lastmod>`,
-    `    <changefreq>${escapeSitemapXml(changefreq)}</changefreq>`,
-    `    <priority>${escapeSitemapXml(priority)}</priority>`,
-    alternateLinks,
-    "  </url>"
-  ].filter(Boolean).join("\n");
-}
-__name(renderSitemapUrlEntry, "renderSitemapUrlEntry");
-function buildSiteSitemapXml() {
-  const localizedEntries = SITEMAP_LOCALIZED_PATHS.map((path) => {
-    const alternates = SITEMAP_LOCALES.map((locale) => ({
-      hreflang: locale,
-      href: buildSitemapUrl(locale, path)
-    }));
-    alternates.push({ hreflang: "x-default", href: buildSitemapUrl("en", path) });
-    return renderSitemapUrlEntry({
-      loc: buildSitemapUrl("en", path),
-      alternates,
-      changefreq: path === "/signup" ? "monthly" : "weekly",
-      priority: path === "/" ? "1.0" : path === "/signup" ? "0.5" : path === "/plan" ? "0.7" : "0.8"
-    });
-  });
-  const privacyEntry = renderSitemapUrlEntry({
-    loc: `${SITEMAP_SITE_ORIGIN}/privacy`,
-    alternates: [
-      { hreflang: "en", href: `${SITEMAP_SITE_ORIGIN}/privacy` },
-      { hreflang: "x-default", href: `${SITEMAP_SITE_ORIGIN}/privacy` }
-    ],
-    changefreq: "monthly",
-    priority: "0.6"
-  });
-  return [
-    '<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
-    ...localizedEntries,
-    privacyEntry,
-    "</urlset>"
-  ].join("\n");
-}
-__name(buildSiteSitemapXml, "buildSiteSitemapXml");
-function handleSiteSitemapRequest() {
-  return new Response(buildSiteSitemapXml(), {
-    headers: {
-      "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "public, max-age=0, must-revalidate"
-    }
-  });
-}
-__name(handleSiteSitemapRequest, "handleSiteSitemapRequest");
 function corsHeaders(request) {
   let origin = "";
   try {
