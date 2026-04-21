@@ -308,6 +308,24 @@
     }
   }
 
+  function getI18n(){
+    try{
+      return window.JobMeJobI18n || null;
+    }catch(_){
+      return null;
+    }
+  }
+
+  function tt(key, vars = {}, fallback = ""){
+    try{
+      const i18n = getI18n();
+      if (i18n && typeof i18n.t === "function"){
+        return i18n.t(key, vars, fallback || key);
+      }
+    }catch(_){}
+    return fallback || key;
+  }
+
   function getAppLinks(){
     try{
       const app = window.JobMeJob || window.JobApplyAI || {};
@@ -344,7 +362,7 @@
       const inlineExtensionUrl = /chromewebstore\.google\.com\/detail\//i.test(inlineHref) ? inlineHref : "";
       const extensionUrl = configuredExtensionUrl || inlineExtensionUrl;
       if (!resolvedGlobalUrl && extensionUrl) resolvedGlobalUrl = extensionUrl;
-      const fallback = String(el.getAttribute("data-extension-fallback") || notifyUrl || "./cv-studio.html#manual").trim();
+      const fallback = String(el.getAttribute("data-extension-fallback") || notifyUrl || "./cv-studio#manual").trim();
       const labelEl = el.querySelector("[data-extension-label]");
       const readyLabel = String(el.getAttribute("data-extension-ready-label") || "").trim();
       const disabledLabel = String(el.getAttribute("data-extension-disabled-label") || "").trim();
@@ -598,11 +616,11 @@
 
   function planLabelFromId(planId){
     const pid = trimLower(planId);
-    if (!pid || pid === "free") return "Free";
-    if (pid === "cv_starter") return "Starter";
-    if (pid === "cv_plus") return "Plus";
+    if (!pid || pid === "free") return tt("common.plans.free", {}, "Free");
+    if (pid === "cv_starter") return tt("common.plans.starter", {}, "Starter");
+    if (pid === "cv_plus") return tt("common.plans.plus", {}, "Plus");
     if (pid === "cv_unlimited") return "Unlimited";
-    if (pid === "starter") return "Starter";
+    if (pid === "starter") return tt("common.plans.starter", {}, "Starter");
     if (pid === "pro") return "Pro";
     if (pid === "max") return "Max";
     return pid.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -617,7 +635,6 @@
       state?.entitlements?.cv_studio_plan_id ||
       ""
     );
-    const jobsPlanId = trimLower(state?.plan_id || "");
     const cvPaid = !!(
       state?.cv_paid === true ||
       state?.cv_studio_paid === true ||
@@ -627,19 +644,17 @@
     );
 
     if (cvPaid){
-      const cvLabel = planLabelFromId(cvPlanId) || "Paid";
+      const cvLabel = planLabelFromId(cvPlanId) || tt("common.plans.paid", {}, "Paid");
       return {
         shortLabel: cvLabel,
-        detail: `CV Studio ${cvLabel}`,
-        jobsPlanLabel: jobsPlanId && jobsPlanId !== "free" ? ("Jobs plan: " + planLabelFromId(jobsPlanId)) : "",
+        detail: tt("common.account.cvStudioPlan", { plan: cvLabel }, `CV Studio ${cvLabel}`),
         paid: true
       };
     }
 
     return {
-      shortLabel: "Free",
-      detail: "CV Studio Free",
-      jobsPlanLabel: jobsPlanId && jobsPlanId !== "free" ? ("Jobs plan: " + planLabelFromId(jobsPlanId)) : "",
+      shortLabel: tt("common.plans.free", {}, "Free"),
+      detail: tt("common.account.freePlan", {}, "CV Studio Free"),
       paid: false
     };
   }
@@ -675,19 +690,22 @@
     );
 
     if (cvPaid && limit === 0){
-      return { label: "Unlimited CVs", detail: "No monthly cap on CV tailoring" };
+      return {
+        label: tt("common.account.unlimited", {}, "Unlimited CVs"),
+        detail: tt("common.account.noMonthlyCap", {}, "No monthly cap on CV tailoring")
+      };
     }
     if (limit !== null && used !== null){
       const remaining = Math.max(0, limit - used);
       if (cvPaid){
         return {
-          label: `${remaining} CVs left`,
-          detail: `${used} of ${limit} used this billing cycle`
+          label: tt("common.account.cvsLeft", { count: remaining }, `${remaining} CVs left`),
+          detail: tt("common.account.usedThisCycle", { used, limit }, `${used} of ${limit} used this billing cycle`)
         };
       }
       return {
-        label: `${remaining} free CVs left`,
-        detail: `${used} of ${limit} used`
+        label: tt("common.account.freeCvsLeft", { count: remaining }, `${remaining} free CVs left`),
+        detail: tt("common.account.usedGeneric", { used, limit }, `${used} of ${limit} used`)
       };
     }
 
@@ -697,14 +715,20 @@
     if (cachedLimit !== null && cachedUsed !== null){
       const remaining = Math.max(0, cachedLimit - cachedUsed);
       return {
-        label: cached?.paid ? `${remaining} CVs left` : `${remaining} free CVs left`,
-        detail: `${cachedUsed} of ${cachedLimit} used`
+        label: cached?.paid
+          ? tt("common.account.cvsLeft", { count: remaining }, `${remaining} CVs left`)
+          : tt("common.account.freeCvsLeft", { count: remaining }, `${remaining} free CVs left`),
+        detail: tt("common.account.usedGeneric", { used: cachedUsed, limit: cachedLimit }, `${cachedUsed} of ${cachedLimit} used`)
       };
     }
 
     return {
-      label: cvPaid ? "Usage syncing" : "5 free CVs available",
-      detail: cvPaid ? "Usage updates after each tailored CV" : "Upgrade only when CV Studio becomes routine"
+      label: cvPaid
+        ? tt("common.account.usageSyncing", {}, "Usage syncing")
+        : tt("common.account.freeUsage", {}, "5 free CVs available"),
+      detail: cvPaid
+        ? tt("common.account.usageUpdates", {}, "Usage updates after each tailored CV")
+        : tt("common.account.upgradeRoutine", {}, "Upgrade only when CV Studio becomes routine")
     };
   }
 
@@ -1325,7 +1349,7 @@ details[data-dd="1"]:not([open]) .navMenu{
           </div>
         </div>
         <div class="modalActions">
-          <a class="btn ghost" href="./cv.html" data-nav="1"><span class="btnLabel"><span class="jmExtGuideActionIco" aria-hidden="true">${openIcon}</span>Open CV Studio</span></a>
+          <a class="btn ghost" href="/cv?entry=chooser" data-nav="1"><span class="btnLabel"><span class="jmExtGuideActionIco" aria-hidden="true">${openIcon}</span>Open CV Studio</span></a>
           <button class="btn" type="button" data-close-modal>Close</button>
           <a class="btn primary" data-extension-link data-extension-disabled-label="Add to Chrome" data-extension-ready-label="Add to Chrome" href="https://chromewebstore.google.com/detail/jibmnlonajhoaanhoblhiciddggiohba?utm_source=item-share-cb"><span class="btnLabel"><span class="jmExtGuideActionIco" aria-hidden="true">${chromeIcon}</span><span data-extension-label>Add to Chrome</span></span></a>
         </div>
@@ -1364,13 +1388,13 @@ details[data-dd="1"]:not([open]) .navMenu{
 
   function buildBillingSettingsHref(navAccount){
     try{
-      const profileLink = navAccount?.querySelector("a.jmNavItem[href*='profile.html']");
-      const rawHref = String(profileLink?.getAttribute("href") || "./profile.html").trim() || "./profile.html";
+      const profileLink = navAccount?.querySelector("a.jmNavItem[href*='profile.html'], a.jmNavItem[href*='profile#'], a.jmNavItem[href*='profile?'], a.jmNavItem[href$='profile']");
+      const rawHref = String(profileLink?.getAttribute("href") || "/profile").trim() || "/profile";
       const url = new URL(rawHref, window.location.href);
       url.hash = "billingBox";
       return `${url.pathname}${url.search}${url.hash}`;
     }catch(_){
-      return "./profile.html#billingBox";
+      return "/profile#billingBox";
     }
   }
 
@@ -1444,8 +1468,8 @@ details[data-dd="1"]:not([open]) .navMenu{
     const menu = navAccount?.querySelector(".navMenu");
     if (!menu) return;
 
-    const pricingLink = menu.querySelector("a.jmNavItem[href*='plan.html']");
-    const profileLink = menu.querySelector("a.jmNavItem[href*='profile.html']");
+    const pricingLink = menu.querySelector("a.jmNavItem[href*='plan.html'], a.jmNavItem[href*='plan#'], a.jmNavItem[href$='plan']");
+    const profileLink = menu.querySelector("a.jmNavItem[href*='profile.html'], a.jmNavItem[href*='profile#'], a.jmNavItem[href*='profile?'], a.jmNavItem[href$='profile']");
     let billingButton = menu.querySelector("[data-jm-nav='subscription-billing']");
 
     if (!billingButton){
@@ -1455,7 +1479,7 @@ details[data-dd="1"]:not([open]) .navMenu{
       billingButton.setAttribute("href", buildBillingSettingsHref(navAccount));
       billingButton.setAttribute("role", "menuitem");
       billingButton.setAttribute("data-jm-nav", "subscription-billing");
-      billingButton.textContent = "Manage billing";
+      billingButton.textContent = tt("common.nav.manageBilling", {}, "Manage billing");
 
       if (profileLink && profileLink.nextSibling){
         menu.insertBefore(billingButton, profileLink.nextSibling);
@@ -1481,17 +1505,31 @@ details[data-dd="1"]:not([open]) .navMenu{
     }
 
     if (pricingLink){
-      pricingLink.textContent = "Plans & pricing";
+      pricingLink.textContent = tt("common.nav.plansAndPricing", {}, "Plans & pricing");
     }
+  }
+
+  function pruneDeprecatedNavLinks(root = document){
+    const scope = root && typeof root.querySelectorAll === "function" ? root : document;
+    if (!scope || typeof scope.querySelectorAll !== "function") return;
+
+    scope.querySelectorAll(
+      ".navlinks a[href*='dashboard.html'], .navlinks a[href*='jobs.html'], .topActions a[href*='dashboard.html'], .topActions a[href*='jobs.html'], .navMenu a.jmNavItem[href*='dashboard.html'], .navMenu a.jmNavItem[href*='jobs.html']"
+    ).forEach((link) => {
+      try{ link.remove(); }catch(_){}
+    });
+  }
+
+  function pruneAccountPrimaryNav(navAccount){
+    pruneDeprecatedNavLinks(navAccount);
   }
 
   function ensureAccountExtensionNav(navAccount){
     const menu = navAccount?.querySelector(".navMenu");
     if (!menu) return;
 
-    const cvLink = menu.querySelector("a.jmNavItem[href*='cv.html']");
-    const jobsLink = menu.querySelector("a.jmNavItem[href*='jobs.html']");
-    const profileLink = menu.querySelector("a.jmNavItem[href*='profile.html']");
+    const cvLink = menu.querySelector("a.jmNavItem[href*='cv.html'], a.jmNavItem[href*='cv?'], a.jmNavItem[href$='cv']");
+    const profileLink = menu.querySelector("a.jmNavItem[href*='profile.html'], a.jmNavItem[href*='profile#'], a.jmNavItem[href*='profile?'], a.jmNavItem[href$='profile']");
     let extensionButton = menu.querySelector("[data-jm-nav='chrome-extension']");
 
     if (!extensionButton){
@@ -1503,7 +1541,7 @@ details[data-dd="1"]:not([open]) .navMenu{
       extensionButton.setAttribute("data-extension-modal-open", "1");
       extensionButton.textContent = "Chrome extension";
 
-      const anchor = jobsLink || cvLink || profileLink;
+      const anchor = cvLink || profileLink;
       if (anchor && anchor.nextSibling){
         menu.insertBefore(extensionButton, anchor.nextSibling);
       } else if (profileLink){
@@ -1512,6 +1550,19 @@ details[data-dd="1"]:not([open]) .navMenu{
         menu.appendChild(extensionButton);
       }
     }
+  }
+
+  function normalizeCvStudioNavLinks(root = document){
+    const scope = root && typeof root.querySelectorAll === "function" ? root : document;
+    if (!scope || typeof scope.querySelectorAll !== "function") return;
+
+    scope.querySelectorAll(".navlinks a[href*='cv.html'], .navlinks a[href*='cv?'], .navlinks a[href$='cv'], .topActions a.pill[href*='cv.html'], .topActions a.pill[href*='cv?'], .topActions a.pill[href$='cv'], .navMenu a.jmNavItem[href*='cv.html'], .navMenu a.jmNavItem[href*='cv?'], .navMenu a.jmNavItem[href$='cv']").forEach((link) => {
+      try{
+        const href = String(link.getAttribute("href") || "");
+        if (!href || /[?&]job_id=/.test(href) || /[?&]entry=chooser/.test(href)) return;
+        link.setAttribute("href", href.startsWith("/") ? "/cv?entry=chooser" : "./cv?entry=chooser");
+      }catch(_){}
+    });
   }
 
   async function hydrateAccountNav(opts = {}){
@@ -1545,10 +1596,13 @@ details[data-dd="1"]:not([open]) .navMenu{
     if (navAccount) navAccount.style.display = signedIn ? "" : "none";
     if (navSignIn) navSignIn.style.display = signedIn ? "none" : "";
     if (navStartFree) navStartFree.style.display = signedIn ? "none" : "";
+    pruneDeprecatedNavLinks(document);
+    normalizeCvStudioNavLinks(document);
 
     if (!signedIn) return { signedIn:false, session:null, state:null };
 
     if (navAccount){
+      pruneAccountPrimaryNav(navAccount);
       ensureAccountBillingNav(navAccount);
       ensureAccountExtensionNav(navAccount);
     }
@@ -1558,19 +1612,19 @@ details[data-dd="1"]:not([open]) .navMenu{
     const planInfo = buildAccountPlanInfo(state || {});
     const usageInfo = buildAccountUsageInfo(state || {});
 
-    if ($("navAccountLabel")) $("navAccountLabel").textContent = shortHandle || "Account";
-    if ($("navAccountTitle")) $("navAccountTitle").textContent = "Your account";
+    if ($("navAccountLabel")) $("navAccountLabel").textContent = shortHandle || tt("common.nav.account", {}, "Account");
+    if ($("navAccountTitle")) $("navAccountTitle").textContent = tt("common.nav.yourAccount", {}, "Your account");
     if ($("navAccountEmail")) $("navAccountEmail").textContent = email;
     if ($("navPlanPill")){
-      $("navPlanPill").textContent = planInfo.shortLabel || "Free";
+      $("navPlanPill").textContent = planInfo.shortLabel || tt("common.plans.free", {}, "Free");
       $("navPlanPill").classList.toggle("good", !!planInfo.paid);
     }
-    if ($("navPlanMeta")) $("navPlanMeta").textContent = planInfo.jobsPlanLabel || planInfo.detail || "CV Studio account";
+    if ($("navPlanMeta")) $("navPlanMeta").textContent = planInfo.detail || tt("common.account.cvStudioPlan", { plan: tt("common.plans.free", {}, "Free") }, "CV Studio account");
     if ($("navUsagePill")){
-      $("navUsagePill").textContent = usageInfo.label || "Usage syncing";
+      $("navUsagePill").textContent = usageInfo.label || tt("common.account.usageSyncing", {}, "Usage syncing");
       $("navUsagePill").classList.toggle("good", !!planInfo.paid);
     }
-    if ($("navUsageMeta")) $("navUsageMeta").textContent = usageInfo.detail || "Usage updates after each tailored CV";
+    if ($("navUsageMeta")) $("navUsageMeta").textContent = usageInfo.detail || tt("common.account.usageUpdates", {}, "Usage updates after each tailored CV");
 
     if (navLogout && navLogout.dataset.jmLogoutWired !== "1"){
       navLogout.dataset.jmLogoutWired = "1";
@@ -1578,11 +1632,11 @@ details[data-dd="1"]:not([open]) .navMenu{
         try{
           if (navAccount) navAccount.open = false;
           if (auth && typeof auth.logout === "function"){
-            await auth.logout("./index.html");
+            await auth.logout("./");
             return;
           }
         }catch(_){}
-        window.location.href = "./index.html";
+        window.location.href = "./";
       });
     }
 
@@ -1623,6 +1677,8 @@ details[data-dd="1"]:not([open]) .navMenu{
   if (typeof window.setStudioMode !== "function"){
     window.setStudioMode = defaultSetStudioMode;
   }
+
+  try{ normalizeCvStudioNavLinks(document); }catch(_){}
 
   // Export shared API (merge with existing)
   const api = {
@@ -1680,6 +1736,15 @@ details[data-dd="1"]:not([open]) .navMenu{
 
   // Auto-wire global behaviors
   window.addEventListener("DOMContentLoaded", async () => {
+    try{
+      const i18n = getI18n();
+      if (i18n && typeof i18n.ready === "function"){
+        await i18n.ready();
+        if (typeof i18n.applyTranslations === "function") i18n.applyTranslations(document);
+        if (typeof i18n.applyLocalizedPricing === "function") i18n.applyLocalizedPricing(document);
+        if (typeof i18n.hydrateLocaleSwitchers === "function") i18n.hydrateLocaleSwitchers(document);
+      }
+    }catch(_){}
     try{
       const redirect = await handleBodyMobileCvRedirect();
       if (redirect && redirect.redirected) return;

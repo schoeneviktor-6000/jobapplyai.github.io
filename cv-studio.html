@@ -3,8 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>jobmejob CV Studio - Tailor any job posting into a stronger CV</title>
-  <meta name="description" content="CV Studio helps you tailor your CV from any job posting. Paste a job description or use the Chrome extension on LinkedIn, Greenhouse, Lever, Workday, and more.">
+  <title data-i18n-title="meta.cvStudio.title">jobmejob CV Studio - Tailor Your CV to Any Job Description</title>
+  <meta name="description" data-i18n-content="meta.cvStudio.description" content="Use CV Studio to tailor your CV to any job description, find missing keywords, improve ATS match, and export a polished PDF.">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="jobmejob">
+  <meta property="og:title" data-i18n-content="meta.cvStudio.title" content="jobmejob CV Studio - Tailor Your CV to Any Job Description">
+  <meta property="og:description" data-i18n-content="meta.cvStudio.description" content="Use CV Studio to tailor your CV to any job description, find missing keywords, improve ATS match, and export a polished PDF.">
+  <meta property="og:image" content="https://jobmejob.com/logo-512.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" data-i18n-content="meta.cvStudio.title" content="jobmejob CV Studio - Tailor Your CV to Any Job Description">
+  <meta name="twitter:description" data-i18n-content="meta.cvStudio.description" content="Use CV Studio to tailor your CV to any job description, find missing keywords, improve ATS match, and export a polished PDF.">
+  <meta name="twitter:image" content="https://jobmejob.com/logo-512.png">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
   <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
@@ -463,6 +473,23 @@
       border-top:1px solid rgba(17,19,24,.08);
       padding-top:16px;
     }
+    .footerRow a{
+      color:var(--muted2);
+      font-weight:800;
+    }
+    .footerRow a:hover{
+      color:var(--text);
+    }
+    .footerLocale{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .footerLocaleLabel{
+      color:var(--muted);
+      font-weight:800;
+    }
     @media (max-width:980px){
       .heroGrid,.splitGrid,.flowGrid,.pricingGrid{grid-template-columns:1fr}
       .heroCopy h1{max-width:none}
@@ -471,52 +498,50 @@
     }
   </style>
 </head>
-<body data-nav-fetch-state="1" data-mobile-cv-redirect="app">
+<body data-nav-fetch-state="1" data-mobile-cv-redirect="app" data-page="cv-studio">
   <header class="topbar">
     <div class="container">
       <nav class="nav" aria-label="Primary navigation">
-        <a class="brand" href="./index.html" aria-label="jobmejob home">
+        <a class="brand" href="./" aria-label="jobmejob home">
           <span class="logo" aria-hidden="true"></span>
           <span>jobmejob</span>
         </a>
         <div class="navlinks" aria-label="Site links">
-          <a href="./index.html">Home</a>
-          <a href="./plan.html#cv-pricing">Pricing</a>
-          <a href="./plan.html#auto-apply-request">Auto-apply beta</a>
-          <a href="./privacy.html">Privacy</a>
+          <a href="./" data-i18n="common.nav.home">Home</a>
+          <a href="./plan#cv-pricing" data-i18n="common.nav.pricing">Pricing</a>
+          <a href="./plan#auto-apply-request" data-i18n="common.nav.autoApplyBeta">Auto-apply beta</a>
+          <a href="/privacy" data-i18n="common.nav.privacy">Privacy</a>
         </div>
         <div class="navcta">
           <details class="navDrop" id="navAccount" style="display:none">
             <summary class="jmNavTrigger" aria-label="Account menu">
-              <span id="navAccountLabel">Account</span>
+              <span id="navAccountLabel" data-i18n="common.nav.account">Account</span>
               <span aria-hidden="true">▾</span>
             </summary>
             <div class="navMenu" role="menu" aria-label="Account menu">
               <div class="jmAccountCard">
                 <div class="jmAccountTop">
-                  <div class="jmAccountTitle" id="navAccountTitle">Your account</div>
-                  <span class="jmNavMetaPill" id="navPlanPill">Free</span>
+                  <div class="jmAccountTitle" id="navAccountTitle" data-i18n="common.nav.yourAccount">Your account</div>
+                  <span class="jmNavMetaPill" id="navPlanPill" data-i18n="common.plans.free">Free</span>
                 </div>
-                <div class="jmAccountEmail" id="navAccountEmail">Sign in to continue</div>
+                <div class="jmAccountEmail" id="navAccountEmail" data-i18n="common.account.signInToContinue">Sign in to continue</div>
                 <div class="jmAccountMetaRow">
-                  <span class="jmNavMetaPill" id="navUsagePill">5 free CVs available</span>
+                  <span class="jmNavMetaPill" id="navUsagePill" data-i18n="common.account.freeUsage">5 free CVs available</span>
                 </div>
-                <div class="jmAccountHint" id="navPlanMeta">CV Studio free plan</div>
-                <div class="jmAccountHint" id="navUsageMeta">Usage updates after each tailored CV.</div>
+                <div class="jmAccountHint" id="navPlanMeta" data-i18n="common.account.freePlan">CV Studio free plan</div>
+                <div class="jmAccountHint" id="navUsageMeta" data-i18n="common.account.usageUpdates">Usage updates after each tailored CV.</div>
               </div>
-              <div class="menuLabel">Go to</div>
-              <a class="jmNavItem" href="./dashboard.html" data-nav="1" role="menuitem">Dashboard</a>
-              <a class="jmNavItem" href="./cv.html" data-nav="1" role="menuitem">CV Studio</a>
-              <a class="jmNavItem" href="./jobs.html" data-nav="1" role="menuitem">Jobs</a>
-              <a class="jmNavItem" href="./profile.html" data-nav="1" role="menuitem">Profile</a>
-              <a class="jmNavItem" href="./profile.html#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Manage billing</a>
-              <a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Plans & pricing</a>
+              <div class="menuLabel" data-i18n="common.nav.goTo">Go to</div>
+              <a class="jmNavItem" href="/cv?entry=chooser" data-nav="1" role="menuitem" data-i18n="common.nav.cvStudio">CV Studio</a>
+              <a class="jmNavItem" href="/profile" data-nav="1" role="menuitem" data-i18n="common.nav.profile">Profile</a>
+              <a class="jmNavItem" href="/profile#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing" data-i18n="common.nav.manageBilling">Manage billing</a>
+              <a class="jmNavItem" href="./plan#cv-pricing" data-nav="1" role="menuitem" data-i18n="common.nav.plansAndPricing">Plans & pricing</a>
               <div class="menuSep" role="separator"></div>
-              <button class="jmNavItem jmNavDanger" id="navLogout" type="button" role="menuitem">Logout</button>
+              <button class="jmNavItem jmNavDanger" id="navLogout" type="button" role="menuitem" data-i18n="common.nav.logout">Logout</button>
             </div>
           </details>
-          <a class="btn ghost" href="./signup.html?mode=login&entry=cv-studio" id="navSignIn" data-nav="1">Log in</a>
-          <a class="btn primary" href="./signup.html?entry=cv-studio" id="navStartFree" data-nav="1">Start free</a>
+          <a class="btn ghost" href="./signup?mode=login&entry=cv-studio" id="navSignIn" data-nav="1" data-i18n="common.nav.logIn">Log in</a>
+          <a class="btn primary" href="./signup?entry=cv-studio" id="navStartFree" data-nav="1" data-i18n="common.nav.startFree">Start free</a>
         </div>
       </nav>
     </div>
@@ -527,46 +552,46 @@
       <div class="container">
         <div class="heroGrid">
           <div class="heroCopy">
-            <span class="eyebrow">CV Studio - Worldwide</span>
-            <h1>Tailor any job posting into a stronger CV.</h1>
-            <p>Use the Chrome extension on LinkedIn and other job boards, or paste the full job description manually. CV Studio keeps your real experience, improves ATS alignment, and gets you to a tailored CV in minutes.</p>
+            <span class="eyebrow" data-i18n="pages.cvStudio.heroEyebrow">CV tailoring tool</span>
+            <h1 data-i18n="pages.cvStudio.heroTitle">Tailor your CV to any job description.</h1>
+            <p data-i18n="pages.cvStudio.heroBody">Paste a full job description or import it from LinkedIn and other job boards. CV Studio keeps your real experience, improves ATS match, and turns the role into a tailored CV in minutes.</p>
             <div class="heroActions">
-              <a class="btn primary" href="./signup.html?entry=cv-studio">Start with 5 free CVs</a>
-              <a class="btn ghost" data-extension-link data-extension-disabled-label="Add to Chrome" data-extension-ready-label="Add to Chrome" href="https://chromewebstore.google.com/detail/jibmnlonajhoaanhoblhiciddggiohba?utm_source=item-share-cb"><span data-extension-label>Add to Chrome</span></a>
+              <a class="btn primary" href="./signup?entry=cv-studio" data-i18n="pages.cvStudio.heroPrimaryCta">Start with 5 free CVs</a>
+              <a class="btn ghost" data-extension-link data-extension-disabled-label="Add to Chrome" data-extension-ready-label="Add to Chrome" href="https://chromewebstore.google.com/detail/jibmnlonajhoaanhoblhiciddggiohba?utm_source=item-share-cb"><span data-extension-label data-i18n="pages.signup.extensionCta">Add to Chrome</span></a>
             </div>
-            <p class="heroNote"><strong>Chrome extension live.</strong> Add it on the Chrome Web Store, or paste manually whenever you want a fallback. It uses the same jobmejob account and does not need a separate login inside the side panel.</p>
+            <p class="heroNote"><strong data-i18n="pages.cvStudio.heroNoteTitle">Chrome extension live.</strong> <span data-i18n="pages.cvStudio.heroNoteBody">Add it on the Chrome Web Store, or paste manually whenever you want a fallback. It uses the same jobmejob account and does not need a separate login inside the side panel.</span></p>
             <div class="proof" aria-label="Key product points">
-              <span>Chrome extension live</span>
-              <span>Upload base CV once</span>
-              <span>Manual paste fallback</span>
+              <span data-i18n="pages.cvStudio.heroProof1">Chrome extension live</span>
+              <span data-i18n="pages.cvStudio.heroProof2">Upload base CV once</span>
+              <span data-i18n="pages.cvStudio.heroProof3">Manual paste fallback</span>
             </div>
           </div>
 
           <aside class="heroCard" aria-label="Product summary">
             <div>
-              <h2>Built for real job pages, not just templates</h2>
-              <p>CV Studio is the global product inside jobmejob. Auto-apply is separate and currently available via request in selected markets.</p>
+              <h2 data-i18n="pages.cvStudio.summaryTitle">Built to tailor a CV from real job descriptions</h2>
+              <p data-i18n="pages.cvStudio.summaryBody">CV Studio is the core product inside jobmejob. It helps you tailor your CV, check ATS keywords, and export a clean version for each role.</p>
             </div>
             <div class="miniList">
               <div class="miniItem">
                 <div class="miniIcon" aria-hidden="true">1</div>
                 <div>
-                  <strong>Bring the job description in instantly</strong>
-                  <div class="flowMeta">Scrape from the current tab or paste the full posting yourself.</div>
+                  <strong data-i18n="pages.cvStudio.summaryStep1Title">Bring the job description in instantly</strong>
+                  <div class="flowMeta" data-i18n="pages.cvStudio.summaryStep1Body">Scrape from the current tab or paste the full posting yourself.</div>
                 </div>
               </div>
               <div class="miniItem">
                 <div class="miniIcon" aria-hidden="true">2</div>
                 <div>
-                  <strong>Reuse your stored base CV</strong>
-                  <div class="flowMeta">Upload once, then tailor role-by-role without redoing setup every time.</div>
+                  <strong data-i18n="pages.cvStudio.summaryStep2Title">Reuse your stored base CV</strong>
+                  <div class="flowMeta" data-i18n="pages.cvStudio.summaryStep2Body">Upload once, then tailor role-by-role without redoing setup every time.</div>
                 </div>
               </div>
               <div class="miniItem">
                 <div class="miniIcon" aria-hidden="true">3</div>
                 <div>
-                  <strong>Download a cleaner, ATS-safer version</strong>
-                  <div class="flowMeta">See used keywords, missing terms, and export the final CV right away.</div>
+                  <strong data-i18n="pages.cvStudio.summaryStep3Title">Download a cleaner, ATS-safer version</strong>
+                  <div class="flowMeta" data-i18n="pages.cvStudio.summaryStep3Body">See used keywords, missing terms, and export the final CV right away.</div>
                 </div>
               </div>
             </div>
@@ -579,29 +604,29 @@
       <div class="container">
         <div class="sectionHead">
           <div>
-            <span class="sectionKicker">Workflow</span>
-            <h2>Start with manual paste or import straight from the extension.</h2>
+            <span class="sectionKicker" data-i18n="pages.cvStudio.workflowKicker">Workflow</span>
+            <h2 data-i18n="pages.cvStudio.workflowTitle">Use manual paste or import straight from the extension.</h2>
           </div>
-          <p>You can get full value from CV Studio either way. The extension is the fastest path on supported job pages, and manual paste stays available whenever you need it.</p>
+          <p data-i18n="pages.cvStudio.workflowBody">You can get full value from CV Studio either way. The extension is the fastest path on supported job pages, and manual paste stays available whenever you need it.</p>
         </div>
         <div class="flowGrid">
           <article class="flowCard">
             <div class="flowNum">01</div>
-            <span class="flowTag">Today</span>
-            <h3>Sign in on jobmejob</h3>
-            <p>Create your CV Studio account on the website so your usage, billing, and stored CV stay in one place.</p>
+            <span class="flowTag" data-i18n="pages.cvStudio.flow1Tag">Today</span>
+            <h3 data-i18n="pages.cvStudio.flow1Title">Sign in on jobmejob</h3>
+            <p data-i18n="pages.cvStudio.flow1Body">Create your CV Studio account on the website so your usage, billing, and stored CV stay in one place.</p>
           </article>
           <article class="flowCard">
             <div class="flowNum">02</div>
-            <span class="flowTag">One-time setup</span>
-            <h3>Upload your base CV</h3>
-            <p>Google sign-in and CV upload happen on jobmejob. This is where your account, usage, and stored CV live.</p>
+            <span class="flowTag" data-i18n="pages.cvStudio.flow2Tag">One-time setup</span>
+            <h3 data-i18n="pages.cvStudio.flow2Title">Upload your base CV</h3>
+            <p data-i18n="pages.cvStudio.flow2Body">Google sign-in and CV upload happen on jobmejob. This is where your account, usage, and stored CV live.</p>
           </article>
           <article class="flowCard">
             <div class="flowNum">03</div>
-            <span class="flowTag">Live now</span>
-            <h3>Add the extension anytime</h3>
-            <p>Use it on supported job pages to send the role straight into the same CV Studio flow you already use on jobmejob.</p>
+            <span class="flowTag" data-i18n="pages.cvStudio.flow3Tag">Live now</span>
+            <h3 data-i18n="pages.cvStudio.flow3Title">Add the extension anytime</h3>
+            <p data-i18n="pages.cvStudio.flow3Body">Use it on supported job pages to send the role straight into the same CV Studio flow you already use on jobmejob.</p>
           </article>
         </div>
         <div class="sites" aria-label="Supported sites">
@@ -610,16 +635,16 @@
           <span>Lever</span>
           <span>Workday</span>
           <span>Indeed</span>
-          <span>Generic career pages</span>
+          <span data-i18n="pages.cvStudio.genericCareerPages">Generic career pages</span>
         </div>
         <div class="altPathBox" id="manual">
           <div>
-            <strong>Manual paste works today.</strong>
-            <p>Sign in, upload your CV, and paste any job description manually whenever you need a fallback. The extension makes that import step faster on supported job pages.</p>
+            <strong data-i18n="pages.cvStudio.manualTitle">Manual paste works today.</strong>
+            <p data-i18n="pages.cvStudio.manualBody">Sign in, upload your CV, and paste any job description manually whenever you need a fallback. The extension makes that import step faster on supported job pages.</p>
           </div>
           <div class="heroActions" style="margin-top:0">
-            <a class="btn primary" href="./signup.html?entry=cv-studio">Start free</a>
-            <a class="btn ghost" data-extension-link data-extension-disabled-label="Add to Chrome" data-extension-ready-label="Add to Chrome" href="https://chromewebstore.google.com/detail/jibmnlonajhoaanhoblhiciddggiohba?utm_source=item-share-cb"><span data-extension-label>Add to Chrome</span></a>
+            <a class="btn primary" href="./signup?entry=cv-studio" data-i18n="pages.cvStudio.manualPrimaryCta">Start free</a>
+            <a class="btn ghost" data-extension-link data-extension-disabled-label="Add to Chrome" data-extension-ready-label="Add to Chrome" href="https://chromewebstore.google.com/detail/jibmnlonajhoaanhoblhiciddggiohba?utm_source=item-share-cb"><span data-extension-label data-i18n="pages.cvStudio.manualSecondaryCta">Add to Chrome</span></a>
           </div>
         </div>
       </div>
@@ -629,66 +654,66 @@
       <div class="container">
         <div class="sectionHead">
           <div>
-            <span class="sectionKicker">Pricing</span>
-            <h2>Start free. Upgrade only if CV Studio becomes part of your weekly workflow.</h2>
+            <span class="sectionKicker" data-i18n="pages.cvStudio.heroPricingKicker">Pricing</span>
+            <h2 data-i18n="pages.cvStudio.heroPricingTitle">Start free. Upgrade only when CV tailoring becomes part of your weekly routine.</h2>
           </div>
-          <p>CV Studio pricing is separate from Auto-apply. The extension and pasted job descriptions both use the same CV Studio quota.</p>
+          <p data-i18n="pages.cvStudio.heroPricingBody">CV Studio pricing is separate from Auto-apply. The extension and pasted job descriptions both use the same CV Studio quota.</p>
         </div>
         <div class="pricingGrid">
           <article class="priceCard">
             <div class="priceTop">
               <div>
-                <h3>Free</h3>
-                <p>Best for first-time users.</p>
+                <h3 data-i18n="common.plans.free">Free</h3>
+                <p data-i18n="pages.cvStudio.pricingFreeLead">Best for first-time users.</p>
               </div>
-              <span class="pricePill">Included</span>
+              <span class="pricePill" data-i18n="pages.cvStudio.pricingIncluded">Included</span>
             </div>
-            <div class="priceLine"><strong>€0</strong><span>/ month</span></div>
+            <div class="priceLine"><strong data-price-plan="free">€0</strong><span data-i18n="common.commerce.perMonth">/ month</span></div>
             <ul>
-              <li>5 tailored CVs included</li>
-              <li>Chrome extension + manual paste flow</li>
-              <li>ATS score and keyword suggestions</li>
+              <li data-i18n="pages.cvStudio.pricingFreeFeature1">5 tailored CVs included</li>
+              <li data-i18n="pages.cvStudio.pricingFreeFeature2">Chrome extension + manual paste flow</li>
+              <li data-i18n="pages.cvStudio.pricingFreeFeature3">ATS score and keyword suggestions</li>
             </ul>
             <div class="priceActions">
-              <a class="btn ghost" href="./signup.html?entry=cv-studio">Start free</a>
+              <a class="btn ghost" href="./signup?entry=cv-studio" data-i18n="pages.cvStudio.pricingStartFree">Start free</a>
             </div>
           </article>
 
           <article class="priceCard featured">
             <div class="priceTop">
               <div>
-                <h3>Starter</h3>
-                <p>For active interview preparation.</p>
+                <h3 data-i18n="common.plans.starter">Starter</h3>
+                <p data-i18n="pages.cvStudio.pricingStarterLead">For active interview preparation.</p>
               </div>
-              <span class="pricePill">Most likely</span>
+              <span class="pricePill" data-i18n="pages.cvStudio.pricingMostLikely">Most likely</span>
             </div>
-            <div class="priceLine"><strong>€3</strong><span>/ month</span></div>
+            <div class="priceLine"><strong data-price-plan="starter">€3</strong><span data-i18n="common.commerce.perMonth">/ month</span></div>
             <ul>
-              <li>10 tailored CVs per month</li>
-              <li>Extension imports and manual paste jobs</li>
-              <li>Great for focused searches across a few roles</li>
+              <li data-i18n="pages.cvStudio.pricingStarterFeature1">10 tailored CVs per month</li>
+              <li data-i18n="pages.cvStudio.pricingStarterFeature2">Extension imports and manual paste jobs</li>
+              <li data-i18n="pages.cvStudio.pricingStarterFeature3">Great for focused searches across a few roles</li>
             </ul>
             <div class="priceActions">
-              <a class="btn primary" href="./plan.html#cv-pricing">Choose Starter</a>
+              <a class="btn primary" href="./plan#cv-pricing" data-i18n="pages.cvStudio.pricingChooseStarter">Choose Starter</a>
             </div>
           </article>
 
           <article class="priceCard">
             <div class="priceTop">
               <div>
-                <h3>Plus</h3>
-                <p>For heavier weekly usage.</p>
+                <h3 data-i18n="common.plans.plus">Plus</h3>
+                <p data-i18n="pages.cvStudio.pricingPlusLead">For heavier weekly usage.</p>
               </div>
-              <span class="pricePill">Power users</span>
+              <span class="pricePill" data-i18n="pages.cvStudio.pricingPowerUsers">Power users</span>
             </div>
-            <div class="priceLine"><strong>€9</strong><span>/ month</span></div>
+            <div class="priceLine"><strong data-price-plan="plus">€9</strong><span data-i18n="common.commerce.perMonth">/ month</span></div>
             <ul>
-              <li>50 tailored CVs per month</li>
-              <li>Best if you tailor across many roles or markets</li>
-              <li>Ideal for extension-first daily usage</li>
+              <li data-i18n="pages.cvStudio.pricingPlusFeature1">50 tailored CVs per month</li>
+              <li data-i18n="pages.cvStudio.pricingPlusFeature2">Best if you tailor across many roles or markets</li>
+              <li data-i18n="pages.cvStudio.pricingPlusFeature3">Ideal for extension-first daily usage</li>
             </ul>
             <div class="priceActions">
-              <a class="btn ghost" href="./plan.html#cv-pricing">View Plus plan</a>
+              <a class="btn ghost" href="./plan#cv-pricing" data-i18n="pages.cvStudio.pricingViewPlus">View Plus plan</a>
             </div>
           </article>
         </div>
@@ -699,23 +724,23 @@
       <div class="container">
         <div class="splitGrid">
           <div class="railCard">
-            <span class="sectionKicker">Auto-apply beta</span>
-            <h3>Keep Auto-apply separate, by request</h3>
-            <p>Auto-apply is the higher-touch product. It depends on market coverage, job quality, and email sending workflows, so it should stay request-based while CV Studio scales globally.</p>
+            <span class="sectionKicker" data-i18n="pages.cvStudio.autoApplyKicker">Auto-apply beta</span>
+            <h3 data-i18n="pages.cvStudio.autoApplyTitle">Keep Auto-apply separate, by request</h3>
+            <p data-i18n="pages.cvStudio.autoApplyBody">Auto-apply is the higher-touch product. It depends on market coverage, job quality, and email sending workflows, so it should stay request-based while CV Studio scales globally.</p>
             <div class="railList">
-              <span>Position it as a guided beta, not a default plan</span>
-              <span>Best for users who also want job sourcing and outbound help</span>
-              <span>Say clearly which markets are supported today</span>
+              <span data-i18n="pages.cvStudio.autoApplyPoint1">Position it as a guided beta, not a default plan</span>
+              <span data-i18n="pages.cvStudio.autoApplyPoint2">Best for users who also want job sourcing and outbound help</span>
+              <span data-i18n="pages.cvStudio.autoApplyPoint3">Say clearly which markets are supported today</span>
             </div>
             <div class="heroActions" style="margin-top:18px">
-              <a class="btn ghost" href="./plan.html#auto-apply-request">Request Auto-apply beta</a>
+              <a class="btn ghost" href="./plan#auto-apply-request" data-i18n="pages.cvStudio.autoApplyCta">Request Auto-apply beta</a>
             </div>
           </div>
           <aside class="railCard">
-            <span class="sectionKicker">What changes for customers</span>
-            <h3>A simpler story</h3>
-            <p>New users can understand jobmejob in one sentence: tailor your CV from any job posting, then decide later if you also want help with job sourcing and applications.</p>
-            <p class="note" style="margin-top:14px">That keeps the extension global, the pricing simpler, and the market-specific automation product honest.</p>
+            <span class="sectionKicker" data-i18n="pages.cvStudio.storyKicker">What changes for customers</span>
+            <h3 data-i18n="pages.cvStudio.storyTitle">A simpler story</h3>
+            <p data-i18n="pages.cvStudio.storyBody">New users can understand jobmejob in one sentence: tailor your CV from any job posting, then decide later if you also want help with job sourcing and applications.</p>
+            <p class="note" style="margin-top:14px" data-i18n="pages.cvStudio.storyNote">That keeps the extension global, the pricing simpler, and the market-specific automation product honest.</p>
           </aside>
         </div>
       </div>
@@ -725,13 +750,30 @@
   <footer>
     <div class="container">
       <div class="footerRow">
-        <div><strong style="color:var(--text)">jobmejob</strong> · CV tailoring first, Auto-apply second.</div>
-        <div><a href="./index.html">Home</a> · <a href="./plan.html#cv-pricing">Pricing</a> · <a href="./privacy.html">Privacy</a></div>
+        <div><strong style="color:var(--text)">jobmejob</strong> · <span data-i18n="pages.cvStudio.footerTagline">CV tailoring first, Auto-apply second.</span></div>
+        <div><a href="./" data-i18n="common.nav.home">Home</a> · <a href="./plan#cv-pricing" data-i18n="common.nav.pricing">Pricing</a> · <a href="/privacy" data-i18n="common.nav.privacy">Privacy</a></div>
+        <div class="footerLocale">
+          <span class="footerLocaleLabel" data-i18n="common.languageSwitcher.label">Language</span>
+          <details class="navDrop" data-locale-switcher="1" data-i18n-aria-label="common.languageSwitcher.ariaLabel">
+            <summary class="jmNavTrigger" aria-label="Language switcher">
+              <span data-locale-current>🇺🇸 English</span>
+              <span aria-hidden="true">▾</span>
+            </summary>
+            <div class="navMenu" role="menu" aria-label="Language switcher">
+              <div class="menuLabel" data-i18n="common.languageSwitcher.label">Language</div>
+              <a class="jmNavItem" href="/en/" data-locale-option="en" role="menuitem">🇺🇸 English</a>
+              <a class="jmNavItem" href="/de/" data-locale-option="de" role="menuitem">🇩🇪 Deutsch</a>
+              <a class="jmNavItem" href="/es/" data-locale-option="es" role="menuitem">🇪🇸 Español</a>
+              <a class="jmNavItem" href="/ko/" data-locale-option="ko" role="menuitem">🇰🇷 한국어</a>
+            </div>
+          </details>
+        </div>
       </div>
     </div>
   </footer>
   <script src="./vendor/supabase-js-2.100.1.js"></script>
   <script src="./auth.js?v=202604121905"></script>
-  <script src="./shared.js?v=202604102230"></script>
+  <script src="./i18n.js?v=202604181830"></script>
+  <script src="./shared.js?v=202604181830"></script>
 </body>
 </html>

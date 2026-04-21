@@ -3,8 +3,18 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-  <title>jobmejob • Pricing</title>
-  <meta name="description" content="Choose a CV Studio plan or request access to the Auto-apply beta."/>
+  <title data-i18n-title="meta.plan.title">jobmejob • CV Tailoring Plans & Pricing</title>
+  <meta name="description" data-i18n-content="meta.plan.description" content="Compare CV Studio plans for CV tailoring, ATS match checks, missing keyword guidance, and export-ready PDFs."/>
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="jobmejob">
+  <meta property="og:title" data-i18n-content="meta.plan.title" content="jobmejob • CV Tailoring Plans & Pricing">
+  <meta property="og:description" data-i18n-content="meta.plan.description" content="Compare CV Studio plans for CV tailoring, ATS match checks, missing keyword guidance, and export-ready PDFs.">
+  <meta property="og:image" content="https://jobmejob.com/logo-512.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" data-i18n-content="meta.plan.title" content="jobmejob • CV Tailoring Plans & Pricing">
+  <meta name="twitter:description" data-i18n-content="meta.plan.description" content="Compare CV Studio plans for CV tailoring, ATS match checks, missing keyword guidance, and export-ready PDFs.">
+  <meta name="twitter:image" content="https://jobmejob.com/logo-512.png">
   <link rel="stylesheet" href="./shared.css?v=202603301635"/>
   <style>
     .heroCard,
@@ -121,6 +131,42 @@
       font-size:13px;
       line-height:1.55;
       max-width:46ch;
+    }
+
+    footer{
+      padding:26px 0 40px;
+      color:var(--muted2);
+      font-size:13px;
+    }
+
+    .footerRow{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      border-top:1px solid rgba(17,19,24,.08);
+      padding-top:16px;
+    }
+
+    .footerRow a{
+      color:var(--muted2);
+      font-weight:800;
+    }
+
+    .footerRow a:hover{
+      color:var(--text);
+    }
+
+    .footerLocale{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .footerLocaleLabel{
+      color:var(--muted);
+      font-weight:800;
     }
 
     .cardBullets{
@@ -400,53 +446,49 @@
   </style>
 </head>
 
-<body data-nav-fetch-state="1" data-mobile-cv-redirect="app">
+<body data-nav-fetch-state="1" data-mobile-cv-redirect="app" data-page="plan">
   <header class="topbar">
     <nav class="nav">
-      <a class="brand" href="./dashboard.html" data-nav="1" aria-label="Dashboard">
+      <a class="brand" href="/cv" data-nav="1" aria-label="CV Studio">
         <span class="logo" aria-hidden="true"></span>
         <span>jobmejob</span>
       </a>
 
       <div class="navlinks">
-        <a class="pill" href="./dashboard.html" data-nav="1">Dashboard</a>
-        <a class="pill" href="./cv.html" data-nav="1">CV Studio</a>
-        <a class="pill" href="./jobs.html" data-nav="1">Jobs</a>
-        <a class="pill active" href="./plan.html" data-nav="1">Pricing</a>
+        <a class="pill" href="/cv?entry=chooser" data-nav="1" data-i18n="common.nav.cvStudio">CV Studio</a>
+        <a class="pill active" href="./plan" data-nav="1" data-i18n="common.nav.pricing">Pricing</a>
       </div>
       <div class="navcta">
         <details class="navDrop" id="navAccount" style="display:none">
           <summary class="jmNavTrigger" aria-label="Account menu">
-            <span id="navAccountLabel">Account</span>
+            <span id="navAccountLabel" data-i18n="common.nav.account">Account</span>
             <span aria-hidden="true">▾</span>
           </summary>
 
           <div class="navMenu" role="menu" aria-label="Account menu">
             <div class="jmAccountCard">
               <div class="jmAccountTop">
-                <div class="jmAccountTitle" id="navAccountTitle">Your account</div>
-                <span class="jmNavMetaPill" id="navPlanPill">Free</span>
+                <div class="jmAccountTitle" id="navAccountTitle" data-i18n="common.nav.yourAccount">Your account</div>
+                <span class="jmNavMetaPill" id="navPlanPill" data-i18n="common.plans.free">Free</span>
               </div>
-              <div class="jmAccountEmail" id="navAccountEmail">Sign in to continue</div>
+              <div class="jmAccountEmail" id="navAccountEmail" data-i18n="common.account.signInToContinue">Sign in to continue</div>
               <div class="jmAccountMetaRow">
-                <span class="jmNavMetaPill" id="navUsagePill">5 free CVs available</span>
+                <span class="jmNavMetaPill" id="navUsagePill" data-i18n="common.account.freeUsage">5 free CVs available</span>
               </div>
-              <div class="jmAccountHint" id="navPlanMeta">CV Studio free plan</div>
-              <div class="jmAccountHint" id="navUsageMeta">Usage updates after each tailored CV.</div>
+              <div class="jmAccountHint" id="navPlanMeta" data-i18n="common.account.freePlan">CV Studio free plan</div>
+              <div class="jmAccountHint" id="navUsageMeta" data-i18n="common.account.usageUpdates">Usage updates after each tailored CV.</div>
             </div>
-            <div class="menuLabel">Go to</div>
-            <a class="jmNavItem" href="./dashboard.html" data-nav="1" role="menuitem">Dashboard</a>
-            <a class="jmNavItem" href="./cv.html" data-nav="1" role="menuitem">CV Studio</a>
-            <a class="jmNavItem" href="./jobs.html" data-nav="1" role="menuitem">Jobs</a>
-            <a class="jmNavItem" href="./profile.html" data-nav="1" role="menuitem">Profile</a>
-            <a class="jmNavItem" href="./profile.html#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Manage billing</a>
-            <a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Plans & pricing</a>
+            <div class="menuLabel" data-i18n="common.nav.goTo">Go to</div>
+            <a class="jmNavItem" href="/cv?entry=chooser" data-nav="1" role="menuitem" data-i18n="common.nav.cvStudio">CV Studio</a>
+            <a class="jmNavItem" href="/profile" data-nav="1" role="menuitem" data-i18n="common.nav.profile">Profile</a>
+            <a class="jmNavItem" href="/profile#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing" data-i18n="common.nav.manageBilling">Manage billing</a>
+            <a class="jmNavItem" href="./plan#cv-pricing" data-nav="1" role="menuitem" data-i18n="common.nav.plansAndPricing">Plans & pricing</a>
             <button class="jmNavItem" id="navActivity" type="button" role="menuitem">Activity</button>
             <div class="menuSep" role="separator"></div>
-            <button class="jmNavItem jmNavDanger" id="navLogout" type="button" role="menuitem">Logout</button>
+            <button class="jmNavItem jmNavDanger" id="navLogout" type="button" role="menuitem" data-i18n="common.nav.logout">Logout</button>
           </div>
         </details>
-        <a class="pill" href="./signup.html" id="navSignIn" data-nav="1">Sign in</a>
+        <a class="pill" href="./signup" id="navSignIn" data-nav="1" data-i18n="common.nav.signIn">Sign in</a>
       </div>
     </nav>
   </header>
@@ -454,73 +496,73 @@
   <main class="main">
     <section class="heroGrid">
       <article class="heroCard heroCopy">
-        <div class="eyebrow" id="heroEyebrow">CV Studio pricing</div>
-        <h1 id="heroTitle">Start free. Upgrade when CV tailoring becomes part of your weekly search.</h1>
-        <p class="sub" id="heroSub">Use one monthly CV quota across the Chrome extension and pasted job descriptions. CV Studio stays simple to buy and easy to understand. Auto-apply remains a separate, request-only beta for users who need more than tailoring.</p>
+        <div class="eyebrow" id="heroEyebrow" data-i18n="pages.plan.heroEyebrow">CV tailoring pricing</div>
+        <h1 id="heroTitle" data-i18n="pages.plan.heroTitle">Start free. Upgrade when CV tailoring becomes part of your weekly search.</h1>
+        <p class="sub" id="heroSub" data-i18n="pages.plan.heroSub">Use one monthly CV quota across the Chrome extension and pasted job descriptions. CV Studio keeps CV tailoring simple to buy and easy to understand. Auto-apply remains a separate, request-only beta for users who need more than tailoring.</p>
 
         <div class="heroActions">
-          <a class="btn primary" href="./signup.html?entry=cv-studio" data-nav="1" id="heroPrimaryAction">Start free</a>
-          <a class="btn ghost" href="#cv-pricing" data-nav="1" id="heroSecondaryAction">Compare plans</a>
+          <a class="btn primary" href="./signup?entry=cv-studio" data-nav="1" id="heroPrimaryAction" data-i18n="pages.plan.heroPrimary">Start free</a>
+          <a class="btn ghost" href="#cv-pricing" data-nav="1" id="heroSecondaryAction" data-i18n="pages.plan.heroSecondary">Compare plans</a>
         </div>
 
         <div class="proofRow" id="heroProofRow" aria-label="Product positioning">
-          <span>5 tailored CVs free</span>
-          <span>One shared monthly quota</span>
-          <span>Manage billing later</span>
+          <span data-i18n="pages.plan.heroProof1">5 tailored CVs free</span>
+          <span data-i18n="pages.plan.heroProof2">One shared monthly quota</span>
+          <span data-i18n="pages.plan.heroProof3">Manage billing later</span>
         </div>
 
-        <p class="heroSupport" id="heroSupport">Best for job seekers who want a cleaner CV workflow first and only want sourcing or Auto-apply if it actually becomes necessary.</p>
+        <p class="heroSupport" id="heroSupport" data-i18n="pages.plan.heroSupport">Best for job seekers who want a clearer CV tailoring workflow first and only need sourcing or Auto-apply later.</p>
 
         <div class="cardBullets">
           <div class="bulletCard">
             <div class="bulletNum">1</div>
             <div>
-              <strong>Works wherever you apply</strong>
-              <div class="small">CV Studio works with pasted job descriptions and the Chrome extension, so the product is useful even when job fetching is not.</div>
+              <strong data-i18n="pages.plan.bullet1Title">Works wherever you apply</strong>
+              <div class="small" data-i18n="pages.plan.bullet1Body">CV Studio works with pasted job descriptions and the Chrome extension, so the product is useful even when job fetching is not.</div>
             </div>
           </div>
           <div class="bulletCard">
             <div class="bulletNum">2</div>
             <div>
-              <strong>Simple pricing, low friction</strong>
-              <div class="small">You pay for a monthly CV quota, not for a complicated bundle of automations you may not need yet.</div>
+              <strong data-i18n="pages.plan.bullet2Title">Simple pricing, low friction</strong>
+              <div class="small" data-i18n="pages.plan.bullet2Body">You pay for a monthly CV quota, not for a complicated bundle of automations you may not need yet.</div>
             </div>
           </div>
           <div class="bulletCard">
             <div class="bulletNum">3</div>
             <div>
-              <strong>Auto-apply stays optional</strong>
-              <div class="small">Start with tailoring first, then request the higher-touch Auto-apply beta only if you want sourcing and outbound help too.</div>
+              <strong data-i18n="pages.plan.bullet3Title">Auto-apply stays optional</strong>
+              <div class="small" data-i18n="pages.plan.bullet3Body">Start with tailoring first, then request the higher-touch Auto-apply beta only if you want sourcing and outbound help too.</div>
             </div>
           </div>
         </div>
       </article>
 
       <aside class="infoCard">
-        <h3 id="upgradeInfoTitle">What happens when you upgrade</h3>
-        <p id="upgradeInfoIntro">Pick the monthly quota that matches your search volume. If checkout is live you go straight into billing. If a billing path is still being finalized, you still get a guided fallback instead of a dead end.</p>
+        <h3 id="upgradeInfoTitle" data-i18n="pages.plan.upgradeTitle">What happens when you upgrade</h3>
+        <p id="upgradeInfoIntro" data-i18n="pages.plan.upgradeIntro">Pick the monthly quota that matches your search volume. If checkout is live you go straight into billing. If a billing path is still being finalized, you still get a guided fallback instead of a dead end.</p>
 
         <div class="statusStrip">
-          <span class="badge warn" id="authBadge">Checking...</span>
-          <span class="badge" id="sessionBadge">Session: --</span>
+          <span class="badge warn" id="authBadge" data-i18n="pages.plan.dynamic.checking">Checking...</span>
+          <span class="badge" id="sessionBadge" data-i18n="pages.plan.dynamic.sessionUnknown">Session: --</span>
         </div>
 
         <div class="requestBox" id="billingSummaryBox" style="margin-top:18px">
-          <div class="miniLabel" id="billingBoxLabel">Customer-friendly billing</div>
+          <div class="miniLabel" id="billingBoxLabel" data-i18n="pages.plan.billingBoxLabel">Customer-friendly billing</div>
           <div class="featureList" id="billingFeatureList" style="margin-top:10px">
-            <span>Secure Stripe checkout</span>
-            <span>Self-serve billing portal</span>
-            <span>Auto-apply reviewed on request</span>
+            <span data-i18n="pages.plan.billingFeature1">Secure Stripe checkout</span>
+            <span data-i18n="pages.plan.billingFeature2">Self-serve billing portal</span>
+            <span data-i18n="pages.plan.billingFeature3">Auto-apply reviewed on request</span>
           </div>
-          <p class="footNote" id="billingSummary" style="margin:12px 0 0">Paid CV Studio plans open in Stripe checkout. Signed-in customers can later manage or cancel in the billing portal.</p>
+          <p class="footNote" id="billingSummary" style="margin:12px 0 0" data-i18n="pages.plan.billingSummary">Paid CV Studio plans open in Stripe checkout. Signed-in customers can later manage or cancel in the billing portal.</p>
         </div>
 
         <div class="requestBox" id="nextStepsBox" style="margin-top:14px">
-          <div class="miniLabel" id="nextStepsLabel">Best if you want</div>
+          <div class="miniLabel" id="nextStepsLabel" data-i18n="pages.plan.nextStepsLabel">Best if you want</div>
           <ul class="planFeatures" id="nextStepsList" style="margin-top:12px">
-            <li>A clear start with no commitment</li>
-            <li>A paid plan that matches real application volume</li>
-            <li>A separate path for Auto-apply instead of hidden complexity</li>
+            <li data-i18n="pages.plan.nextStep1">A clear start with no commitment</li>
+            <li data-i18n="pages.plan.nextStep2">A paid plan that matches real application volume</li>
+            <li data-i18n="pages.plan.nextStep3">A separate path for Auto-apply instead of hidden complexity</li>
           </ul>
           <p class="footNote" id="nextStepsNote" style="margin:12px 0 0;display:none"></p>
         </div>
@@ -531,12 +573,12 @@
       <div>
         <div class="sectionHeaderRow">
           <div>
-            <h2 class="sectionTitle">CV Studio plans</h2>
-            <div class="small" style="margin-top:8px">Choose the quota that matches how often you tailor. The extension and the paste flow use the same monthly CV Studio allowance.</div>
+            <h2 class="sectionTitle" data-i18n="pages.plan.plansTitle">CV Studio plans</h2>
+            <div class="small" style="margin-top:8px" data-i18n="pages.plan.plansIntro">Choose the quota that matches how often you tailor. The extension and the paste flow use the same monthly CV Studio allowance.</div>
           </div>
           <div class="sectionHeaderActions">
-            <a class="btn small ghost" href="./cv.html" data-nav="1">Open CV Studio</a>
-            <button class="btn small ghost" id="btnManageBilling" type="button">Manage billing</button>
+            <a class="btn small ghost" href="/cv" data-nav="1" data-i18n="pages.plan.openStudio">Open CV Studio</a>
+            <button class="btn small ghost" id="btnManageBilling" type="button" data-i18n="pages.plan.manageBilling">Manage billing</button>
           </div>
         </div>
       </div>
@@ -545,130 +587,130 @@
         <article class="priceCard">
           <div class="priceTop">
             <div>
-              <h3>Free</h3>
-              <div class="priceLead">Validate the workflow before you pay.</div>
+              <h3 data-i18n="common.plans.free">Free</h3>
+              <div class="priceLead" data-i18n="pages.plan.freeLead">Validate the workflow before you pay.</div>
             </div>
-            <span class="tag">Included</span>
+            <span class="tag" data-i18n="pages.plan.included">Included</span>
           </div>
 
           <div class="priceLine">
-            <strong>€0</strong>
-            <span>/ month</span>
+            <strong data-price-plan="free">€0</strong>
+            <span data-i18n="common.commerce.perMonth">/ month</span>
           </div>
 
           <div class="quota">
-            <strong>5 tailored CVs</strong>
-            <span class="small">Enough to test the extension, the pasted job flow, and your first applications.</span>
+            <strong data-i18n="pages.plan.freeQuotaTitle">5 tailored CVs</strong>
+            <span class="small" data-i18n="pages.plan.freeQuotaBody">Enough to test the extension, the pasted job flow, and your first applications.</span>
           </div>
 
-          <div class="planFit"><strong>Best for:</strong> trying the product before it becomes part of your weekly routine.</div>
+          <div class="planFit"><strong data-i18n="pages.plan.freeBestFor">Best for:</strong> <span data-i18n="pages.plan.freeBestForBody">trying the product before it becomes part of your weekly routine.</span></div>
 
           <ul class="planFeatures">
-            <li>Chrome extension + pasted JD flow</li>
-            <li>ATS match score and keyword gaps</li>
-            <li>Uses your stored base CV</li>
+            <li data-i18n="pages.plan.freeFeature1">Chrome extension + pasted JD flow</li>
+            <li data-i18n="pages.plan.freeFeature2">ATS match score and keyword gaps</li>
+            <li data-i18n="pages.plan.freeFeature3">Uses your stored base CV</li>
           </ul>
 
           <div class="priceActions">
-            <button class="btn ghost" data-cv-plan="free" type="button">Start free</button>
+            <button class="btn ghost" data-cv-plan="free" type="button" data-i18n="pages.plan.freeCta">Start free</button>
           </div>
         </article>
 
         <article class="priceCard featured">
           <div class="priceTop">
             <div>
-              <h3>Starter</h3>
-              <div class="priceLead">For active weekly applications across a few target roles.</div>
+              <h3 data-i18n="common.plans.starter">Starter</h3>
+              <div class="priceLead" data-i18n="pages.plan.starterLead">For active weekly applications across a few target roles.</div>
             </div>
-            <span class="tag good">Recommended</span>
+            <span class="tag good" data-i18n="pages.plan.recommended">Recommended</span>
           </div>
 
           <div class="priceLine">
-            <strong>€3</strong>
-            <span>/ month</span>
+            <strong data-price-plan="starter">€3</strong>
+            <span data-i18n="common.commerce.perMonth">/ month</span>
           </div>
 
           <div class="quota">
-            <strong>10 tailored CVs / month</strong>
-            <span class="small">A lightweight paid tier for a normal active search without overbuying usage.</span>
+            <strong data-i18n="pages.plan.starterQuotaTitle">10 tailored CVs / month</strong>
+            <span class="small" data-i18n="pages.plan.starterQuotaBody">A lightweight paid tier for a normal active search without overbuying usage.</span>
           </div>
 
-          <div class="planFit"><strong>Best for:</strong> focused job searches where tailoring quality matters more than brute-force volume.</div>
+          <div class="planFit"><strong data-i18n="pages.plan.freeBestFor">Best for:</strong> <span data-i18n="pages.plan.starterBestForBody">focused job searches where tailoring quality matters more than brute-force volume.</span></div>
 
           <ul class="planFeatures">
-            <li>All free features</li>
-            <li>Great for extension-first users</li>
-            <li>Simple low-friction upgrade path</li>
+            <li data-i18n="pages.plan.starterFeature1">All free features</li>
+            <li data-i18n="pages.plan.starterFeature2">Great for extension-first users</li>
+            <li data-i18n="pages.plan.starterFeature3">Simple low-friction upgrade path</li>
           </ul>
 
           <div class="priceActions">
-            <button class="btn primary" data-cv-plan="starter" data-live-label="Choose Starter" data-fallback-label="Request Starter access" type="button">Choose Starter</button>
+            <button class="btn primary" data-cv-plan="starter" data-live-label="Choose Starter" data-fallback-label="Request Starter access" type="button" data-i18n="pages.plan.starterCta">Choose Starter</button>
           </div>
         </article>
 
         <article class="priceCard">
           <div class="priceTop">
             <div>
-              <h3>Plus</h3>
-              <div class="priceLead">For broader, heavier, or multi-role search volume.</div>
+              <h3 data-i18n="common.plans.plus">Plus</h3>
+              <div class="priceLead" data-i18n="pages.plan.plusLead">For broader, heavier, or multi-role search volume.</div>
             </div>
-            <span class="tag">Power users</span>
+            <span class="tag" data-i18n="pages.plan.powerUsers">Power users</span>
           </div>
 
           <div class="priceLine">
-            <strong>€9</strong>
-            <span>/ month</span>
+            <strong data-price-plan="plus">€9</strong>
+            <span data-i18n="common.commerce.perMonth">/ month</span>
           </div>
 
           <div class="quota">
-            <strong>50 tailored CVs / month</strong>
-            <span class="small">Built for daily usage when you tailor across more roles, markets, or experiments.</span>
+            <strong data-i18n="pages.plan.plusQuotaTitle">50 tailored CVs / month</strong>
+            <span class="small" data-i18n="pages.plan.plusQuotaBody">Built for daily usage when you tailor across more roles, markets, or experiments.</span>
           </div>
 
-          <div class="planFit"><strong>Best for:</strong> heavier weekly usage, repeated tailoring, and broader search coverage.</div>
+          <div class="planFit"><strong data-i18n="pages.plan.freeBestFor">Best for:</strong> <span data-i18n="pages.plan.plusBestForBody">heavier weekly usage, repeated tailoring, and broader search coverage.</span></div>
 
           <ul class="planFeatures">
-            <li>All Starter features</li>
-            <li>Designed for heavier weekly volume</li>
-            <li>Fits international searches across more roles</li>
+            <li data-i18n="pages.plan.plusFeature1">All Starter features</li>
+            <li data-i18n="pages.plan.plusFeature2">Designed for heavier weekly volume</li>
+            <li data-i18n="pages.plan.plusFeature3">Fits international searches across more roles</li>
           </ul>
 
           <div class="priceActions">
-            <button class="btn ghost" data-cv-plan="plus" data-live-label="Choose Plus" data-fallback-label="Request Plus access" type="button">Choose Plus</button>
+            <button class="btn ghost" data-cv-plan="plus" data-live-label="Choose Plus" data-fallback-label="Request Plus access" type="button" data-i18n="pages.plan.plusCta">Choose Plus</button>
           </div>
         </article>
       </div>
 
-      <p class="footNote" id="checkoutNote" style="margin:14px 0 0">Free includes 5 tailored CVs. Paid plans are monthly and use one shared quota across extension and manual paste mode.</p>
+      <p class="footNote" id="checkoutNote" style="margin:14px 0 0" data-i18n="pages.plan.checkoutNote">Free includes 5 tailored CVs. Paid plans are monthly and use one shared quota across extension and manual paste mode.</p>
     </section>
 
     <section class="infoGrid" style="margin-top:18px">
       <article class="infoCard">
-        <div class="tag">Included across the product</div>
-        <h3 style="margin-top:14px">One workflow, different usage levels</h3>
+        <div class="tag" data-i18n="pages.plan.includedTag">Included across the product</div>
+        <h3 style="margin-top:14px" data-i18n="pages.plan.workflowTitle">One workflow, different usage levels</h3>
         <ul class="planFeatures" style="margin-top:18px">
-          <li>One quota covers both Chrome extension imports and pasted job descriptions</li>
-          <li>Start free, then upgrade only when CV Studio becomes part of your real routine</li>
-          <li>Keep using the same stored base CV and tailoring flow as you move up plans</li>
-          <li>Auto-apply stays separate so pricing remains simple and globally usable</li>
+          <li data-i18n="pages.plan.workflowPoint1">One quota covers both Chrome extension imports and pasted job descriptions</li>
+          <li data-i18n="pages.plan.workflowPoint2">Start free, then upgrade only when CV Studio becomes part of your real routine</li>
+          <li data-i18n="pages.plan.workflowPoint3">Keep using the same stored base CV and tailoring flow as you move up plans</li>
+          <li data-i18n="pages.plan.workflowPoint4">Auto-apply stays separate so pricing remains simple and globally usable</li>
         </ul>
       </article>
 
       <aside class="infoCard">
-        <div class="tag">Before you pay</div>
-        <h3 style="margin-top:14px">Questions people usually ask</h3>
+        <div class="tag" data-i18n="pages.plan.faqTag">Before you pay</div>
+        <h3 style="margin-top:14px" data-i18n="pages.plan.faqTitle">Questions people usually ask</h3>
         <div class="faqStack">
           <div class="faqItem">
-            <strong>What counts toward the quota?</strong>
-            <div class="small">Each successful tailored CV generation counts once, whether it starts from the extension or from pasted job text.</div>
+            <strong data-i18n="pages.plan.faq1Title">What counts toward the quota?</strong>
+            <div class="small" data-i18n="pages.plan.faq1Body">Each successful tailored CV generation counts once, whether it starts from the extension or from pasted job text.</div>
           </div>
           <div class="faqItem">
-            <strong>Do I need Auto-apply to use CV Studio?</strong>
-            <div class="small">No. CV Studio is the main product. Auto-apply is optional and handled separately for users who want more than tailoring.</div>
+            <strong data-i18n="pages.plan.faq2Title">Do I need Auto-apply to use CV Studio?</strong>
+            <div class="small" data-i18n="pages.plan.faq2Body">No. CV Studio is the main product. Auto-apply is optional and handled separately for users who want more than tailoring.</div>
           </div>
           <div class="faqItem">
-            <strong>What if self-serve billing is still being finalized?</strong>
-            <div class="small">You still get a guided fallback, so you can signal buying intent and get help instead of hitting a dead end.</div>
+            <strong data-i18n="pages.plan.faq3Title">What if self-serve billing is still being finalized?</strong>
+            <div class="small" data-i18n="pages.plan.faq3Body">You still get a guided fallback, so you can signal buying intent and get help instead of hitting a dead end.</div>
           </div>
         </div>
       </aside>
@@ -676,37 +718,63 @@
 
     <section class="infoGrid" id="auto-apply-request" style="margin-top:18px">
       <article class="infoCard">
-        <div class="tag">Request beta</div>
-        <h3 style="margin-top:14px">Add Auto-apply only if you need more than CV tailoring</h3>
-        <p>Auto-apply is a guided beta for users who also want sourcing and outbound support. Keeping it separate makes the main product simpler, more honest, and easier to buy.</p>
+        <div class="tag" data-i18n="pages.plan.requestTag">Request beta</div>
+        <h3 style="margin-top:14px" data-i18n="pages.plan.requestTitle">Add Auto-apply only if you need more than CV tailoring</h3>
+        <p data-i18n="pages.plan.requestBody">Auto-apply is a guided beta for users who also want sourcing and outbound support. Keeping it separate makes the main product simpler, more honest, and easier to buy.</p>
 
         <div class="featureList" style="margin-top:18px">
-          <span>Best for supported markets</span>
-          <span>Higher-touch onboarding</span>
-          <span>Request before access</span>
+          <span data-i18n="pages.plan.requestChip1">Best for supported markets</span>
+          <span data-i18n="pages.plan.requestChip2">Higher-touch onboarding</span>
+          <span data-i18n="pages.plan.requestChip3">Request before access</span>
         </div>
 
         <div style="margin-top:18px">
-          <button class="btn primary" id="btnAutoApplyRequest" type="button">Request Auto-apply beta</button>
+          <button class="btn primary" id="btnAutoApplyRequest" type="button" data-i18n="pages.plan.requestCta">Request Auto-apply beta</button>
         </div>
       </article>
 
       <aside class="infoCard">
-        <h3>Who should request it</h3>
-        <p>Request Auto-apply if you already know you want help beyond tailoring and you are comfortable with a more guided, higher-touch setup.</p>
+        <h3 data-i18n="pages.plan.whoTitle">Who should request it</h3>
+        <p data-i18n="pages.plan.whoBody">Request Auto-apply if you already know you want help beyond tailoring and you are comfortable with a more guided, higher-touch setup.</p>
 
         <ul class="planFeatures" style="margin-top:18px">
-          <li>CV Studio already works without job fetching</li>
-          <li>Auto-apply depends on sourcing quality and market support</li>
-          <li>The higher-touch product starts with a request flow on purpose</li>
+          <li data-i18n="pages.plan.whoPoint1">CV Studio already works without job fetching</li>
+          <li data-i18n="pages.plan.whoPoint2">Auto-apply depends on sourcing quality and market support</li>
+          <li data-i18n="pages.plan.whoPoint3">The higher-touch product starts with a request flow on purpose</li>
         </ul>
       </aside>
     </section>
   </main>
 
+  <footer>
+    <div class="container">
+      <div class="footerRow">
+        <div><strong style="color:var(--text)">jobmejob</strong> · <span data-i18n="pages.plan.footerTagline">Simple CV Studio pricing.</span></div>
+        <div><a href="./" data-i18n="common.nav.home">Home</a> · <a href="./cv-studio" data-i18n="common.nav.cvStudio">CV Studio</a> · <a href="/privacy" data-i18n="common.nav.privacy">Privacy</a></div>
+        <div class="footerLocale">
+          <span class="footerLocaleLabel" data-i18n="common.languageSwitcher.label">Language</span>
+          <details class="navDrop" data-locale-switcher="1" data-i18n-aria-label="common.languageSwitcher.ariaLabel">
+            <summary class="jmNavTrigger" aria-label="Language switcher">
+              <span data-locale-current>🇺🇸 English</span>
+              <span aria-hidden="true">▾</span>
+            </summary>
+            <div class="navMenu" role="menu" aria-label="Language switcher">
+              <div class="menuLabel" data-i18n="common.languageSwitcher.label">Language</div>
+              <a class="jmNavItem" href="/en/" data-locale-option="en" role="menuitem">🇺🇸 English</a>
+              <a class="jmNavItem" href="/de/" data-locale-option="de" role="menuitem">🇩🇪 Deutsch</a>
+              <a class="jmNavItem" href="/es/" data-locale-option="es" role="menuitem">🇪🇸 Español</a>
+              <a class="jmNavItem" href="/ko/" data-locale-option="ko" role="menuitem">🇰🇷 한국어</a>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </footer>
+
   <script src="./vendor/supabase-js-2.100.1.js"></script>
   <script src="./auth.js?v=202604121905"></script>
-  <script src="./shared.js?v=202604102230"></script>
+  <script src="./i18n.js?v=202604181830"></script>
+  <script src="./shared.js?v=202604181830"></script>
   <script>
   (() => {
     "use strict";
@@ -719,6 +787,22 @@
     const API_BASE = String((APP.config && APP.config.API_BASE) || "").trim();
     const LINKS = (APP.config && APP.config.LINKS) ? APP.config.LINKS : {};
     const auth = APP.auth || null;
+    const I18N = window.JobMeJobI18n || null;
+    const T = (key, vars, fallback) => {
+      try {
+        if (I18N && typeof I18N.t === "function") return I18N.t(key, vars || {}, fallback || key);
+      } catch (_) {}
+      return fallback || key;
+    };
+    const CURRENT_LOCALE = (() => {
+      try {
+        return I18N && typeof I18N.getCurrentLocale === "function"
+          ? String(I18N.getCurrentLocale() || "").trim().toLowerCase()
+          : "";
+      } catch (_) {
+        return "";
+      }
+    })();
 
     let session = null;
     let billingState = null;
@@ -732,9 +816,9 @@
     const AUTO_APPLY_REQUEST_URL = String(LINKS.AUTO_APPLY_REQUEST_URL || "").trim() || "mailto:team@jobmejob.com?subject=Auto-apply%20beta%20request";
     const SUPPORT_EMAIL = "team@jobmejob.com";
     const PLAN_META = Object.freeze({
-      free: { label: "Free", limit: 5, quotaLabel: "5 free CVs" },
-      cv_starter: { label: "Starter", limit: 10, quotaLabel: "10 CVs / month" },
-      cv_plus: { label: "Plus", limit: 50, quotaLabel: "50 CVs / month" }
+      free: { labelKey: "common.plans.free", quotaKey: "pages.plan.freeQuotaTitle", limit: 5 },
+      cv_starter: { labelKey: "common.plans.starter", quotaKey: "pages.plan.starterQuotaTitle", limit: 10 },
+      cv_plus: { labelKey: "common.plans.plus", quotaKey: "pages.plan.plusQuotaTitle", limit: 50 }
     });
     const BILLING_RETURN = readBillingReturnContext();
 
@@ -767,7 +851,6 @@
         state?.cvstudio_plan_id ||
         state?.entitlements?.cv_plan_id ||
         state?.entitlements?.cv_studio_plan_id ||
-        state?.plan_id ||
         ""
       );
     }
@@ -802,7 +885,9 @@
     }
 
     function planLabel(planId) {
-      return getPlanMeta(planId)?.label || "Paid";
+      const meta = getPlanMeta(planId);
+      if (meta?.labelKey) return T(meta.labelKey, {}, "Paid");
+      return T("common.plans.paid", {}, "Paid");
     }
 
     function readBillingReturnContext() {
@@ -846,27 +931,28 @@
         paid ? 0 : state?.entitlements?.cv_free_used
       );
       const remaining = limit !== null && used !== null ? Math.max(0, limit - used) : null;
+      const quotaLabel = meta?.quotaKey ? T(meta.quotaKey, {}, "") : "";
       const quotaChip = limit === 0
-        ? "Unlimited CVs"
-        : (meta?.quotaLabel || (paid ? "Monthly plan" : "5 free CVs"));
+        ? T("common.account.unlimited", {}, "Unlimited CVs")
+        : (quotaLabel || (paid ? T("common.account.monthlyPlan", {}, "Monthly plan") : T("common.account.freeUsage", {}, "5 free CVs")));
       const remainingChip = remaining !== null
-        ? `${remaining} CVs ready`
-        : (paid ? "Ready to tailor" : "5 free CVs");
+        ? T("common.account.cvsReady", { count: remaining }, `${remaining} CVs ready`)
+        : (paid ? T("common.account.readyToTailor", {}, "Ready to tailor") : T("common.account.freeUsage", {}, "5 free CVs"));
       const detailText = (() => {
-        if (limit === 0) return "No monthly cap on CV tailoring";
+        if (limit === 0) return T("common.account.noMonthlyCap", {}, "No monthly cap on CV tailoring");
         if (remaining !== null && used !== null) {
           return paid
-            ? `${used} of ${limit} used this billing cycle`
-            : `${used} of ${limit} used`;
+            ? T("common.account.usedThisCycle", { used, limit }, `${used} of ${limit} used this billing cycle`)
+            : T("common.account.usedGeneric", { used, limit }, `${used} of ${limit} used`);
         }
         return paid
-          ? "Usage updates after each tailored CV"
-          : "Upgrade only when CV Studio becomes routine";
+          ? T("common.account.usageUpdates", {}, "Usage updates after each tailored CV")
+          : T("common.account.upgradeRoutine", {}, "Upgrade only when CV Studio becomes routine");
       })();
 
       return {
         planId: activePlanId,
-        planLabel: meta?.label || planLabel(activePlanId),
+        planLabel: planLabel(activePlanId),
         paid,
         limit,
         used,
@@ -912,7 +998,7 @@
         const pid = normalizePlanId(btn.getAttribute("data-cv-plan"));
         if (normalized && pid === normalized) {
           btn.disabled = true;
-          btn.textContent = "Current plan";
+          btn.textContent = T("pages.plan.dynamic.currentPlan", {}, "Current plan");
           btn.classList.remove("primary");
           btn.classList.add("ghost");
           btn.setAttribute("aria-disabled", "true");
@@ -930,7 +1016,7 @@
 
     function notify(text, kind) {
       try {
-        window.JobMeJobShared?.toast?.(String(text || ""), { kind: kind || "warn", title: "Billing" });
+        window.JobMeJobShared?.toast?.(String(text || ""), { kind: kind || "warn", title: T("pages.plan.dynamic.billingTitle", {}, "Billing") });
       } catch (_) {}
     }
 
@@ -1039,9 +1125,13 @@
       const portalReady = !!state.portalEnabled;
       const chips = [];
 
-      chips.push(starterReady || plusReady ? "Secure checkout" : "Guided billing handoff");
-      chips.push(portalReady ? "Self-serve billing portal" : "Direct billing support");
-      chips.push("Auto-apply reviewed on request");
+      chips.push(starterReady || plusReady
+        ? T("pages.plan.dynamic.secureCheckout", {}, "Secure checkout")
+        : T("pages.plan.dynamic.guidedBillingHandoff", {}, "Guided billing handoff"));
+      chips.push(portalReady
+        ? T("pages.plan.dynamic.selfServePortal", {}, "Self-serve billing portal")
+        : T("pages.plan.dynamic.directBillingSupport", {}, "Direct billing support"));
+      chips.push(T("pages.plan.dynamic.autoApplyReviewed", {}, "Auto-apply reviewed on request"));
 
       const featureWrap = $("billingFeatureList");
       if (featureWrap) {
@@ -1052,37 +1142,47 @@
         const pid = String(btn.getAttribute("data-cv-plan") || "").trim().toLowerCase();
         const ready = pid === "starter" ? starterReady : plusReady;
         btn.textContent = ready
-          ? String(btn.getAttribute("data-live-label") || btn.textContent || "")
-          : String(btn.getAttribute("data-fallback-label") || btn.textContent || "");
+          ? (
+              pid === "starter"
+                ? T("pages.plan.starterCta", {}, String(btn.getAttribute("data-live-label") || btn.textContent || ""))
+                : T("pages.plan.plusCta", {}, String(btn.getAttribute("data-live-label") || btn.textContent || ""))
+            )
+          : (
+              pid === "starter"
+                ? T("pages.plan.starterFallback", {}, String(btn.getAttribute("data-fallback-label") || btn.textContent || ""))
+                : T("pages.plan.plusFallback", {}, String(btn.getAttribute("data-fallback-label") || btn.textContent || ""))
+            );
       });
 
       const manageBtn = $("btnManageBilling");
       if (manageBtn) {
-        manageBtn.textContent = portalReady ? "Manage billing" : "Billing help";
+        manageBtn.textContent = portalReady
+          ? T("pages.plan.dynamic.manageBilling", {}, "Manage billing")
+          : T("pages.plan.dynamic.billingHelp", {}, "Billing help");
       }
 
       if (starterReady && plusReady && portalReady) {
-        setText("billingSummary", "Paid CV Studio plans open in secure checkout. Signed-in customers can manage or cancel later in the billing portal.");
-        setText("checkoutNote", "Starter and Plus are monthly CV Studio plans with one shared quota across extension and paste mode.");
+        setText("billingSummary", T("pages.plan.dynamic.billingSummaryLive", {}, "Paid CV Studio plans open in secure checkout. Signed-in customers can manage or cancel later in the billing portal."));
+        setText("checkoutNote", T("pages.plan.dynamic.checkoutNoteLive", {}, "Starter and Plus are monthly CV Studio plans with one shared quota across extension and paste mode."));
         return;
       }
 
       if (starterReady || plusReady) {
-        setText("billingSummary", "Checkout is available for paid CV Studio plans. If a specific billing action is not self-serve yet, the page falls back to direct support.");
-        setText("checkoutNote", "Paid plans are monthly. If a billing action is still being finalized, you still get a guided support path.");
+        setText("billingSummary", T("pages.plan.dynamic.billingSummaryPartial", {}, "Checkout is available for paid CV Studio plans. If a specific billing action is not self-serve yet, the page falls back to direct support."));
+        setText("checkoutNote", T("pages.plan.dynamic.checkoutNotePartial", {}, "Paid plans are monthly. If a billing action is still being finalized, you still get a guided support path."));
         return;
       }
 
-      setText("billingSummary", "Pricing is live, but direct checkout is still being finalized. Paid plan buttons currently route into a guided billing request.");
-      setText("checkoutNote", "If checkout is not live yet, you can still request access and get a response instead of losing your place.");
+      setText("billingSummary", T("pages.plan.dynamic.billingSummaryFallback", {}, "Pricing is live, but direct checkout is still being finalized. Paid plan buttons currently route into a guided billing request."));
+      setText("checkoutNote", T("pages.plan.dynamic.checkoutNoteFallback", {}, "If checkout is not live yet, you can still request access and get a response instead of losing your place."));
     }
 
     function applyBillingReturnExperience() {
       if (!BILLING_RETURN) return;
 
       if (BILLING_RETURN.status === "cancelled") {
-        setBadge("authBadge", "warn", "Checkout cancelled");
-        setText("checkoutNote", "Checkout was cancelled. You can retry any time or stay on the free plan.");
+        setBadge("authBadge", "warn", T("pages.plan.dynamic.checkoutCancelled", {}, "Checkout cancelled"));
+        setText("checkoutNote", T("pages.plan.dynamic.checkoutCancelledNote", {}, "Checkout was cancelled. You can retry any time or stay on the free plan."));
         return;
       }
 
@@ -1092,85 +1192,91 @@
       const purchasedPlanId = normalizePlanId(BILLING_RETURN.planId) || snapshot.planId;
       const purchasedPlanLabel = planLabel(purchasedPlanId);
 
-      setText("heroEyebrow", synced ? "Checkout complete" : "Payment received");
+      setText("heroEyebrow", synced
+        ? T("pages.plan.dynamic.checkoutComplete", {}, "Checkout complete")
+        : T("pages.plan.dynamic.paymentReceived", {}, "Payment received"));
       setText(
         "heroTitle",
         signedIn
-          ? `${purchasedPlanLabel} unlocked. Start tailoring your next CV now.`
-          : `Payment received. Sign in to start using ${purchasedPlanLabel}.`
+          ? T("pages.plan.dynamic.heroTitleSignedIn", { plan: purchasedPlanLabel }, `${purchasedPlanLabel} unlocked. Start tailoring your next CV now.`)
+          : T("pages.plan.dynamic.heroTitleSignedOut", { plan: purchasedPlanLabel }, `Payment received. Sign in to start using ${purchasedPlanLabel}.`)
       );
       setText(
         "heroSub",
         signedIn
           ? (
               synced
-                ? "Your paid CV Studio plan is active, so you can move straight from checkout into tailoring."
-                : "Your payment went through. We are finishing the plan sync now so your quota is ready across CV Studio and the extension."
+                ? T("pages.plan.dynamic.heroSubActive", {}, "Your paid CV Studio plan is active, so you can move straight from checkout into tailoring.")
+                : T("pages.plan.dynamic.heroSubSyncing", {}, "Your payment went through. We are finishing the plan sync now so your quota is ready across CV Studio and the extension.")
             )
-          : "Your payment went through. Sign back into the same jobmejob account so we can attach the purchase and open CV Studio."
+          : T("pages.plan.dynamic.heroSubSignedOut", {}, "Your payment went through. Sign back into the same jobmejob account so we can attach the purchase and open CV Studio.")
       );
-      setAction("heroPrimaryAction", signedIn ? "Start tailoring now" : "Sign in to continue", signedIn ? "./cv.html" : "./signup.html?entry=cv-studio&next=cv");
-      setAction("heroSecondaryAction", signedIn ? "Open dashboard" : "Back to plans", signedIn ? "./dashboard.html" : "#cv-pricing");
+      setAction("heroPrimaryAction", signedIn ? T("pages.plan.dynamic.startTailoringNow", {}, "Start tailoring now") : T("common.account.signInToContinue", {}, "Sign in to continue"), signedIn ? "/cv" : "./signup?entry=cv-studio&next=cv");
+      setAction("heroSecondaryAction", signedIn ? T("pages.plan.dynamic.openProfile", {}, "Open profile") : T("pages.plan.dynamic.backToPlans", {}, "Back to plans"), signedIn ? "/profile" : "#cv-pricing");
       renderChipList("heroProofRow", [
-        synced ? snapshot.remainingChip : `${purchasedPlanLabel} plan syncing`,
-        "Extension + pasted job flow",
-        "Manage billing anytime"
+        synced ? snapshot.remainingChip : T("pages.plan.dynamic.planSyncing", { plan: purchasedPlanLabel }, `${purchasedPlanLabel} plan syncing`),
+        T("pages.plan.dynamic.extensionPasteFlow", {}, "Extension + pasted job flow"),
+        T("pages.plan.dynamic.manageBillingAnytime", {}, "Manage billing anytime")
       ]);
       setText(
         "heroSupport",
         signedIn
           ? (
               synced
-                ? `${snapshot.detailText}. Your stored base CV and the tailoring flow stay exactly the same.`
-                : "This usually finishes in a moment. If the quota still looks stale, open CV Studio once and we will refresh it there too."
+                ? T("pages.plan.dynamic.heroSupportActive", { detail: snapshot.detailText }, `${snapshot.detailText}. Your stored base CV and the tailoring flow stay exactly the same.`)
+                : T("pages.plan.dynamic.heroSupportSyncing", {}, "This usually finishes in a moment. If the quota still looks stale, open CV Studio once and we will refresh it there too.")
             )
-          : "Use the same email you just paid with so the subscription lands on the right account."
+          : T("pages.plan.dynamic.heroSupportSignedOut", {}, "Use the same email you just paid with so the subscription lands on the right account.")
       );
 
-      setText("upgradeInfoTitle", "You're all set");
+      setText("upgradeInfoTitle", T("pages.plan.dynamic.youreAllSet", {}, "You're all set"));
       setText(
         "upgradeInfoIntro",
         signedIn
-          ? "We turned your checkout into a ready-to-use CV Studio account so the next click can be tailoring, not more pricing."
-          : "Your checkout is complete. Sign back into jobmejob with the purchased account to unlock the paid quota."
+          ? T("pages.plan.dynamic.upgradeIntroSignedIn", {}, "We turned your checkout into a ready-to-use CV Studio account so the next click can be tailoring, not more pricing.")
+          : T("pages.plan.dynamic.upgradeIntroSignedOut", {}, "Your checkout is complete. Sign back into jobmejob with the purchased account to unlock the paid quota.")
       );
-      setBadge("authBadge", synced ? "good" : "warn", signedIn ? (synced ? "Plan active" : "Finishing checkout...") : "Sign in to unlock");
+      setBadge("authBadge", synced ? "good" : "warn", signedIn
+        ? (synced ? T("pages.plan.dynamic.planActive", {}, "Plan active") : T("pages.plan.dynamic.finishingCheckout", {}, "Finishing checkout..."))
+        : T("pages.plan.dynamic.signInToUnlock", {}, "Sign in to unlock"));
       if (signedIn && session?.user?.email) {
         setBadge("sessionBadge", "", String(session.user.email));
       }
 
       $("billingSummaryBox")?.classList.add("emphasis");
       $("nextStepsBox")?.classList.add("emphasis");
-      setText("billingBoxLabel", "Your subscription");
+      setText("billingBoxLabel", T("pages.plan.dynamic.yourSubscription", {}, "Your subscription"));
       renderChipList("billingFeatureList", [
         purchasedPlanLabel,
         snapshot.quotaChip,
-        signedIn ? (synced ? "Active now" : "Activating now") : "Awaiting sign-in"
+        signedIn
+          ? (synced ? T("pages.plan.dynamic.activeNow", {}, "Active now") : T("pages.plan.dynamic.activatingNow", {}, "Activating now"))
+          : T("pages.plan.dynamic.awaitingSignIn", {}, "Awaiting sign-in")
       ]);
       setText(
         "billingSummary",
         signedIn
           ? (
               synced
-                ? `${snapshot.remainingChip} this cycle. Open CV Studio to tailor against a job description right away.`
-                : "Checkout succeeded. We are finishing the plan sync now so your paid quota appears correctly."
+                ? T("pages.plan.dynamic.billingSummarySignedInActive", { remaining: snapshot.remainingChip }, `${snapshot.remainingChip} this cycle. Open CV Studio to tailor against a job description right away.`)
+                : T("pages.plan.dynamic.billingSummarySignedInSyncing", {}, "Checkout succeeded. We are finishing the plan sync now so your paid quota appears correctly.")
             )
-          : "Sign in with the purchased account to attach this checkout and start tailoring."
+          : T("pages.plan.dynamic.billingSummarySignedOut", {}, "Sign in with the purchased account to attach this checkout and start tailoring.")
       );
 
-      setText("nextStepsLabel", "Do this next");
+      setText("nextStepsLabel", T("pages.plan.dynamic.doThisNext", {}, "Do this next"));
       renderFeatureList(
         "nextStepsList",
         signedIn
           ? [
-              "Open CV Studio and paste a job description or import one from the extension.",
-              "Generate your first tailored CV with your paid quota.",
-              "Come back here later only if you want to manage billing or compare plans."
+              T("pages.plan.dynamic.requestFlow1", {}, "Open CV Studio and paste a job description or import one from the extension."),
+              T("pages.plan.dynamic.requestFlow2", {}, "Generate your first tailored CV with your paid quota."),
+              T("pages.plan.dynamic.requestFlow3", {}, "Come back here later only if you want to manage billing or compare plans.")
             ]
           : [
-              "Sign in with the same email used during checkout.",
-              "Open CV Studio and tailor your first job application.",
-              "Manage billing later from your account menu."
+              T("pages.plan.dynamic.requestFlow4", {}, "Sign in with the same email used during checkout."),
+              T("pages.plan.dynamic.requestFlow5", {}, "Open CV Studio and tailor your first job application."),
+              T("pages.plan.dynamic.requestFlow6", {}, "Manage billing later from your account menu.")
             ]
       );
 
@@ -1178,15 +1284,15 @@
       if (nextStepsNote) {
         nextStepsNote.style.display = "block";
         nextStepsNote.textContent = signedIn
-          ? "You can manage or cancel later in the Stripe billing portal."
-          : "Once you sign in, your paid plan will open directly into CV Studio.";
+          ? T("pages.plan.dynamic.nextStepsNoteSignedIn", {}, "You can manage or cancel later in the Stripe billing portal.")
+          : T("pages.plan.dynamic.nextStepsNoteSignedOut", {}, "Once you sign in, your paid plan will open directly into CV Studio.");
       }
 
       setText(
         "checkoutNote",
         synced
-          ? `${purchasedPlanLabel} is active. Go straight into CV Studio and generate your next tailored CV.`
-          : "Payment confirmed. We are syncing your paid plan now so your quota is ready."
+          ? T("pages.plan.dynamic.checkoutNoteSynced", { plan: purchasedPlanLabel }, `${purchasedPlanLabel} is active. Go straight into CV Studio and generate your next tailored CV.`)
+          : T("pages.plan.dynamic.checkoutNoteSyncing", {}, "Payment confirmed. We are syncing your paid plan now so your quota is ready.")
       );
       updateCurrentPlanButton(purchasedPlanId);
     }
@@ -1194,28 +1300,30 @@
     async function openCvPlan(plan) {
       const pid = String(plan || "").trim().toLowerCase();
       if (pid === "free") {
-        go(session ? "./cv.html" : "./signup.html?entry=cv-studio");
+        go(session ? "/cv" : "./signup?entry=cv-studio");
         return;
       }
 
       if (!session || !session.user || !session.user.email) {
-        go("./signup.html?entry=cv-studio&next=plan");
+        go("./signup?entry=cv-studio&next=plan");
         return;
       }
 
       const fallbackTarget = CHECKOUTS[pid] || supportFallback(
-        pid === "starter" ? "CV Studio Starter plan" : "CV Studio Plus plan",
-        "Hi jobmejob team,\n\nI would like help activating the " + (pid === "starter" ? "Starter" : "Plus") + " CV Studio plan.\n\nThanks."
+        pid === "starter"
+          ? T("pages.plan.dynamic.supportSubjectStarter", {}, "CV Studio Starter plan")
+          : T("pages.plan.dynamic.supportSubjectPlus", {}, "CV Studio Plus plan"),
+        T("pages.plan.dynamic.supportBody", { plan: pid === "starter" ? T("common.plans.starter", {}, "Starter") : T("common.plans.plus", {}, "Plus") }, "Hi jobmejob team,\n\nI would like help activating the {plan} CV Studio plan.\n\nThanks.")
       );
 
       try {
-        const data = await apiPostAuthed("/me/billing/checkout", { plan_id: pid });
+        const data = await apiPostAuthed("/me/billing/checkout", { plan_id: pid, locale: CURRENT_LOCALE || undefined });
         if (data && data.url) {
           window.location.href = data.url;
           return;
         }
       } catch (err) {
-        notify(String(err?.message || err || "Billing checkout failed"), "warn");
+        notify(String(err?.message || err || T("pages.plan.dynamic.checkoutFailed", {}, "Billing checkout failed")), "warn");
       }
 
       window.location.href = fallbackTarget;
@@ -1223,31 +1331,31 @@
 
     async function openBillingPortal() {
       if (!session || !session.user || !session.user.email) {
-        go("./signup.html?entry=cv-studio&next=plan");
+        go("./signup?entry=cv-studio&next=plan");
         return;
       }
 
       const fallbackTarget = BILLING_PORTAL || supportFallback(
-        "CV Studio billing support",
-        "Hi jobmejob team,\n\nI need help with billing for my CV Studio subscription.\n\nThanks."
+        T("pages.plan.dynamic.portalSupportSubject", {}, "CV Studio billing support"),
+        T("pages.plan.dynamic.portalSupportBody", {}, "Hi jobmejob team,\n\nI need help with billing for my CV Studio subscription.\n\nThanks.")
       );
 
       try {
-        const data = await apiPostAuthed("/me/billing/portal", {});
+        const data = await apiPostAuthed("/me/billing/portal", { locale: CURRENT_LOCALE || undefined });
         if (data && data.url) {
           window.location.href = data.url;
           return;
         }
       } catch (err) {
-        notify(String(err?.message || err || "Billing portal unavailable"), "warn");
+        notify(String(err?.message || err || T("pages.plan.dynamic.portalUnavailable", {}, "Billing portal unavailable")), "warn");
       }
 
       window.location.href = fallbackTarget;
     }
 
     async function boot() {
-      setBadge("authBadge", "warn", "Checking...");
-      setBadge("sessionBadge", "", "Account: not signed in");
+      setBadge("authBadge", "warn", T("pages.plan.dynamic.checking", {}, "Checking..."));
+      setBadge("sessionBadge", "", T("pages.plan.dynamic.sessionSignedOut", {}, "Account: not signed in"));
 
       await fetchBillingConfig();
 
@@ -1258,11 +1366,11 @@
       }
 
       if (session && session.user && session.user.email) {
-        setBadge("authBadge", BILLING_RETURN?.status === "success" ? "warn" : "good", BILLING_RETURN?.status === "success" ? "Finishing checkout..." : "Signed in");
+        setBadge("authBadge", BILLING_RETURN?.status === "success" ? "warn" : "good", BILLING_RETURN?.status === "success" ? T("pages.plan.dynamic.finishingCheckout", {}, "Finishing checkout...") : T("pages.plan.dynamic.signedIn", {}, "Signed in"));
         setBadge("sessionBadge", "", String(session.user.email));
       } else {
-        setBadge("authBadge", "warn", "Ready to start free");
-        setBadge("sessionBadge", "", "Create an account when you want to upgrade");
+        setBadge("authBadge", "warn", T("pages.plan.dynamic.readyToStartFree", {}, "Ready to start free"));
+        setBadge("sessionBadge", "", T("pages.plan.dynamic.createAccountWhenUpgrade", {}, "Create an account when you want to upgrade"));
       }
 
       if (BILLING_RETURN?.status === "success") {
@@ -1309,7 +1417,8 @@
     }
 
     window.addEventListener("load", () => {
-      boot().catch(() => {
+      const ready = (I18N && typeof I18N.ready === "function") ? I18N.ready() : Promise.resolve();
+      ready.then(() => boot()).catch(() => {
         setBadge("authBadge", "bad", "Error");
       });
     });

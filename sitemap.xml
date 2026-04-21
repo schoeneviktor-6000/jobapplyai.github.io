@@ -4,31 +4,55 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml"
 >
   <url>
-    <loc>https://jobmejob.com/</loc>
+    <loc>https://jobmejob.com/en/</loc>
+    <lastmod>2026-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://jobmejob.com/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://jobmejob.com/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://jobmejob.com/en/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://jobmejob.com/de/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://jobmejob.com/es/" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://jobmejob.com/ko/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jobmejob.com/en/" />
   </url>
   <url>
-    <loc>https://jobmejob.com/privacy.html</loc>
+    <loc>https://jobmejob.com/privacy</loc>
+    <lastmod>2026-04-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://jobmejob.com/privacy.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://jobmejob.com/privacy.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://jobmejob.com/privacy" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jobmejob.com/privacy" />
   </url>
   <url>
-    <loc>https://jobmejob.com/cv-studio.html</loc>
+    <loc>https://jobmejob.com/en/cv-studio</loc>
+    <lastmod>2026-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://jobmejob.com/cv-studio.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://jobmejob.com/cv-studio.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://jobmejob.com/en/cv-studio" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://jobmejob.com/de/cv-studio" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://jobmejob.com/es/cv-studio" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://jobmejob.com/ko/cv-studio" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jobmejob.com/en/cv-studio" />
   </url>
   <url>
-    <loc>https://jobmejob.com/plan.html</loc>
+    <loc>https://jobmejob.com/en/plan</loc>
+    <lastmod>2026-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://jobmejob.com/plan.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://jobmejob.com/plan.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://jobmejob.com/en/plan" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://jobmejob.com/de/plan" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://jobmejob.com/es/plan" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://jobmejob.com/ko/plan" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jobmejob.com/en/plan" />
+  </url>
+  <url>
+    <loc>https://jobmejob.com/en/signup</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://jobmejob.com/en/signup" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://jobmejob.com/de/signup" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://jobmejob.com/es/signup" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://jobmejob.com/ko/signup" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://jobmejob.com/en/signup" />
   </url>
 </urlset>

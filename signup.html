@@ -3,8 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>jobmejob | Sign in to CV Studio and job search tools</title>
-<meta name="description" content="Sign in with Google to start CV Studio or continue into the wider jobmejob workflow.">
+<title data-i18n-title="meta.signup.title">jobmejob | Start CV Tailoring with CV Studio</title>
+<meta name="description" data-i18n-content="meta.signup.description" content="Sign in with Google, upload your base CV once, and tailor your CV to any job description in CV Studio.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="jobmejob">
+<meta property="og:title" data-i18n-content="meta.signup.title" content="jobmejob | Start CV Tailoring with CV Studio">
+<meta property="og:description" data-i18n-content="meta.signup.description" content="Sign in with Google, upload your base CV once, and tailor your CV to any job description in CV Studio.">
+<meta property="og:image" content="https://jobmejob.com/logo-512.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" data-i18n-content="meta.signup.title" content="jobmejob | Start CV Tailoring with CV Studio">
+<meta name="twitter:description" data-i18n-content="meta.signup.description" content="Sign in with Google, upload your base CV once, and tailor your CV to any job description in CV Studio.">
+<meta name="twitter:image" content="https://jobmejob.com/logo-512.png">
 
 <style>
 :root{
@@ -248,6 +258,8 @@ line-height:1.55;
 }
 .hr{height:1px;background:rgba(15,23,42,.08);margin:14px 0}
 .footer{margin-top:18px;text-align:center;color:var(--muted2);font-size:12px}
+.footerLocale{margin-top:12px;display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap}
+.footerLocaleLabel{font-weight:900;color:var(--muted)}
 .errorTop{
 display:none;
 margin:12px 0 0 0;
@@ -265,52 +277,50 @@ white-space:pre-wrap;
 </style>
 </head>
 
-<body data-nav-fetch-state="1">
+<body data-nav-fetch-state="1" data-page="signup">
 <div class="wrap">
 <div class="shell fadeIn">
 
 <div class="top">
-<a class="brand" href="index.html" data-nav="1">
+<a class="brand" href="./" data-nav="1">
 <span class="logo" aria-hidden="true"></span>
 <span class="wordmark">
 <span class="name">jobmejob</span>
-<span class="tag">CV Studio + job search tools</span>
+<span class="tag" data-i18n="pages.signup.wordmark">CV Studio + job search tools</span>
 </span>
 </a>
 <div class="topActions">
-<a class="pill" href="index.html" data-nav="1">Home</a>
-<a class="pill" href="cv-studio.html" data-nav="1">CV Studio</a>
-<a class="pill" href="plan.html#cv-pricing" data-nav="1">Pricing</a>
+<a class="pill" href="./" data-nav="1" data-i18n="common.nav.home">Home</a>
+<a class="pill" href="cv-studio" data-nav="1" data-i18n="common.nav.cvStudio">CV Studio</a>
+<a class="pill" href="plan#cv-pricing" data-nav="1" data-i18n="common.nav.pricing">Pricing</a>
 <details class="navDrop" id="navAccount" style="display:none">
 <summary class="jmNavTrigger" aria-label="Account menu">
-<span id="navAccountLabel">Account</span>
+<span id="navAccountLabel" data-i18n="common.nav.account">Account</span>
 <span aria-hidden="true">▾</span>
 </summary>
 <div class="navMenu" role="menu" aria-label="Account menu">
 <div class="jmAccountCard">
 <div class="jmAccountTop">
-<div class="jmAccountTitle" id="navAccountTitle">Your account</div>
-<span class="jmNavMetaPill" id="navPlanPill">Free</span>
+<div class="jmAccountTitle" id="navAccountTitle" data-i18n="common.nav.yourAccount">Your account</div>
+<span class="jmNavMetaPill" id="navPlanPill" data-i18n="common.plans.free">Free</span>
 </div>
-<div class="jmAccountEmail" id="navAccountEmail">Sign in to continue</div>
+<div class="jmAccountEmail" id="navAccountEmail" data-i18n="common.account.signInToContinue">Sign in to continue</div>
 <div class="jmAccountMetaRow">
-<span class="jmNavMetaPill" id="navUsagePill">5 free CVs available</span>
+<span class="jmNavMetaPill" id="navUsagePill" data-i18n="common.account.freeUsage">5 free CVs available</span>
 </div>
-<div class="jmAccountHint" id="navPlanMeta">CV Studio free plan</div>
-<div class="jmAccountHint" id="navUsageMeta">Usage updates after each tailored CV.</div>
+<div class="jmAccountHint" id="navPlanMeta" data-i18n="common.account.freePlan">CV Studio free plan</div>
+<div class="jmAccountHint" id="navUsageMeta" data-i18n="common.account.usageUpdates">Usage updates after each tailored CV.</div>
 </div>
-<div class="menuLabel">Go to</div>
-<a class="jmNavItem" href="./dashboard.html" data-nav="1" role="menuitem">Dashboard</a>
-<a class="jmNavItem" href="./cv.html" data-nav="1" role="menuitem">CV Studio</a>
-<a class="jmNavItem" href="./jobs.html" data-nav="1" role="menuitem">Jobs</a>
-<a class="jmNavItem" href="./profile.html" data-nav="1" role="menuitem">Profile</a>
-<a class="jmNavItem" href="./profile.html#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Manage billing</a>
-<a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Plans & pricing</a>
+<div class="menuLabel" data-i18n="common.nav.goTo">Go to</div>
+<a class="jmNavItem" href="/cv?entry=chooser" data-nav="1" role="menuitem" data-i18n="common.nav.cvStudio">CV Studio</a>
+<a class="jmNavItem" href="/profile" data-nav="1" role="menuitem" data-i18n="common.nav.profile">Profile</a>
+<a class="jmNavItem" href="/profile#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing" data-i18n="common.nav.manageBilling">Manage billing</a>
+<a class="jmNavItem" href="./plan#cv-pricing" data-nav="1" role="menuitem" data-i18n="common.nav.plansAndPricing">Plans & pricing</a>
 <div class="menuSep" role="separator"></div>
-<button class="jmNavItem jmNavDanger" id="navLogout" type="button" role="menuitem">Logout</button>
+<button class="jmNavItem jmNavDanger" id="navLogout" type="button" role="menuitem" data-i18n="common.nav.logout">Logout</button>
 </div>
 </details>
-<span class="pill" id="topState">Not signed in</span>
+<span class="pill" id="topState" data-i18n="pages.shared.notSignedIn">Not signed in</span>
 </div>
 </div>
 
@@ -318,8 +328,8 @@ white-space:pre-wrap;
 
 <div class="grid">
 <section class="card hero">
-<h1>Start with CV Studio, then expand if you need more.</h1>
-<p class="sub">Sign in with Google on jobmejob, upload your base CV once, and start tailoring right away. The Chrome extension is live for one-click imports, and manual paste stays available anytime.</p>
+<h1 data-i18n="pages.signup.heroTitle">Start tailoring your CV with CV Studio.</h1>
+<p class="sub" data-i18n="pages.signup.heroSub">Sign in with Google, upload your base CV once, and tailor your CV to any job description right away. The Chrome extension handles one-click imports, and manual paste stays available anytime.</p>
 
 <button class="googleBtn" id="btnGoogle" type="button">
 <span class="googleIcon" aria-hidden="true">
@@ -330,66 +340,85 @@ white-space:pre-wrap;
 <path fill="#34A853" d="M24 48c6.3 0 11.6-2.1 15.5-5.7l-8.3-6.4c-2.2 1.6-5.1 2.7-7.2 2.7-6.2 0-11.4-4.1-13.3-9.9l-8.1 6.3C6.5 42.6 14.6 48 24 48z"/>
 </svg>
 </span>
-<span id="btnGoogleText">Continue with Google</span>
+<span id="btnGoogleText" data-i18n="pages.signup.googleCta">Continue with Google</span>
 </button>
 
 <div class="statusRow" id="statusRow" style="display:none">
 <div class="statusLeft">
-<div class="statusLabel">Signed in as</div>
+<div class="statusLabel" data-i18n="pages.signup.signedInAs">Signed in as</div>
 <div class="statusValue" id="signedEmail">—</div>
 </div>
-<button class="linkBtn" id="btnSwitch" type="button">Switch</button>
+<button class="linkBtn" id="btnSwitch" type="button" data-i18n="pages.signup.switch">Switch</button>
 </div>
 
-<p class="small" id="hint" style="margin-top:10px;text-align:center">You stay in control. CV Studio works on its own, and nothing is sent without your confirmation.</p>
-<div class="workflowNote">After sign-in, we’ll take you to CV upload first. Once your base CV is in place, the extension can hand job pages straight into your account.</div>
+<p class="small" id="hint" style="margin-top:10px;text-align:center" data-i18n="pages.signup.hint">You stay in control. CV Studio works on its own, and nothing is sent without your confirmation.</p>
+<div class="workflowNote" data-i18n="pages.signup.workflowNote">After sign-in, we’ll take you to CV upload first. Once your base CV is in place, the extension can hand job pages straight into your account.</div>
 </section>
 
 <aside class="card">
-<div style="font-weight:950;margin-bottom:8px">Best path for extension users</div>
+<div style="font-weight:950;margin-bottom:8px" data-i18n="pages.signup.bestPath">Best path for extension users</div>
 <div class="steps">
 <div class="step">
 <div class="num">1</div>
 <div class="stepText">
-<div class="stepTag">Here on jobmejob</div>
-<div class="stepTitle">Sign in with Google</div>
-<div class="stepDesc">This website handles the account, billing, and stored CV. The extension only imports the job page.</div>
+<div class="stepTag" data-i18n="pages.signup.step1Tag">Here on jobmejob</div>
+<div class="stepTitle" data-i18n="pages.signup.step1Title">Sign in with Google</div>
+<div class="stepDesc" data-i18n="pages.signup.step1Body">This website handles the account, billing, and stored CV. The extension only imports the job page.</div>
 </div>
 </div>
 <div class="step">
 <div class="num">2</div>
 <div class="stepText">
-<div class="stepTag">One-time setup</div>
-<div class="stepTitle">Upload your base CV once</div>
-<div class="stepDesc">We keep this as your source of truth so every tailored version stays grounded in your real experience.</div>
+<div class="stepTag" data-i18n="pages.signup.step2Tag">One-time setup</div>
+<div class="stepTitle" data-i18n="pages.signup.step2Title">Upload your base CV once</div>
+<div class="stepDesc" data-i18n="pages.signup.step2Body">We keep this as your source of truth so every tailored version stays grounded in your real experience.</div>
 </div>
 </div>
 <div class="step">
 <div class="num">3</div>
 <div class="stepText">
-<div class="stepTag">Live now</div>
-<div class="stepTitle">Add the extension anytime</div>
-<div class="stepDesc">Once your base CV is in place, use the same account in the extension. It imports the job page, and CV Studio handles the tailoring.</div>
+<div class="stepTag" data-i18n="pages.signup.step3Tag">Live now</div>
+<div class="stepTitle" data-i18n="pages.signup.step3Title">Add the extension anytime</div>
+<div class="stepDesc" data-i18n="pages.signup.step3Body">Once your base CV is in place, use the same account in the extension. It imports the job page, and CV Studio handles the tailoring.</div>
 </div>
 </div>
 </div>
 <div class="hr"></div>
 <div class="ctaStack">
-<a class="pill" data-extension-link data-extension-disabled-label="Add to Chrome" data-extension-ready-label="Add to Chrome" href="https://chromewebstore.google.com/detail/jibmnlonajhoaanhoblhiciddggiohba?utm_source=item-share-cb"><span data-extension-label>Add to Chrome</span></a>
-<a class="pill" href="cv-studio.html" data-nav="1">See CV Studio</a>
+<a class="pill" data-extension-link data-extension-disabled-label="Add to Chrome" data-extension-ready-label="Add to Chrome" href="https://chromewebstore.google.com/detail/jibmnlonajhoaanhoblhiciddggiohba?utm_source=item-share-cb"><span data-extension-label data-i18n="pages.signup.extensionCta">Add to Chrome</span></a>
+<a class="pill" href="cv-studio" data-nav="1" data-i18n="pages.signup.seeStudio">See CV Studio</a>
 </div>
-<p class="small">If sign-in loops: Supabase Auth settings must allow this page URL as a redirect URL.</p>
+<p class="small" data-i18n="pages.signup.redirectNote">If sign-in loops: Supabase Auth settings must allow this page URL as a redirect URL.</p>
 </aside>
 </div>
 
-<div class="footer">Support: <a href="mailto:team@jobmejob.com">team@jobmejob.com</a></div>
+<div class="footer">
+<div><span data-i18n="pages.signup.support">Support:</span> <a href="mailto:team@jobmejob.com">team@jobmejob.com</a></div>
+<div class="footerLocale">
+<span class="footerLocaleLabel" data-i18n="common.languageSwitcher.label">Language</span>
+<details class="navDrop" data-locale-switcher="1" data-i18n-aria-label="common.languageSwitcher.ariaLabel">
+<summary class="jmNavTrigger" aria-label="Language switcher">
+<span data-locale-current>🇺🇸 English</span>
+<span aria-hidden="true">▾</span>
+</summary>
+<div class="navMenu" role="menu" aria-label="Language switcher">
+<div class="menuLabel" data-i18n="common.languageSwitcher.label">Language</div>
+<a class="jmNavItem" href="/en/" data-locale-option="en" role="menuitem">🇺🇸 English</a>
+<a class="jmNavItem" href="/de/" data-locale-option="de" role="menuitem">🇩🇪 Deutsch</a>
+<a class="jmNavItem" href="/es/" data-locale-option="es" role="menuitem">🇪🇸 Español</a>
+<a class="jmNavItem" href="/ko/" data-locale-option="ko" role="menuitem">🇰🇷 한국어</a>
+</div>
+</details>
+</div>
+</div>
 
 </div>
 </div>
 
 <script src="./vendor/supabase-js-2.100.1.js"></script>
 <script src="./auth.js?v=202604121905"></script>
-<script src="./shared.js?v=202604102230"></script>
+<script src="./i18n.js?v=202604181830"></script>
+<script src="./shared.js?v=202604181830"></script>
 <script>
 "use strict";
 
@@ -410,6 +439,13 @@ plan:["jm_plan","ja_plan"]
 };
 const POST_AUTH_REDIRECT_KEY="jm_post_auth_redirect_v1";
 const POST_AUTH_REDIRECT_MAX_AGE_MS=30*60*1000;
+const I18N=window.JobMeJobI18n || null;
+function T(key, vars, fallback){
+try{
+if(I18N && typeof I18N.t==="function") return I18N.t(key, vars||{}, fallback||key);
+}catch(_){}
+return fallback || key;
+}
 
 function $(id){return document.getElementById(id);}
 function showError(msg){
@@ -484,7 +520,25 @@ try{sessionStorage.removeItem("sb_access_token");}catch(_){}
 }
 lsSetAll(LS.userEmail, now);
 }
-function hasProfileLocal(){return (lsGetFirst(LS.profileDone)==="true");}
+function readCachedState(){
+try{
+if(APP_AUTH && typeof APP_AUTH.getCachedState === "function"){
+const cached=APP_AUTH.getCachedState();
+if(cached && typeof cached === "object") return cached;
+}
+const raw=localStorage.getItem("jm_state_json");
+if(!raw) return null;
+const parsed=JSON.parse(raw);
+return parsed && typeof parsed === "object" ? parsed : null;
+}catch(_){
+return null;
+}
+}
+function hasUploadedCvState(state){
+const raw=state && state.cv_uploaded;
+return raw===true || raw===1 || String(raw||"").trim().toLowerCase()==="true";
+}
+function hasUploadedCvLocal(){return hasUploadedCvState(readCachedState());}
 function hasPlanLocal(){return !!lsGetFirst(LS.plan);}
 
 /* Supabase */
@@ -594,24 +648,24 @@ const wantsMobileCvFlow=!!(
   shared.isMobileCvFlowEnabled() &&
   shared.isMobileCvDevice()
 );
-if(next==="plan" && !wantsMobileCvFlow) return "./plan.html";
+if(next==="plan" && !wantsMobileCvFlow) return "./plan";
 try{
 const st=await apiGetWithBearer("/me/state", session.access_token);
 if(wantsMobileCvFlow) return shared.resolveMobileCvPath({ state: st });
-if(st && st.profile_complete === false) return "./profile.html";
-if(wantsCvStudio) return "./cv.html";
-return "./dashboard.html";
+if(!hasUploadedCvState(st)) return "/profile";
+if(wantsCvStudio) return "/cv?entry=chooser";
+return "/cv?entry=chooser";
 }catch(_){
 if(wantsMobileCvFlow) return shared.resolveMobileCvPath({});
-if(!hasProfileLocal()) return "./profile.html";
-if(wantsCvStudio) return "./cv.html";
-if(next==="plan") return "./plan.html";
-return "./dashboard.html";
+if(next==="plan") return "./plan";
+if(!hasUploadedCvLocal()) return "/profile";
+if(wantsCvStudio) return "/cv?entry=chooser";
+return "/cv?entry=chooser";
 }
 }
 
 function showSignedIn(email){
-setTopState("Signed in");
+setTopState(T("pages.shared.signedIn", {}, "Signed in"));
 const row=$("statusRow");
 const em=$("signedEmail");
 if(row) row.style.display="";
@@ -619,11 +673,11 @@ if(em) em.textContent=String(email||"");
 try{ window.JobMeJobShared?.hydrateAccountNav?.({ fetchState:true }); }catch(_){}
 }
 function showSignedOut(){
-setTopState("Not signed in");
+setTopState(T("pages.shared.notSignedIn", {}, "Not signed in"));
 const row=$("statusRow");
 if(row) row.style.display="none";
-setGoogleButton(false,"Continue with Google");
-setHint("You stay in control. Nothing is sent without your confirmation.");
+setGoogleButton(false,T("pages.shared.continueWithGoogle", {}, "Continue with Google"));
+setHint(T("pages.signup.hint", {}, "You stay in control. Nothing is sent without your confirmation."));
 try{ window.JobMeJobShared?.hydrateAccountNav?.({ session:null, state:null, fetchState:false }); }catch(_){}
 }
 
@@ -640,17 +694,17 @@ resetLocalStateForNewUser(email);
 try{sessionStorage.setItem("sb_access_token", session.access_token);}catch(_){}
 
 try{
-setGoogleButton(true,"Setting up…");
-setHint("Setting up your account…");
+setGoogleButton(true,T("pages.shared.settingUp", {}, "Setting up…"));
+setHint(T("pages.shared.settingUpAccount", {}, "Setting up your account…"));
 const data=await upsertCustomerByEmail(email, session.access_token);
 if(data && data.customer_id) lsSetAll(LS.customerId, String(data.customer_id));
 const next=consumePendingPostAuthRedirect() || await determineNextUrl(session);
-setHint("Done. Taking you to the next step…");
+setHint(T("pages.shared.doneRedirect", {}, "Done. Taking you to the next step…"));
 setTimeout(()=>{go(next);}, 650);
 }catch(e){
 showError(e && e.message ? e.message : String(e));
-setGoogleButton(false,"Try again");
-setHint("Could not finish setup. Click again to retry.");
+setGoogleButton(false,T("pages.shared.tryAgain", {}, "Try again"));
+setHint(T("pages.shared.retryHint", {}, "Could not finish setup. Click again to retry."));
 completing=false;
 }
 }
@@ -661,8 +715,8 @@ let session=await getSession();
 if(!session){
 const fromOauth=window.location.search.includes("code=") || window.location.search.includes("state=");
 if(fromOauth){
-setGoogleButton(true,"Finishing sign-in…");
-setHint("Finishing sign-in…");
+setGoogleButton(true,T("pages.shared.finishingSignIn", {}, "Finishing sign-in…"));
+setHint(T("pages.shared.finishingSignIn", {}, "Finishing sign-in…"));
 }
 session=await waitForSession(6000);
 }
@@ -696,26 +750,26 @@ const next=await determineNextUrl(s);
 go(next);
 return;
 }
-setGoogleButton(true,"Opening Google…");
-setHint("Opening Google sign-in…");
+setGoogleButton(true,T("pages.shared.openingGoogle", {}, "Opening Google…"));
+setHint(T("pages.shared.openingGoogleHint", {}, "Opening Google sign-in…"));
 await loginWithGoogle();
 }catch(e){
 showError(e && e.message ? e.message : String(e));
-setGoogleButton(false,"Continue with Google");
-setHint("Sign-in failed. Please retry.");
+setGoogleButton(false,T("pages.shared.continueWithGoogle", {}, "Continue with Google"));
+setHint(T("pages.shared.signInFailed", {}, "Sign-in failed. Please retry."));
 }
 });
 
 $("btnSwitch").addEventListener("click", async ()=>{
 try{
 showError("");
-setHint("Switching account…");
+setHint(T("pages.shared.switchingAccount", {}, "Switching account…"));
 await supabaseClient.auth.signOut();
 try{sessionStorage.removeItem("sb_access_token");}catch(_){}
 showSignedOut();
 }catch(e){
 showError(e && e.message ? e.message : String(e));
-setHint("Could not switch. Please retry.");
+setHint(T("pages.shared.switchFailed", {}, "Could not switch. Please retry."));
 }
 });
 
@@ -727,7 +781,9 @@ await completeAndRedirect(session);
 });
 
 /* Boot */
-hydrate().catch(e=>showError(e && e.message ? e.message : String(e)));
+((I18N && typeof I18N.ready==="function") ? I18N.ready() : Promise.resolve())
+  .then(()=>hydrate())
+  .catch(e=>showError(e && e.message ? e.message : String(e)));
 </script>
 </body>
 </html>

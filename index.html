@@ -3,8 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>jobmejob — Tailor your CV to any job online</title>
-<meta name="description" content="Tailor your CV to any job you find online. Match job requirements, spot missing keywords, keep ATS-safe formatting, edit the draft, and export a polished PDF.">
+<title data-i18n-title="meta.index.title">jobmejob — Tailor Your CV to Any Job Description</title>
+<meta name="description" data-i18n-content="meta.index.description" content="Tailor your CV or resume to any job description, spot missing keywords, improve ATS match, and export a clean PDF you can send.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="jobmejob">
+<meta property="og:title" data-i18n-content="meta.index.title" content="jobmejob — Tailor Your CV to Any Job Description">
+<meta property="og:description" data-i18n-content="meta.index.description" content="Tailor your CV or resume to any job description, spot missing keywords, improve ATS match, and export a clean PDF you can send.">
+<meta property="og:image" content="https://jobmejob.com/logo-512.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" data-i18n-content="meta.index.title" content="jobmejob — Tailor Your CV to Any Job Description">
+<meta name="twitter:description" data-i18n-content="meta.index.description" content="Tailor your CV or resume to any job description, spot missing keywords, improve ATS match, and export a clean PDF you can send.">
+<meta name="twitter:image" content="https://jobmejob.com/logo-512.png">
 <script>
   (function(){
     try{
@@ -20,7 +30,7 @@
         h.get("error_code")
       );
       if(!isAuthReturn) return;
-      window.location.replace("./signup.html" + window.location.search + window.location.hash);
+      window.location.replace("./signup" + window.location.search + window.location.hash);
     }catch(_){}
   })();
 </script>
@@ -412,30 +422,6 @@ gap:10px;
 flex-wrap:wrap;
 margin-top:14px;
 }
-.soonFlagWrap{
-position:relative;
-padding-top:18px;
-}
-.soonFlagWrap::before{
-content:attr(data-flag);
-position:absolute;
-top:0;
-left:14px;
-display:inline-flex;
-align-items:center;
-height:24px;
-padding:0 10px;
-border-radius:999px;
-background:rgba(249,115,22,.12);
-border:1px solid rgba(249,115,22,.18);
-color:#a44e14;
-font-size:11px;
-font-weight:950;
-letter-spacing:.08em;
-text-transform:uppercase;
-z-index:2;
-}
-
 /* Sections */
 section{padding:58px 0}
 .sectionHead{
@@ -1231,6 +1217,10 @@ color:var(--muted);
 .pricingWrap{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:stretch}
 .plan{display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden}
 .plan.featured{border-color:rgba(0,166,63,.32);box-shadow:0 18px 48px rgba(0,166,63,.16);transform:translateY(-2px)}
+.planIntro{display:grid;gap:10px;align-content:start}
+.planCopy{min-height:56px}
+.planCopy h3{margin:0 0 6px;font-weight:1000;letter-spacing:-.2px}
+.planLead{margin:0;color:var(--muted);font-size:14px;line-height:1.45}
 .ribbon{
 position:absolute;
 top:14px;
@@ -1243,7 +1233,7 @@ color:#0a3a1c;
 font-weight:1000;
 font-size:12px;
 }
-.priceRow{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.priceRow{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;min-height:44px}
 .priceRow strong{font-size:36px;line-height:1;letter-spacing:-.9px;font-weight:1000}
 .priceRow span{font-size:13px;color:var(--muted2);font-weight:900;padding-bottom:5px}
 .strike{font-size:13px;color:var(--muted2);text-decoration:line-through;font-weight:950}
@@ -1261,17 +1251,19 @@ font-size:12px;
 
 /* New: plan value row */
 .valueRow{
-display:flex;
+display:grid;
+grid-template-columns:minmax(0,1fr) auto;
 align-items:center;
-justify-content:space-between;
 gap:10px;
 padding:12px;
 border-radius:18px;
 background:rgba(246,247,248,.72);
 border:1px solid rgba(215,218,220,.9);
+min-height:108px;
 }
+.valueRow > div{display:grid;gap:4px;min-width:0}
 .valueRow strong{font-weight:1000;color:var(--ink2);font-size:13px}
-.valueRow span{color:var(--muted);font-size:13px;font-weight:900}
+.valueRow span{color:var(--muted);font-size:13px;font-weight:900;line-height:1.45}
 .valueBadge{
 display:inline-flex;
 align-items:center;
@@ -1287,7 +1279,7 @@ white-space:nowrap;
 }
 .valueBadge i{width:8px;height:8px;border-radius:999px;background:var(--brand);display:inline-block}
 
-.features{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.features{margin:0;padding:0;list-style:none;display:grid;gap:10px;flex:1}
 .features li{display:flex;gap:10px;align-items:flex-start;color:var(--muted);font-size:14px}
 .tick{
 width:18px;height:18px;border-radius:6px;
@@ -1300,6 +1292,7 @@ margin-top:2px;
 }
 .tick svg{width:12px;height:12px}
 .planActions{margin-top:auto;display:flex;gap:10px;flex-wrap:wrap}
+.planActions .btn{justify-content:center;min-height:44px}
 .fineprint{margin:14px 0 0 0;color:var(--muted2);font-size:12px;font-weight:850}
 
 /* Why */
@@ -1497,6 +1490,16 @@ border-radius:12px;
 background:rgba(240,242,243,.95);
 color:var(--text);
 }
+.footerLocale{
+display:flex;
+align-items:center;
+gap:10px;
+flex-wrap:wrap;
+}
+.footerLocaleLabel{
+font-weight:900;
+color:var(--muted);
+}
 
 @media (max-width:980px){
 .heroGrid{grid-template-columns:1fr}
@@ -1512,6 +1515,8 @@ color:var(--text);
 @media (max-width:640px){
 .navlinks{display:none}
 .two{grid-template-columns:1fr}
+.valueRow{grid-template-columns:1fr}
+.valueBadge{justify-self:start}
 .stepList:before{left:18px}
 .stepBtn{grid-template-columns:50px 1fr auto}
 }
@@ -2225,6 +2230,203 @@ color:var(--text);
 }
 
 
+/* Preview */
+.previewBand{
+  padding:28px 0 72px;
+  background:
+    radial-gradient(900px 460px at 18% 0%, rgba(0,166,63,.12), transparent 62%),
+    radial-gradient(900px 460px at 85% 8%, rgba(0,0,0,.04), transparent 64%),
+    linear-gradient(180deg, rgba(255,255,255,0), rgba(246,247,248,.80) 42%, rgba(255,255,255,1) 100%);
+}
+.previewBand .sectionHead{
+  align-items:center;
+  text-align:center;
+  margin-bottom:28px;
+}
+.previewBand .sectionDesc{max-width:76ch}
+.previewWrap{
+  display:grid;
+  grid-template-columns:220px minmax(0, 1fr) 220px;
+  gap:18px;
+  align-items:start;
+}
+.previewCard{
+  padding:16px;
+  border-radius:24px;
+  border:1px solid rgba(215,218,220,.95);
+  background:rgba(255,255,255,.95);
+  box-shadow:0 18px 42px rgba(15,23,42,.08);
+  display:grid;
+  gap:12px;
+}
+.previewCard--left{
+  grid-column:1;
+  grid-row:1;
+  margin-top:52px;
+}
+.previewCard--right{
+  grid-column:3;
+  grid-row:1;
+  margin-top:88px;
+}
+.previewCard h3{
+  margin:0;
+  font-size:18px;
+  letter-spacing:-.3px;
+  font-weight:1000;
+  color:var(--ink2);
+}
+.previewCard p{
+  margin:0;
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.55;
+}
+.previewPills,
+.previewStripPills{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.previewPill,
+.previewStripPill,
+.previewMiniTag{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:8px 12px;
+  border-radius:999px;
+  background:rgba(255,255,255,.94);
+  border:1px solid rgba(215,218,220,.95);
+  color:var(--muted);
+  font-size:12px;
+  font-weight:950;
+  letter-spacing:.08px;
+}
+.previewPill{
+  border-color:rgba(0,166,63,.20);
+  background:rgba(233,247,238,.82);
+  color:#0a3a1c;
+}
+.previewStats{
+  display:grid;
+  gap:10px;
+}
+.previewStat{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 14px;
+  border-radius:18px;
+  border:1px solid rgba(215,218,220,.9);
+  background:rgba(246,247,248,.88);
+}
+.previewStat strong{
+  font-size:28px;
+  line-height:1;
+  letter-spacing:-.6px;
+  font-weight:1000;
+  color:var(--ink2);
+}
+.previewStat span{
+  color:var(--muted);
+  font-size:13px;
+  font-weight:900;
+  text-align:right;
+}
+.previewFrameWrap{
+  grid-column:2;
+  grid-row:1;
+  position:relative;
+  padding:22px;
+  border-radius:30px;
+  border:1px solid rgba(215,218,220,.95);
+  background:linear-gradient(180deg, rgba(255,255,255,.86), rgba(246,247,248,.92));
+  box-shadow:0 24px 60px rgba(15,23,42,.10);
+  overflow:hidden;
+}
+.previewFrameWrap:before{
+  content:"";
+  position:absolute;
+  inset:-8% 40% 48% -10%;
+  background:radial-gradient(circle, rgba(0,166,63,.14), transparent 68%);
+  pointer-events:none;
+}
+.previewMiniTag{
+  position:absolute;
+  top:16px;
+  left:16px;
+  z-index:2;
+  box-shadow:0 10px 26px rgba(15,23,42,.08);
+}
+.previewFrame{
+  position:relative;
+  z-index:1;
+  border-radius:24px;
+  overflow:hidden;
+  border:1px solid rgba(215,218,220,.95);
+  background:#fff;
+  box-shadow:0 18px 44px rgba(15,23,42,.12);
+}
+.previewFrame img{
+  display:block;
+  width:100%;
+  height:auto;
+}
+.previewStrip{
+  grid-column:1 / -1;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  flex-wrap:wrap;
+  padding:18px 20px;
+  border-radius:24px;
+  border:1px solid rgba(215,218,220,.95);
+  background:rgba(255,255,255,.88);
+  box-shadow:0 16px 38px rgba(15,23,42,.07);
+}
+.previewStripTitle{
+  flex:1 1 320px;
+  margin:0;
+  font-size:15px;
+  font-weight:1000;
+  letter-spacing:-.2px;
+  color:var(--ink2);
+}
+.previewStripPill{
+  background:#fff;
+}
+@media (max-width: 980px){
+  .previewBand{
+    padding:22px 0 64px;
+  }
+  .previewWrap{
+    grid-template-columns:1fr;
+  }
+  .previewCard--left,
+  .previewCard--right,
+  .previewFrameWrap,
+  .previewStrip{
+    grid-column:auto;
+    grid-row:auto;
+    margin-top:0;
+  }
+  .previewFrameWrap{
+    padding:14px;
+  }
+}
+@media (max-width: 640px){
+  .previewBand .sectionHead{
+    align-items:flex-start;
+    text-align:left;
+  }
+  .previewStrip{
+    padding:16px;
+  }
+}
+
 /* ==========================================================================
    How it works (v3) — clean 3-feature product intro (Apple-ish tiles)
    ========================================================================== */
@@ -2322,7 +2524,6 @@ color:var(--text);
   border-color:color-mix(in srgb, var(--accent) 18%, rgba(215,218,220,.95));
 }
 @supports not (color-mix(in srgb, red, white)){
-  /* Fallback for browsers without color-mix */
   .hiwCard .hiwStepPill{border-color:rgba(215,218,220,.95)}
 }
 
@@ -2555,7 +2756,7 @@ color:var(--text);
 
 </style>
 </head>
-<body data-nav-fetch-state="1">
+<body data-nav-fetch-state="1" data-page="index">
 <header>
 <div class="container">
 <nav class="nav" aria-label="Primary navigation">
@@ -2564,47 +2765,44 @@ color:var(--text);
 <span>jobmejob</span>
 </a>
 <div class="navlinks" aria-label="Site links">
-<a href="#how">How it works</a>
-<a href="cv-studio.html">CV Studio</a>
-<a href="#dashboard">Dashboard</a>
-<a href="#ats">ATS score</a>
-<a href="#pricing">Pricing</a>
-<a href="#why">Why this works</a>
-<a href="#faq">FAQ</a>
-<a href="#contact">Contact</a>
+<a href="#how" data-i18n="pages.index.footer.how">How it works</a>
+<a href="cv-studio" data-i18n="common.nav.cvStudio">CV Studio</a>
+<a href="#ats" data-i18n="pages.index.footer.ats">ATS score</a>
+<a href="#pricing" data-i18n="common.nav.pricing">Pricing</a>
+<a href="#why" data-i18n="pages.index.footer.why">Why this works</a>
+<a href="#faq" data-i18n="pages.index.footer.faq">FAQ</a>
+<a href="#contact" data-i18n="pages.index.footer.contact">Contact</a>
 </div>
 <div class="navcta">
 <details class="navDrop" id="navAccount" style="display:none">
 <summary class="jmNavTrigger" aria-label="Account menu">
-<span id="navAccountLabel">Account</span>
+<span id="navAccountLabel" data-i18n="common.nav.account">Account</span>
 <span aria-hidden="true">▾</span>
 </summary>
 <div class="navMenu" role="menu" aria-label="Account menu">
 <div class="jmAccountCard">
 <div class="jmAccountTop">
-<div class="jmAccountTitle" id="navAccountTitle">Your account</div>
-<span class="jmNavMetaPill" id="navPlanPill">Free</span>
+<div class="jmAccountTitle" id="navAccountTitle" data-i18n="common.nav.yourAccount">Your account</div>
+<span class="jmNavMetaPill" id="navPlanPill" data-i18n="common.plans.free">Free</span>
 </div>
-<div class="jmAccountEmail" id="navAccountEmail">Sign in to continue</div>
+<div class="jmAccountEmail" id="navAccountEmail" data-i18n="common.account.signInToContinue">Sign in to continue</div>
 <div class="jmAccountMetaRow">
-<span class="jmNavMetaPill" id="navUsagePill">5 free CVs available</span>
+<span class="jmNavMetaPill" id="navUsagePill" data-i18n="common.account.freeUsage">5 free CVs available</span>
 </div>
-<div class="jmAccountHint" id="navPlanMeta">CV Studio free plan</div>
-<div class="jmAccountHint" id="navUsageMeta">Usage updates after each tailored CV.</div>
+<div class="jmAccountHint" id="navPlanMeta" data-i18n="common.account.freePlan">CV Studio free plan</div>
+<div class="jmAccountHint" id="navUsageMeta" data-i18n="common.account.usageUpdates">Usage updates after each tailored CV.</div>
 </div>
-<div class="menuLabel">Go to</div>
-<a class="jmNavItem" href="./dashboard.html" data-nav="1" role="menuitem">Dashboard</a>
-<a class="jmNavItem" href="./cv.html" data-nav="1" role="menuitem">CV Studio</a>
-<a class="jmNavItem" href="./jobs.html" data-nav="1" role="menuitem">Jobs</a>
-<a class="jmNavItem" href="./profile.html" data-nav="1" role="menuitem">Profile</a>
-<a class="jmNavItem" href="./profile.html#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Manage billing</a>
-<a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Plans & pricing</a>
+<div class="menuLabel" data-i18n="common.nav.goTo">Go to</div>
+<a class="jmNavItem" href="/cv?entry=chooser" data-nav="1" role="menuitem" data-i18n="common.nav.cvStudio">CV Studio</a>
+<a class="jmNavItem" href="/profile" data-nav="1" role="menuitem" data-i18n="common.nav.profile">Profile</a>
+<a class="jmNavItem" href="/profile#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing" data-i18n="common.nav.manageBilling">Manage billing</a>
+<a class="jmNavItem" href="./plan#cv-pricing" data-nav="1" role="menuitem" data-i18n="common.nav.plansAndPricing">Plans & pricing</a>
 <div class="menuSep" role="separator"></div>
-<button class="jmNavItem jmNavDanger" id="navLogout" type="button" role="menuitem">Logout</button>
+<button class="jmNavItem jmNavDanger" id="navLogout" type="button" role="menuitem" data-i18n="common.nav.logout">Logout</button>
 </div>
 </details>
-<a class="btn small" href="signup.html?mode=login&entry=cv-studio" id="navSignIn" data-nav="1"><span class="btnLabel">Log in</span></a>
-<a class="btn primary small" href="signup.html?entry=cv-studio" id="navStartFree" data-nav="1"><span class="btnLabel">Get started</span></a>
+<a class="btn small" href="signup?mode=login&entry=cv-studio" id="navSignIn" data-nav="1"><span class="btnLabel" data-i18n="common.nav.logIn">Log in</span></a>
+<a class="btn primary small" href="signup?entry=cv-studio" id="navStartFree" data-nav="1"><span class="btnLabel" data-i18n="common.nav.getStarted">Get started</span></a>
 </div>
 </nav>
 </div>
@@ -2615,17 +2813,17 @@ color:var(--text);
 <div class="container">
 <div class="heroGrid">
 <div>
-<div class="eyebrow"><span class="badgeDot" aria-hidden="true"></span>For any job post online</div>
-<h1>Build a tailored, ATS-ready CV from any job post.</h1>
-<p class="subtitle">Use the job requirements to shape a stronger CV around your real experience. See what is missing, edit the draft yourself, and export a clean version you can send.</p>
+<div class="eyebrow"><span class="badgeDot" aria-hidden="true"></span><span data-i18n="pages.index.hero.eyebrow">Tailor your CV to any job description</span></div>
+<h1 data-i18n="pages.index.hero.title">Tailor your CV to any job description.</h1>
+<p class="subtitle" data-i18n="pages.index.hero.subtitle">Bring in a job post, tailor your CV or resume around the requirements, catch missing keywords, and export an ATS-friendly PDF.</p>
 
 <div class="hero-actions">
-<a class="btn lime" href="signup.html?entry=cv-studio">
+<a class="btn lime" href="signup?entry=cv-studio">
 <span class="btnLabel">
 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
 <path d="M12 5v14"></path><path d="M5 12h14"></path>
 </svg>
-<span>Start with 5 free CVs</span>
+<span data-i18n="pages.index.hero.primaryCta">Start with 5 free CVs</span>
 </span>
 </a>
 <a class="btn" href="#how">
@@ -2633,35 +2831,27 @@ color:var(--text);
 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
 <path d="M12 5v14"></path><path d="M5 12h14"></path>
 </svg>
-<span>See how it works</span>
+<span data-i18n="pages.index.hero.secondaryCta">See how it works</span>
 </span>
 </a>
 </div>
 
 <div class="proofLine" aria-label="Key points">
-<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Any job post online</span>
+<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><span data-i18n="pages.index.hero.proof1">Any job post online</span></span>
 <span class="proofDot" aria-hidden="true"></span>
-<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Missing keywords highlighted</span>
+<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><span data-i18n="pages.index.hero.proof2">Missing keywords highlighted</span></span>
 <span class="proofDot" aria-hidden="true"></span>
-<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Editable before export</span>
+<span class="proofItem"><span class="proofCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><span data-i18n="pages.index.hero.proof3">Editable before export</span></span>
 </div>
 
 <div class="heroStatus" aria-label="Current availability">
-<div class="heroStatusTop">
-<span class="heroStatusPill">Import any online job</span>
-<span class="heroStatusMeta">Extension or manual paste</span>
-</div>
-<p class="heroStatusCopy">The extension is only the fastest import path. The real value is inside CV Studio: requirement-aware tailoring, ATS-safe structure, missing keyword guidance, manual control over bullets, experience, skills, and profile, plus export-ready PDF output when you are ready to apply.</p>
-<div class="heroStatusLinks">
-<a class="heroStatusLink lime" data-extension-link data-extension-disabled-label="Add to Chrome" data-extension-ready-label="Add to Chrome" href="https://chromewebstore.google.com/detail/jibmnlonajhoaanhoblhiciddggiohba?utm_source=item-share-cb"><span data-extension-label>Add to Chrome</span></a>
-<a class="heroStatusLink" href="cv-studio.html#manual">Use manual paste anytime</a>
-</div>
+<p class="heroStatusCopy" data-i18n="pages.index.hero.status">The Chrome extension just helps you bring in the job faster. CV Studio does the main work: it tailors your CV to the role, keeps it ATS-friendly, shows missing keywords, lets you edit everything yourself, and gives you a PDF ready to send.</p>
 </div>
 </div>
 
 <aside class="heroCard" aria-label="Product value snapshot">
-<h3>What users actually get</h3>
-<p>This is not generic CV rewriting. One job post becomes one tailored CV you can review, edit, and export while staying true to your experience.</p>
+<h3 data-i18n="pages.index.overview.title">What your tailored CV includes</h3>
+<p data-i18n="pages.index.overview.copy">One job description becomes one tailored CV draft you can review, edit, and export.</p>
 <ul class="miniList">
 <li class="miniItem">
 <div class="miniIcon lime" aria-hidden="true">
@@ -2669,7 +2859,7 @@ color:var(--text);
 <path d="M21 21l-4.3-4.3"></path><circle cx="11" cy="11" r="7"></circle>
 </svg>
 </div>
-<div class="miniText"><strong>Tailored to the real job requirements</strong><span>The draft follows the role, not a generic template. Your summary, skills, and experience are adjusted toward the job while staying true to your background.</span></div>
+<div class="miniText"><strong data-i18n="pages.index.overview.card1Title">Tailored to the real job requirements</strong><span data-i18n="pages.index.overview.card1Body">The draft follows the role, not a generic template. Your summary, skills, and experience are adjusted toward the job while staying true to your background.</span></div>
 </li>
 <li class="miniItem">
 <div class="miniIcon" aria-hidden="true">
@@ -2677,7 +2867,7 @@ color:var(--text);
 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path>
 </svg>
 </div>
-<div class="miniText"><strong>Clear keyword guidance</strong><span>See what is already covered and what is still missing. Add only the terms that are accurate for your experience.</span></div>
+<div class="miniText"><strong data-i18n="pages.index.overview.card2Title">Clear keyword guidance</strong><span data-i18n="pages.index.overview.card2Body">See what is already covered and what is still missing. Add only the terms that are accurate for your experience.</span></div>
 </li>
 <li class="miniItem">
 <div class="miniIcon lime" aria-hidden="true">
@@ -2685,32 +2875,82 @@ color:var(--text);
 <path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"></path><path d="M21 8l-9 6-9-6"></path>
 </svg>
 </div>
-<div class="miniText"><strong>ATS-safe formatting, ready to export</strong><span>Keep the structure readable for ATS systems. Make final edits yourself, then export a clean CV you can actually send.</span></div>
+<div class="miniText"><strong data-i18n="pages.index.overview.card3Title">ATS-safe formatting, ready to export</strong><span data-i18n="pages.index.overview.card3Body">Keep the structure readable for ATS systems. Make final edits yourself, then export a clean CV you can actually send.</span></div>
 </li>
 </ul>
 <div class="heroCardActions">
 <a class="btn small" data-extension-link data-extension-disabled-label="Add to Chrome" data-extension-ready-label="Add to Chrome" href="https://chromewebstore.google.com/detail/jibmnlonajhoaanhoblhiciddggiohba?utm_source=item-share-cb"><span class="btnLabel"><span data-extension-label>Add to Chrome</span></span></a>
-<a class="btn small" href="cv-studio.html"><span class="btnLabel">CV Studio</span></a>
-<a class="btn primary small" href="signup.html?entry=cv-studio"><span class="btnLabel">Get started</span></a>
+<a class="btn small" href="cv-studio"><span class="btnLabel" data-i18n="pages.index.overview.ctaStudio">CV Studio</span></a>
+<a class="btn primary small" href="signup?entry=cv-studio"><span class="btnLabel" data-i18n="pages.index.overview.ctaGetStarted">Get started</span></a>
 </div>
 </aside>
 </div>
 </div>
 </section>
 
+<section class="previewBand" aria-labelledby="previewTitle">
+  <div class="container">
+    <div class="sectionHead">
+      <div class="kicker" data-i18n="pages.index.preview.kicker">Product preview</div>
+      <h2 id="previewTitle" class="sectionTitle" data-i18n="pages.index.preview.title">See CV Studio before you start tailoring.</h2>
+      <p class="sectionDesc" data-i18n="pages.index.preview.desc">A real CV Studio screen shows how the job description, keyword guidance, and CV preview sit side by side while you edit.</p>
+    </div>
+
+    <div class="previewWrap">
+      <aside class="previewCard previewCard--left" aria-label="Import options">
+        <h3 data-i18n="pages.index.preview.leftTitle">Bring in the role</h3>
+        <p data-i18n="pages.index.preview.leftBody">Paste any job description or import it with the extension. The job, your CV, and the editing flow stay in one place.</p>
+        <div class="previewPills">
+          <span class="previewPill" data-i18n="pages.index.preview.leftPill1">Chrome extension</span>
+          <span class="previewPill" data-i18n="pages.index.preview.leftPill2">Manual paste</span>
+        </div>
+      </aside>
+
+      <div class="previewFrameWrap" aria-label="CV Studio screenshot preview">
+        <span class="previewMiniTag" data-i18n="pages.index.preview.frameTag">Real product screen</span>
+        <div class="previewFrame">
+          <img src="/assets/cv-studio-preview.png" alt="CV Studio screenshot showing a live CV preview, keyword guidance, and ATS score." width="1800" height="914" loading="lazy">
+        </div>
+      </div>
+
+      <aside class="previewCard previewCard--right" aria-label="ATS insight preview">
+        <h3 data-i18n="pages.index.preview.rightTitle">Spot gaps quickly</h3>
+        <p data-i18n="pages.index.preview.rightBody">See ATS match, covered terms, and missing keywords without losing the live CV preview.</p>
+        <div class="previewStats">
+          <div class="previewStat">
+            <strong data-i18n="pages.index.preview.rightStat1Value">43%</strong>
+            <span data-i18n="pages.index.preview.rightStat1Label">ATS match example</span>
+          </div>
+          <div class="previewStat">
+            <strong data-i18n="pages.index.preview.rightStat2Value">17</strong>
+            <span data-i18n="pages.index.preview.rightStat2Label">terms to add</span>
+          </div>
+        </div>
+      </aside>
+
+      <div class="previewStrip">
+        <p class="previewStripTitle" data-i18n="pages.index.preview.stripTitle">Edit the wording, add only true terms, and export when the CV feels right.</p>
+        <div class="previewStripPills">
+          <span class="previewStripPill" data-i18n="pages.index.preview.stripPill1">Live CV preview</span>
+          <span class="previewStripPill" data-i18n="pages.index.preview.stripPill2">Keyword guidance</span>
+          <span class="previewStripPill" data-i18n="pages.index.preview.stripPill3">Export-ready PDF</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="how" class="anchor howSimple">
   <div class="container">
     <div class="sectionHead">
-      <div class="kicker">How it works</div>
-      <h2 class="sectionTitle">From any job post to an export-ready CV.</h2>
-      <p class="sectionDesc">Bring in the role, tailor around the requirements, then refine the final document before you send it.</p>
+      <div class="kicker" data-i18n="pages.index.how.kicker">How it works</div>
+      <h2 class="sectionTitle" data-i18n="pages.index.how.title">How to tailor your CV to a job description.</h2>
+      <p class="sectionDesc" data-i18n="pages.index.how.desc">Import the role, tailor your CV, make quick edits, and export the version you want to send.</p>
     </div>
 
     <div class="hiwGrid" role="list" aria-label="Three-step workflow">
-      <!-- Step 1 -->
       <article class="hiwCard" role="listitem" data-accent="search">
         <div class="hiwMedia" aria-hidden="true">
-          <!-- Illustration: Job Search -->
           <svg viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <filter id="sShadow" x="-20%" y="-20%" width="140%" height="140%">
@@ -2721,65 +2961,40 @@ color:var(--text);
                 <stop offset="1" stop-color="rgba(0,0,0,.00)"/>
               </linearGradient>
             </defs>
-
-            <!-- soft background blobs -->
             <path d="M92 78c46-44 132-50 190-6 38 29 38 74 4 106-50 48-160 58-220 14-36-26-34-78 26-114Z" fill="rgba(0,166,63,.12)"/>
             <path d="M360 46c54 6 94 44 88 92-5 40-46 70-96 64-52-7-92-40-86-88 6-50 46-74 94-68Z" fill="rgba(0,0,0,.04)"/>
-
-            <!-- main UI card -->
             <rect x="164" y="44" width="316" height="206" rx="30" fill="#ffffff" filter="url(#sShadow)"/>
             <rect x="164" y="44" width="316" height="54" rx="30" fill="rgba(15,23,42,.04)"/>
             <circle cx="190" cy="70" r="6" fill="rgba(15,23,42,.18)"/>
             <circle cx="210" cy="70" r="6" fill="rgba(15,23,42,.12)"/>
             <circle cx="230" cy="70" r="6" fill="rgba(15,23,42,.08)"/>
-
-            <!-- search bar -->
             <rect x="252" y="60" width="188" height="20" rx="10" fill="rgba(15,23,42,.06)"/>
             <circle cx="268" cy="70" r="6" fill="rgba(15,23,42,.30)"/>
             <rect x="272" y="74" width="10" height="3" rx="1.5" fill="rgba(15,23,42,.30)" transform="rotate(45 272 74)"/>
-
-            <!-- job rows -->
             <g fill="rgba(15,23,42,.08)">
               <rect x="194" y="114" width="200" height="18" rx="9"/>
               <rect x="194" y="146" width="238" height="18" rx="9"/>
               <rect x="194" y="178" width="216" height="18" rx="9"/>
             </g>
-
-            <!-- score pills -->
             <g>
               <rect x="410" y="110" width="54" height="26" rx="13" fill="rgba(0,166,63,.12)"/>
               <rect x="420" y="119" width="18" height="8" rx="4" fill="rgba(0,166,63,.65)"/>
               <rect x="410" y="142" width="54" height="26" rx="13" fill="rgba(0,166,63,.12)"/>
               <rect x="420" y="151" width="18" height="8" rx="4" fill="rgba(0,166,63,.65)"/>
             </g>
-
-            <!-- magnifier (ring without stroke) -->
             <circle cx="404" cy="224" r="42" fill="url(#sBlob)"/>
             <circle cx="392" cy="212" r="22" fill="rgba(0,166,63,.58)"/>
             <circle cx="392" cy="212" r="14" fill="#ffffff"/>
             <rect x="412" y="230" width="42" height="10" rx="5" fill="rgba(0,166,63,.58)" transform="rotate(45 412 230)"/>
-
-            <!-- character -->
             <g>
-              <!-- shadow -->
               <ellipse cx="122" cy="252" rx="34" ry="10" fill="rgba(15,23,42,.08)"/>
-              <!-- legs -->
-              <path d="M116 232c-6 16-12 20-22 22" fill="none"/>
-              <path d="M134 232c4 16 10 20 20 22" fill="none"/>
               <path d="M104 254c8 3 18 3 26 0" fill="rgba(15,23,42,.10)"/>
-              <!-- body -->
               <path d="M94 198c0-18 14-32 32-32s32 14 32 32v34c0 10-8 18-18 18h-28c-10 0-18-8-18-18v-34Z" fill="rgba(0,166,63,.20)"/>
               <path d="M106 202c0-12 9-22 20-22h0c11 0 20 10 20 22v20c0 7-6 13-13 13h-14c-7 0-13-6-13-13v-20Z" fill="rgba(0,166,63,.60)"/>
-              <!-- head -->
               <circle cx="126" cy="156" r="20" fill="#ffd6c9"/>
-              <!-- hair -->
               <path d="M108 156c3-18 18-26 34-20 12 5 16 16 12 28-4-10-10-14-18-14-10 0-18 6-28 6Z" fill="rgba(15,23,42,.88)"/>
-              <!-- arm -->
-              <path d="M150 206c20 2 34 10 44 18" fill="none"/>
               <path d="M146 214c22 4 34 12 44 20" fill="rgba(15,23,42,.10)"/>
             </g>
-
-            <!-- tiny floating hearts -->
             <path d="M468 36c0-8 10-8 10 0 0 8-10 12-10 12s-10-4-10-12c0-8 10-8 10 0Z" fill="rgba(249,115,22,.75)"/>
             <path d="M438 50c0-6 8-6 8 0 0 6-8 10-8 10s-8-4-8-10c0-6 8-6 8 0Z" fill="rgba(0,166,63,.60)"/>
           </svg>
@@ -2787,23 +3002,21 @@ color:var(--text);
 
         <div class="hiwBody">
           <div class="hiwPills" aria-label="Step label">
-            <span class="hiwStepPill">Step 1</span>
+            <span class="hiwStepPill" data-i18n="pages.index.how.step1Label">Step 1</span>
           </div>
-          <h3>Bring in the job</h3>
-          <p>Use the extension on supported sites or paste any job description manually. Either way, the role, company, and job requirements enter the same CV Studio flow.</p>
+          <h3 data-i18n="pages.index.how.step1Title">Bring in the job</h3>
+          <p data-i18n="pages.index.how.step1Body">Use the extension on supported sites or paste any job description manually. Either way, the role, company, and job requirements enter the same CV Studio flow.</p>
 
           <div class="hiwChips" aria-label="Import options">
-            <span class="hiwChip">Chrome extension</span>
-            <span class="hiwChip">Manual paste</span>
-            <span class="hiwChip">Any job post</span>
+            <span class="hiwChip" data-i18n="pages.index.how.step1Chip1">Chrome extension</span>
+            <span class="hiwChip" data-i18n="pages.index.how.step1Chip2">Manual paste</span>
+            <span class="hiwChip" data-i18n="pages.index.how.step1Chip3">Any job post</span>
           </div>
         </div>
       </article>
 
-      <!-- Step 2 -->
       <article class="hiwCard" role="listitem" data-accent="tailor">
         <div class="hiwMedia" aria-hidden="true">
-          <!-- Illustration: CV Tailoring -->
           <svg viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <filter id="tShadow" x="-20%" y="-20%" width="140%" height="140%">
@@ -2814,19 +3027,13 @@ color:var(--text);
                 <stop offset="1" stop-color="rgba(0,0,0,.00)"/>
               </linearGradient>
             </defs>
-
-            <!-- soft blobs -->
             <path d="M92 66c46-42 128-44 186-2 36 26 40 66 10 98-46 48-150 60-212 22-40-24-42-78 16-118Z" fill="rgba(37,99,235,.10)"/>
             <path d="M362 56c54 10 90 48 80 96-8 38-50 62-98 54-54-10-90-44-82-88 8-44 48-72 100-62Z" fill="rgba(15,23,42,.04)"/>
-
-            <!-- document -->
             <rect x="184" y="40" width="280" height="218" rx="28" fill="#ffffff" filter="url(#tShadow)"/>
             <rect x="184" y="40" width="280" height="54" rx="28" fill="rgba(15,23,42,.04)"/>
             <circle cx="210" cy="66" r="6" fill="rgba(15,23,42,.18)"/>
             <circle cx="230" cy="66" r="6" fill="rgba(15,23,42,.12)"/>
             <circle cx="250" cy="66" r="6" fill="rgba(15,23,42,.08)"/>
-
-            <!-- text lines -->
             <g fill="rgba(15,23,42,.10)">
               <rect x="214" y="112" width="210" height="14" rx="7"/>
               <rect x="214" y="136" width="240" height="14" rx="7"/>
@@ -2834,26 +3041,18 @@ color:var(--text);
               <rect x="214" y="184" width="190" height="14" rx="7"/>
               <rect x="214" y="208" width="230" height="14" rx="7"/>
             </g>
-
-            <!-- highlight band -->
             <rect x="206" y="152" width="252" height="26" rx="13" fill="rgba(37,99,235,.14)"/>
-
-            <!-- check bubble -->
             <g>
               <circle cx="436" cy="188" r="22" fill="rgba(0,166,63,.16)"/>
               <circle cx="436" cy="188" r="14" fill="#ffffff"/>
               <path d="M429 188l5 5 10-12" fill="none" stroke="rgba(0,166,63,.70)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
             </g>
-
-            <!-- pencil -->
             <g transform="translate(60,210) rotate(-18)">
               <rect x="0" y="-12" width="120" height="24" rx="12" fill="rgba(37,99,235,.18)"/>
               <rect x="12" y="-8" width="72" height="16" rx="8" fill="rgba(37,99,235,.55)"/>
               <path d="M98 -12h22v24H98z" fill="rgba(249,115,22,.78)"/>
               <path d="M120 -12l18 12-18 12z" fill="rgba(15,23,42,.22)"/>
             </g>
-
-            <!-- character -->
             <g>
               <ellipse cx="128" cy="252" rx="34" ry="10" fill="rgba(15,23,42,.08)"/>
               <path d="M96 202c0-18 14-32 32-32s32 14 32 32v34c0 10-8 18-18 18h-28c-10 0-18-8-18-18v-34Z" fill="rgba(37,99,235,.18)"/>
@@ -2862,8 +3061,6 @@ color:var(--text);
               <path d="M110 156c3-18 18-26 34-20 12 5 16 16 12 28-4-10-10-14-18-14-10 0-18 6-28 6Z" fill="rgba(15,23,42,.88)"/>
               <path d="M156 210c18-8 28-24 36-40" fill="rgba(15,23,42,.10)"/>
             </g>
-
-            <!-- sparkles -->
             <g fill="rgba(37,99,235,.45)">
               <path d="M486 92l6 14 14 6-14 6-6 14-6-14-14-6 14-6z"/>
               <path d="M456 116l4 10 10 4-10 4-4 10-4-10-10-4 10-4z"/>
@@ -2874,23 +3071,21 @@ color:var(--text);
 
         <div class="hiwBody">
           <div class="hiwPills" aria-label="Step label">
-            <span class="hiwStepPill">Step 2</span>
+            <span class="hiwStepPill" data-i18n="pages.index.how.step2Label">Step 2</span>
           </div>
-          <h3>Tailor around the requirements</h3>
-          <p>CV Studio rewrites toward the actual role, keeps the structure ATS-safe, and measures which priority terms already appear in your CV.</p>
+          <h3 data-i18n="pages.index.how.step2Title">Tailor around the requirements</h3>
+          <p data-i18n="pages.index.how.step2Body">CV Studio rewrites toward the actual role, keeps the structure ATS-safe, and measures which priority terms already appear in your CV.</p>
 
           <div class="hiwChips" aria-label="Tailoring outcomes">
-            <span class="hiwChip">Job requirements</span>
-            <span class="hiwChip">ATS-safe format</span>
-            <span class="hiwChip">Truthful tailoring</span>
+            <span class="hiwChip" data-i18n="pages.index.how.step2Chip1">Job requirements</span>
+            <span class="hiwChip" data-i18n="pages.index.how.step2Chip2">ATS-safe format</span>
+            <span class="hiwChip" data-i18n="pages.index.how.step2Chip3">Truthful tailoring</span>
           </div>
         </div>
       </article>
 
-      <!-- Step 3 -->
       <article class="hiwCard" role="listitem" data-accent="send">
         <div class="hiwMedia" aria-hidden="true">
-          <!-- Illustration: Review and export -->
           <svg viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <filter id="aShadow" x="-20%" y="-20%" width="140%" height="140%">
@@ -2901,29 +3096,20 @@ color:var(--text);
                 <stop offset="1" stop-color="rgba(0,0,0,.00)"/>
               </linearGradient>
             </defs>
-
-            <!-- soft blobs -->
             <path d="M88 92c46-44 134-54 194-14 42 28 46 78 12 112-48 48-154 56-216 14-42-28-44-84 10-112Z" fill="rgba(249,115,22,.10)"/>
             <path d="M354 56c56 8 96 48 88 98-7 40-50 66-102 58-56-8-96-44-88-92 8-52 52-72 102-64Z" fill="rgba(15,23,42,.04)"/>
-
-            <!-- laptop -->
             <rect x="170" y="74" width="280" height="164" rx="22" fill="#ffffff" filter="url(#aShadow)"/>
             <rect x="170" y="74" width="280" height="118" rx="22" fill="rgba(15,23,42,.06)"/>
             <rect x="198" y="98" width="224" height="16" rx="8" fill="rgba(255,255,255,.75)"/>
             <rect x="198" y="126" width="180" height="14" rx="7" fill="rgba(255,255,255,.55)"/>
             <rect x="198" y="148" width="206" height="14" rx="7" fill="rgba(255,255,255,.55)"/>
-
             <path d="M150 242h320c8 0 14 6 14 14v4H136v-4c0-8 6-14 14-14Z" fill="rgba(15,23,42,.12)"/>
             <rect x="250" y="248" width="120" height="8" rx="4" fill="rgba(15,23,42,.18)"/>
-
-            <!-- paper plane -->
             <g transform="translate(356,100) rotate(-10)">
               <path d="M0 28L120 0 74 120 52 72 0 52z" fill="rgba(249,115,22,.24)"/>
               <path d="M0 28L120 0 52 72z" fill="rgba(249,115,22,.62)"/>
               <path d="M52 72l22 48 46-120z" fill="rgba(249,115,22,.40)"/>
             </g>
-
-            <!-- character -->
             <g>
               <ellipse cx="128" cy="252" rx="34" ry="10" fill="rgba(15,23,42,.08)"/>
               <path d="M96 202c0-18 14-32 32-32s32 14 32 32v34c0 10-8 18-18 18h-28c-10 0-18-8-18-18v-34Z" fill="rgba(0,166,63,.18)"/>
@@ -2932,8 +3118,6 @@ color:var(--text);
               <path d="M110 156c3-18 18-26 34-20 12 5 16 16 12 28-4-10-10-14-18-14-10 0-18 6-28 6Z" fill="rgba(15,23,42,.88)"/>
               <rect x="112" y="176" width="34" height="10" rx="5" fill="rgba(255,255,255,.70)"/>
             </g>
-
-            <!-- notifications -->
             <g>
               <circle cx="462" cy="86" r="18" fill="rgba(249,115,22,.14)"/>
               <path d="M462 80c0-8 10-8 10 0 0 8-10 12-10 12s-10-4-10-12c0-8 10-8 10 0Z" fill="rgba(249,115,22,.70)"/>
@@ -2946,15 +3130,15 @@ color:var(--text);
 
         <div class="hiwBody">
           <div class="hiwPills" aria-label="Step label">
-            <span class="hiwStepPill">Step 3</span>
+            <span class="hiwStepPill" data-i18n="pages.index.how.step3Label">Step 3</span>
           </div>
-          <h3>Refine + Export</h3>
-          <p>Adjust bullets, experience, skills, or profile, add true missing terms, run the final check, and export a clean PDF.</p>
+          <h3 data-i18n="pages.index.how.step3Title">Refine + Export</h3>
+          <p data-i18n="pages.index.how.step3Body">Adjust bullets, experience, skills, or profile, add true missing terms, run the final check, and export a clean PDF.</p>
 
           <div class="hiwChips" aria-label="Refine and export outputs">
-            <span class="hiwChip">Edit sections</span>
-            <span class="hiwChip">Missing keywords</span>
-            <span class="hiwChip">Export PDF</span>
+            <span class="hiwChip" data-i18n="pages.index.how.step3Chip1">Edit sections</span>
+            <span class="hiwChip" data-i18n="pages.index.how.step3Chip2">Missing keywords</span>
+            <span class="hiwChip" data-i18n="pages.index.how.step3Chip3">Export PDF</span>
           </div>
         </div>
       </article>
@@ -2969,13 +3153,13 @@ color:var(--text);
           </svg>
         </div>
         <div>
-          <div class="hiwCtaTitle">CV Studio keeps you in control</div>
-          <div class="hiwCtaSub">Import the job, tailor the CV, refine the output, and export when you are ready.</div>
+          <div class="hiwCtaTitle" data-i18n="pages.index.how.calloutTitle">CV Studio keeps you in control</div>
+          <div class="hiwCtaSub" data-i18n="pages.index.how.calloutBody">Import the job, tailor the CV, refine the output, and export when you are ready.</div>
         </div>
       </div>
       <div class="hiwCtaActions">
-        <a class="btn primary" href="signup.html?entry=cv-studio"><span class="btnLabel">Get started</span></a>
-        <a class="btn" href="#pricing"><span class="btnLabel">View plans</span></a>
+        <a class="btn primary" href="signup?entry=cv-studio"><span class="btnLabel" data-i18n="pages.index.how.calloutPrimary">Get started</span></a>
+        <a class="btn" href="#pricing"><span class="btnLabel" data-i18n="pages.index.how.calloutSecondary">View plans</span></a>
       </div>
     </div>
   </div>
@@ -2985,28 +3169,28 @@ color:var(--text);
 <section id="ats" class="atsBand anchor">
 <div class="container">
 <div class="sectionHead">
-<div class="kicker">ATS score</div>
-<h2 class="sectionTitle">A match score you can actually use.</h2>
-<p class="sectionDesc">Every tailored CV comes with an ATS match score and a keyword gap list — so you can see what improved and why.</p>
+<div class="kicker" data-i18n="pages.index.ats.kicker">ATS score</div>
+<h2 class="sectionTitle" data-i18n="pages.index.ats.title">Check ATS match score and missing keywords.</h2>
+<p class="sectionDesc" data-i18n="pages.index.ats.desc">Each tailored CV includes an ATS match score and keyword gap list so you can see what to improve before you apply.</p>
 </div>
 
 <div class="atsGrid">
 <div class="atsCopy">
 <div class="card">
-<h3>What the ATS match score measures</h3>
-<p>We compare the job description with your CV and check if the most important requirements show up clearly in an ATS-friendly format.</p>
+<h3 data-i18n="pages.index.ats.cardTitle">What the ATS match score measures</h3>
+<p data-i18n="pages.index.ats.cardBody">We compare the job description with your CV and check if the most important requirements show up clearly in an ATS-friendly format.</p>
 <ul class="atsBullets">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><strong>Keyword coverage:</strong>&nbsp;skills, tools, and responsibilities found in your CV.</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><strong>Priority terms:</strong>&nbsp;we weight the “must-haves” higher than nice-to-haves.</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><strong>ATS basics:</strong>&nbsp;clear headings, readable structure, and consistent wording.</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><strong>Keyword gaps:</strong>&nbsp;you see missing terms we recommend adding (only if they match your experience).</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><strong data-i18n="pages.index.ats.bullet1Label">Keyword coverage:</strong>&nbsp;<span data-i18n="pages.index.ats.bullet1Body">skills, tools, and responsibilities found in your CV.</span></li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><strong data-i18n="pages.index.ats.bullet2Label">Priority terms:</strong>&nbsp;<span data-i18n="pages.index.ats.bullet2Body">we weight the must-haves higher than nice-to-haves.</span></li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><strong data-i18n="pages.index.ats.bullet3Label">ATS basics:</strong>&nbsp;<span data-i18n="pages.index.ats.bullet3Body">clear headings, readable structure, and consistent wording.</span></li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><strong data-i18n="pages.index.ats.bullet4Label">Keyword gaps:</strong>&nbsp;<span data-i18n="pages.index.ats.bullet4Body">you see missing terms we recommend adding, only if they match your experience.</span></li>
 </ul>
 <div class="atsPills" aria-label="ATS outputs">
-<div class="atsPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Score (0–100)</div>
-<div class="atsPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Missing keywords</div>
-<div class="atsPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Section suggestions</div>
+<div class="atsPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><span data-i18n="pages.index.ats.pill1">Score (0–100)</span></div>
+<div class="atsPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><span data-i18n="pages.index.ats.pill2">Missing keywords</span></div>
+<div class="atsPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><span data-i18n="pages.index.ats.pill3">Section suggestions</span></div>
 </div>
-<div class="atsNote">Note: Different companies use different ATS tools. The score is a practical indicator, not a guarantee of an interview.</div>
+<div class="atsNote" data-i18n="pages.index.ats.note">Note: Different companies use different ATS tools. The score is a practical indicator, not a guarantee of an interview.</div>
 </div>
 </div>
 
@@ -3014,12 +3198,12 @@ color:var(--text);
 <div class="dashTop">
 <div class="dashDots" aria-hidden="true"><span></span><span></span><span></span></div>
 <div class="dashLabel">
-<span>ATS Match</span>
+<span data-i18n="pages.index.ats.dashTitle">ATS Match</span>
 <span class="dashChip" aria-hidden="true">
 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block">
 <path d="M20 6 9 17l-5-5"></path>
 </svg>
-Keyword insights
+<span data-i18n="pages.index.ats.dashChip">Keyword insights</span>
 </span>
 </div>
 </div>
@@ -3027,298 +3211,199 @@ Keyword insights
 <div class="dashBody">
 <div class="dashRow">
 <div class="dashCard">
-<h4>Match score</h4>
+<h4 data-i18n="pages.index.ats.scoreTitle">Match score</h4>
 <div class="kpi">
 <strong>82%</strong>
-<span>strong</span>
+<span data-i18n="pages.index.ats.scoreStrength">strong</span>
 </div>
-<div style="margin-top:8px" class="kpiBadge"><i aria-hidden="true"></i>Tailored to the job post</div>
+<div style="margin-top:8px" class="kpiBadge"><i aria-hidden="true"></i><span data-i18n="pages.index.ats.scoreBadge">Tailored to the job post</span></div>
 </div>
 
 <div class="dashCard">
-<h4>Keyword gaps</h4>
+<h4 data-i18n="pages.index.ats.gapsTitle">Keyword gaps</h4>
 <div class="kpi">
 <strong>7</strong>
-<span>missing</span>
+<span data-i18n="pages.index.ats.gapsCountLabel">missing</span>
 </div>
-<div style="margin-top:8px" class="kpiBadge"><i aria-hidden="true"></i>Suggested improvements</div>
+<div style="margin-top:8px" class="kpiBadge"><i aria-hidden="true"></i><span data-i18n="pages.index.ats.gapsBadge">Suggested improvements</span></div>
 </div>
 </div>
 
 <div class="log" aria-label="ATS keyword preview">
 <div class="logHead">
-<strong>Examples</strong>
+<strong data-i18n="pages.index.ats.examplesTitle">Examples</strong>
 <span class="logFilter" aria-hidden="true">
 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block">
 <path d="M4 6h16"></path><path d="M7 12h10"></path><path d="M10 18h4"></path>
 </svg>
-From a job post
+<span data-i18n="pages.index.ats.examplesSource">From a job post</span>
 </span>
 </div>
 
 <div class="logList">
 <div class="logItem">
 <div class="logLeft">
-<div class="logTitle">Good coverage</div>
-<div class="logMeta">Leadership · Integrations · Data quality · GDPR</div>
+<div class="logTitle" data-i18n="pages.index.ats.goodCoverageTitle">Good coverage</div>
+<div class="logMeta" data-i18n="pages.index.ats.goodCoverageMeta">Leadership · Integrations · Data quality · GDPR</div>
 </div>
-<div class="status sent"><i aria-hidden="true"></i>Found</div>
+<div class="status sent"><i aria-hidden="true"></i><span data-i18n="pages.index.ats.goodCoverageStatus">Found</span></div>
 </div>
 
 <div class="logItem">
 <div class="logLeft">
-<div class="logTitle">Still missing</div>
-<div class="logMeta">Workday Studio · REST/SOAP · SFTP</div>
+<div class="logTitle" data-i18n="pages.index.ats.missingTitle">Still missing</div>
+<div class="logMeta" data-i18n="pages.index.ats.missingMeta">Workday Studio · REST/SOAP · SFTP</div>
 </div>
-<div class="status review"><i aria-hidden="true"></i>Add</div>
+<div class="status review"><i aria-hidden="true"></i><span data-i18n="pages.index.ats.missingStatus">Add</span></div>
 </div>
 </div>
 </div>
 
-<div class="noteSmall">We use the score to guide the tailoring — without inventing experience.</div>
+<div class="noteSmall" data-i18n="pages.index.ats.footerNote">We use the score to guide the tailoring without inventing experience.</div>
+</div>
 </div>
 </div>
 </div>
 </section>
 
-
-<section id="dashboard" class="dashBand anchor">
-<div class="container">
-<div class="dashGrid soonFlagWrap" data-flag="Coming soon">
-<div class="dashCopy">
-<div class="kicker">Dashboard</div>
-<h3>Track your CV Studio history in one place.</h3>
-<p>A future dashboard for tailored CV history, export activity, and keyword progress so every version stays easy to review later.</p>
-<ul class="dashPoints">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Recent tailored CVs and export history</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Saved roles, job titles, and timestamps</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Keyword coverage progress over time</li>
-</ul>
-<div class="dashActions">
-<a class="btn primary" href="signup.html?entry=cv-studio"><span class="btnLabel">Get started</span></a>
-<a class="btn" href="#pricing"><span class="btnLabel">View plans</span></a>
-</div>
-</div>
-
-<div class="dashFrame" aria-label="Dashboard preview visualization">
-<div class="dashTop">
-<div class="dashDots" aria-hidden="true"><span></span><span></span><span></span></div>
-<div class="dashLabel">
-<span>CV History</span>
-<span class="dashChip" aria-hidden="true">
-<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block">
-<path d="M20 6 9 17l-5-5"></path>
-</svg>
-Preview
-</span>
-</div>
-</div>
-
-<div class="dashBody">
-<div class="dashRow">
-<div class="dashCard">
-<h4>This week</h4>
-<div class="kpi">
-<strong>4</strong>
-<span>tailored</span>
-</div>
-<div style="margin-top:8px" class="kpiBadge"><i aria-hidden="true"></i>2 exported</div>
-<div class="spark" aria-hidden="true">
-<svg viewBox="0 0 300 70" preserveAspectRatio="none">
-<path d="M0 50 C 35 42, 55 44, 80 36 S 125 28, 150 34 S 195 46, 220 30 S 265 18, 300 24" fill="none" stroke="rgba(0,166,63,.85)" stroke-width="4" stroke-linecap="round"/>
-<path d="M0 60 L300 60" stroke="rgba(0,0,0,.06)" stroke-width="2"/>
-</svg>
-</div>
-</div>
-
-<div class="dashCard">
-<h4>Keyword gaps</h4>
-<div class="kpi">
-<strong>11</strong>
-<span>tracked</span>
-</div>
-<div style="margin-top:8px" class="kpiBadge"><i aria-hidden="true"></i>Across recent roles</div>
-<div class="spark" aria-hidden="true">
-<svg viewBox="0 0 300 70" preserveAspectRatio="none">
-<path d="M0 44 C 38 40, 60 48, 90 40 S 135 26, 160 32 S 200 52, 230 36 S 270 24, 300 30" fill="none" stroke="rgba(17,17,17,.75)" stroke-width="4" stroke-linecap="round"/>
-<path d="M0 60 L300 60" stroke="rgba(0,0,0,.06)" stroke-width="2"/>
-</svg>
-</div>
-</div>
-</div>
-
-<div class="log" aria-label="CV history preview">
-<div class="logHead">
-<strong>Recent activity</strong>
-<span class="logFilter" aria-hidden="true">
-<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block">
-<path d="M4 6h16"></path><path d="M7 12h10"></path><path d="M10 18h4"></path>
-</svg>
-Last 7 days
-</span>
-</div>
-
-<div class="logList">
-<div class="logItem">
-<div class="logLeft">
-<div class="logTitle">Head of Revenue Planning</div>
-<div class="logMeta">Imported from LinkedIn · Today 09:18</div>
-</div>
-<div class="status sent"><i aria-hidden="true"></i>Ready</div>
-</div>
-
-<div class="logItem">
-<div class="logLeft">
-<div class="logTitle">Senior Operations Manager</div>
-<div class="logMeta">Pasted job description · Today 08:41</div>
-</div>
-<div class="status review"><i aria-hidden="true"></i>Review</div>
-</div>
-
-<div class="logItem">
-<div class="logLeft">
-<div class="logTitle">Revenue Operations Lead</div>
-<div class="logMeta">ATS gaps updated · Yesterday 17:22</div>
-</div>
-<div class="status draft"><i aria-hidden="true"></i>Draft</div>
-</div>
-</div>
-</div>
-
-<div class="noteSmall">Preview only. Final version can include filters, progress tracking, and export history.</div>
-</div>
-</div>
-</div>
-</div>
-</section>
 
 <section id="pricing" class="anchor">
 <div class="container">
 <div class="sectionHead">
-<div class="kicker">Pricing</div>
-<h2 class="sectionTitle">Start free with CV Studio.</h2>
-<p class="sectionDesc">Simple monthly pricing for role-specific CV tailoring, missing keyword guidance, ATS-safe formatting, and export-ready PDFs.</p>
+<div class="kicker" data-i18n="pages.index.pricing.kicker">Pricing</div>
+<h2 class="sectionTitle" data-i18n="pages.index.pricing.title">Start free with CV Studio.</h2>
+<p class="sectionDesc" data-i18n="pages.index.pricing.desc">Simple monthly pricing for role-specific CV tailoring, missing keyword guidance, ATS-safe formatting, and export-ready PDFs.</p>
 </div>
 
 <div class="pricingWrap">
 <div class="card plan">
-<h3 style="margin:0 0 6px;font-weight:1000;letter-spacing:-.2px">CV Studio Free</h3>
-<p style="margin:0;color:var(--muted);font-size:14px">For first-time users.</p>
-<div class="priceRow" style="margin-top:10px">
-<strong>€0</strong>
-<span>/ month</span>
-<span class="save">5 tailored CVs included</span>
+<div class="planIntro">
+<div class="planCopy">
+<h3 data-i18n="pages.index.pricing.freeTitle">CV Studio Free</h3>
+<p class="planLead" data-i18n="pages.index.pricing.freeLead">For first-time users.</p>
+</div>
+<div class="priceRow">
+<strong data-price-plan="free">€0</strong>
+<span data-i18n="common.commerce.perMonth">/ month</span>
+<span class="save" data-i18n="pages.index.pricing.freeSave">5 tailored CVs included</span>
+</div>
 </div>
 
 <div class="valueRow" aria-label="Monthly value">
 <div>
-<strong>Use CV Studio on real applications</strong>
-<span>Import from the extension or paste any job post</span>
+<strong data-i18n="pages.index.pricing.freeValueTitle">Use CV Studio on real applications</strong>
+<span data-i18n="pages.index.pricing.freeValueBody">Import from the extension or paste any job post</span>
 </div>
-<div class="valueBadge"><i aria-hidden="true"></i>Best first step</div>
+<div class="valueBadge"><i aria-hidden="true"></i><span data-i18n="pages.index.pricing.freeValueBadge">Best first step</span></div>
 </div>
 
 <ul class="features">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Import from Chrome or paste any job post</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>ATS match score + missing keyword guidance</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Edit bullets, experience, skills, and profile</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Export-ready PDF output</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><span data-i18n="pages.index.pricing.freeFeature1">Import from Chrome or paste any job post</span></li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><span data-i18n="pages.index.pricing.freeFeature2">ATS match score + missing keyword guidance</span></li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><span data-i18n="pages.index.pricing.freeFeature3">Edit bullets, experience, skills, and profile</span></li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><span data-i18n="pages.index.pricing.freeFeature4">Export-ready PDF output</span></li>
 </ul>
 <div class="planActions">
-<a class="btn primary" href="signup.html?entry=cv-studio"><span class="btnLabel">Start free</span></a>
+<a class="btn primary" href="signup?entry=cv-studio"><span class="btnLabel" data-i18n="pages.index.pricing.freeCta">Start free</span></a>
 </div>
 </div>
 
 <div class="card plan featured" aria-label="Best value plan">
-<div class="ribbon">Best value</div>
-<h3 style="margin:0 0 6px;font-weight:1000;letter-spacing:-.2px">CV Studio Starter</h3>
-<p style="margin:0;color:var(--muted);font-size:14px">For focused weekly usage.</p>
-<div class="priceRow" style="margin-top:10px">
-<strong>€3</strong>
-<span>/ month</span>
-<span class="save">Low-friction upgrade</span>
+<div class="ribbon" data-i18n="pages.index.pricing.starterRibbon">Best value</div>
+<div class="planIntro">
+<div class="planCopy">
+<h3 data-i18n="pages.index.pricing.starterTitle">CV Studio Starter</h3>
+<p class="planLead" data-i18n="pages.index.pricing.starterLead">For focused weekly usage.</p>
+</div>
+<div class="priceRow">
+<strong data-price-plan="starter">€3</strong>
+<span data-i18n="common.commerce.perMonth">/ month</span>
+<span class="save" data-i18n="pages.index.pricing.starterSave">Low-friction upgrade</span>
+</div>
 </div>
 
 <div class="valueRow" aria-label="Monthly value">
 <div>
-<strong>10 tailored CVs / month</strong>
-<span>One quota across extension and manual import</span>
+<strong data-i18n="pages.index.pricing.starterValueTitle">10 tailored CVs / month</strong>
+<span data-i18n="pages.index.pricing.starterValueBody">One quota across extension and manual import</span>
 </div>
-<div class="valueBadge"><i aria-hidden="true"></i>Most active searches</div>
+<div class="valueBadge"><i aria-hidden="true"></i><span data-i18n="pages.index.pricing.starterValueBadge">Most active searches</span></div>
 </div>
 
 <ul class="features">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>All Free features</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Best for weekly applications across multiple roles</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Faster iteration without restarting your CV each time</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Simple recurring monthly plan</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><span data-i18n="pages.index.pricing.starterFeature1">All Free features</span></li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><span data-i18n="pages.index.pricing.starterFeature2">Best for weekly applications across multiple roles</span></li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><span data-i18n="pages.index.pricing.starterFeature3">Faster iteration without restarting your CV each time</span></li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><span data-i18n="pages.index.pricing.starterFeature4">Simple recurring monthly plan</span></li>
 </ul>
 <div class="planActions">
-<a class="btn lime" href="plan.html#cv-pricing"><span class="btnLabel">Choose Starter</span></a>
-<a class="btn primary" href="cv-studio.html"><span class="btnLabel">See CV Studio</span></a>
+<a class="btn lime" href="plan#cv-pricing"><span class="btnLabel" data-i18n="pages.index.pricing.starterCta">Choose Starter</span></a>
+<a class="btn primary" href="cv-studio"><span class="btnLabel" data-i18n="pages.index.pricing.starterSecondaryCta">See CV Studio</span></a>
 </div>
 </div>
 
-<div class="soonFlagWrap" data-flag="Coming soon">
 <div class="card plan">
-<h3 style="margin:0 0 6px;font-weight:1000;letter-spacing:-.2px">Auto-apply</h3>
-<p style="margin:0;color:var(--muted);font-size:14px">Separate request-only workflow for later.</p>
-<div class="priceRow" style="margin-top:10px">
-<strong>By request</strong>
-<span>later</span>
-<span class="save">Request only</span>
+<div class="planIntro">
+<div class="planCopy">
+<h3 data-i18n="pages.index.pricing.plusTitle">CV Studio Plus</h3>
+<p class="planLead" data-i18n="pages.index.pricing.plusLead">For broader, heavier, or multi-role search volume.</p>
+</div>
+<div class="priceRow">
+<strong data-price-plan="plus">€9</strong>
+<span data-i18n="common.commerce.perMonth">/ month</span>
+<span class="save" data-i18n="pages.index.pricing.plusSave">Higher monthly quota</span>
+</div>
 </div>
 
 <div class="valueRow" aria-label="Monthly value">
 <div>
-<strong>Separate from CV Studio pricing</strong>
-<span>Will be introduced separately when the workflow is ready.</span>
+<strong data-i18n="pages.index.pricing.plusValueTitle">50 tailored CVs / month</strong>
+<span data-i18n="pages.index.pricing.plusValueBody">One higher monthly quota across extension and manual paste.</span>
 </div>
-<div class="valueBadge"><i aria-hidden="true"></i>Selected markets</div>
+<div class="valueBadge"><i aria-hidden="true"></i><span data-i18n="pages.index.pricing.plusValueBadge">Power users</span></div>
 </div>
 
 <ul class="features">
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Separate rollout from CV Studio</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Market coverage will be announced clearly</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>More guided setup when it launches</li>
-<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Request access instead of self-serve checkout</li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><span data-i18n="pages.index.pricing.plusFeature1">All Starter features</span></li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><span data-i18n="pages.index.pricing.plusFeature2">Best for broader weekly application volume</span></li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><span data-i18n="pages.index.pricing.plusFeature3">More room across multiple roles or markets</span></li>
+<li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><span data-i18n="pages.index.pricing.plusFeature4">Simple monthly plan with the highest CV quota</span></li>
 </ul>
 <div class="planActions">
-<a class="btn primary" href="plan.html#auto-apply-request"><span class="btnLabel">Request access</span></a>
-</div>
+<a class="btn primary" href="plan#cv-pricing"><span class="btnLabel" data-i18n="pages.index.pricing.plusCta">Choose Plus</span></a>
 </div>
 </div>
 </div>
 
-<p class="fineprint">CV Studio pricing is monthly, global, and based on how many tailored CVs you need. Future workflows will be introduced separately when they are ready.</p>
+<p class="fineprint" data-i18n="pages.index.pricing.fineprint">CV Studio pricing is monthly, global, and based on how many tailored CVs you need. Free, Starter, and Plus all use the same workflow across the extension and manual paste mode.</p>
 </div>
 </section>
 
 <section id="why" class="whyBand anchor">
 <div class="container">
 <div class="sectionHead">
-<div class="kicker">Why this works</div>
-<h2 class="sectionTitle">Why this leads to stronger applications.</h2>
-<p class="sectionDesc">The value is not just faster import. It is better role-fit, clearer ATS coverage, and more control over the final document you send.</p>
+<div class="kicker" data-i18n="pages.index.why.kicker">Why this works</div>
+<h2 class="sectionTitle" data-i18n="pages.index.why.title">Why this helps you apply with a stronger CV.</h2>
+<p class="sectionDesc" data-i18n="pages.index.why.desc">The value is clearer role fit, visible keyword gaps, and more control over the final document you send.</p>
 </div>
 
 <div class="whyGrid">
 <div class="whyList">
 <div class="whyItem">
 <div class="whyIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8 10L4 11"></path></svg></div>
-<div class="whyText"><strong>Faster from job post to first draft</strong><span>Bring in any role and get a tailored starting point without rebuilding your CV from scratch.</span></div>
+<div class="whyText"><strong data-i18n="pages.index.why.item1Title">Faster from job post to first draft</strong><span data-i18n="pages.index.why.item1Body">Bring in any role and get a tailored starting point without rebuilding your CV from scratch.</span></div>
 </div>
 <div class="whyItem">
 <div class="whyIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg></div>
-<div class="whyText"><strong>See what is still missing</strong><span>Keyword gaps stay visible so you can strengthen the match before you apply.</span></div>
+<div class="whyText"><strong data-i18n="pages.index.why.item2Title">See what is still missing</strong><span data-i18n="pages.index.why.item2Body">Keyword gaps stay visible so you can strengthen the match before you apply.</span></div>
 </div>
 <div class="whyItem">
 <div class="whyIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h16"></path></svg></div>
-<div class="whyText"><strong>Edit the details that matter</strong><span>Adjust bullet points, experience, skills, and profile inside the app before exporting.</span></div>
+<div class="whyText"><strong data-i18n="pages.index.why.item3Title">Edit the details that matter</strong><span data-i18n="pages.index.why.item3Body">Adjust bullet points, experience, skills, and profile inside the app before exporting.</span></div>
 </div>
 <div class="whyItem">
 <div class="whyIco" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"></path><path d="M21 8l-9 6-9-6"></path></svg></div>
-<div class="whyText"><strong>Export something you can actually send</strong><span>Keep the structure ATS-safe and generate a clean PDF when the draft looks right.</span></div>
+<div class="whyText"><strong data-i18n="pages.index.why.item4Title">Export something you can actually send</strong><span data-i18n="pages.index.why.item4Body">Keep the structure ATS-safe and generate a clean PDF when the draft looks right.</span></div>
 </div>
 </div>
 
@@ -3331,21 +3416,21 @@ Last 7 days
 </svg>
 </div>
 <div>
-<h3>CV quality principle</h3>
-<p>We focus on truthful tailoring, strong structure, and practical ATS coverage so every export stays credible, editable, and ready to send.</p>
+<h3 data-i18n="pages.index.why.principleTitle">CV quality principle</h3>
+<p data-i18n="pages.index.why.principleBody">We focus on truthful tailoring, strong structure, and practical ATS coverage so every export stays credible, editable, and ready to send.</p>
 </div>
 </div>
 
 <div class="qpPills" aria-label="Quality checks">
-<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>No invented experience</div>
-<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Human in control</div>
-<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>ATS-safe structure</div>
-<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span>Export-ready PDF</div>
+<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><span data-i18n="pages.index.why.pill1">No invented experience</span></div>
+<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><span data-i18n="pages.index.why.pill2">Human in control</span></div>
+<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><span data-i18n="pages.index.why.pill3">ATS-safe structure</span></div>
+<div class="qpPill"><span class="mini" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></span><span data-i18n="pages.index.why.pill4">Export-ready PDF</span></div>
 </div>
 
 <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;position:relative">
-<a class="btn primary small" href="#how"><span class="btnLabel">See workflow</span></a>
-<a class="btn lime small" href="signup.html?entry=cv-studio"><span class="btnLabel">Get started</span></a>
+<a class="btn primary small" href="#how"><span class="btnLabel" data-i18n="pages.index.why.primaryCta">See workflow</span></a>
+<a class="btn lime small" href="signup?entry=cv-studio"><span class="btnLabel" data-i18n="pages.index.why.secondaryCta">Get started</span></a>
 </div>
 </div>
 
@@ -3356,35 +3441,35 @@ Last 7 days
 <section id="faq" class="anchor">
 <div class="container">
 <div class="sectionHead">
-<div class="kicker">FAQ</div>
-<h2 class="sectionTitle">Answers to the most common questions.</h2>
-<p class="sectionDesc">If you have a specific setup (industry, location, seniority), reach out — we’ll confirm what’s possible.</p>
+<div class="kicker" data-i18n="pages.index.faq.kicker">FAQ</div>
+<h2 class="sectionTitle" data-i18n="pages.index.faq.title">Questions about CV tailoring.</h2>
+<p class="sectionDesc" data-i18n="pages.index.faq.desc">If you have a specific setup such as industry, location, or seniority, reach out and we’ll confirm what’s possible.</p>
 </div>
 
 <div class="faqGrid" aria-label="Frequently asked questions">
 <details class="faqItem">
-<summary>Can I tailor from any website?</summary>
-<div class="faqBody">Yes. You can paste any job description manually, and the Chrome extension is designed to import the active job page directly into CV Studio.</div>
+<summary data-i18n="pages.index.faq.q1">Can I tailor from any website?</summary>
+<div class="faqBody" data-i18n="pages.index.faq.a1">Yes. You can paste any job description manually, and the Chrome extension is designed to import the active job page directly into CV Studio.</div>
 </details>
 
 <details class="faqItem">
-<summary>Does CV Studio invent experience or “fake” details?</summary>
-<div class="faqBody">No. Tailoring should improve clarity and relevance, not fabricate experience. If something is missing, we recommend changes only when it matches your real background.</div>
+<summary data-i18n="pages.index.faq.q2">Does CV Studio invent experience or fake details?</summary>
+<div class="faqBody" data-i18n="pages.index.faq.a2">No. Tailoring should improve clarity and relevance, not fabricate experience. If something is missing, we recommend changes only when it matches your real background.</div>
 </details>
 
 <details class="faqItem">
-<summary>Can I edit the tailored CV before exporting?</summary>
-<div class="faqBody">Yes. CV Studio keeps you in control. You can adjust bullet points, experience, skills, and profile before you export the final PDF.</div>
+<summary data-i18n="pages.index.faq.q3">Can I edit the tailored CV before exporting?</summary>
+<div class="faqBody" data-i18n="pages.index.faq.a3">Yes. CV Studio keeps you in control. You can adjust bullet points, experience, skills, and profile before you export the final PDF.</div>
 </details>
 
 <details class="faqItem">
-<summary>What does the ATS match score mean?</summary>
-<div class="faqBody">It’s a practical indicator of how well your CV’s wording aligns with a specific job description (keywords, priority terms, and formatting basics). It’s not a guarantee of an interview.</div>
+<summary data-i18n="pages.index.faq.q4">What does the ATS match score mean?</summary>
+<div class="faqBody" data-i18n="pages.index.faq.a4">It’s a practical indicator of how well your CV’s wording aligns with a specific job description, including keywords, priority terms, and formatting basics. It is not a guarantee of an interview.</div>
 </details>
 
 <details class="faqItem">
-<summary>Do I need to rewrite my whole CV each time?</summary>
-<div class="faqBody">No. The product reuses your stored base CV, then tailors it per role so you do not have to start from scratch for every application.</div>
+<summary data-i18n="pages.index.faq.q5">Do I need to rewrite my whole CV each time?</summary>
+<div class="faqBody" data-i18n="pages.index.faq.a5">No. The product reuses your stored base CV, then tailors it per role so you do not have to start from scratch for every application.</div>
 </details>
 </div>
 </div>
@@ -3394,25 +3479,25 @@ Last 7 days
 <div class="container">
 <div class="ctaBox">
 <div>
-<h2>Need help getting started?</h2>
-<p>Tell us your target role and we will point you to the best CV Studio setup for your search.</p>
+<h2 data-i18n="pages.index.contact.title">Need help getting started?</h2>
+<p data-i18n="pages.index.contact.body">Tell us your target role and we will point you to the best CV Studio setup for your search.</p>
 </div>
-<form action="#" method="post" aria-label="Waitlist form">
+<form action="#" method="post" aria-label="Waitlist form" data-i18n-aria-label="pages.index.contact.formAria">
 <div class="two">
-<label class="sr-only" for="name">Name</label>
-<input id="name" name="name" type="text" placeholder="Name" autocomplete="name">
-<label class="sr-only" for="email">Email</label>
-<input id="email" name="email" type="email" placeholder="Email" autocomplete="email" required>
+<label class="sr-only" for="name" data-i18n="pages.index.contact.name">Name</label>
+<input id="name" name="name" type="text" placeholder="Name" autocomplete="name" data-i18n-placeholder="pages.index.contact.name">
+<label class="sr-only" for="email" data-i18n="pages.index.contact.email">Email</label>
+<input id="email" name="email" type="email" placeholder="Email" autocomplete="email" required data-i18n-placeholder="pages.index.contact.email">
 </div>
-<label class="sr-only" for="goals">Preferences</label>
-<textarea id="goals" name="goals" rows="3" placeholder="Target job titles, industry, country, city, radius (optional)"></textarea>
+<label class="sr-only" for="goals" data-i18n="pages.index.contact.goals">Preferences</label>
+<textarea id="goals" name="goals" rows="3" placeholder="Target job titles, industry, country, city, radius (optional)" data-i18n-placeholder="pages.index.contact.goals"></textarea>
 <div class="formActions">
 <button class="btn lime" type="submit">
 <span class="btnLabel">
 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
 <path d="M22 2 11 13"></path><path d="M22 2 15 22 11 13 2 9 22 2Z"></path>
 </svg>
-<span>Send</span>
+<span data-i18n="pages.index.contact.send">Send</span>
 </span>
 </button>
 <a class="btn" href="mailto:team@jobmejob.com" style="background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.16);color:#fff">
@@ -3420,10 +3505,10 @@ Last 7 days
 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
 <path d="M21 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"></path><path d="M21 8l-9 6-9-6"></path>
 </svg>
-<span>Contact via email</span>
+<span data-i18n="pages.index.contact.emailCta">Contact via email</span>
 </span>
 </a>
-<span class="note">Typical reply: 1–2 business days.</span>
+<span class="note" data-i18n="pages.index.contact.reply">Typical reply: 1–2 business days.</span>
 </div>
 </form>
 </div>
@@ -3434,21 +3519,36 @@ Last 7 days
 <footer>
 <div class="container">
 <div class="footerRow">
-<div><strong style="color:var(--text);font-weight:1000">jobmejob</strong><span> · </span><span>CV tailoring first</span></div>
+<div><strong style="color:var(--text);font-weight:1000">jobmejob</strong><span> · </span><span data-i18n="pages.index.footer.tagline">CV tailoring first</span></div>
 <div class="footerLinks" aria-label="Footer links">
-<a href="#how">How it works</a>
-<a href="cv-studio.html">CV Studio</a>
-<a href="#dashboard">Dashboard</a>
-<a href="#ats">ATS score</a>
-<a href="#pricing">Pricing</a>
-<a href="#why">Why it works</a>
-<a href="#faq">FAQ</a>
-<a href="#contact">Contact</a>
-<a href="privacy.html">Privacy</a>
+<a href="#how" data-i18n="pages.index.footer.how">How it works</a>
+<a href="cv-studio" data-i18n="common.nav.cvStudio">CV Studio</a>
+<a href="#ats" data-i18n="pages.index.footer.ats">ATS score</a>
+<a href="#pricing" data-i18n="common.nav.pricing">Pricing</a>
+<a href="#why" data-i18n="pages.index.footer.why">Why it works</a>
+<a href="#faq" data-i18n="pages.index.footer.faq">FAQ</a>
+<a href="#contact" data-i18n="pages.index.footer.contact">Contact</a>
+<a href="/privacy" data-i18n="pages.index.footer.privacy">Privacy</a>
+</div>
+<div class="footerLocale">
+<span class="footerLocaleLabel" data-i18n="common.languageSwitcher.label">Language</span>
+<details class="navDrop" data-locale-switcher="1" data-i18n-aria-label="common.languageSwitcher.ariaLabel">
+<summary class="jmNavTrigger" aria-label="Language switcher">
+<span data-locale-current>🇺🇸 English</span>
+<span aria-hidden="true">▾</span>
+</summary>
+<div class="navMenu" role="menu" aria-label="Language switcher">
+<div class="menuLabel" data-i18n="common.languageSwitcher.label">Language</div>
+<a class="jmNavItem" href="/en/" data-locale-option="en" role="menuitem">🇺🇸 English</a>
+<a class="jmNavItem" href="/de/" data-locale-option="de" role="menuitem">🇩🇪 Deutsch</a>
+<a class="jmNavItem" href="/es/" data-locale-option="es" role="menuitem">🇪🇸 Español</a>
+<a class="jmNavItem" href="/ko/" data-locale-option="ko" role="menuitem">🇰🇷 한국어</a>
+</div>
+</details>
 </div>
 
 </div>
-<div style="margin-top:10px">© <span id="year"></span> jobmejob All rights reserved.</div>
+<div style="margin-top:10px">© <span id="year"></span> jobmejob <span data-i18n="pages.index.footer.rights">All rights reserved.</span></div>
 </div>
 
 <script>
@@ -3460,6 +3560,7 @@ Last 7 days
 </footer>
 <script src="./vendor/supabase-js-2.100.1.js"></script>
 <script src="./auth.js?v=202604121905"></script>
-<script src="./shared.js?v=202604102230"></script>
+<script src="./i18n.js?v=202604181830"></script>
+<script src="./shared.js?v=202604181830"></script>
 </body>
 </html>
