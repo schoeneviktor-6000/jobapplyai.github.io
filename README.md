@@ -13,7 +13,38 @@ It is designed to be deployed as a Cloudflare Pages site and talks to a separate
 - `dashboard.app.js`, `profile.app.js`, `cv.app.js`: extracted page runtimes
 - `dashboard.bi.override.v3.js`: dashboard BI/activity overrides
 - `vendor/`: pinned third-party browser assets
-- `_headers`, `robots.txt`, `sitemap.xml`: Cloudflare Pages and indexing controls
+- `_headers`, `robots.txt`, `sitemap.xml`: Pages-side headers and fallback indexing assets
+- `functions/[[path]].js`, `functions/_lib/i18n.js`: locale routing, redirects, canonical/hreflang, and localized HTML rewriting on Pages
+- `worker-api/`: source of truth for the API worker on `api.jobmejob.com`
+- `jobmejob-seo/`: source of truth for the standalone SEO/proxy worker that owns `jobmejob.com/sitemap.xml`, `jobmejob.com/robots.txt`, and `jobmejob.com/api/*`
+
+## Deployment Ownership
+
+- Cloudflare Pages serves the website HTML, assets, and locale routes such as `/`, `/en`, `/de`, `/es`, `/ko`, `/de/plan`, `/es/signup`, and `/ko/cv-studio`.
+- Pages source of truth for locale behavior is `functions/[[path]].js` plus `functions/_lib/i18n.js`. The client switcher/runtime lives in `i18n.js`.
+- `worker-api/jobmejob-worker.js` serves the direct API domain `https://api.jobmejob.com/*` and is deployed with:
+
+```bash
+cd worker-api
+npx wrangler deploy --config wrangler.jobmejob.toml
+```
+
+- `jobmejob-seo/worker.js` serves `https://jobmejob.com/sitemap.xml`, `https://jobmejob.com/robots.txt`, and proxies `https://jobmejob.com/api/*` to the upstream worker. Deploy it with:
+
+```bash
+cd jobmejob-seo
+npx wrangler deploy --config wrangler.toml
+```
+
+- Pages deploy command:
+
+```bash
+npx wrangler pages deploy <dir> --project-name jobmejob --branch main
+```
+
+- Live source of truth for `sitemap.xml` and `robots.txt` is `jobmejob-seo/worker.js`.
+- `sitemap.xml`, `robots.txt`, and `functions/sitemap.xml.js` in the Pages app are useful parity/fallback files, but the exact custom-domain SEO routes are overridden by `jobmejob-seo`.
+- Important caveat: a custom-domain Worker route wins over Pages for the same path. If `jobmejob.com/sitemap.xml`, `jobmejob.com/robots.txt`, or `jobmejob.com/api/*` look wrong in production, check `jobmejob-seo` first, not Pages.
 
 ## Local Preview
 
