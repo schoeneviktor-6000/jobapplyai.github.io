@@ -1060,15 +1060,15 @@ Profile reduction pass
 }
 .uploadSuccessCard{
   display:grid;
-  gap:16px;
-  padding:18px;
-  border-radius:22px;
+  gap:14px;
+  padding:16px;
+  border-radius:20px;
   border:1px solid rgba(234,88,12,.20);
   background:
-    radial-gradient(720px 220px at 8% 0%, rgba(245,158,11,.14), transparent 58%),
-    radial-gradient(680px 220px at 100% 0%, rgba(239,68,68,.08), transparent 62%),
-    linear-gradient(180deg, rgba(255,255,255,.99), rgba(255,249,243,.96));
-  box-shadow:0 22px 56px rgba(17,19,24,.09);
+    radial-gradient(620px 180px at 8% 0%, rgba(245,158,11,.12), transparent 58%),
+    radial-gradient(560px 180px at 100% 0%, rgba(239,68,68,.06), transparent 62%),
+    linear-gradient(180deg, rgba(255,255,255,.99), rgba(255,249,243,.97));
+  box-shadow:0 16px 34px rgba(17,19,24,.08);
 }
 .uploadSuccessTop{
   display:flex;
@@ -1081,13 +1081,13 @@ Profile reduction pass
   display:inline-flex;
   align-items:center;
   gap:8px;
-  min-height:24px;
-  padding:0 10px;
+  min-height:22px;
+  padding:0 9px;
   border-radius:999px;
   border:1px solid rgba(234,88,12,.18);
   background:rgba(234,88,12,.08);
   color:#9a3412;
-  font-size:11px;
+  font-size:10px;
   font-weight:950;
   letter-spacing:.08em;
   text-transform:uppercase;
@@ -1101,32 +1101,32 @@ Profile reduction pass
   box-shadow:0 0 0 4px rgba(234,88,12,.10);
 }
 .uploadSuccessTitle{
-  margin:10px 0 0;
-  max-width:720px;
-  font-size:28px;
+  margin:8px 0 0;
+  max-width:640px;
+  font-size:24px;
   line-height:1.08;
-  letter-spacing:-.45px;
+  letter-spacing:-.38px;
 }
 .uploadSuccessBody{
-  margin:10px 0 0;
-  max-width:640px;
+  margin:8px 0 0;
+  max-width:600px;
   color:rgba(17,19,24,.72);
-  font-size:14px;
-  line-height:1.58;
+  font-size:13px;
+  line-height:1.5;
   font-weight:800;
 }
 .realityScoreGrid{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:12px;
+  gap:10px;
 }
 .realityScoreCard{
   border:1px solid rgba(17,19,24,.10);
   background:rgba(255,255,255,.78);
-  border-radius:18px;
-  padding:14px;
+  border-radius:16px;
+  padding:12px;
   display:grid;
-  gap:8px;
+  gap:6px;
 }
 .realityScoreLabel{
   font-size:11px;
@@ -1136,7 +1136,7 @@ Profile reduction pass
   color:rgba(17,19,24,.50);
 }
 .realityScoreValue{
-  font-size:30px;
+  font-size:28px;
   line-height:1;
   letter-spacing:-.7px;
   font-weight:1000;
@@ -1150,26 +1150,26 @@ Profile reduction pass
 }
 .realityFindings{
   display:grid;
-  gap:10px;
+  gap:8px;
 }
 .realityFinding{
   border:1px solid rgba(17,19,24,.08);
   background:rgba(255,255,255,.74);
-  border-radius:18px;
-  padding:14px;
+  border-radius:16px;
+  padding:12px;
   display:grid;
-  gap:7px;
+  gap:5px;
 }
 .realityFindingTitle{
-  font-size:14px;
+  font-size:13px;
   font-weight:950;
   letter-spacing:-.16px;
   color:rgba(17,19,24,.92);
 }
 .realityFindingExample,
 .realityFindingImpact{
-  font-size:13px;
-  line-height:1.55;
+  font-size:12px;
+  line-height:1.48;
   color:rgba(17,19,24,.66);
   font-weight:760;
 }
@@ -1226,8 +1226,8 @@ Profile reduction pass
 }
 .uploadSuccessBridge{
   color:rgba(17,19,24,.86);
-  font-size:14px;
-  line-height:1.6;
+  font-size:13px;
+  line-height:1.5;
   font-weight:860;
 }
 .uploadSuccessCard .actions{
@@ -1237,8 +1237,8 @@ Profile reduction pass
 .uploadSuccessSecondary{
   color:rgba(17,19,24,.58);
   font-size:12px;
-  line-height:1.5;
-  font-weight:760;
+  line-height:1.45;
+  font-weight:780;
 }
 @keyframes realityShimmer{
   0%{ transform:translateX(-100%); }
@@ -1246,16 +1246,21 @@ Profile reduction pass
 }
 .profilePostUploadFocus .profileRail{
   align-self:start;
+  min-width:0;
 }
 .profilePostUploadFocus #billingBox,
 .profilePostUploadFocus .slimDetails{
   display:none !important;
 }
 .profilePostUploadFocus .profileRail .sectionBody{
-  gap:12px;
+  gap:0;
+  padding:16px;
 }
 .profilePostUploadFocus .sideCardCompact{
-  background:rgba(17,19,24,.03);
+  background:transparent;
+  padding:0;
+  border:0;
+  box-shadow:none;
 }
 #aiBox{ display:none !important; }
 .slimAi{
@@ -1299,9 +1304,12 @@ Profile reduction pass
   letter-spacing:-.2px;
 }
 .compactSnapshot .snapshotTile{
-  min-height:72px;
+  min-height:68px;
   padding:10px 12px;
   gap:4px;
+  border:1px solid rgba(17,19,24,.08);
+  border-radius:16px;
+  background:rgba(255,255,255,.82);
 }
 .compactSnapshot .snapshotLabel{
   font-size:10px;
@@ -1444,31 +1452,28 @@ Profile reduction pass
 Matched jobs premium polish
 ============================================================ */
 #prefsCard{
-  background:
-    radial-gradient(960px 260px at 0% 0%, rgba(34,197,94,.12), transparent 58%),
-    radial-gradient(860px 240px at 100% 0%, rgba(17,19,24,.04), transparent 62%),
-    linear-gradient(180deg, rgba(255,255,255,.98), rgba(250,252,255,.96));
-  box-shadow:0 22px 54px rgba(17,19,24,.08);
+  background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(249,250,252,.96));
+  box-shadow:0 12px 28px rgba(17,19,24,.05);
 }
 .prefsShell > summary{
-  padding:22px 58px 18px 24px;
-  background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(247,249,254,.90));
+  padding:16px 50px 16px 18px;
+  background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(249,250,252,.92));
 }
 .prefsSummaryMain{
   display:grid;
-  gap:10px;
+  gap:8px;
   min-width:0;
 }
 .prefsSummaryTag,
 .prefsSummaryChip{
   display:inline-flex;
   align-items:center;
-  min-height:32px;
-  padding:0 12px;
+  min-height:26px;
+  padding:0 10px;
   border-radius:999px;
   border:1px solid rgba(17,19,24,.08);
   background:rgba(255,255,255,.82);
-  font-size:12px;
+  font-size:11px;
   font-weight:950;
   color:rgba(17,19,24,.64);
   white-space:nowrap;
@@ -1480,40 +1485,43 @@ Matched jobs premium polish
   color:#0a5a2a;
 }
 .prefsSummaryLead{
-  font-size:13px;
-  font-weight:750;
+  font-size:12px;
+  font-weight:760;
   color:rgba(17,19,24,.60);
 }
-.prefsSummaryMeta{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-left:auto;
-}
 .prefsSummary .titleBlock{
-  gap:6px;
+  gap:4px;
 }
 .prefsSummary .titleBlock h2{
   margin:0;
-  font-size:42px;
-  line-height:1;
-  font-weight:1000;
-  letter-spacing:-.06em;
+  font-size:24px;
+  line-height:1.05;
+  font-weight:950;
+  letter-spacing:-.04em;
 }
 .prefsShell > .sectionBody{
-  padding:18px;
+  padding:14px 16px 16px;
   border-top:1px solid rgba(17,19,24,.06);
 }
+.prefsUtilityRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:12px;
+}
+.prefsUtilityRow .small{
+  margin:0;
+}
 .prefsCanvas{
-  padding:16px;
-  border-radius:28px;
+  padding:14px;
+  border-radius:22px;
   border:1px solid rgba(17,19,24,.08);
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.92), rgba(247,249,253,.96));
+  background:linear-gradient(180deg, rgba(255,255,255,.94), rgba(248,249,252,.97));
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.72),
-    0 10px 24px rgba(17,19,24,.04);
+    0 8px 20px rgba(17,19,24,.04);
 }
 #prefsCard .prefsForm{
   gap:16px;
@@ -1635,13 +1643,13 @@ Matched jobs premium polish
   .prefsSummary{
     align-items:flex-start;
   }
-  .prefsSummaryMeta{
-    margin-left:0;
+  .prefsUtilityRow{
+    align-items:flex-start;
   }
 }
 @media (max-width:700px){
   .prefsSummary .titleBlock h2{
-    font-size:32px;
+    font-size:22px;
   }
   .prefsCanvas{
     padding:12px;
@@ -1687,19 +1695,14 @@ Matched jobs premium polish
             <div class="jmAccountMetaRow">
               <span class="jmNavMetaPill" id="navUsagePill">5 free CVs available</span>
             </div>
-            <div class="jmAccountHint" id="navPlanMeta">CV Studio free plan</div>
-            <div class="jmAccountHint" id="navUsageMeta">Usage updates after each tailored CV.</div>
-          </div>
-          <div class="menuLabel">Go to</div>
-          <a class="jmNavItem" href="./dashboard.html" data-nav="1" role="menuitem">Dashboard</a>
-          <a class="jmNavItem" href="/cv?entry=chooser" data-nav="1" role="menuitem">CV Studio</a>
-          <a class="jmNavItem" href="./jobs.html" data-nav="1" role="menuitem">Jobs</a>
+        <div class="jmAccountHint" id="navPlanMeta">CV Studio free plan</div>
+        <div class="jmAccountHint" id="navUsageMeta">Usage updates after each tailored CV.</div>
+      </div>
+          <div class="menuLabel">Account</div>
           <a class="jmNavItem" href="./profile.html" data-nav="1" role="menuitem">Profile</a>
-          <a class="jmNavItem" href="./profile.html#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Manage billing</a>
-          <a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Plans &amp; pricing</a>
-          <button class="jmNavItem" id="navActivity" type="button" role="menuitem">Activity</button>
+          <a class="jmNavItem" href="./profile.html#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Billing</a>
           <div class="menuSep" role="separator"></div>
-          <button class="jmNavItem jmNavDanger" id="navLogout" type="button" role="menuitem">Logout</button>
+          <button class="jmNavItem jmNavDanger" id="navLogout" type="button" role="menuitem">Sign out</button>
         </div>
       </details>
 
@@ -1760,7 +1763,7 @@ Matched jobs premium polish
   <div class="uploadSuccessCard" id="postUploadCard" style="display:none" aria-live="polite">
     <div class="uploadSuccessTop">
       <div>
-        <div class="uploadSuccessKicker" id="postUploadKicker">Review preparing</div>
+        <div class="uploadSuccessKicker" id="postUploadKicker">AI CV Review</div>
         <h3 class="uploadSuccessTitle" id="postUploadTitle">Your base CV is ready.</h3>
         <p class="uploadSuccessBody" id="postUploadBody">We’re extracting readable text and preparing your first CV review. This usually takes a short moment.</p>
       </div>
@@ -1783,7 +1786,7 @@ Matched jobs premium polish
     <div class="actions">
       <button class="btn primary" id="postUploadPrimaryBtn" type="button">Continue to CV Studio</button>
     </div>
-    <div class="uploadSuccessSecondary" id="postUploadSecondary">Match jobs stays secondary below. The main path from here is CV Studio.</div>
+    <div class="uploadSuccessSecondary" id="postUploadSecondary">You can continue to CV Studio while the first review prepares.</div>
   </div>
 
   <div class="helpBox aiCard slimAi" id="aiBox">
@@ -1833,7 +1836,7 @@ Matched jobs premium polish
         <div class="kpiVal" id="kCv">…</div>
       </div>
       <div class="snapshotTile">
-        <div class="snapshotLabel">Readable text</div>
+        <div class="snapshotLabel">Review status</div>
         <div class="kpiVal" id="kOcr">…</div>
       </div>
     </div>
@@ -1914,18 +1917,18 @@ Matched jobs premium polish
       <span class="prefsSummaryTag">Optional later</span>
       <div class="titleBlock">
         <h2>Match jobs later</h2>
-        <div class="prefsSummaryLead">Only if you also want job suggestions.</div>
-      </div>
-    </div>
-    <div class="prefsSummaryMeta">
-      <span class="prefsSummaryChip">Auto-save on</span>
-      <div class="row" style="gap:8px">
-        <span class="badge" id="jobsPrefetchBadge" style="display:none">Fetching jobs…</span>
-        <span class="badge" id="saveStatusBadge">Not saved</span>
+        <div class="prefsSummaryLead">Only if you also want optional job suggestions after CV Studio.</div>
       </div>
     </div>
   </summary>
   <div class="sectionBody">
+  <div class="prefsUtilityRow">
+    <div class="small">This section is optional and secondary to CV tailoring.</div>
+    <div class="row" style="gap:8px">
+      <span class="badge" id="jobsPrefetchBadge" style="display:none">Fetching jobs…</span>
+      <span class="badge" id="saveStatusBadge">Not saved</span>
+    </div>
+  </div>
   <div class="prefsCanvas">
 
     <div class="row" id="jobsPrefetchRow" style="display:none; gap:10px; margin-bottom:10px">
@@ -2081,8 +2084,8 @@ Matched jobs premium polish
   <!-- Scripts: order matters -->
   <script src="./vendor/supabase-js-2.100.1.js"></script>
   <script src="./auth.js?v=202604121905"></script>
-  <script src="./shared.js?v=202604102230"></script>
+  <script src="./shared.js?v=202604231420"></script>
 
-  <script src="./profile.app.js?v=202604231215"></script>
+  <script src="./profile.app.js?v=202604231420"></script>
 </body>
 </html>

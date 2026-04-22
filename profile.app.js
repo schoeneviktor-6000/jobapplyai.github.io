@@ -1669,9 +1669,9 @@ const cvOk=cvSource ? true : !!(st && st.cv_uploaded);
 setText("kCv",cvOk?"Yes":"No");
 $("kCv").className="kpiVal "+(cvOk?"ok":"warn");
 if(cvSource){
-  const textMeta=getReadableTextStatusMeta(cvSource);
-  setText("kOcr",textMeta.accountLabel);
-  $("kOcr").className="kpiVal " + textMeta.accountClass;
+  const railMeta=getRailReviewStatusMeta(cvSource);
+  setText("kOcr",railMeta.label);
+  $("kOcr").className="kpiVal " + railMeta.className;
 }else{
   const ocr=String(st && st.cv_ocr_status ? st.cv_ocr_status : "").toLowerCase();
   if(ocr==="done"){
@@ -1948,6 +1948,24 @@ setBadge("cvStatusBadge",reviewMeta.headerBadgeKind,reviewMeta.headerBadgeText);
 setText("subLine",reviewMeta.subLine);
 }
 
+function getRailReviewStatusMeta(cv){
+if(!cv || !cv.cv_path){
+  return { label:"pending", className:"warn" };
+}
+const stage=getPostUploadReviewStage(cv, realityCheckResult);
+if(stage === "c"){
+  return { label:"ready", className:"ok" };
+}
+if(stage === "b"){
+  return { label:"baseline", className:"warn" };
+}
+const textMeta=getReadableTextStatusMeta(cv);
+if(textMeta.status === "failed"){
+  return { label:"needs text", className:"bad" };
+}
+return { label:"preparing", className:"warn" };
+}
+
 function maybeFocusPostUploadCard(){
 if(!shouldFocusPostUploadCard) return;
 const card=$("postUploadCard");
@@ -2115,7 +2133,7 @@ function renderRealityCheckPreparing(cv){
   if(!card) return;
   const textStatus=getReadableTextStatus(cv);
   card.style.display="";
-  setText("postUploadKicker","Review preparing");
+  setText("postUploadKicker","AI CV Review");
   setBadge("postUploadBadge", textStatus === "failed" ? "bad" : "warn", textStatus === "failed" ? "Needs text" : "Preparing review");
   setText("postUploadTitle", "Your base CV is ready.");
   setText("postUploadBody", textStatus === "failed"
@@ -2127,8 +2145,8 @@ function renderRealityCheckPreparing(cv){
   setPostUploadBridge("");
   setPostUploadPrimaryCta("Continue to CV Studio");
   setText("postUploadSecondary", textStatus === "failed"
-    ? "Retry text extraction if you want the review to load here, or continue straight into CV Studio now."
-    : "The review will appear here automatically. You can continue to CV Studio right away.");
+    ? "You can retry text extraction here or continue to CV Studio right away."
+    : "You can continue to CV Studio while the first review prepares.");
 }
 
 function renderRealityCheckBaseline(cv, options){
@@ -2137,28 +2155,26 @@ function renderRealityCheckBaseline(cv, options){
   const opts=options && typeof options === "object" ? options : {};
   const fallback=buildRealityCheckFallback(cv);
   card.style.display="";
-  setText("postUploadKicker","Baseline review");
+  setText("postUploadKicker","AI CV Review");
   setBadge("postUploadBadge", "warn", "Baseline review");
-  setText("postUploadTitle", "We found issues worth fixing before you apply.");
+  setText("postUploadTitle", "Your CV is not ready for most job applications yet");
   setText("postUploadBody", opts.loading
-    ? "This first review uses the readable text from your current CV. The full AI review is still finishing, but the baseline already shows where the document is weak."
-    : "This baseline review uses the readable text from your current CV. It already shows the main issues worth fixing before you apply.");
+    ? "This is your current untailored baseline. These are the issues ATS systems and recruiters are most likely to notice first."
+    : "This is your current untailored baseline. These are the issues ATS systems and recruiters are most likely to notice first.");
   const scores=$("postUploadScores");
   if(scores) scores.style.display="";
   setText("postUploadScoreValue", String(fallback.ats_readiness_score || 44) + "/100");
   setText("postUploadReadabilityValue", String(fallback.machine_readability || "Low"));
   setText("postUploadScoreMeta", opts.loading
-    ? "Early baseline while the full AI review finishes."
-    : "Baseline before tailoring to a specific job.");
+    ? "Untailored baseline."
+    : "Untailored baseline.");
   setText("postUploadReadabilityMeta", opts.loading
-    ? "Readable text is ready, so we can already estimate ATS parsing quality."
-    : "This reflects how clearly ATS systems can parse the current document.");
+    ? "Early ATS parsing estimate."
+    : "How clearly ATS systems can parse this CV.");
   renderRealityCheckFindings(fallback.findings);
-  setPostUploadBridge(fallback.bridge);
+  setPostUploadBridge("");
   setPostUploadPrimaryCta("Tailor this CV to a job");
-  setText("postUploadSecondary", opts.loading
-    ? "The full AI review is still finishing, but you can move straight into CV Studio now."
-    : "The next step is to tailor this CV to one real job in CV Studio.");
+  setText("postUploadSecondary", "Tailoring this CV to a real job is the fastest way to improve it.");
 }
 
 function renderRealityCheckResult(result){
@@ -2166,22 +2182,22 @@ function renderRealityCheckResult(result){
   if(!card) return;
   const normalized=result && typeof result === "object" ? result : buildRealityCheckFallback(lastCvSnapshot || {});
   card.style.display="";
-  setText("postUploadKicker","AI CV review");
+  setText("postUploadKicker","AI CV Review");
   setBadge("postUploadBadge", "good", "Review ready");
-  setText("postUploadTitle", normalized.headline || "Your CV is not ready for most job applications yet");
-  setText("postUploadBody", "This review is based on your current untailored CV. These are the issues ATS systems and recruiters are most likely to notice first.");
+  setText("postUploadTitle", "Your CV is not ready for most job applications yet");
+  setText("postUploadBody", "This is your current untailored baseline. These are the issues ATS systems and recruiters are most likely to notice first.");
   const scores=$("postUploadScores");
   if(scores) scores.style.display="";
   setText("postUploadScoreValue", String(normalized.ats_readiness_score || 44) + "/100");
   setText("postUploadReadabilityValue", String(normalized.machine_readability || "Low"));
-  setText("postUploadScoreMeta", "Baseline before tailoring to a specific job.");
+  setText("postUploadScoreMeta", "Untailored baseline.");
   setText("postUploadReadabilityMeta", String(normalized.machine_readability || "Low") === "Low"
-    ? "Low means ATS systems may miss information or rank the CV lower."
-    : "This score reflects how reliably ATS systems can parse the document today.");
+    ? "Low means ATS systems may miss or down-rank parts of this CV."
+    : "How clearly ATS systems can parse this CV.");
   renderRealityCheckFindings(normalized.findings);
-  setPostUploadBridge(normalized.bridge || "We found issues worth fixing before you apply. Tailoring this CV to a specific job will give you a much stronger result.");
+  setPostUploadBridge("");
   setPostUploadPrimaryCta("Tailor this CV to a job");
-  setText("postUploadSecondary", "The next step is to tailor this CV to one real job in CV Studio.");
+  setText("postUploadSecondary", "Tailoring this CV to a real job is the fastest way to improve it.");
 }
 
 async function loadRealityCheckForCv(cv){

@@ -1388,13 +1388,12 @@ details[data-dd="1"]:not([open]) .navMenu{
 
   function buildBillingSettingsHref(navAccount){
     try{
-      const profileLink = navAccount?.querySelector("a.jmNavItem[href*='profile.html'], a.jmNavItem[href*='profile#'], a.jmNavItem[href*='profile?'], a.jmNavItem[href$='profile']");
-      const rawHref = String(profileLink?.getAttribute("href") || "/profile").trim() || "/profile";
+      const pricingLink = navAccount?.querySelector("a.jmNavItem[href*='plan.html'], a.jmNavItem[href*='plan#'], a.jmNavItem[href$='plan']");
+      const rawHref = String(pricingLink?.getAttribute("href") || "/plan.html#cv-pricing").trim() || "/plan.html#cv-pricing";
       const url = new URL(rawHref, window.location.href);
-      url.hash = "billingBox";
       return `${url.pathname}${url.search}${url.hash}`;
     }catch(_){
-      return "/profile#billingBox";
+      return "/plan.html#cv-pricing";
     }
   }
 
@@ -1524,6 +1523,37 @@ details[data-dd="1"]:not([open]) .navMenu{
     pruneDeprecatedNavLinks(navAccount);
   }
 
+  function trimProfileAccountMenu(navAccount){
+    const menu = navAccount?.querySelector(".navMenu");
+    if (!menu) return;
+
+    const isProfilePage = /\/profile(?:\.html)?$/i.test(String(window.location.pathname || ""));
+    if (!isProfilePage) return;
+
+    menu.querySelectorAll(".jmNavItem").forEach((item) => {
+      const href = String(item.getAttribute?.("href") || "").toLowerCase();
+      const keepProfile = href.includes("profile");
+      const keepBilling = item.getAttribute?.("data-jm-nav") === "subscription-billing";
+      const keepLogout = item.id === "navLogout";
+      if (keepProfile || keepBilling || keepLogout) return;
+      try{ item.remove(); }catch(_){}
+    });
+
+    menu.querySelectorAll(".menuSep").forEach((sep) => {
+      const hasVisibleBefore = !!sep.previousElementSibling;
+      const hasVisibleAfter = !!sep.nextElementSibling;
+      if (hasVisibleBefore && hasVisibleAfter) return;
+      try{ sep.remove(); }catch(_){}
+    });
+
+    const billingItem = menu.querySelector("[data-jm-nav='subscription-billing']");
+    if (billingItem) billingItem.textContent = "Billing";
+    const profileItem = menu.querySelector("a.jmNavItem[href*='profile']");
+    if (profileItem) profileItem.textContent = "Profile";
+    const logoutItem = menu.querySelector("#navLogout");
+    if (logoutItem) logoutItem.textContent = "Sign out";
+  }
+
   function ensureAccountExtensionNav(navAccount){
     const menu = navAccount?.querySelector(".navMenu");
     if (!menu) return;
@@ -1605,6 +1635,7 @@ details[data-dd="1"]:not([open]) .navMenu{
       pruneAccountPrimaryNav(navAccount);
       ensureAccountBillingNav(navAccount);
       ensureAccountExtensionNav(navAccount);
+      trimProfileAccountMenu(navAccount);
     }
 
     const handle = (email.split("@")[0] || "Account").trim();
