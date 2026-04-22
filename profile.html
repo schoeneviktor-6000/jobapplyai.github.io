@@ -1060,14 +1060,15 @@ Profile reduction pass
 }
 .uploadSuccessCard{
   display:grid;
-  gap:12px;
-  padding:16px;
+  gap:16px;
+  padding:18px;
   border-radius:22px;
-  border:1px solid rgba(34,197,94,.28);
+  border:1px solid rgba(234,88,12,.20);
   background:
-    radial-gradient(620px 180px at 12% 0%, rgba(34,197,94,.16), transparent 58%),
-    linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,255,249,.94));
-  box-shadow:0 18px 42px rgba(34,197,94,.10);
+    radial-gradient(720px 220px at 8% 0%, rgba(245,158,11,.14), transparent 58%),
+    radial-gradient(680px 220px at 100% 0%, rgba(239,68,68,.08), transparent 62%),
+    linear-gradient(180deg, rgba(255,255,255,.99), rgba(255,249,243,.96));
+  box-shadow:0 22px 56px rgba(17,19,24,.09);
 }
 .uploadSuccessTop{
   display:flex;
@@ -1083,9 +1084,9 @@ Profile reduction pass
   min-height:24px;
   padding:0 10px;
   border-radius:999px;
-  border:1px solid rgba(34,197,94,.26);
-  background:rgba(34,197,94,.10);
-  color:#0a5a2a;
+  border:1px solid rgba(234,88,12,.18);
+  background:rgba(234,88,12,.08);
+  color:#9a3412;
   font-size:11px;
   font-weight:950;
   letter-spacing:.08em;
@@ -1096,30 +1097,103 @@ Profile reduction pass
   width:8px;
   height:8px;
   border-radius:999px;
-  background:rgba(34,197,94,.92);
-  box-shadow:0 0 0 4px rgba(34,197,94,.12);
+  background:rgba(234,88,12,.92);
+  box-shadow:0 0 0 4px rgba(234,88,12,.10);
 }
 .uploadSuccessTitle{
   margin:10px 0 0;
-  font-size:24px;
-  line-height:1.15;
+  max-width:720px;
+  font-size:28px;
+  line-height:1.08;
   letter-spacing:-.45px;
 }
 .uploadSuccessBody{
-  margin:8px 0 0;
+  margin:10px 0 0;
   max-width:640px;
-  color:rgba(17,19,24,.68);
+  color:rgba(17,19,24,.72);
   font-size:14px;
-  line-height:1.6;
-  font-weight:750;
+  line-height:1.58;
+  font-weight:800;
 }
-.uploadSuccessNote{
+.realityScoreGrid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+.realityScoreCard{
+  border:1px solid rgba(17,19,24,.10);
+  background:rgba(255,255,255,.78);
+  border-radius:18px;
+  padding:14px;
+  display:grid;
+  gap:8px;
+}
+.realityScoreLabel{
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:rgba(17,19,24,.50);
+}
+.realityScoreValue{
+  font-size:30px;
+  line-height:1;
+  letter-spacing:-.7px;
+  font-weight:1000;
+  color:rgba(17,19,24,.94);
+}
+.realityScoreMeta{
   color:rgba(17,19,24,.60);
   font-size:12px;
-  line-height:1.5;
-  font-weight:750;
+  line-height:1.45;
+  font-weight:780;
 }
-.uploadSuccessCard .actions{ margin-top:0; }
+.realityFindings{
+  display:grid;
+  gap:10px;
+}
+.realityFinding{
+  border:1px solid rgba(17,19,24,.08);
+  background:rgba(255,255,255,.74);
+  border-radius:18px;
+  padding:14px;
+  display:grid;
+  gap:7px;
+}
+.realityFindingTitle{
+  font-size:14px;
+  font-weight:950;
+  letter-spacing:-.16px;
+  color:rgba(17,19,24,.92);
+}
+.realityFindingExample,
+.realityFindingImpact{
+  font-size:13px;
+  line-height:1.55;
+  color:rgba(17,19,24,.66);
+  font-weight:760;
+}
+.realityFindingExample strong,
+.realityFindingImpact strong{
+  color:rgba(17,19,24,.82);
+}
+.uploadSuccessBridge{
+  color:rgba(17,19,24,.86);
+  font-size:14px;
+  line-height:1.6;
+  font-weight:860;
+}
+.uploadSuccessCard .actions{
+  margin-top:0;
+  align-items:center;
+}
+.uploadSuccessSecondary{
+  color:rgba(17,19,24,.58);
+  font-size:12px;
+  line-height:1.5;
+  font-weight:760;
+}
+#aiBox{ display:none !important; }
 .slimAi{
   padding:16px;
   border-radius:20px;
@@ -1289,7 +1363,10 @@ Profile reduction pass
     grid-template-columns:1fr;
   }
   .uploadSuccessTitle{
-    font-size:22px;
+    font-size:24px;
+  }
+  .realityScoreGrid{
+    grid-template-columns:1fr;
   }
 }
 @media (max-width:1320px){
@@ -1525,7 +1602,7 @@ Matched jobs premium polish
 
     <div class="navlinks">
 <a class="pill" href="./dashboard.html" data-nav="1">Dashboard</a>
-      <a class="pill" href="./cv.html?entry=chooser" data-nav="1">CV Studio</a>
+      <a class="pill" href="/cv?entry=chooser" data-nav="1">CV Studio</a>
       <a class="pill" href="./jobs.html" data-nav="1">Jobs</a>
       <a class="pill" href="./plan.html" data-nav="1">Pricing</a>
     </div>
@@ -1551,7 +1628,7 @@ Matched jobs premium polish
           </div>
           <div class="menuLabel">Go to</div>
           <a class="jmNavItem" href="./dashboard.html" data-nav="1" role="menuitem">Dashboard</a>
-          <a class="jmNavItem" href="./cv.html?entry=chooser" data-nav="1" role="menuitem">CV Studio</a>
+          <a class="jmNavItem" href="/cv?entry=chooser" data-nav="1" role="menuitem">CV Studio</a>
           <a class="jmNavItem" href="./jobs.html" data-nav="1" role="menuitem">Jobs</a>
           <a class="jmNavItem" href="./profile.html" data-nav="1" role="menuitem">Profile</a>
           <a class="jmNavItem" href="./profile.html#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Manage billing</a>
@@ -1619,16 +1696,30 @@ Matched jobs premium polish
   <div class="uploadSuccessCard" id="postUploadCard" style="display:none" aria-live="polite">
     <div class="uploadSuccessTop">
       <div>
-        <div class="uploadSuccessKicker">Next step</div>
-        <h3 class="uploadSuccessTitle" id="postUploadTitle">Your base CV is ready.</h3>
-        <p class="uploadSuccessBody" id="postUploadBody">Now tailor it to a real job. In CV Studio, choose how to add the job description: paste it manually or import it with the Chrome extension.</p>
+        <div class="uploadSuccessKicker">AI CV reality check</div>
+        <h3 class="uploadSuccessTitle" id="postUploadTitle">We are checking how your current CV will perform.</h3>
+        <p class="uploadSuccessBody" id="postUploadBody">This is a baseline before tailoring. The goal is simple: show why this CV should not be sent as-is.</p>
       </div>
-      <span class="badge good" id="postUploadBadge">Ready</span>
+      <span class="badge warn" id="postUploadBadge">Analyzing</span>
     </div>
+    <div class="realityScoreGrid" id="postUploadScores" style="display:none">
+      <div class="realityScoreCard">
+        <div class="realityScoreLabel">ATS readiness</div>
+        <div class="realityScoreValue" id="postUploadScoreValue">--/100</div>
+        <div class="realityScoreMeta" id="postUploadScoreMeta">Baseline before tailoring to a specific job.</div>
+      </div>
+      <div class="realityScoreCard">
+        <div class="realityScoreLabel">Machine readability</div>
+        <div class="realityScoreValue" id="postUploadReadabilityValue">--</div>
+        <div class="realityScoreMeta" id="postUploadReadabilityMeta">This checks how clearly ATS systems can parse the document.</div>
+      </div>
+    </div>
+    <div class="realityFindings" id="postUploadFindings"></div>
+    <div class="uploadSuccessBridge" id="postUploadBridge">These issues significantly reduce your chances if you apply as-is. The fastest way to fix this is to tailor your CV to a specific job.</div>
     <div class="actions">
       <button class="btn primary" id="postUploadPrimaryBtn" type="button">Tailor this CV to a job</button>
     </div>
-    <div class="uploadSuccessNote" id="postUploadNote">Matched jobs stays optional below. The fastest path from here is CV Studio.</div>
+    <div class="uploadSuccessSecondary" id="postUploadSecondary">Match jobs stays secondary below. The main path from here is CV tailoring.</div>
   </div>
 
   <div class="helpBox aiCard slimAi" id="aiBox">
@@ -1660,10 +1751,9 @@ Matched jobs premium polish
 <aside class="card profileRail">
 <div class="sectionBody railStack railTight">
   <div class="actions quickActionRow">
-    <button class="btn primary" id="openCvBtn" type="button">Tailor this CV to a job</button>
-    <button class="btn" type="button" data-extension-modal-open>Chrome extension</button>
+    <button class="btn" type="button" data-extension-modal-open>Import from a job page</button>
   </div>
-  <div class="small" style="margin-top:10px">Use the extension when you find a role outside jobmejob. CV Studio still handles the tailoring, edits, ATS review, and PDF export.</div>
+  <div class="small" style="margin-top:10px">Open any job post and let jobmejob read the full page with the Chrome extension. CV Studio still handles the tailoring, ATS review, and export.</div>
 
   <div class="sideCard sideCardCompact">
     <div class="compactHeadingRow">
@@ -1871,7 +1961,7 @@ Matched jobs premium polish
 
   <div class="prefsFooter">
     <div class="actions">
-      <button class="btn primary" id="continueBtn" type="button">Tailor this CV to a job</button>
+      <button class="btn" id="continueBtn" type="button">Tailor this CV to a job</button>
     </div>
     <div style="display:grid; gap:8px; min-width:260px">
       <div class="small" id="autosaveHint">Auto-save is on.</div>
@@ -1923,7 +2013,7 @@ Matched jobs premium polish
       </div>
 
       <div class="modalActions">
-        <a class="btn ghost" href="./cv.html?entry=chooser" data-nav="1">Open CV Studio</a>
+        <a class="btn ghost" href="/cv?entry=chooser" data-nav="1">Open CV Studio</a>
         <button class="btn" id="activityClose" type="button">Close</button>
       </div>
     </div>
@@ -1934,6 +2024,6 @@ Matched jobs premium polish
   <script src="./auth.js?v=202604121905"></script>
   <script src="./shared.js?v=202604102230"></script>
 
-  <script src="./profile.app.js?v=202604221530"></script>
+  <script src="./profile.app.js?v=202604222330"></script>
 </body>
 </html>

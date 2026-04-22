@@ -23,7 +23,9 @@ const LINKS = (APP_CONFIG && APP_CONFIG.LINKS) ? APP_CONFIG.LINKS : {};
 const SUPPORT_EMAIL = "team@jobmejob.com";
 const BILLING_PORTAL_LINK = String(LINKS.CV_STUDIO_PORTAL_URL || "").trim();
 const PLAN_PAGE_URL = "./plan.html#cv-pricing";
-const CV_STUDIO_CHOOSER_URL = "./cv.html?entry=chooser";
+const CV_STUDIO_CHOOSER_URL = "/cv?entry=chooser";
+const CV_REALITY_CHECK_CACHE_KEY = "jm_cv_reality_check_v1";
+const ENABLE_MATCHED_JOBS_ASSISTS = false;
 const CV_PLAN_META = Object.freeze({
   free: { label:"Free", quota:"5 free CVs" },
   cv_starter: { label:"Starter", quota:"10 CVs / month" },
@@ -50,6 +52,9 @@ let cvLocationHint=[];
 
 let lastCvMeta=null;
 let shouldFocusPostUploadCard=false;
+let realityCheckResult=null;
+let realityCheckKey="";
+let realityCheckInFlight=false;
 
 let backendAiTitles=[];
 let aiAutoStarted=false;
@@ -1164,6 +1169,7 @@ scheduleAutoSave();
 }
 
 async function maybePrefetchJobs(aiTitles, reason){
+  if(!ENABLE_MATCHED_JOBS_ASSISTS) return;
   const titles = Array.isArray(aiTitles) ? aiTitles.map(t=>String(t||"").trim()).filter(Boolean) : [];
   if(!titles.length) return;
 
@@ -1265,6 +1271,7 @@ function wireCvDropzone(){
 }
 
 async function maybeAutoGenerateAiTitles(reason){
+  if(!ENABLE_MATCHED_JOBS_ASSISTS) return;
   try{
     if(aiAutoStarted) return;
     if(!lastCvMeta) return;
@@ -1599,14 +1606,17 @@ try{
 }catch(_){}
 
 if(!cvOk2){
+try{ $("continueBtn")?.classList.add("primary"); }catch(_){}
 setText("continueBtn","Upload CV to start");
 setText("continueHint","Upload a CV first.");
 }else if(!profOk2){
+try{ $("continueBtn")?.classList.remove("primary"); }catch(_){}
 setText("continueBtn","Tailor this CV to a job");
-setText("continueHint","Open CV Studio next. Matched jobs is optional.");
+setText("continueHint","Tailor this CV in CV Studio now. Match jobs stays optional.");
 }else{
+try{ $("continueBtn")?.classList.remove("primary"); }catch(_){}
 setText("continueBtn","Tailor this CV to a job");
-setText("continueHint","Open CV Studio next. Matched jobs is optional.");
+setText("continueHint","Tailor this CV in CV Studio now. Match jobs stays optional.");
 }
 }
 
@@ -1709,55 +1719,205 @@ setTimeout(()=>{
 }, 80);
 }
 
+function getRealityCheckCache(){
+  try{
+    const raw=lsSafeGet(CV_REALITY_CHECK_CACHE_KEY);
+    if(!raw) return null;
+    const parsed=JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  }catch(_){
+    return null;
+  }
+}
+
+function writeRealityCheckCache(meta, result){
+  try{
+    const payload={
+      cvMetaKey: cvMetaKey(meta),
+      result,
+      saved_at: new Date().toISOString()
+    };
+    lsSafeSet(CV_REALITY_CHECK_CACHE_KEY, JSON.stringify(payload));
+  }catch(_){}
+}
+
+function readRealityCheckCache(meta){
+  const cache=getRealityCheckCache();
+  const key=cvMetaKey(meta);
+  if(!cache || cache.cvMetaKey !== key || !cache.result) return null;
+  return cache.result;
+}
+
+function buildRealityCheckFallback(cv){
+  const ready=storedCvHasReadyText(cv);
+  const isPdf=storedCvIsPdf(cv);
+  const ocrStatus=String(cv?.cv_ocr_status || "").trim().toLowerCase();
+  return {
+    headline: "Your CV is not ready for most job applications yet",
+    ats_readiness_score: ready ? 44 : 41,
+    machine_readability: ready ? (isPdf ? "Low" : "Medium") : "Low",
+    bridge: "These issues significantly reduce your chances if you apply as-is. The fastest way to fix this is to tailor your CV to a specific job.",
+    findings: [
+      {
+        title: "Missing job-specific keywords",
+        example: ready ? "The current CV stays broad instead of matching one target job." : "The CV still needs a readable text baseline before it can be checked properly.",
+        impact: "ATS filters rank generic CVs lower because the language is not aligned to one specific role."
+      },
+      {
+        title: "Weak impact in bullet points",
+        example: "Several lines likely describe duties more than results or measurable outcomes.",
+        impact: "Recruiters see responsibilities, but not clear proof of performance or business value."
+      },
+      {
+        title: "Formatting reduces ATS readability",
+        example: ocrStatus === "processing" ? "The file is still being processed, so machine readability is not stable yet." : "The CV is not yet optimized for clean ATS parsing at scale.",
+        impact: "Parsing systems and recruiters can miss keywords, dates, or scope when the document is not structured for fast scanning."
+      }
+    ]
+  };
+}
+
+function normalizeRealityCheckResult(raw, cv){
+  const fallback=buildRealityCheckFallback(cv);
+  const score=Math.max(35, Math.min(55, Math.round(Number(raw && raw.ats_readiness_score ? raw.ats_readiness_score : fallback.ats_readiness_score))));
+  const readabilityRaw=String(raw && raw.machine_readability ? raw.machine_readability : fallback.machine_readability).trim().toLowerCase();
+  const readability=readabilityRaw === "high" ? "High" : readabilityRaw === "medium" ? "Medium" : "Low";
+  const headlineRaw=String(raw && raw.headline ? raw.headline : fallback.headline).trim();
+  const headline=headlineRaw === "Your CV is currently not optimized for ATS systems"
+    ? headlineRaw
+    : "Your CV is not ready for most job applications yet";
+  const findingsRaw=Array.isArray(raw && raw.findings) ? raw.findings : [];
+  const findings=findingsRaw.map((item)=>({
+    title:String(item && item.title ? item.title : "").trim(),
+    example:String(item && item.example ? item.example : "").trim(),
+    impact:String(item && item.impact ? item.impact : "").trim()
+  })).filter((item)=>item.title && item.example && item.impact).slice(0,3);
+
+  while(findings.length < 3){
+    const fallbackItem=fallback.findings[findings.length] || fallback.findings[0];
+    findings.push({ ...fallbackItem });
+  }
+
+  return {
+    headline,
+    ats_readiness_score: score,
+    machine_readability: readability,
+    bridge: "These issues significantly reduce your chances if you apply as-is. The fastest way to fix this is to tailor your CV to a specific job.",
+    findings: findings.slice(0,3)
+  };
+}
+
+function renderRealityCheckFindings(findings){
+  const host=$("postUploadFindings");
+  if(!host) return;
+  const items=Array.isArray(findings) ? findings : [];
+  host.innerHTML=items.map((item)=>(
+    '<div class="realityFinding">'
+      + '<div class="realityFindingTitle">' + escapeHtml(item.title || "") + '</div>'
+      + '<div class="realityFindingExample"><strong>Example:</strong> ' + escapeHtml(item.example || "") + '</div>'
+      + '<div class="realityFindingImpact"><strong>Why it hurts:</strong> ' + escapeHtml(item.impact || "") + '</div>'
+    + '</div>'
+  )).join("");
+}
+
+function renderRealityCheckPending(cv){
+  const card=$("postUploadCard");
+  if(!card) return;
+  const ready=storedCvHasReadyText(cv);
+  const ocrStatus=String(cv?.cv_ocr_status || "").trim().toLowerCase();
+  card.style.display="";
+  setBadge("postUploadBadge", ready ? "warn" : "warn", ready ? "Analyzing" : (ocrStatus === "failed" ? "Needs OCR" : "Preparing"));
+  setText("postUploadTitle", ready ? "Your current CV should not be sent yet." : "Your CV was uploaded. The reality check is still loading.");
+  setText("postUploadBody", ready
+    ? "We are scoring the baseline first. This is the version recruiters and ATS systems would see before you tailor it."
+    : "We need readable CV text before the full AI reality check can load. Either way, do not apply with this version as-is.");
+  const scores=$("postUploadScores");
+  if(scores) scores.style.display="none";
+  renderRealityCheckFindings([]);
+  setText("postUploadBridge", "These issues significantly reduce your chances if you apply as-is. The fastest way to fix this is to tailor your CV to a specific job.");
+  setText("postUploadSecondary", "One next step: move into CV Studio and tailor this CV to a specific job.");
+}
+
+function renderRealityCheckResult(result){
+  const card=$("postUploadCard");
+  if(!card) return;
+  const normalized=result && typeof result === "object" ? result : buildRealityCheckFallback(lastCvMeta || {});
+  card.style.display="";
+  setBadge("postUploadBadge", "bad", "Not ready");
+  setText("postUploadTitle", normalized.headline || "Your CV is not ready for most job applications yet");
+  setText("postUploadBody", "This is your untailored baseline. If you apply with this version, ATS filters and recruiters will see these weaknesses first.");
+  const scores=$("postUploadScores");
+  if(scores) scores.style.display="";
+  setText("postUploadScoreValue", String(normalized.ats_readiness_score || 44) + "/100");
+  setText("postUploadReadabilityValue", String(normalized.machine_readability || "Low"));
+  setText("postUploadScoreMeta", "Baseline before tailoring to a specific job.");
+  setText("postUploadReadabilityMeta", String(normalized.machine_readability || "Low") === "Low"
+    ? "Low means ATS systems may miss information or rank the CV lower."
+    : "This score reflects how reliably ATS systems can parse the document today.");
+  renderRealityCheckFindings(normalized.findings);
+  setText("postUploadBridge", normalized.bridge || "These issues significantly reduce your chances if you apply as-is. The fastest way to fix this is to tailor your CV to a specific job.");
+  setText("postUploadSecondary", "The fastest fix is to tailor this CV to one real job now.");
+}
+
+async function loadRealityCheckForCv(cv){
+  if(!cv || !cv.cv_path) return;
+  const meta=cvMetaFromCv(cv);
+  const key=cvMetaKey(meta);
+  if(!storedCvHasReadyText(cv)){
+    realityCheckResult=null;
+    realityCheckKey=key;
+    realityCheckInFlight=false;
+    renderRealityCheckPending(cv);
+    maybeFocusPostUploadCard();
+    return;
+  }
+
+  const cached=readRealityCheckCache(meta);
+  if(cached){
+    realityCheckResult=normalizeRealityCheckResult(cached, cv);
+    realityCheckKey=key;
+    renderRealityCheckResult(realityCheckResult);
+    maybeFocusPostUploadCard();
+    return;
+  }
+
+  if(realityCheckInFlight && realityCheckKey === key) return;
+
+  realityCheckKey=key;
+  realityCheckInFlight=true;
+  renderRealityCheckPending(cv);
+
+  try{
+    const resp=await apiPostJson("/me/ai/cv-reality-check",{});
+    const normalized=normalizeRealityCheckResult(resp && resp.result ? resp.result : null, cv);
+    realityCheckResult=normalized;
+    writeRealityCheckCache(meta, normalized);
+    renderRealityCheckResult(normalized);
+  }catch(_){
+    const fallback=buildRealityCheckFallback(cv);
+    realityCheckResult=fallback;
+    renderRealityCheckResult(fallback);
+  }finally{
+    realityCheckInFlight=false;
+    maybeFocusPostUploadCard();
+  }
+}
+
 function syncPostUploadCard(cv){
 const card=$("postUploadCard");
 if(!card) return;
 
 if(!cv || !cv.cv_path){
   card.style.display="none";
+  realityCheckResult=null;
+  realityCheckKey="";
+  realityCheckInFlight=false;
   return;
 }
 
-const ready=storedCvHasReadyText(cv);
-const isPdf=storedCvIsPdf(cv);
-const ocrStatus=String(cv.cv_ocr_status || "").trim().toLowerCase();
-
-let badgeKind="good";
-let badgeText="Ready";
-let title="Your base CV is ready.";
-let body="Now tailor it to a real job. In CV Studio, choose how to add the job description: paste it manually or import it with the Chrome extension.";
-let note="Matched jobs stays optional below. The fastest path from here is CV Studio.";
-
-if(!ready){
-  if(ocrStatus === "failed"){
-    badgeKind="warn";
-    badgeText="Needs retry";
-    title="Your CV was uploaded.";
-    body=isPdf
-      ? "Retry OCR once, then go straight into CV Studio to tailor it to a real job."
-      : "Re-upload a readable PDF or DOCX, then go straight into CV Studio to tailor it to a real job.";
-    note="Use matched jobs only later if you want it. The main flow is still CV Studio.";
-  }else if(ocrStatus === "processing"){
-    badgeKind="warn";
-    badgeText="Preparing";
-    title="Your CV was uploaded.";
-    body="We are preparing the text now. You can open CV Studio next and choose how to add the job description while we finish.";
-  }else{
-    badgeKind="warn";
-    badgeText="Uploaded";
-    title="Your CV was uploaded.";
-    body=isPdf
-      ? "Open CV Studio next and choose how to add the job description. If the CV still needs OCR, retry it here."
-      : "Open CV Studio next once the file is readable. A PDF usually gives the smoothest tailoring flow.";
-  }
-}
-
 card.style.display="";
-setBadge("postUploadBadge", badgeKind, badgeText);
-setText("postUploadTitle", title);
-setText("postUploadBody", body);
-setText("postUploadNote", note);
-maybeFocusPostUploadCard();
+renderRealityCheckPending(cv);
+loadRealityCheckForCv(cv).catch(()=>{});
 }
 
 function applyAiUiFromTitles(titles){
@@ -1830,8 +1990,8 @@ async function loadCvStatusAndUpdateUx(){
         unlockAiReady();
         tryLoadCachedAiSuggestions();
         maybeAutoGenerateAiTitles("ocr_done");
-        setText("subLine","Your base CV is ready. Next: tailor it to a real job in CV Studio.");
-        markStep1DoneVisual(true);
+        setText("subLine","Your base CV is uploaded, but it is not ready to send yet. Tailor it in CV Studio next.");
+        markStep1DoneVisual(false);
         return;
       }
 
@@ -1845,7 +2005,7 @@ async function loadCvStatusAndUpdateUx(){
         }else{
           lockAi("Upload a PDF for OCR.");
         }
-        setText("subLine","Your CV is uploaded. We are preparing it now so you can tailor it in CV Studio next.");
+        setText("subLine","Your CV is uploaded. We are preparing the baseline check now, then the next step is CV tailoring.");
         markStep1DoneVisual(false);
         return;
       }
@@ -1861,7 +2021,7 @@ async function loadCvStatusAndUpdateUx(){
         }else{
           lockAi("OCR failed. Please upload a PDF.");
         }
-        setText("subLine","Your CV is uploaded, but OCR needs another try before tailoring.");
+        setText("subLine","Your CV is uploaded, but we still need readable text before the reality check and tailoring can work properly.");
         markStep1DoneVisual(false);
         return;
       }
@@ -1878,7 +2038,7 @@ async function loadCvStatusAndUpdateUx(){
         setText("ocrHint","PDF required for OCR.");
         lockAi("Upload a PDF for OCR.");
       }
-      setText("subLine","Your CV is uploaded. Open CV Studio next and choose how to add the job description.");
+      setText("subLine","Your CV is uploaded. We still need the baseline check, then the next step is CV tailoring.");
       markStep1DoneVisual(false);
       return;
     }

@@ -45,6 +45,7 @@ var jobmejob_worker_default = {
               "POST /me/cv/ocr",
               "GET /me/cv/ocr/status",
               "GET /me/cv/ocr/text",
+              "POST /me/ai/cv-reality-check",
               "POST /fetch-jobs/manual",
               "POST /admin/fetch-jobs"
             ]
@@ -120,6 +121,9 @@ var jobmejob_worker_default = {
       }
       if (url.pathname === "/me/ai/profile-from-cv" && request.method === "POST") {
         return await handleMeAiProfileFromCv(request, env);
+      }
+      if (url.pathname === "/me/ai/cv-reality-check" && request.method === "POST") {
+        return await handleMeAiCvRealityCheck(request, env);
       }
       if (url.pathname === "/me/ai/cluster-suggestion" && request.method === "POST") {
         return await handleMeAiClusterSuggestion(request, env);
@@ -3405,6 +3409,187 @@ async function handleMeAiProfileFromCv(request, env) {
   }, 200);
 }
 __name(handleMeAiProfileFromCv, "handleMeAiProfileFromCv");
+function cleanCvRealitySnippet(text, maxLen = 110) {
+  const cleaned = String(text || "").replace(/\s+/g, " ").replace(/^[-•*]\s*/, "").trim();
+  if (!cleaned) return "";
+  if (cleaned.length <= maxLen) return cleaned;
+  return cleaned.slice(0, Math.max(0, maxLen - 1)).trimEnd() + "…";
+}
+__name(cleanCvRealitySnippet, "cleanCvRealitySnippet");
+function looksLikeCvSectionHeader(line) {
+  const src = String(line || "").trim();
+  if (!src) return false;
+  if (src.length > 42) return false;
+  if (/[:.]\s*$/.test(src)) return true;
+  if (/^(summary|profile|experience|employment|work history|skills|technical skills|education|certifications|projects|languages|achievements|contact)$/i.test(src)) return true;
+  const words = src.split(/\s+/).filter(Boolean);
+  if (!words.length || words.length > 5) return false;
+  return words.every((word) => /^[A-ZÄÖÜ][A-Za-zÄÖÜäöüß/&-]*$/.test(word) || /^[A-ZÄÖÜ]{2,}$/.test(word));
+}
+__name(looksLikeCvSectionHeader, "looksLikeCvSectionHeader");
+function collectCvBulletishLines(lines) {
+  return (Array.isArray(lines) ? lines : []).filter((line) => /^[-•*]/.test(line) || /^(managed|led|built|created|developed|implemented|improved|increased|reduced|delivered|supported|maintained|coordinated|assisted|responsible for|worked on|handled|owned)\b/i.test(line)).slice(0, 40);
+}
+__name(collectCvBulletishLines, "collectCvBulletishLines");
+function buildCvRealityCheckFallback(cvText) {
+  const lines = String(cvText || "").split(/\r?\n/).map((line) => String(line || "").trim()).filter(Boolean);
+  const bullets = collectCvBulletishLines(lines);
+  const metricBullets = bullets.filter((line) => /\d/.test(line));
+  const longLines = lines.filter((line) => line.length > 140);
+  const headers = lines.filter((line) => looksLikeCvSectionHeader(line));
+  const firstGeneralLine = cleanCvRealitySnippet(bullets.find((line) => !/\d/.test(line) && line.length > 28) || lines.find((line) => line.length > 28) || "");
+  const firstDenseLine = cleanCvRealitySnippet(longLines[0] || lines.find((line) => line.length > 100) || "");
+  const firstBroadLine = cleanCvRealitySnippet(lines.find((line) => /(summary|profile|skills|experience|support|operations|customer|sales|marketing|manager|assistant)/i.test(line)) || lines[0] || "");
+  let machineReadability = "Medium";
+  if (longLines.length >= 3 || headers.length < 3) machineReadability = "Low";
+  let score = 43;
+  if (metricBullets.length >= 3) score += 4;
+  if (headers.length >= 4) score += 2;
+  if (longLines.length >= 3) score -= 4;
+  if (!bullets.length) score -= 2;
+  score = clamp(score, 35, 55);
+  return {
+    headline: machineReadability === "Low" ? "Your CV is currently not optimized for ATS systems" : "Your CV is not ready for most job applications yet",
+    ats_readiness_score: score,
+    machine_readability: machineReadability,
+    bridge: "These issues significantly reduce your chances if you apply as-is. The fastest way to fix this is to tailor your CV to a specific job.",
+    findings: [
+      {
+        title: "Missing job-specific keywords",
+        example: firstBroadLine ? `Broad wording: "${firstBroadLine}"` : "The CV reads broadly instead of targeting one role.",
+        impact: "ATS filters rank generic CVs lower because the wording is not aligned to one specific job description."
+      },
+      {
+        title: "Weak impact in bullet points",
+        example: firstGeneralLine ? `Example pattern: "${firstGeneralLine}"` : "Several lines describe duties, but not measurable outcomes.",
+        impact: "Recruiters see responsibility, but not clear proof of results, ownership, or business impact."
+      },
+      {
+        title: "Formatting reduces ATS readability",
+        example: firstDenseLine ? `Dense line pattern: "${firstDenseLine}"` : "The structure is hard to scan quickly.",
+        impact: "Parsing systems and recruiters can miss dates, keywords, or scope when the CV reads like dense text."
+      }
+    ]
+  };
+}
+__name(buildCvRealityCheckFallback, "buildCvRealityCheckFallback");
+function normalizeCvRealityCheckResult(raw, fallback) {
+  const base = fallback && typeof fallback === "object" ? fallback : buildCvRealityCheckFallback("");
+  const headlineRaw = String(raw?.headline || "").trim();
+  const headline = headlineRaw === "Your CV is currently not optimized for ATS systems" ? headlineRaw : "Your CV is not ready for most job applications yet";
+  const score = clamp(Math.round(Number(raw?.ats_readiness_score || base.ats_readiness_score || 43)), 35, 55);
+  const readabilityRaw = String(raw?.machine_readability || "").trim().toLowerCase();
+  const machine_readability = readabilityRaw === "high" ? "High" : readabilityRaw === "medium" ? "Medium" : "Low";
+  const bridge = "These issues significantly reduce your chances if you apply as-is. The fastest way to fix this is to tailor your CV to a specific job.";
+  const findingsRaw = Array.isArray(raw?.findings) ? raw.findings : [];
+  const normalizedFindings = findingsRaw.map((item) => ({
+    title: cleanCvRealitySnippet(item?.title || "", 58),
+    example: cleanCvRealitySnippet(item?.example || "", 140),
+    impact: cleanCvRealitySnippet(item?.impact || "", 220)
+  })).filter((item) => item.title && item.example && item.impact).slice(0, 3);
+  while (normalizedFindings.length < 3) {
+    const fallbackItem = base.findings[normalizedFindings.length] || base.findings[0];
+    normalizedFindings.push(fallbackItem);
+  }
+  return {
+    headline,
+    ats_readiness_score: score,
+    machine_readability,
+    bridge,
+    findings: normalizedFindings.slice(0, 3)
+  };
+}
+__name(normalizeCvRealityCheckResult, "normalizeCvRealityCheckResult");
+async function handleMeAiCvRealityCheck(request, env) {
+  const auth = await requireMeCustomerId(request, env);
+  if (!auth.ok) return auth.res;
+  const customerId = auth.customerId;
+  const q = new URLSearchParams();
+  q.set("select", "cv_ocr_text,cv_text,cv_filename,cv_mime,cv_uploaded_at,cv_ocr_status");
+  q.set("customer_id", `eq.${customerId}`);
+  q.set("limit", "1");
+  const rows = await supabaseFetch(env, `/rest/v1/customer_profiles?${q.toString()}`, { method: "GET" });
+  const prof = Array.isArray(rows) && rows.length ? rows[0] : null;
+  const cvText = String(prof?.cv_ocr_text || prof?.cv_text || "").trim();
+  if (!cvText) return json(request, { error: "No CV text found. Upload CV and run OCR first." }, 400);
+  const lines = cvText.split(/\r?\n/).map((line) => String(line || "").trim()).filter(Boolean);
+  const bullets = collectCvBulletishLines(lines);
+  const metricBullets = bullets.filter((line) => /\d/.test(line));
+  const headers = lines.filter((line) => looksLikeCvSectionHeader(line));
+  const longLines = lines.filter((line) => line.length > 140);
+  const fallback = buildCvRealityCheckFallback(cvText);
+  const prompt = [
+    "Return ONLY valid JSON. No markdown. No code fences. No commentary.",
+    "",
+    "You are an expert CV reviewer writing a blunt but credible pre-application reality check.",
+    "Goal: make the user clearly feel they should NOT send this CV as-is and should tailor it to a specific job immediately.",
+    "",
+    "Schema:",
+    "{",
+    '  "headline": "Your CV is not ready for most job applications yet" | "Your CV is currently not optimized for ATS systems",',
+    '  "ats_readiness_score": number,',
+    '  "machine_readability": "Low" | "Medium" | "High",',
+    '  "bridge": string,',
+    '  "findings": [',
+    "    {",
+    '      "title": string,',
+    '      "example": string,',
+    '      "impact": string',
+    "    }",
+    "  ]",
+    "}",
+    "",
+    "Rules:",
+    "- findings must contain EXACTLY 3 items.",
+    "- The score is a baseline BEFORE tailoring to a specific job, so keep it conservative and believable.",
+    "- Score must be an integer between 35 and 55.",
+    '- bridge must be exactly: "These issues significantly reduce your chances if you apply as-is. The fastest way to fix this is to tailor your CV to a specific job."',
+    "- Tone must be direct, slightly critical, credible, and never insulting.",
+    "- Do not praise the CV.",
+    "- Each finding must identify a real weakness visible in the CV text.",
+    "- Each finding.example must include a short pattern, phrase, or simplified snippet from the CV (max 140 chars).",
+    "- Each finding.impact must explain why this hurts ATS screening or recruiter response.",
+    "- Prioritize issues like missing job-specific keywords, weak impact, repetitive wording, vague profile, and ATS readability.",
+    "- Do not invent certifications, employers, achievements, or tools that are not visible in the CV text.",
+    "",
+    "Useful signals from the CV:",
+    JSON.stringify({
+      line_count: lines.length,
+      bullet_like_lines: bullets.length,
+      metric_bullets: metricBullets.length,
+      section_headers: headers.length,
+      dense_lines_over_140_chars: longLines.length,
+      cv_filename: String(prof?.cv_filename || "").trim(),
+      cv_mime: String(prof?.cv_mime || "").trim(),
+      cv_ocr_status: String(prof?.cv_ocr_status || "").trim()
+    }),
+    "",
+    "CV TEXT:",
+    cvText.slice(0, 12e3)
+  ].join("\n");
+  try {
+    const models = env.GEMINI_CV_REVIEW_MODELS || env.GEMINI_CV_TAILOR_MODELS || "gemini-2.5-flash,gemini-2.0-flash";
+    const out = await geminiGenerateJsonWithModels(env, {
+      models,
+      promptText: prompt,
+      temperature: 0.15,
+      maxOutputTokens: 1200
+    });
+    const result = normalizeCvRealityCheckResult(out?.parsed || {}, fallback);
+    return json(request, { ok: true, customer_id: customerId, source: "ai", model: out?.model || null, result }, 200);
+  } catch (e) {
+    const result = normalizeCvRealityCheckResult(fallback, fallback);
+    return json(request, {
+      ok: true,
+      customer_id: customerId,
+      source: "heuristic",
+      model: null,
+      warning: String(e?.message || e || "reality_check_fallback"),
+      result
+    }, 200);
+  }
+}
+__name(handleMeAiCvRealityCheck, "handleMeAiCvRealityCheck");
 async function handleMeAiClusterSuggestion(request, env) {
   const auth = await requireMeCustomerId(request, env);
   if (!auth.ok) return auth.res;

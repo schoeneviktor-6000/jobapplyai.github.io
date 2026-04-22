@@ -3112,7 +3112,7 @@ body.fromJobsLink #settingsDetails{
       </a>
 
       <div class="navlinks">
-        <a class="pill active" href="./cv.html?entry=chooser" data-nav="1">CV Studio</a>
+        <a class="pill active" href="/cv?entry=chooser" data-nav="1">CV Studio</a>
         <a class="pill" href="./plan.html" data-nav="1">Pricing</a>
       </div>
       <div class="navcta">
@@ -3136,7 +3136,7 @@ body.fromJobsLink #settingsDetails{
               <div class="jmAccountHint" id="navUsageMeta">Usage updates after each tailored CV.</div>
             </div>
             <div class="menuLabel">Go to</div>
-            <a class="jmNavItem" href="./cv.html?entry=chooser" data-nav="1" role="menuitem">CV Studio</a>
+            <a class="jmNavItem" href="/cv?entry=chooser" data-nav="1" role="menuitem">CV Studio</a>
             <a class="jmNavItem" href="./profile.html" data-nav="1" role="menuitem">Profile</a>
             <a class="jmNavItem" href="./profile.html#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Manage billing</a>
             <a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Plans & pricing</a>
@@ -3153,7 +3153,7 @@ body.fromJobsLink #settingsDetails{
 
   <main class="main mainWide">
     <h1 class="h1">CV Studio</h1>
-    <p class="sub" id="subTitle">Choose how to add the job description. Paste it manually or import it with the Chrome extension. CV Studio handles the tailoring, ATS gaps, and export.</p>
+    <p class="sub" id="subTitle">Import from a job page for the fastest flow, or paste the job description manually when you need a fallback. CV Studio handles the tailoring, ATS gaps, and export.</p>
 
     <div class="errorTop" id="errorTop"></div>
     <div class="upgradeBanner" id="cvUpgradeBanner" style="display:none" role="status" aria-live="polite">
@@ -3210,7 +3210,7 @@ body.fromJobsLink #settingsDetails{
 
           <div class="gateIntro" id="gateIntro" style="display:none">
             <div class="gateStepTitle" id="gateStepTitle">Choose how to add the job description</div>
-            <div class="hint" id="gateStepHint">Paste it manually or import it with the Chrome extension.</div>
+            <div class="hint" id="gateStepHint">Import from a job page for the fastest flow, or paste it manually.</div>
 
             <div class="stepper" id="gateStepper" aria-label="Progress">
               <div class="stepperItem" id="stepper1">
@@ -3233,35 +3233,8 @@ body.fromJobsLink #settingsDetails{
 
         <div class="gateChooser" id="gateChooser" style="display:none">
           <div class="gateCards" role="list" aria-label="Choose how you want to add the job description">
-  <!-- Option 1: Paste job description -->
-  <button class="gateCard" id="gatePickPaste" type="button" data-variant="recommended" aria-describedby="gatePickPasteDesc gatePickPasteHint">
-    <div class="gateCardTop">
-      <div class="gateCardTitleRow">
-        <div class="gateCardIcon" aria-hidden="true">
-          <!-- Clipboard icon -->
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M9 4h6v2a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2V4Z"/>
-            <path d="M9 6H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2"/>
-            <path d="M8 12h8"/>
-            <path d="M8 16h8"/>
-          </svg>
-        </div>
-        <div class="gateCardTitle" id="gatePickPasteTitle">Paste manually</div>
-      </div>
-
-      <span class="badge good" id="gatePickPasteTag">Start here</span>
-    </div>
-
-    <div class="gateCardBody">
-      <p class="gateCardDesc" id="gatePickPasteDesc">Paste the full job description directly into CV Studio.</p>
-      <p class="gateCardSupport" id="gatePickPasteHint">Best when you already have the job post open or copied.</p>
-    </div>
-
-    <span class="gateCardAction" id="gatePickPasteAction" aria-hidden="true">Paste job description</span>
-  </button>
-
-  <!-- Option 2: Chrome extension -->
-  <button class="gateCard" id="gatePickExtension" type="button" data-variant="manual" data-extension-modal-open="1" aria-describedby="gatePickExtensionDesc gatePickExtensionHint" title="See how the Chrome extension works">
+  <!-- Option 1: Import from a job page -->
+  <button class="gateCard" id="gatePickExtension" type="button" data-variant="recommended" data-extension-modal-open="1" aria-describedby="gatePickExtensionDesc gatePickExtensionHint" title="See how the import flow works">
     <div class="gateCardTop">
       <div class="gateCardTitleRow">
         <div class="gateCardIcon" aria-hidden="true">
@@ -3273,21 +3246,48 @@ body.fromJobsLink #settingsDetails{
             <path d="M11 7h.01"></path>
           </svg>
         </div>
-        <div class="gateCardTitle" id="gatePickExtensionTitle">Import with Chrome extension</div>
+        <div class="gateCardTitle" id="gatePickExtensionTitle">Import from a job page</div>
       </div>
 
-      <span class="badge" id="gatePickExtensionTag">Extension</span>
+      <span class="badge prio" id="gatePickExtensionTag">Recommended</span>
     </div>
 
     <div class="gateCardBody">
-      <p class="gateCardDesc" id="gatePickExtensionDesc">Import the job directly from the page you are viewing.</p>
-      <p class="gateCardSupport" id="gatePickExtensionHint">Use it on LinkedIn, Greenhouse, Lever, Workday, and similar job sites.</p>
+      <p class="gateCardDesc" id="gatePickExtensionDesc">Open any job post and let jobmejob read the full page using the Chrome extension.</p>
+      <p class="gateCardSupport" id="gatePickExtensionHint">Fastest on LinkedIn, Greenhouse, Lever, Workday, and similar job sites.</p>
     </div>
 
-    <span class="gateCardAction" id="gatePickExtensionAction" aria-hidden="true">Import with extension</span>
+    <span class="gateCardAction" id="gatePickExtensionAction" aria-hidden="true">Import from a job page</span>
+  </button>
+
+  <!-- Option 2: Paste job description -->
+  <button class="gateCard" id="gatePickPaste" type="button" data-variant="manual" aria-describedby="gatePickPasteDesc gatePickPasteHint">
+    <div class="gateCardTop">
+      <div class="gateCardTitleRow">
+        <div class="gateCardIcon" aria-hidden="true">
+          <!-- Clipboard icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 4h6v2a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2V4Z"/>
+            <path d="M9 6H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2"/>
+            <path d="M8 12h8"/>
+            <path d="M8 16h8"/>
+          </svg>
+        </div>
+        <div class="gateCardTitle" id="gatePickPasteTitle">Paste job description manually</div>
+      </div>
+
+      <span class="badge" id="gatePickPasteTag">Manual</span>
+    </div>
+
+    <div class="gateCardBody">
+      <p class="gateCardDesc" id="gatePickPasteDesc">Paste the full job description directly into CV Studio.</p>
+      <p class="gateCardSupport" id="gatePickPasteHint">Use this when you already copied the role or do not want the extension yet.</p>
+    </div>
+
+    <span class="gateCardAction" id="gatePickPasteAction" aria-hidden="true">Paste job description manually</span>
   </button>
 </div>
-          <div class="gateHelperText" id="gateHelperText">Both options lead into the same CV Studio flow.</div>
+          <div class="gateHelperText" id="gateHelperText">The extension is fastest, but manual paste stays available anytime.</div>
         </div>
 
         <div id="gateFormWrap">
@@ -4189,6 +4189,6 @@ body.fromJobsLink #settingsDetails{
   <script src="./auth.js?v=202604121905"></script>
   <script src="./shared.js?v=202604160830"></script>
 
-  <script src="./cv.app.js?v=202604221530"></script>
+  <script src="./cv.app.js?v=202604222330"></script>
 </body>
 </html>
