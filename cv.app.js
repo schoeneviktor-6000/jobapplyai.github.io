@@ -186,7 +186,7 @@ let previewProgressStartedAt = 0;
        ------------------------- */
     const I18N = {
       de: {
-        subTitle: "Importiere einen Job mit der Chrome-Erweiterung oder fuege ihn manuell ein. Wir passen deinen CV an, zeigen ATS-Luecken und bringen dich schnell zum Export.",
+        subTitle: "Waehle, wie du die Stellenbeschreibung hinzufuegen willst. Fuege sie manuell ein oder importiere sie mit der Chrome-Erweiterung. CV Studio uebernimmt Tailoring, ATS-Hinweise und Export.",
         setupTitle: "Setup",
         jobToTailorLbl: "Importierter Job",
         openJobsBtn: "Erweiterungsanleitung",
@@ -325,7 +325,7 @@ let previewProgressStartedAt = 0;
         copied: "Kopiert ✓"
       },
       en: {
-        subTitle: "Import a job with the Chrome extension or paste it manually. We tailor your CV, show the ATS gaps, and get you ready to send.",
+        subTitle: "Choose how to add the job description. Paste it manually or import it with the Chrome extension. CV Studio handles the tailoring, ATS gaps, and export.",
         setupTitle: "Setup",
         jobSourceLbl: "Import method",
         sourceJobs: "Chrome extension",
@@ -504,18 +504,19 @@ let previewProgressStartedAt = 0;
       // Step 1 chooser cards (Gate)
       try{
         if(uiLang==="de"){
-          $("gatePickExtensionTitle") && ($("gatePickExtensionTitle").textContent = "Chrome-Erweiterung");
-          $("gatePickExtensionDesc") && ($("gatePickExtensionDesc").textContent = "Importiere den Job direkt von der Seite, die du gerade ansiehst.");
-          $("gatePickExtensionHint") && ($("gatePickExtensionHint").textContent = "Ideal fuer LinkedIn, Greenhouse, Lever, Workday und aehnliche Jobseiten.");
-          $("gatePickExtensionTag") && ($("gatePickExtensionTag").textContent = "Empfohlen");
-          $("gatePickExtensionAction") && ($("gatePickExtensionAction").textContent = "Chrome-Erweiterung nutzen");
-
-          $("gatePickPasteTitle") && ($("gatePickPasteTitle").textContent = "Stellenbeschreibung einfuegen");
-          $("gatePickPasteDesc") && ($("gatePickPasteDesc").textContent = "Fuege den kompletten Jobpost manuell ein, wenn du die Erweiterung nicht nutzen willst.");
-          $("gatePickPasteHint") && ($("gatePickPasteHint").textContent = "Am besten mit Aufgaben, Anforderungen und Tech-Stack.");
-          $("gatePickPasteTag") && ($("gatePickPasteTag").textContent = "Manuell");
+          $("gatePickPasteTitle") && ($("gatePickPasteTitle").textContent = "Manuell einfuegen");
+          $("gatePickPasteDesc") && ($("gatePickPasteDesc").textContent = "Fuege die komplette Stellenbeschreibung direkt in CV Studio ein.");
+          $("gatePickPasteHint") && ($("gatePickPasteHint").textContent = "Ideal, wenn du die Stellenanzeige schon offen oder kopiert hast.");
+          $("gatePickPasteTag") && ($("gatePickPasteTag").textContent = "Hier starten");
           $("gatePickPasteAction") && ($("gatePickPasteAction").textContent = "Stellenbeschreibung einfuegen");
-          $("gateHelperText") && ($("gateHelperText").textContent = "Du kannst jederzeit zwischen den Methoden wechseln.");
+
+          $("gatePickExtensionTitle") && ($("gatePickExtensionTitle").textContent = "Mit Chrome-Erweiterung importieren");
+          $("gatePickExtensionDesc") && ($("gatePickExtensionDesc").textContent = "Importiere den Job direkt von der Seite, die du gerade ansiehst.");
+          $("gatePickExtensionHint") && ($("gatePickExtensionHint").textContent = "Nutze sie fuer LinkedIn, Greenhouse, Lever, Workday und aehnliche Jobseiten.");
+          $("gatePickExtensionTag") && ($("gatePickExtensionTag").textContent = "Erweiterung");
+          $("gatePickExtensionAction") && ($("gatePickExtensionAction").textContent = "Mit Erweiterung importieren");
+
+          $("gateHelperText") && ($("gateHelperText").textContent = "Beide Wege fuehren in denselben CV-Studio-Flow.");
         }
       }catch(_){}
 
@@ -1638,11 +1639,11 @@ function setGateView(view){
     // The stepper already communicates the step number — keep this header clean.
     if(st) st.textContent = t("setupTitle") || "Setup";
     if(title) title.textContent = (uiLang==="de")
-      ? "Waehle, wie du den Job importieren willst"
-      : "Choose how you want to import the job";
+      ? "Waehle, wie du die Stellenbeschreibung hinzufuegen willst"
+      : "Choose how to add the job description";
     if(hint) hint.textContent = (uiLang==="de")
-      ? "Waehle den schnellsten Weg zu deinem angepassten CV."
-      : "Pick the fastest way to create your tailored CV.";
+      ? "Fuege sie manuell ein oder importiere sie mit der Chrome-Erweiterung."
+      : "Paste it manually or import it with the Chrome extension.";
     try{ renderGateStepper(1); }catch(_){ }
     return;
   }
@@ -9849,7 +9850,7 @@ $("startStrengthList")?.addEventListener("click", async (e) => {
     // Back to the two-option chooser
     $("gateBackBtn")?.addEventListener("click", () => {
       setGateView("choose");
-      setTimeout(() => { try{ $("gatePickExtension")?.focus(); }catch(_){ } }, 40);
+      setTimeout(() => { try{ $("gatePickPaste")?.focus(); }catch(_){ } }, 40);
     });
 
 

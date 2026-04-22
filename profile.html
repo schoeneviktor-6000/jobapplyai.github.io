@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>jobmejob • Profile</title>
-  <meta name="description" content="Upload your CV to unlock CV tailoring. Add job preferences later if you also want matched jobs."/>
+  <meta name="description" content="Upload your base CV, then go straight into CV Studio to tailor it to a real job."/>
 
   <!-- Shared styles -->
   <link rel="stylesheet" href="./shared.css?v=202603301635"/>
@@ -1058,6 +1058,68 @@ Profile reduction pass
   text-transform:uppercase;
   color:rgba(17,19,24,.48);
 }
+.uploadSuccessCard{
+  display:grid;
+  gap:12px;
+  padding:16px;
+  border-radius:22px;
+  border:1px solid rgba(34,197,94,.28);
+  background:
+    radial-gradient(620px 180px at 12% 0%, rgba(34,197,94,.16), transparent 58%),
+    linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,255,249,.94));
+  box-shadow:0 18px 42px rgba(34,197,94,.10);
+}
+.uploadSuccessTop{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.uploadSuccessKicker{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  min-height:24px;
+  padding:0 10px;
+  border-radius:999px;
+  border:1px solid rgba(34,197,94,.26);
+  background:rgba(34,197,94,.10);
+  color:#0a5a2a;
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.uploadSuccessKicker::before{
+  content:"";
+  width:8px;
+  height:8px;
+  border-radius:999px;
+  background:rgba(34,197,94,.92);
+  box-shadow:0 0 0 4px rgba(34,197,94,.12);
+}
+.uploadSuccessTitle{
+  margin:10px 0 0;
+  font-size:24px;
+  line-height:1.15;
+  letter-spacing:-.45px;
+}
+.uploadSuccessBody{
+  margin:8px 0 0;
+  max-width:640px;
+  color:rgba(17,19,24,.68);
+  font-size:14px;
+  line-height:1.6;
+  font-weight:750;
+}
+.uploadSuccessNote{
+  color:rgba(17,19,24,.60);
+  font-size:12px;
+  line-height:1.5;
+  font-weight:750;
+}
+.uploadSuccessCard .actions{ margin-top:0; }
 .slimAi{
   padding:16px;
   border-radius:20px;
@@ -1225,6 +1287,9 @@ Profile reduction pass
 @media (max-width:760px){
   .statusStrip{
     grid-template-columns:1fr;
+  }
+  .uploadSuccessTitle{
+    font-size:22px;
   }
 }
 @media (max-width:1320px){
@@ -1460,7 +1525,7 @@ Matched jobs premium polish
 
     <div class="navlinks">
 <a class="pill" href="./dashboard.html" data-nav="1">Dashboard</a>
-      <a class="pill" href="./cv.html" data-nav="1">CV Studio</a>
+      <a class="pill" href="./cv.html?entry=chooser" data-nav="1">CV Studio</a>
       <a class="pill" href="./jobs.html" data-nav="1">Jobs</a>
       <a class="pill" href="./plan.html" data-nav="1">Pricing</a>
     </div>
@@ -1486,7 +1551,7 @@ Matched jobs premium polish
           </div>
           <div class="menuLabel">Go to</div>
           <a class="jmNavItem" href="./dashboard.html" data-nav="1" role="menuitem">Dashboard</a>
-          <a class="jmNavItem" href="./cv.html" data-nav="1" role="menuitem">CV Studio</a>
+          <a class="jmNavItem" href="./cv.html?entry=chooser" data-nav="1" role="menuitem">CV Studio</a>
           <a class="jmNavItem" href="./jobs.html" data-nav="1" role="menuitem">Jobs</a>
           <a class="jmNavItem" href="./profile.html" data-nav="1" role="menuitem">Profile</a>
           <a class="jmNavItem" href="./profile.html#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Manage billing</a>
@@ -1513,7 +1578,7 @@ Matched jobs premium polish
   <div class="stepTitle">
     <div class="titleBlock">
       <h2>Base CV</h2>
-      <p class="sectionLead">Upload once. Everything else can wait.</p>
+      <p class="sectionLead">Upload once. Then go straight into CV Studio and tailor it to a real job.</p>
     </div>
     <span class="badge" id="cvStatusBadge">Loading</span>
   </div>
@@ -1551,6 +1616,21 @@ Matched jobs premium polish
     </div>
   </div>
 
+  <div class="uploadSuccessCard" id="postUploadCard" style="display:none" aria-live="polite">
+    <div class="uploadSuccessTop">
+      <div>
+        <div class="uploadSuccessKicker">Next step</div>
+        <h3 class="uploadSuccessTitle" id="postUploadTitle">Your base CV is ready.</h3>
+        <p class="uploadSuccessBody" id="postUploadBody">Now tailor it to a real job. In CV Studio, choose how to add the job description: paste it manually or import it with the Chrome extension.</p>
+      </div>
+      <span class="badge good" id="postUploadBadge">Ready</span>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="postUploadPrimaryBtn" type="button">Tailor this CV to a job</button>
+    </div>
+    <div class="uploadSuccessNote" id="postUploadNote">Matched jobs stays optional below. The fastest path from here is CV Studio.</div>
+  </div>
+
   <div class="helpBox aiCard slimAi" id="aiBox">
     <div class="stepTitle">
       <h2 style="margin:0;font-size:18px">Suggested roles</h2>
@@ -1580,8 +1660,7 @@ Matched jobs premium polish
 <aside class="card profileRail">
 <div class="sectionBody railStack railTight">
   <div class="actions quickActionRow">
-    <button class="btn primary" id="openCvBtn" type="button">Open CV Studio</button>
-    <a class="btn" data-nav="1" href="./jobs.html">Jobs</a>
+    <button class="btn primary" id="openCvBtn" type="button">Tailor this CV to a job</button>
     <button class="btn" type="button" data-extension-modal-open>Chrome extension</button>
   </div>
   <div class="small" style="margin-top:10px">Use the extension when you find a role outside jobmejob. CV Studio still handles the tailoring, edits, ATS review, and PDF export.</div>
@@ -1683,10 +1762,10 @@ Matched jobs premium polish
 <details class="prefsShell" id="prefsToggle">
   <summary class="prefsSummary">
     <div class="prefsSummaryMain">
-      <span class="prefsSummaryTag">Optional</span>
+      <span class="prefsSummaryTag">Optional later</span>
       <div class="titleBlock">
-        <h2>Matched jobs</h2>
-        <div class="prefsSummaryLead">Shape your search profile.</div>
+        <h2>Match jobs later</h2>
+        <div class="prefsSummaryLead">Only if you also want job suggestions.</div>
       </div>
     </div>
     <div class="prefsSummaryMeta">
@@ -1792,7 +1871,7 @@ Matched jobs premium polish
 
   <div class="prefsFooter">
     <div class="actions">
-      <button class="btn primary" id="continueBtn" type="button">Open CV Studio</button>
+      <button class="btn primary" id="continueBtn" type="button">Tailor this CV to a job</button>
     </div>
     <div style="display:grid; gap:8px; min-width:260px">
       <div class="small" id="autosaveHint">Auto-save is on.</div>
@@ -1844,7 +1923,7 @@ Matched jobs premium polish
       </div>
 
       <div class="modalActions">
-        <a class="btn ghost" href="./cv.html" data-nav="1">Open CV Studio</a>
+        <a class="btn ghost" href="./cv.html?entry=chooser" data-nav="1">Open CV Studio</a>
         <button class="btn" id="activityClose" type="button">Close</button>
       </div>
     </div>
@@ -1855,6 +1934,6 @@ Matched jobs premium polish
   <script src="./auth.js?v=202604121905"></script>
   <script src="./shared.js?v=202604102230"></script>
 
-  <script src="./profile.app.js?v=202604121905"></script>
+  <script src="./profile.app.js?v=202604221530"></script>
 </body>
 </html>

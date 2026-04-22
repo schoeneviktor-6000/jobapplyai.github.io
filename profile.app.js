@@ -23,6 +23,7 @@ const LINKS = (APP_CONFIG && APP_CONFIG.LINKS) ? APP_CONFIG.LINKS : {};
 const SUPPORT_EMAIL = "team@jobmejob.com";
 const BILLING_PORTAL_LINK = String(LINKS.CV_STUDIO_PORTAL_URL || "").trim();
 const PLAN_PAGE_URL = "./plan.html#cv-pricing";
+const CV_STUDIO_CHOOSER_URL = "./cv.html?entry=chooser";
 const CV_PLAN_META = Object.freeze({
   free: { label:"Free", quota:"5 free CVs" },
   cv_starter: { label:"Starter", quota:"10 CVs / month" },
@@ -48,6 +49,7 @@ let cvLocationHint=[];
 
 
 let lastCvMeta=null;
+let shouldFocusPostUploadCard=false;
 
 let backendAiTitles=[];
 let aiAutoStarted=false;
@@ -81,6 +83,13 @@ function setBadge(id,kind,text){
 function go(url){
   if (S && S.go) return S.go(url);
   setTimeout(()=>{window.location.href=url;},180);
+}
+
+function closeMatchedJobsPanel(){
+  try{
+    const prefsToggle=$("prefsToggle");
+    if(prefsToggle) prefsToggle.open=false;
+  }catch(_){}
 }
 
 function isEmail(s){
@@ -1585,7 +1594,7 @@ try{
   const openBtn = $("openCvBtn");
   if(openBtn){
     openBtn.disabled = !cvOk2;
-    openBtn.textContent = cvOk2 ? "Open CV Studio" : "Upload CV first";
+    openBtn.textContent = cvOk2 ? "Tailor this CV to a job" : "Upload CV first";
   }
 }catch(_){}
 
@@ -1593,11 +1602,11 @@ if(!cvOk2){
 setText("continueBtn","Upload CV to start");
 setText("continueHint","Upload a CV first.");
 }else if(!profOk2){
-setText("continueBtn","Open CV Studio");
-setText("continueHint","Ready for CV Studio.");
+setText("continueBtn","Tailor this CV to a job");
+setText("continueHint","Open CV Studio next. Matched jobs is optional.");
 }else{
-setText("continueBtn","Open CV Studio");
-setText("continueHint","Ready for CV Studio.");
+setText("continueBtn","Tailor this CV to a job");
+setText("continueHint","Open CV Studio next. Matched jobs is optional.");
 }
 }
 
@@ -1624,12 +1633,6 @@ try{ if(locations.length){ setLocationSuggestionUI([]); } }catch(_){}
 
 if(countries[0]) $("country").value=String(countries[0]);
 if(radius!==null && radius!==undefined) $("radiusKm").value=String(radius);
-try{
-  const prefsToggle=$("prefsToggle");
-  if(prefsToggle && (desired.length || industries.length || locations.length || (radius!==null && radius!==undefined))){
-    prefsToggle.open=true;
-  }
-}catch(_){}
 setBadge("saveStatusBadge","good","Loaded");
 }catch{}
 }
@@ -1680,6 +1683,83 @@ meta.cv_text_status
 ].join("|");
 }
 
+function storedCvHasReadyText(cv){
+if(!cv || typeof cv !== "object") return false;
+if(cv.cv_has_ready_text === true || cv.cv_has_text === true || cv.cv_has_ocr_text === true) return true;
+const chars=Number(cv.cv_text_chars || cv.cv_ocr_text_chars || 0);
+if(Number.isFinite(chars) && chars > 40) return true;
+return String(cv.cv_ocr_status || "").trim().toLowerCase() === "done";
+}
+
+function storedCvIsPdf(cv){
+const mime=String(cv?.cv_mime || "").trim().toLowerCase();
+const label=String(cv?.cv_filename || cv?.cv_path || "").trim().toLowerCase();
+return mime === "application/pdf" || label.endsWith(".pdf");
+}
+
+function maybeFocusPostUploadCard(){
+if(!shouldFocusPostUploadCard) return;
+const card=$("postUploadCard");
+if(!card || card.style.display === "none") return;
+shouldFocusPostUploadCard=false;
+setTimeout(()=>{
+  try{
+    card.scrollIntoView({ behavior:"smooth", block:"center" });
+  }catch(_){}
+}, 80);
+}
+
+function syncPostUploadCard(cv){
+const card=$("postUploadCard");
+if(!card) return;
+
+if(!cv || !cv.cv_path){
+  card.style.display="none";
+  return;
+}
+
+const ready=storedCvHasReadyText(cv);
+const isPdf=storedCvIsPdf(cv);
+const ocrStatus=String(cv.cv_ocr_status || "").trim().toLowerCase();
+
+let badgeKind="good";
+let badgeText="Ready";
+let title="Your base CV is ready.";
+let body="Now tailor it to a real job. In CV Studio, choose how to add the job description: paste it manually or import it with the Chrome extension.";
+let note="Matched jobs stays optional below. The fastest path from here is CV Studio.";
+
+if(!ready){
+  if(ocrStatus === "failed"){
+    badgeKind="warn";
+    badgeText="Needs retry";
+    title="Your CV was uploaded.";
+    body=isPdf
+      ? "Retry OCR once, then go straight into CV Studio to tailor it to a real job."
+      : "Re-upload a readable PDF or DOCX, then go straight into CV Studio to tailor it to a real job.";
+    note="Use matched jobs only later if you want it. The main flow is still CV Studio.";
+  }else if(ocrStatus === "processing"){
+    badgeKind="warn";
+    badgeText="Preparing";
+    title="Your CV was uploaded.";
+    body="We are preparing the text now. You can open CV Studio next and choose how to add the job description while we finish.";
+  }else{
+    badgeKind="warn";
+    badgeText="Uploaded";
+    title="Your CV was uploaded.";
+    body=isPdf
+      ? "Open CV Studio next and choose how to add the job description. If the CV still needs OCR, retry it here."
+      : "Open CV Studio next once the file is readable. A PDF usually gives the smoothest tailoring flow.";
+  }
+}
+
+card.style.display="";
+setBadge("postUploadBadge", badgeKind, badgeText);
+setText("postUploadTitle", title);
+setText("postUploadBody", body);
+setText("postUploadNote", note);
+maybeFocusPostUploadCard();
+}
+
 function applyAiUiFromTitles(titles){
   const clean = Array.isArray(titles)
     ? titles.map(x=>String(x).trim()).filter(Boolean).slice(0,30)
@@ -1727,26 +1807,31 @@ async function loadCvStatusAndUpdateUx(){
     const res=await apiGet("/me/cv");
     const cv=res && res.cv ? res.cv : null;
 
+    syncPostUploadCard(cv);
+
     if(cv && cv.cv_path){
       lastCvMeta=cvMetaFromCv(cv);
 
       const fileLabel = cv.cv_filename || cv.cv_path;
       const fileLower = String(fileLabel||"").toLowerCase();
       const isPdf = fileLower.endsWith(".pdf");
+      const ready=storedCvHasReadyText(cv);
 
       setText("cvHint","Uploaded: "+fileLabel);
       showRetryOcr(false);
 
       const s=String(cv.cv_ocr_status||"").toLowerCase();
 
-      if(s==="done"){
+      if(ready){
         stopOcrPollingAndCleanup();
-        setBadge("cvStatusBadge","good","OCR done");
-        setText("ocrHint","OCR done.");
+        setBadge("cvStatusBadge","good",isPdf ? "OCR done" : "Ready");
+        setText("ocrHint",isPdf ? "OCR done." : "CV text ready.");
         setProgress(false, 100, "", "");
         unlockAiReady();
         tryLoadCachedAiSuggestions();
         maybeAutoGenerateAiTitles("ocr_done");
+        setText("subLine","Your base CV is ready. Next: tailor it to a real job in CV Studio.");
+        markStep1DoneVisual(true);
         return;
       }
 
@@ -1760,6 +1845,7 @@ async function loadCvStatusAndUpdateUx(){
         }else{
           lockAi("Upload a PDF for OCR.");
         }
+        setText("subLine","Your CV is uploaded. We are preparing it now so you can tailor it in CV Studio next.");
         markStep1DoneVisual(false);
         return;
       }
@@ -1775,6 +1861,7 @@ async function loadCvStatusAndUpdateUx(){
         }else{
           lockAi("OCR failed. Please upload a PDF.");
         }
+        setText("subLine","Your CV is uploaded, but OCR needs another try before tailoring.");
         markStep1DoneVisual(false);
         return;
       }
@@ -1791,12 +1878,14 @@ async function loadCvStatusAndUpdateUx(){
         setText("ocrHint","PDF required for OCR.");
         lockAi("Upload a PDF for OCR.");
       }
+      setText("subLine","Your CV is uploaded. Open CV Studio next and choose how to add the job description.");
       markStep1DoneVisual(false);
       return;
     }
 
     // No CV on backend
     lastCvMeta=null;
+    syncPostUploadCard(null);
     stopOcrPollingAndCleanup();
     showRetryOcr(false);
     setBadge("cvStatusBadge","warn","No CV");
@@ -1804,9 +1893,11 @@ async function loadCvStatusAndUpdateUx(){
     setText("ocrHint","");
     setProgress(false, 0, "", "");
     lockAi("Upload a CV first.");
+    setText("subLine","Upload your base CV once. Then tailor it to a real job in CV Studio.");
     markStep1DoneVisual(false);
   }catch(e){
     lastCvMeta=null;
+    syncPostUploadCard(null);
     stopOcrPollingAndCleanup();
     showRetryOcr(false);
     setBadge("cvStatusBadge","warn","Unknown");
@@ -1815,6 +1906,7 @@ async function loadCvStatusAndUpdateUx(){
     setProgress(false, 0, "", "");
     lockAi("Upload a CV first.");
     showTopError(e.message||String(e));
+    setText("subLine","We could not check your CV status right now.");
     markStep1DoneVisual(false);
   }
 }
@@ -1846,6 +1938,8 @@ async function uploadCvThenAutoOcr(file){
   await apiPostForm("/me/cv",fd);
 
   await refreshState();
+  closeMatchedJobsPanel();
+  shouldFocusPostUploadCard=true;
   await loadCvStatusAndUpdateUx();
 
   if(!isPdfFile(file)){
@@ -1853,6 +1947,7 @@ async function uploadCvThenAutoOcr(file){
     setText("ocrHint","Upload a PDF for OCR.");
     lockAi("Upload a PDF for OCR.");
     showRetryOcr(false);
+    maybeFocusPostUploadCard();
     return;
   }
 
@@ -1871,6 +1966,7 @@ async function uploadCvThenAutoOcr(file){
   setProgress(true, 55, "OCR in progress…", "We will update automatically.");
   setText("ocrHint","OCR is running…");
   unlockAiWhileOcrRunning();
+  maybeFocusPostUploadCard();
   startOcrPolling({ startedAt: Date.now() });
 }
 
@@ -2340,6 +2436,33 @@ async function handleSaveProfile(){
   }
 }
 
+async function openCvStudioFromProfile(btn){
+  const cvOk = !!(state && state.cv_uploaded);
+  if(!cvOk){
+    $("step1Card")?.scrollIntoView({ behavior:"smooth", block:"start" });
+    toast("warn","Upload CV","Please upload your CV first.");
+    return;
+  }
+
+  const label = btn ? String(btn.textContent || "").trim() : "";
+  try{
+    if(btn){
+      btn.disabled = true;
+      btn.textContent = "Opening CV Studio...";
+    }
+    await flushAutoSave();
+  }catch(_){
+    // keep calm; draft is still stored
+  }finally{
+    if(btn){
+      btn.textContent = label || "Tailor this CV to a job";
+      btn.disabled = false;
+    }
+  }
+
+  go(CV_STUDIO_CHOOSER_URL);
+}
+
 
 /* -------------------------
    Activity log (modal)
@@ -2666,43 +2789,14 @@ scheduleAutoSave();
 
 const _saveBtn = $("saveProfileBtn");
 if(_saveBtn){ _saveBtn.addEventListener("click", handleSaveProfile); }
-$("continueBtn").addEventListener("click", async ()=>{
-  const cvOk = !!(state && state.cv_uploaded);
-
-  if(!cvOk){
-    $("step1Card")?.scrollIntoView({ behavior:"smooth", block:"start" });
-    toast("warn","Upload CV","Please upload your CV first.");
-    return;
-  }
-
-  const btn = $("continueBtn");
-  const old = btn ? btn.textContent : "";
-  try{
-    if(btn){ btn.disabled = true; btn.textContent = "Saving…"; }
-    await flushAutoSave();
-  }catch(_){
-    // keep calm; draft is still stored
-  }finally{
-    if(btn){ btn.textContent = old || "Open CV Studio"; btn.disabled = false; }
-  }
-
-  go("./cv.html");
-});
+$("continueBtn").addEventListener("click", ()=>openCvStudioFromProfile($("continueBtn")));
 {
   const b = $("openCvBtn");
   if(b){
-    b.addEventListener("click", async ()=>{
-      const cvOk = !!(state && state.cv_uploaded);
-      if(!cvOk){
-        $("step1Card")?.scrollIntoView({ behavior:"smooth", block:"start" });
-        toast("warn","Upload CV","Please upload your CV first.");
-        return;
-      }
-      try{ await flushAutoSave(); }catch(_){}
-      go("./cv.html");
-    });
+    b.addEventListener("click", ()=>openCvStudioFromProfile(b));
   }
 }
+$("postUploadPrimaryBtn")?.addEventListener("click", ()=>openCvStudioFromProfile($("postUploadPrimaryBtn")));
 // Account dropdown actions
 $("navActivity")?.addEventListener("click", openActivityModal);
 $("activityCloseX")?.addEventListener("click", closeActivityModal);
