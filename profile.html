@@ -1244,6 +1244,19 @@ Profile reduction pass
   0%{ transform:translateX(-100%); }
   100%{ transform:translateX(100%); }
 }
+.profilePostUploadFocus .profileRail{
+  align-self:start;
+}
+.profilePostUploadFocus #billingBox,
+.profilePostUploadFocus .slimDetails{
+  display:none !important;
+}
+.profilePostUploadFocus .profileRail .sectionBody{
+  gap:12px;
+}
+.profilePostUploadFocus .sideCardCompact{
+  background:rgba(17,19,24,.03);
+}
 #aiBox{ display:none !important; }
 .slimAi{
   padding:16px;
@@ -1738,20 +1751,20 @@ Matched jobs premium polish
       <div class="small" id="cvHint">No CV uploaded yet.</div>
     </div>
     <div class="compactStatus">
-      <div class="compactLabel">OCR</div>
+      <div class="compactLabel">Readable text</div>
       <div class="small" id="ocrHint"></div>
-      <button class="btn" id="retryOcrBtn" type="button" style="display:none;margin-top:4px">Retry OCR</button>
+      <button class="btn" id="retryOcrBtn" type="button" style="display:none;margin-top:4px">Retry text extraction</button>
     </div>
   </div>
 
   <div class="uploadSuccessCard" id="postUploadCard" style="display:none" aria-live="polite">
     <div class="uploadSuccessTop">
       <div>
-        <div class="uploadSuccessKicker">AI CV reality check</div>
-        <h3 class="uploadSuccessTitle" id="postUploadTitle">We are checking how your current CV will perform.</h3>
-        <p class="uploadSuccessBody" id="postUploadBody">This is a baseline before tailoring. The goal is simple: show why this CV should not be sent as-is.</p>
+        <div class="uploadSuccessKicker" id="postUploadKicker">Review preparing</div>
+        <h3 class="uploadSuccessTitle" id="postUploadTitle">Your base CV is ready.</h3>
+        <p class="uploadSuccessBody" id="postUploadBody">We’re extracting readable text and preparing your first CV review. This usually takes a short moment.</p>
       </div>
-      <span class="badge warn" id="postUploadBadge">Analyzing</span>
+      <span class="badge warn" id="postUploadBadge">Preparing review</span>
     </div>
     <div class="realityScoreGrid" id="postUploadScores" style="display:none">
       <div class="realityScoreCard">
@@ -1766,11 +1779,11 @@ Matched jobs premium polish
       </div>
     </div>
     <div class="realityFindings" id="postUploadFindings"></div>
-    <div class="uploadSuccessBridge" id="postUploadBridge">These issues significantly reduce your chances if you apply as-is. The fastest way to fix this is to tailor your CV to a specific job.</div>
+    <div class="uploadSuccessBridge" id="postUploadBridge" style="display:none"></div>
     <div class="actions">
-      <button class="btn primary" id="postUploadPrimaryBtn" type="button">Tailor this CV to a job</button>
+      <button class="btn primary" id="postUploadPrimaryBtn" type="button">Continue to CV Studio</button>
     </div>
-    <div class="uploadSuccessSecondary" id="postUploadSecondary">Match jobs stays secondary below. The main path from here is CV tailoring.</div>
+    <div class="uploadSuccessSecondary" id="postUploadSecondary">Match jobs stays secondary below. The main path from here is CV Studio.</div>
   </div>
 
   <div class="helpBox aiCard slimAi" id="aiBox">
@@ -1801,11 +1814,6 @@ Matched jobs premium polish
 </section>
 <aside class="card profileRail">
 <div class="sectionBody railStack railTight">
-  <div class="actions quickActionRow">
-    <button class="btn" type="button" data-extension-modal-open>Import from a job page</button>
-  </div>
-  <div class="small" style="margin-top:10px">Open any job post and let jobmejob read the full page with the Chrome extension. CV Studio still handles the tailoring, ATS review, and export.</div>
-
   <div class="sideCard sideCardCompact">
     <div class="compactHeadingRow">
       <h2>Account</h2>
@@ -1825,7 +1833,7 @@ Matched jobs premium polish
         <div class="kpiVal" id="kCv">…</div>
       </div>
       <div class="snapshotTile">
-        <div class="snapshotLabel">OCR</div>
+        <div class="snapshotLabel">Readable text</div>
         <div class="kpiVal" id="kOcr">…</div>
       </div>
     </div>
@@ -2075,6 +2083,6 @@ Matched jobs premium polish
   <script src="./auth.js?v=202604121905"></script>
   <script src="./shared.js?v=202604102230"></script>
 
-  <script src="./profile.app.js?v=202604230030"></script>
+  <script src="./profile.app.js?v=202604231215"></script>
 </body>
 </html>

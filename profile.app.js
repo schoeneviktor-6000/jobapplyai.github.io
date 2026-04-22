@@ -53,6 +53,7 @@ let cvLocationHint=[];
 
 
 let lastCvMeta=null;
+let lastCvSnapshot=null;
 let shouldFocusPostUploadCard=false;
 let realityCheckResult=null;
 let realityCheckKey="";
@@ -1500,41 +1501,43 @@ function startOcrPolling(opts){
       const res = await apiGet("/me/cv");
       const cv = res && res.cv ? res.cv : null;
       const s = String(cv?.cv_ocr_status||"").toLowerCase();
+      const textMeta=getReadableTextStatusMeta(cv);
 
-      if(s==="done"){
+      setCurrentCvSnapshot(cv);
+      syncPostUploadCard(cv);
+      setOnboardingUI(state);
+      syncCvHeaderWithReviewState(cv);
+
+      if(textMeta.status === "ready"){
         stopOcrPollingAndCleanup();
         showRetryOcr(false);
         setProgress(false, 100, "", "");
-        setBadge("cvStatusBadge","good","OCR done");
-        setText("ocrHint","OCR done.");
-        lastCvMeta=cvMetaFromCv(cv);
+        setText("ocrHint",textMeta.hint);
         unlockAiReady();
         tryLoadCachedAiSuggestions();
         maybeAutoGenerateAiTitles("ocr_done");
         return;
       }
 
-      if(s==="failed"){
+      if(textMeta.status === "failed"){
         stopOcrPollingAndCleanup();
         showRetryOcr(true);
         setProgress(false, 0, "", "");
-        setBadge("cvStatusBadge","bad","OCR failed");
-        setText("ocrHint","OCR failed: "+(cv?.cv_ocr_error||""));
-        unlockAiFallback("OCR failed. Retry OCR or try roles anyway.");
+        setText("ocrHint","Readable text is not ready yet." + (cv?.cv_ocr_error ? " " + String(cv.cv_ocr_error) : ""));
+        unlockAiFallback("Readable text is not ready yet. Retry text extraction or continue to CV Studio.");
         return;
       }
 
       // processing / idle / unknown
       if(elapsed > OCR_SOFT_WAIT_MS){
         showRetryOcr(true);
-        setText("ocrHint","OCR is taking longer than usual.");
+        setText("ocrHint","Readable text is taking longer than usual.");
       }else{
         showRetryOcr(false);
-        setText("ocrHint","OCR is running…");
+        setText("ocrHint",textMeta.hint || "We’re extracting readable text now.");
       }
 
-      setBadge("cvStatusBadge","warn","OCR running…");
-      setProgress(true, pct, "OCR in progress…", "We will update automatically.");
+      setProgress(true, pct, "Preparing your first review…", "We will update automatically.");
 
       // Allow trying AI even while OCR runs
       unlockAiWhileOcrRunning();
@@ -1549,16 +1552,15 @@ function startOcrPolling(opts){
       if(elapsed > OCR_HARD_WAIT_MS){
         stopOcrPollingAndCleanup();
         showRetryOcr(true);
-        setBadge("cvStatusBadge","warn","OCR delayed");
         setProgress(false, 0, "", "");
-        setText("ocrHint","OCR is still processing.");
-        unlockAiFallback("OCR is delayed. Retry OCR or try roles anyway.");
+        setText("ocrHint","Readable text is still processing.");
+        unlockAiFallback("Readable text is delayed. Retry text extraction or continue to CV Studio.");
       }
 
     }catch(e){
       // Network/CORS flakiness: keep trying; do not hard-fail the UI.
-      setBadge("cvStatusBadge","warn","Checking…");
-      setProgress(true, pct, "Checking OCR status…", "If you are on mobile, this can fail due to network/CORS. We'll keep trying.");
+      setBadge("cvStatusBadge","warn","Checking review");
+      setProgress(true, pct, "Checking review status…", "If you are on mobile, this can fail due to network/CORS. We'll keep trying.");
       // Avoid spamming the top error box every tick.
       if(ocrPollTicks === 1 || (ocrPollTicks % 8 === 0)){
         showTopError(e.message||String(e));
@@ -1662,49 +1664,65 @@ const cvPlanId=planIdFromState(st) || "free";
 const paidPlan=!!(cvPlanId && cvPlanId!=="free");
 setText("kPlan",paidPlan?planLabelFromId(cvPlanId):"Free");
 $("kPlan").className="kpiVal "+(paidPlan?"ok":"warn");
-const cvOk=!!(st && st.cv_uploaded);
+const cvSource=lastCvSnapshot && lastCvSnapshot.cv_path ? lastCvSnapshot : null;
+const cvOk=cvSource ? true : !!(st && st.cv_uploaded);
 setText("kCv",cvOk?"Yes":"No");
 $("kCv").className="kpiVal "+(cvOk?"ok":"warn");
-const ocr=String(st && st.cv_ocr_status ? st.cv_ocr_status : "").toLowerCase();
-if(ocr==="done"){
-setText("kOcr","done");
-$("kOcr").className="kpiVal ok";
-}else if(ocr==="processing"){
-setText("kOcr","processing");
-$("kOcr").className="kpiVal warn";
-}else if(ocr==="failed"){
-setText("kOcr","failed");
-$("kOcr").className="kpiVal bad";
+if(cvSource){
+  const textMeta=getReadableTextStatusMeta(cvSource);
+  setText("kOcr",textMeta.accountLabel);
+  $("kOcr").className="kpiVal " + textMeta.accountClass;
 }else{
-setText("kOcr","idle");
-$("kOcr").className="kpiVal warn";
+  const ocr=String(st && st.cv_ocr_status ? st.cv_ocr_status : "").toLowerCase();
+  if(ocr==="done"){
+  setText("kOcr","ready");
+  $("kOcr").className="kpiVal ok";
+  }else if(ocr==="processing"){
+  setText("kOcr","preparing");
+  $("kOcr").className="kpiVal warn";
+  }else if(ocr==="failed"){
+  setText("kOcr","retry needed");
+  $("kOcr").className="kpiVal bad";
+  }else{
+  setText("kOcr","pending");
+  $("kOcr").className="kpiVal warn";
+  }
 }
 // Next action (keep it simple): CV Studio is the core flow.
 // If something is missing, we guide the user by scrolling to the right section.
-const cvOk2 = !!(st && st.cv_uploaded);
+const cvOk2 = cvOk;
 const profOk2 = !!(st && st.profile_complete);
+const reviewMeta=getReviewStageMeta(cvSource, realityCheckResult);
 
 // Keep "Open CV Studio" gated behind CV upload (tailoring needs a base CV).
 try{
   const openBtn = $("openCvBtn");
   if(openBtn){
     openBtn.disabled = !cvOk2;
-    openBtn.textContent = cvOk2 ? "Tailor this CV to a job" : "Upload CV first";
+    openBtn.textContent = !cvOk2
+      ? "Upload CV first"
+      : reviewMeta.stage === "a"
+        ? "Open CV Studio"
+        : "Tailor this CV to a job";
   }
 }catch(_){}
 
 if(!cvOk2){
 try{ $("continueBtn")?.classList.add("primary"); }catch(_){}
-setText("continueBtn","Upload CV to start");
-setText("continueHint","Upload a CV first.");
+setText("continueBtn",reviewMeta.continueLabel);
+setText("continueHint",reviewMeta.continueHint);
+}else if(reviewMeta.stage === "a"){
+try{ $("continueBtn")?.classList.remove("primary"); }catch(_){}
+setText("continueBtn",reviewMeta.continueLabel);
+setText("continueHint",reviewMeta.continueHint);
 }else if(!profOk2){
 try{ $("continueBtn")?.classList.remove("primary"); }catch(_){}
-setText("continueBtn","Tailor this CV to a job");
-setText("continueHint","Tailor this CV in CV Studio now. Match jobs stays optional.");
+setText("continueBtn",reviewMeta.continueLabel);
+setText("continueHint","Your profile can stay lightweight for now. The next step that matters is CV tailoring.");
 }else{
 try{ $("continueBtn")?.classList.remove("primary"); }catch(_){}
-setText("continueBtn","Tailor this CV to a job");
-setText("continueHint","Tailor this CV in CV Studio now. Match jobs stays optional.");
+setText("continueBtn",reviewMeta.continueLabel);
+setText("continueHint",reviewMeta.continueHint);
 }
 }
 
@@ -1795,6 +1813,141 @@ const label=String(cv?.cv_filename || cv?.cv_path || "").trim().toLowerCase();
 return mime === "application/pdf" || label.endsWith(".pdf");
 }
 
+function getReadableTextStatus(cv){
+if(!cv || !cv.cv_path) return "missing";
+if(storedCvHasReadyText(cv)) return "ready";
+const status=String(cv?.cv_ocr_status || "").trim().toLowerCase();
+if(status === "failed") return "failed";
+if(status === "processing") return "processing";
+return "pending";
+}
+
+function getReadableTextStatusMeta(cv){
+const textStatus=getReadableTextStatus(cv);
+if(textStatus === "ready"){
+  return {
+    status:"ready",
+    badgeKind:"good",
+    badgeText:"Review ready",
+    hint:storedCvIsPdf(cv) ? "Readable text is ready." : "Your CV text is ready.",
+    accountLabel:"ready",
+    accountClass:"ok"
+  };
+}
+if(textStatus === "processing"){
+  return {
+    status:"processing",
+    badgeKind:"warn",
+    badgeText:"Preparing review",
+    hint:"We’re extracting readable text now.",
+    accountLabel:"preparing",
+    accountClass:"warn"
+  };
+}
+if(textStatus === "failed"){
+  return {
+    status:"failed",
+    badgeKind:"bad",
+    badgeText:"Needs text",
+    hint:"Readable text is not ready yet.",
+    accountLabel:"retry needed",
+    accountClass:"bad"
+  };
+}
+if(textStatus === "pending"){
+  return {
+    status:"pending",
+    badgeKind:"warn",
+    badgeText:"Preparing review",
+    hint:storedCvIsPdf(cv) ? "Readable text has not started yet." : "Readable text is not ready yet.",
+    accountLabel:"pending",
+    accountClass:"warn"
+  };
+}
+return {
+  status:"missing",
+  badgeKind:"warn",
+  badgeText:"No CV",
+  hint:"",
+  accountLabel:"missing",
+  accountClass:"warn"
+};
+}
+
+function getPostUploadReviewStage(cv, fullReview){
+if(!cv || !cv.cv_path) return "none";
+if(getReadableTextStatus(cv) !== "ready") return "a";
+if(fullReview && typeof fullReview === "object" && Array.isArray(fullReview.findings) && fullReview.findings.length) return "c";
+return "b";
+}
+
+function applyPostUploadFocusState(hasCv){
+try{
+  document.body.classList.toggle("profilePostUploadFocus", !!hasCv);
+}catch(_){}
+}
+
+function setCurrentCvSnapshot(cv){
+const nextCv=cv && cv.cv_path ? cv : null;
+lastCvSnapshot=nextCv;
+lastCvMeta=nextCv ? cvMetaFromCv(nextCv) : null;
+applyPostUploadFocusState(!!nextCv);
+}
+
+function getReviewStageMeta(cv, fullReview){
+const stage=getPostUploadReviewStage(cv, fullReview);
+if(stage === "a"){
+  const textStatus=getReadableTextStatus(cv);
+  return {
+    stage,
+    headerBadgeKind:textStatus === "failed" ? "bad" : "warn",
+    headerBadgeText:textStatus === "failed" ? "Needs text" : "Preparing review",
+    subLine:textStatus === "failed"
+      ? "Your base CV is uploaded, but we still need readable text before the first review can finish. You can continue to CV Studio or retry text extraction."
+      : "Your base CV is uploaded. We’re preparing the first review, and you can continue straight into CV Studio now.",
+    continueLabel:"Continue to CV Studio",
+    continueHint:textStatus === "failed"
+      ? "Readable text is still missing here. You can retry it or continue to CV Studio right away."
+      : "Your first CV review is still preparing. You can continue to CV Studio right away."
+  };
+}
+if(stage === "b"){
+  return {
+    stage,
+    headerBadgeKind:"warn",
+    headerBadgeText:"Baseline review",
+    subLine:"Your readable CV text is ready, and the first baseline review is already pointing to issues worth fixing before you apply.",
+    continueLabel:"Tailor this CV to a job",
+    continueHint:"Baseline review ready. Tailor this CV in CV Studio now."
+  };
+}
+if(stage === "c"){
+  return {
+    stage,
+    headerBadgeKind:"good",
+    headerBadgeText:"Review ready",
+    subLine:"Your AI CV review is ready. The strongest next step is to tailor this CV to one real job in CV Studio.",
+    continueLabel:"Tailor this CV to a job",
+    continueHint:"Your CV review is ready. Tailor this CV in CV Studio now."
+  };
+}
+return {
+  stage,
+  headerBadgeKind:"warn",
+  headerBadgeText:"No CV",
+  subLine:"Upload your base CV once. Then tailor it to a real job in CV Studio.",
+  continueLabel:"Upload CV to start",
+  continueHint:"Upload a CV first."
+};
+}
+
+function syncCvHeaderWithReviewState(cv){
+if(!cv || !cv.cv_path) return;
+const reviewMeta=getReviewStageMeta(cv, realityCheckResult);
+setBadge("cvStatusBadge",reviewMeta.headerBadgeKind,reviewMeta.headerBadgeText);
+setText("subLine",reviewMeta.subLine);
+}
+
 function maybeFocusPostUploadCard(){
 if(!shouldFocusPostUploadCard) return;
 const card=$("postUploadCard");
@@ -1841,10 +1994,10 @@ function buildRealityCheckFallback(cv){
   const isPdf=storedCvIsPdf(cv);
   const ocrStatus=String(cv?.cv_ocr_status || "").trim().toLowerCase();
   return {
-    headline: "Your CV is not ready for most job applications yet",
+    headline: "We found issues worth fixing before you apply.",
     ats_readiness_score: ready ? 44 : 41,
     machine_readability: ready ? (isPdf ? "Low" : "Medium") : "Low",
-    bridge: "These issues significantly reduce your chances if you apply as-is. The fastest way to fix this is to tailor your CV to a specific job.",
+    bridge: "We found issues worth fixing before you apply. Tailoring this CV to a specific job will give you a much stronger result.",
     findings: [
       {
         title: "Missing job-specific keywords",
@@ -1890,7 +2043,7 @@ function normalizeRealityCheckResult(raw, cv){
     headline,
     ats_readiness_score: score,
     machine_readability: readability,
-    bridge: "These issues significantly reduce your chances if you apply as-is. The fastest way to fix this is to tailor your CV to a specific job.",
+    bridge: "We found issues worth fixing before you apply. Tailoring this CV to a specific job will give you a much stronger result.",
     findings: findings.slice(0,3)
   };
 }
@@ -1913,8 +2066,8 @@ function renderRealityCheckSkeleton(){
   if(!host) return;
   host.innerHTML=
     '<div class="realityLoadingCallout">'
-      + '<div class="realityLoadingTitle">Analyzing your CV...</div>'
-      + '<div class="realityLoadingText">We are checking ATS readiness and key weaknesses. The first findings will appear here automatically.</div>'
+      + '<div class="realityLoadingTitle">Preparing your first CV review</div>'
+      + '<div class="realityLoadingText">We’re extracting readable text and preparing the first ATS and readability baseline now.</div>'
     + '</div>'
     + '<div class="realityFindingsLoading" aria-hidden="true">'
       + Array.from({ length:3 }).map(() => (
@@ -1929,56 +2082,94 @@ function renderRealityCheckSkeleton(){
 }
 
 function maybeTrackRealityCheckShown(cv){
-  if(!cv || !cv.cv_path) return;
+  if(!cv || !cv.cv_path || getPostUploadReviewStage(cv, realityCheckResult) === "a") return;
   const key=cvMetaKey(cv);
   if(!key || realityCheckShownTrackKey === key) return;
   realityCheckShownTrackKey=key;
   queueProductEvent("activation_cv_reality_check_shown", {
     cv_status:String(cv?.cv_ocr_status || "").trim().toLowerCase() || "unknown",
-    has_ready_text:storedCvHasReadyText(cv) ? "yes" : "no"
+    has_ready_text:storedCvHasReadyText(cv) ? "yes" : "no",
+    review_stage:getPostUploadReviewStage(cv, realityCheckResult)
   });
 }
 
-function renderRealityCheckPending(cv){
-  const card=$("postUploadCard");
-  if(!card) return;
-  const ready=storedCvHasReadyText(cv);
-  const ocrStatus=String(cv?.cv_ocr_status || "").trim().toLowerCase();
-  const fallback=buildRealityCheckFallback(cv);
-  card.style.display="";
-  setText("postUploadTitle", "Analyzing your CV...");
-  setText("postUploadBody", "We are checking ATS readiness and key weaknesses. You do not need to do anything. The first findings will appear automatically.");
-  const scores=$("postUploadScores");
-  if(!ready){
-    setBadge("postUploadBadge", "warn", ocrStatus === "failed" ? "Needs text" : "Analyzing");
-    if(scores) scores.style.display="none";
-    renderRealityCheckSkeleton();
-    setText("postUploadBridge", "These issues significantly reduce your chances if you apply as-is. The fastest way to fix this is to tailor your CV to a specific job.");
-    setText("postUploadSecondary", ocrStatus === "failed"
-      ? "We still need readable CV text before the full reality check can load. Upload a PDF or retry OCR."
-      : "We are extracting readable text and building the first findings now.");
+function setPostUploadBridge(text){
+  const bridge=$("postUploadBridge");
+  if(!bridge) return;
+  if(text){
+    bridge.style.display="";
+    bridge.textContent=text;
     return;
   }
+  bridge.style.display="none";
+  bridge.textContent="";
+}
 
-  setBadge("postUploadBadge", "warn", "Analyzing");
+function setPostUploadPrimaryCta(label){
+  const btn=$("postUploadPrimaryBtn");
+  if(btn) btn.textContent=label || "Tailor this CV to a job";
+}
+
+function renderRealityCheckPreparing(cv){
+  const card=$("postUploadCard");
+  if(!card) return;
+  const textStatus=getReadableTextStatus(cv);
+  card.style.display="";
+  setText("postUploadKicker","Review preparing");
+  setBadge("postUploadBadge", textStatus === "failed" ? "bad" : "warn", textStatus === "failed" ? "Needs text" : "Preparing review");
+  setText("postUploadTitle", "Your base CV is ready.");
+  setText("postUploadBody", textStatus === "failed"
+    ? "We couldn’t finish readable text extraction yet, so the first CV review is still waiting on that step."
+    : "We’re extracting readable text and preparing your first CV review. This usually takes a short moment.");
+  const scores=$("postUploadScores");
+  if(scores) scores.style.display="none";
+  renderRealityCheckSkeleton();
+  setPostUploadBridge("");
+  setPostUploadPrimaryCta("Continue to CV Studio");
+  setText("postUploadSecondary", textStatus === "failed"
+    ? "Retry text extraction if you want the review to load here, or continue straight into CV Studio now."
+    : "The review will appear here automatically. You can continue to CV Studio right away.");
+}
+
+function renderRealityCheckBaseline(cv, options){
+  const card=$("postUploadCard");
+  if(!card) return;
+  const opts=options && typeof options === "object" ? options : {};
+  const fallback=buildRealityCheckFallback(cv);
+  card.style.display="";
+  setText("postUploadKicker","Baseline review");
+  setBadge("postUploadBadge", "warn", "Baseline review");
+  setText("postUploadTitle", "We found issues worth fixing before you apply.");
+  setText("postUploadBody", opts.loading
+    ? "This first review uses the readable text from your current CV. The full AI review is still finishing, but the baseline already shows where the document is weak."
+    : "This baseline review uses the readable text from your current CV. It already shows the main issues worth fixing before you apply.");
+  const scores=$("postUploadScores");
   if(scores) scores.style.display="";
   setText("postUploadScoreValue", String(fallback.ats_readiness_score || 44) + "/100");
   setText("postUploadReadabilityValue", String(fallback.machine_readability || "Low"));
-  setText("postUploadScoreMeta", "Preliminary baseline while the full AI review finishes.");
-  setText("postUploadReadabilityMeta", "We already have enough CV text to estimate parsing quality. The detailed review is still loading.");
+  setText("postUploadScoreMeta", opts.loading
+    ? "Early baseline while the full AI review finishes."
+    : "Baseline before tailoring to a specific job.");
+  setText("postUploadReadabilityMeta", opts.loading
+    ? "Readable text is ready, so we can already estimate ATS parsing quality."
+    : "This reflects how clearly ATS systems can parse the current document.");
   renderRealityCheckFindings(fallback.findings);
-  setText("postUploadBridge", "These first issues already reduce your chances if you apply as-is. The fastest way to fix this is to tailor your CV to a specific job.");
-  setText("postUploadSecondary", "The full AI review is still loading, but the next step is already clear: tailor this CV to one real job.");
+  setPostUploadBridge(fallback.bridge);
+  setPostUploadPrimaryCta("Tailor this CV to a job");
+  setText("postUploadSecondary", opts.loading
+    ? "The full AI review is still finishing, but you can move straight into CV Studio now."
+    : "The next step is to tailor this CV to one real job in CV Studio.");
 }
 
 function renderRealityCheckResult(result){
   const card=$("postUploadCard");
   if(!card) return;
-  const normalized=result && typeof result === "object" ? result : buildRealityCheckFallback(lastCvMeta || {});
+  const normalized=result && typeof result === "object" ? result : buildRealityCheckFallback(lastCvSnapshot || {});
   card.style.display="";
-  setBadge("postUploadBadge", "bad", "Not ready");
+  setText("postUploadKicker","AI CV review");
+  setBadge("postUploadBadge", "good", "Review ready");
   setText("postUploadTitle", normalized.headline || "Your CV is not ready for most job applications yet");
-  setText("postUploadBody", "This is your untailored baseline. If you apply with this version, ATS filters and recruiters will see these weaknesses first.");
+  setText("postUploadBody", "This review is based on your current untailored CV. These are the issues ATS systems and recruiters are most likely to notice first.");
   const scores=$("postUploadScores");
   if(scores) scores.style.display="";
   setText("postUploadScoreValue", String(normalized.ats_readiness_score || 44) + "/100");
@@ -1988,8 +2179,9 @@ function renderRealityCheckResult(result){
     ? "Low means ATS systems may miss information or rank the CV lower."
     : "This score reflects how reliably ATS systems can parse the document today.");
   renderRealityCheckFindings(normalized.findings);
-  setText("postUploadBridge", normalized.bridge || "These issues significantly reduce your chances if you apply as-is. The fastest way to fix this is to tailor your CV to a specific job.");
-  setText("postUploadSecondary", "The fastest fix is to tailor this CV to one real job now.");
+  setPostUploadBridge(normalized.bridge || "We found issues worth fixing before you apply. Tailoring this CV to a specific job will give you a much stronger result.");
+  setPostUploadPrimaryCta("Tailor this CV to a job");
+  setText("postUploadSecondary", "The next step is to tailor this CV to one real job in CV Studio.");
 }
 
 async function loadRealityCheckForCv(cv){
@@ -2000,7 +2192,9 @@ async function loadRealityCheckForCv(cv){
     realityCheckResult=null;
     realityCheckKey=key;
     realityCheckInFlight=false;
-    renderRealityCheckPending(cv);
+    renderRealityCheckPreparing(cv);
+    syncCvHeaderWithReviewState(cv);
+    setOnboardingUI(state);
     maybeFocusPostUploadCard();
     return;
   }
@@ -2010,6 +2204,9 @@ async function loadRealityCheckForCv(cv){
     realityCheckResult=normalizeRealityCheckResult(cached, cv);
     realityCheckKey=key;
     renderRealityCheckResult(realityCheckResult);
+    maybeTrackRealityCheckShown(cv);
+    syncCvHeaderWithReviewState(cv);
+    setOnboardingUI(state);
     maybeFocusPostUploadCard();
     return;
   }
@@ -2018,7 +2215,11 @@ async function loadRealityCheckForCv(cv){
 
   realityCheckKey=key;
   realityCheckInFlight=true;
-  renderRealityCheckPending(cv);
+  realityCheckResult=null;
+  renderRealityCheckBaseline(cv, { loading:true });
+  maybeTrackRealityCheckShown(cv);
+  syncCvHeaderWithReviewState(cv);
+  setOnboardingUI(state);
 
   try{
     const resp=await apiPostJson("/me/ai/cv-reality-check",{});
@@ -2026,12 +2227,15 @@ async function loadRealityCheckForCv(cv){
     realityCheckResult=normalized;
     writeRealityCheckCache(meta, normalized);
     renderRealityCheckResult(normalized);
+    maybeTrackRealityCheckShown(cv);
+    syncCvHeaderWithReviewState(cv);
   }catch(_){
-    const fallback=buildRealityCheckFallback(cv);
-    realityCheckResult=fallback;
-    renderRealityCheckResult(fallback);
+    realityCheckResult=null;
+    renderRealityCheckBaseline(cv, { loading:false });
+    syncCvHeaderWithReviewState(cv);
   }finally{
     realityCheckInFlight=false;
+    setOnboardingUI(state);
     maybeFocusPostUploadCard();
   }
 }
@@ -2050,8 +2254,21 @@ if(!cv || !cv.cv_path){
 }
 
 card.style.display="";
-maybeTrackRealityCheckShown(cv);
-renderRealityCheckPending(cv);
+const key=cvMetaKey(cvMetaFromCv(cv));
+if(realityCheckKey && realityCheckKey !== key){
+  realityCheckResult=null;
+  realityCheckInFlight=false;
+}
+const stage=getPostUploadReviewStage(cv, realityCheckResult);
+if(stage === "c"){
+  renderRealityCheckResult(realityCheckResult);
+  maybeTrackRealityCheckShown(cv);
+}else if(stage === "b"){
+  renderRealityCheckBaseline(cv, { loading:realityCheckInFlight && realityCheckKey === key });
+  maybeTrackRealityCheckShown(cv);
+}else{
+  renderRealityCheckPreparing(cv);
+}
 loadRealityCheckForCv(cv).catch(()=>{});
 }
 
@@ -2101,88 +2318,85 @@ async function loadCvStatusAndUpdateUx(){
   try{
     const res=await apiGet("/me/cv");
     const cv=res && res.cv ? res.cv : null;
-
+    setCurrentCvSnapshot(cv);
+    updateBrowseCvCta(!!(cv && cv.cv_path));
     syncPostUploadCard(cv);
+    setOnboardingUI(state);
 
     if(cv && cv.cv_path){
-      lastCvMeta=cvMetaFromCv(cv);
-      updateBrowseCvCta(true);
-
       const fileLabel = cv.cv_filename || cv.cv_path;
       const fileLower = String(fileLabel||"").toLowerCase();
       const isPdf = fileLower.endsWith(".pdf");
       const ready=storedCvHasReadyText(cv);
+      const s=String(cv.cv_ocr_status||"").toLowerCase();
+      const textMeta=getReadableTextStatusMeta(cv);
+      const reviewMeta=getReviewStageMeta(cv, realityCheckResult);
 
       setText("cvHint","Uploaded: "+fileLabel);
+      setBadge("cvStatusBadge",reviewMeta.headerBadgeKind,reviewMeta.headerBadgeText);
+      setText("ocrHint", textMeta.status === "failed" && cv?.cv_ocr_error
+        ? "Readable text is not ready yet. " + String(cv.cv_ocr_error || "").trim()
+        : textMeta.hint);
       showRetryOcr(false);
-
-      const s=String(cv.cv_ocr_status||"").toLowerCase();
 
       if(ready){
         stopOcrPollingAndCleanup();
-        setBadge("cvStatusBadge","good",isPdf ? "OCR done" : "Ready");
-        setText("ocrHint",isPdf ? "OCR done." : "CV text ready.");
         setProgress(false, 100, "", "");
         unlockAiReady();
         tryLoadCachedAiSuggestions();
         maybeAutoGenerateAiTitles("ocr_done");
-        setText("subLine","Your base CV is uploaded, but it is not ready to send yet. Tailor it in CV Studio next.");
+        setText("subLine",reviewMeta.subLine);
         markStep1DoneVisual(false);
+        setOnboardingUI(state);
         return;
       }
 
       if(s==="processing"){
-        setBadge("cvStatusBadge","warn","OCR running…");
-        setProgress(true, 65, "OCR in progress…", "We will update automatically.");
-        setText("ocrHint","OCR is running…");
+        setProgress(true, 65, "Preparing your first review…", "We will update automatically.");
         if(isPdf){
           unlockAiWhileOcrRunning();
           startOcrPolling({ startedAt: Date.now() });
         }else{
-          lockAi("Upload a PDF for OCR.");
+          lockAi("Upload a PDF for readable text.");
         }
-        setText("subLine","Your CV is uploaded. We are preparing the baseline check now, then the next step is CV tailoring.");
+        setText("subLine",reviewMeta.subLine);
         markStep1DoneVisual(false);
+        setOnboardingUI(state);
         return;
       }
 
       if(s==="failed"){
         stopOcrPollingAndCleanup();
-        setBadge("cvStatusBadge","bad","OCR failed");
         setProgress(false, 0, "", "");
-        setText("ocrHint","OCR failed: "+(cv.cv_ocr_error||""));
         if(isPdf){
           showRetryOcr(true);
-          unlockAiFallback("OCR failed. Retry OCR or try roles anyway.");
+          unlockAiFallback("Readable text is not ready yet. Retry text extraction or continue to CV Studio.");
         }else{
-          lockAi("OCR failed. Please upload a PDF.");
+          lockAi("Readable text is not ready. Please upload a PDF.");
         }
-        setText("subLine","Your CV is uploaded, but we still need readable text before the reality check and tailoring can work properly.");
+        setText("subLine",reviewMeta.subLine);
         markStep1DoneVisual(false);
+        setOnboardingUI(state);
         return;
       }
 
       // idle / unknown
       stopOcrPollingAndCleanup();
-      setBadge("cvStatusBadge","good","Uploaded");
       setProgress(false, 0, "", "");
       if(isPdf){
-        setText("ocrHint","OCR not started.");
         showRetryOcr(true);
-        unlockAiFallback("Retry OCR, or try roles anyway.");
+        unlockAiFallback("Readable text is not ready yet. Retry text extraction or continue to CV Studio.");
       }else{
-        setText("ocrHint","PDF required for OCR.");
-        lockAi("Upload a PDF for OCR.");
+        lockAi("Upload a PDF for readable text.");
       }
-      setText("subLine","Your CV is uploaded. We still need the baseline check, then the next step is CV tailoring.");
+      setText("subLine",reviewMeta.subLine);
       markStep1DoneVisual(false);
+      setOnboardingUI(state);
       return;
     }
 
     // No CV on backend
-    lastCvMeta=null;
-    updateBrowseCvCta(false);
-    syncPostUploadCard(null);
+    setCurrentCvSnapshot(null);
     stopOcrPollingAndCleanup();
     showRetryOcr(false);
     setBadge("cvStatusBadge","warn","No CV");
@@ -2192,10 +2406,12 @@ async function loadCvStatusAndUpdateUx(){
     lockAi("Upload a CV first.");
     setText("subLine","Upload your base CV once. Then tailor it to a real job in CV Studio.");
     markStep1DoneVisual(false);
+    setOnboardingUI(state);
   }catch(e){
-    lastCvMeta=null;
+    setCurrentCvSnapshot(null);
     updateBrowseCvCta(false);
     syncPostUploadCard(null);
+    setOnboardingUI(state);
     stopOcrPollingAndCleanup();
     showRetryOcr(false);
     setBadge("cvStatusBadge","warn","Unknown");
@@ -2242,15 +2458,15 @@ async function uploadCvThenAutoOcr(file){
 
   if(!isPdfFile(file)){
     setProgress(false, 0, "", "");
-    setText("ocrHint","Upload a PDF for OCR.");
-    lockAi("Upload a PDF for OCR.");
+    setText("ocrHint","Upload a PDF for readable text.");
+    lockAi("Upload a PDF for readable text.");
     showRetryOcr(false);
     maybeFocusPostUploadCard();
     return;
   }
 
-  setBadge("cvStatusBadge","warn","Starting OCR…");
-  setProgress(true, 40, "Starting OCR…", "We are extracting text from your PDF.");
+  setBadge("cvStatusBadge","warn","Preparing review");
+  setProgress(true, 40, "Preparing your first review…", "We are extracting readable text from your PDF.");
 
   try{
     await apiPostJson("/me/cv/ocr",{});
@@ -2260,9 +2476,9 @@ async function uploadCvThenAutoOcr(file){
     showRetryOcr(true);
   }
 
-  setBadge("cvStatusBadge","warn","OCR running…");
-  setProgress(true, 55, "OCR in progress…", "We will update automatically.");
-  setText("ocrHint","OCR is running…");
+  setBadge("cvStatusBadge","warn","Preparing review");
+  setProgress(true, 55, "Preparing your first review…", "We will update automatically.");
+  setText("ocrHint","We’re extracting readable text now.");
   unlockAiWhileOcrRunning();
   maybeFocusPostUploadCard();
   startOcrPolling({ startedAt: Date.now() });
@@ -2298,28 +2514,28 @@ async function handleRetryOcr(){
     const fileLabel = cv && (cv.cv_filename || cv.cv_path) ? (cv.cv_filename || cv.cv_path) : "";
     if(!fileLabel) throw new Error("No CV found. Please upload a PDF first.");
     if(!String(fileLabel).toLowerCase().endsWith(".pdf")){
-      throw new Error("Please upload a PDF version of your CV to run OCR.");
+      throw new Error("Please upload a PDF version of your CV to prepare readable text.");
     }
 
-    setBadge("cvStatusBadge","warn","Starting OCR…");
-    setProgress(true, 40, "Starting OCR…", "We are extracting text from your PDF.");
-    setText("ocrHint","Starting OCR…");
+    setBadge("cvStatusBadge","warn","Preparing review");
+    setProgress(true, 40, "Preparing your first review…", "We are extracting readable text from your PDF.");
+    setText("ocrHint","Preparing readable text…");
     showRetryOcr(false);
 
     await apiPostJson("/me/cv/ocr",{});
 
-    setBadge("cvStatusBadge","warn","OCR running…");
-    setProgress(true, 55, "OCR in progress…", "We will update automatically.");
-    setText("ocrHint","OCR is running…");
+    setBadge("cvStatusBadge","warn","Preparing review");
+    setProgress(true, 55, "Preparing your first review…", "We will update automatically.");
+    setText("ocrHint","We’re extracting readable text now.");
     unlockAiWhileOcrRunning();
 
     startOcrPolling({ startedAt: Date.now() });
   }catch(e){
     showRetryOcr(true);
-    setBadge("cvStatusBadge","bad","OCR error");
+    setBadge("cvStatusBadge","bad","Needs text");
     setProgress(false, 0, "", "");
     showTopError(e.message||String(e));
-    unlockAiFallback("Could not start OCR. Try roles anyway, or retry later.");
+    unlockAiFallback("Could not start readable text extraction. Continue to CV Studio or retry later.");
   }finally{
     if(btn) btn.disabled=false;
   }
@@ -2735,7 +2951,7 @@ async function handleSaveProfile(){
 }
 
 async function openCvStudioFromProfile(btn){
-  const cvOk = !!(state && state.cv_uploaded);
+  const cvOk = !!((lastCvSnapshot && lastCvSnapshot.cv_path) || (state && state.cv_uploaded));
   if(!cvOk){
     $("step1Card")?.scrollIntoView({ behavior:"smooth", block:"start" });
     toast("warn","Upload CV","Please upload your CV first.");
@@ -2745,7 +2961,7 @@ async function openCvStudioFromProfile(btn){
   const label = btn ? String(btn.textContent || "").trim() : "";
   queueProductEvent("activation_tailor_cta_clicked", {
     source:btn && btn.id ? String(btn.id) : "profile_cta",
-    has_ready_text:(lastCvMeta && storedCvHasReadyText(lastCvMeta)) ? "yes" : "no"
+    has_ready_text:(lastCvSnapshot && storedCvHasReadyText(lastCvSnapshot)) ? "yes" : "no"
   });
   scheduleProductEventFlush(0);
   try{
