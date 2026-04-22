@@ -26,6 +26,7 @@ var jobmejob_worker_default = {
               "GET /me/jobs/description?job_id=<uuid>",
               "POST /me/jobs/ocr-image",
               "GET /me/applications/summary",
+              "GET /me/product-events",
               "GET /me/profile",
               "POST /me/profile",
               "GET /me/plan",
@@ -46,6 +47,7 @@ var jobmejob_worker_default = {
               "GET /me/cv/ocr/status",
               "GET /me/cv/ocr/text",
               "POST /me/ai/cv-reality-check",
+              "POST /me/product-events",
               "POST /fetch-jobs/manual",
               "POST /admin/fetch-jobs"
             ]
@@ -73,6 +75,12 @@ var jobmejob_worker_default = {
       }
       if ((url.pathname === "/me/applications/summary" || url.pathname === "/api/me/applications/summary") && request.method === "GET") {
         return await handleMeApplicationsSummary(request, env);
+      }
+      if (url.pathname === "/me/product-events" && request.method === "GET") {
+        return await handleMeProductEventsList(request, env);
+      }
+      if (url.pathname === "/me/product-events" && request.method === "POST") {
+        return await handleMeProductEventsTrack(request, env);
       }
       if (url.pathname === "/me/jobs/queue" && request.method === "GET") {
         return await handleMeJobsQueue(request, env);
@@ -2072,6 +2080,7 @@ async function handleMeApplicationEventsList(request, env) {
   q.set("limit", String(limit));
   if (offset) q.set("offset", String(offset));
   if (eventType) q.set("event_type", `eq.${eventType}`);
+  else q.set("event_type", `not.in.(${getProductEventTypeList().join(",")})`);
   let rows;
   try {
     rows = await supabaseFetch(env, `/rest/v1/application_events?${q.toString()}`, { method: "GET" });
@@ -2132,6 +2141,127 @@ async function logApplicationEvent(env, { customerId, jobId, eventType, actor = 
   }
 }
 __name(logApplicationEvent, "logApplicationEvent");
+var PRODUCT_EVENT_TYPES = /* @__PURE__ */ new Set([
+  "activation_cv_upload_completed",
+  "activation_cv_reality_check_shown",
+  "activation_tailor_cta_clicked",
+  "activation_cv_chooser_shown",
+  "activation_cv_chooser_option_selected",
+  "activation_cv_tailoring_started",
+  "activation_cv_tailoring_completed"
+]);
+function isProductEventType(value) {
+  return PRODUCT_EVENT_TYPES.has(String(value || "").trim().toLowerCase());
+}
+__name(isProductEventType, "isProductEventType");
+function getProductEventTypeList() {
+  return Array.from(PRODUCT_EVENT_TYPES.values());
+}
+__name(getProductEventTypeList, "getProductEventTypeList");
+async function logProductEvent(env, { customerId, eventType, jobId = null, actor = "customer_ui", meta = null }) {
+  const normalizedType = String(eventType || "").trim().toLowerCase();
+  if (!customerId || !isProductEventType(normalizedType)) return false;
+  const safeMeta = meta && typeof meta === "object" && !Array.isArray(meta) ? meta : meta == null ? null : { value: String(meta || "") };
+  await logApplicationEvent(env, {
+    customerId,
+    jobId: looksLikeUuid(jobId) ? String(jobId) : null,
+    eventType: normalizedType,
+    actor: actor ? String(actor).slice(0, 80) : "customer_ui",
+    meta: safeMeta
+  });
+  return true;
+}
+__name(logProductEvent, "logProductEvent");
+async function handleMeProductEventsTrack(request, env) {
+  const me = await requireMeCustomerId(request, env);
+  if (!me.ok) return me.res;
+  let body = {};
+  try {
+    body = await request.json();
+  } catch {
+    body = {};
+  }
+  const eventType = String(body?.event_type || "").trim().toLowerCase();
+  if (!isProductEventType(eventType)) {
+    return json(request, { ok: false, error: "Unsupported product event type", allowed: getProductEventTypeList() }, 400);
+  }
+  const rawMeta = body?.meta;
+  const meta = rawMeta && typeof rawMeta === "object" && !Array.isArray(rawMeta) ? { ...rawMeta } : {};
+  const occurredAt = String(body?.occurred_at || "").trim();
+  if (occurredAt) meta.occurred_at_client = occurredAt;
+  await logProductEvent(env, {
+    customerId: me.customerId,
+    eventType,
+    jobId: body?.job_id || null,
+    actor: body?.actor ? String(body.actor).slice(0, 80) : "customer_ui",
+    meta
+  });
+  return json(request, {
+    ok: true,
+    me: true,
+    customer_id: me.customerId,
+    event_type: eventType
+  }, 200);
+}
+__name(handleMeProductEventsTrack, "handleMeProductEventsTrack");
+async function handleMeProductEventsList(request, env) {
+  const me = await requireMeCustomerId(request, env);
+  if (!me.ok) return me.res;
+  const url = new URL(request.url);
+  const limit = Math.min(Math.max(parseInt(url.searchParams.get("limit") || "30", 10) || 30, 1), 100);
+  const offset = Math.max(parseInt(url.searchParams.get("offset") || "0", 10) || 0, 0);
+  const eventTypeRaw = String(url.searchParams.get("event_type") || "").trim().toLowerCase();
+  const eventTypes = getProductEventTypeList();
+  const q = new URLSearchParams();
+  q.set("select", "id,event_type,actor,meta,created_at,job_id");
+  q.set("customer_id", `eq.${me.customerId}`);
+  q.set("order", "created_at.desc");
+  q.set("limit", String(limit));
+  if (offset) q.set("offset", String(offset));
+  if (isProductEventType(eventTypeRaw)) q.set("event_type", `eq.${eventTypeRaw}`);
+  else q.set("event_type", `in.(${eventTypes.join(",")})`);
+  let rows;
+  try {
+    rows = await supabaseFetch(env, `/rest/v1/application_events?${q.toString()}`, { method: "GET" });
+  } catch (e) {
+    return json(request, { error: "Failed to load product events", details: String(e) }, 502);
+  }
+  const events = Array.isArray(rows) ? rows : [];
+  const jobIds = Array.from(new Set(events.map((r) => r.job_id).filter(Boolean)));
+  let jobMap = /* @__PURE__ */ new Map();
+  if (jobIds.length) {
+    const qJobs = new URLSearchParams();
+    qJobs.set("select", "id,title,company_name,country,city,region,apply_url,posted_at");
+    qJobs.set("id", `in.(${jobIds.join(",")})`);
+    qJobs.set("limit", String(jobIds.length));
+    try {
+      const jobs = await supabaseFetch(env, `/rest/v1/jobs_normalized?${qJobs.toString()}`, { method: "GET" });
+      if (Array.isArray(jobs)) jobMap = new Map(jobs.map((j) => [j.id, j]));
+    } catch (e) {
+      jobMap = /* @__PURE__ */ new Map();
+    }
+  }
+  const data = events.map((ev) => ({
+    id: ev.id,
+    event_type: ev.event_type,
+    actor: ev.actor || null,
+    meta: ev.meta ?? null,
+    created_at: ev.created_at || null,
+    job_id: ev.job_id || null,
+    job: ev.job_id ? jobMap.get(ev.job_id) || null : null
+  }));
+  return json(request, {
+    ok: true,
+    me: true,
+    customer_id: me.customerId,
+    limit,
+    offset,
+    event_type: isProductEventType(eventTypeRaw) ? eventTypeRaw : null,
+    count: data.length,
+    data
+  }, 200);
+}
+__name(handleMeProductEventsList, "handleMeProductEventsList");
 async function handleMeApplicationsPrioritize(request, env) {
   const me = await requireMeCustomerId(request, env);
   if (!me.ok) return me.res;
@@ -3515,6 +3645,7 @@ async function handleMeAiCvRealityCheck(request, env) {
   const lines = cvText.split(/\r?\n/).map((line) => String(line || "").trim()).filter(Boolean);
   const bullets = collectCvBulletishLines(lines);
   const metricBullets = bullets.filter((line) => /\d/.test(line));
+  const nonMetricBullets = bullets.filter((line) => !/\d/.test(line));
   const headers = lines.filter((line) => looksLikeCvSectionHeader(line));
   const longLines = lines.filter((line) => line.length > 140);
   const fallback = buildCvRealityCheckFallback(cvText);
@@ -3547,9 +3678,11 @@ async function handleMeAiCvRealityCheck(request, env) {
     "- Tone must be direct, slightly critical, credible, and never insulting.",
     "- Do not praise the CV.",
     "- Each finding must identify a real weakness visible in the CV text.",
-    "- Each finding.example must include a short pattern, phrase, or simplified snippet from the CV (max 140 chars).",
+    "- Each finding.example must include a short quoted pattern, phrase, or simplified snippet from the CV (max 140 chars).",
     "- Each finding.impact must explain why this hurts ATS screening or recruiter response.",
-    "- Prioritize issues like missing job-specific keywords, weak impact, repetitive wording, vague profile, and ATS readability.",
+    "- Prioritize issues like missing job-specific keywords, weak measurable impact, repetitive wording, vague profile, and ATS readability.",
+    "- Use concise titles such as: Missing job-specific keywords, Weak measurable impact, Vague profile summary, Responsibilities without outcomes, Formatting reduces ATS readability.",
+    "- At least 2 findings must quote a visible snippet from the CV in double quotes.",
     "- Do not invent certifications, employers, achievements, or tools that are not visible in the CV text.",
     "",
     "Useful signals from the CV:",
@@ -3557,8 +3690,12 @@ async function handleMeAiCvRealityCheck(request, env) {
       line_count: lines.length,
       bullet_like_lines: bullets.length,
       metric_bullets: metricBullets.length,
+      non_metric_bullets: nonMetricBullets.length,
       section_headers: headers.length,
       dense_lines_over_140_chars: longLines.length,
+      first_broad_snippet: fallback.findings?.[0]?.example || "",
+      first_impact_snippet: fallback.findings?.[1]?.example || "",
+      first_readability_snippet: fallback.findings?.[2]?.example || "",
       cv_filename: String(prof?.cv_filename || "").trim(),
       cv_mime: String(prof?.cv_mime || "").trim(),
       cv_ocr_status: String(prof?.cv_ocr_status || "").trim()
@@ -4155,6 +4292,20 @@ async function handleMeCvUpload(request, env) {
     body: [payload],
     headers: { Prefer: "resolution=merge-duplicates,return=minimal" }
   });
+  try {
+    await logProductEvent(env, {
+      customerId: me.customerId,
+      eventType: "activation_cv_upload_completed",
+      actor: "customer_api",
+      meta: {
+        cv_filename: originalName,
+        cv_mime: mime,
+        cv_size: size,
+        is_pdf: mime === "application/pdf" || originalName.toLowerCase().endsWith(".pdf")
+      }
+    });
+  } catch {
+  }
   return json(request, { ok: true, me: true, customer_id: me.customerId, ...payload }, 200);
 }
 __name(handleMeCvUpload, "handleMeCvUpload");
@@ -4793,6 +4944,8 @@ async function handleMeCvTailor(request, env) {
     else if (s === "2") strength = "strong";
     else if (["light", "balanced", "strong"].includes(s)) strength = s;
   }
+  const activationSource = String(body.activation_source || body.source || "queue").trim().toLowerCase() === "paste" ? "paste" : "queue";
+  const activationEntrySource = String(body.activation_entry_source || "").trim().slice(0, 80) || null;
   if (!looksLikeUuid(jobId)) {
     return jsonResponse({ ok: false, error: "Invalid job_id" }, 400);
   }
@@ -4930,6 +5083,22 @@ async function handleMeCvTailor(request, env) {
     baseHash,
     modelPrefForHash || ""
   ].join("|"));
+  try {
+    await logProductEvent(env, {
+      customerId: me.customerId,
+      eventType: "activation_cv_tailoring_started",
+      jobId,
+      actor: "customer_api",
+      meta: {
+        source: activationSource,
+        entry_source: activationEntrySource,
+        template,
+        strength,
+        desc_cache_status: descCacheStatus
+      }
+    });
+  } catch {
+  }
   const cacheRows = await supabaseFetch(
     env,
     `/rest/v1/tailored_cvs?select=id,status,input_hash,output_hash,language,model,prompt_version,template,strength,cv_text,cv_json,ats_keywords_used,ats_keywords_missing,confidence,warnings,error,updated_at,created_at&customer_id=eq.${me.customerId}&job_id=eq.${jobId}&input_hash=eq.${inputHash}&order=updated_at.desc&limit=1`
@@ -4945,6 +5114,26 @@ async function handleMeCvTailor(request, env) {
       if (wantModel && cachedModel && cachedModel !== wantModel) {
       } else {
         const cachedCvDoc = cached?.cv_json && typeof cached.cv_json === "object" && cached.cv_json.cv_doc && typeof cached.cv_json.cv_doc === "object" ? cached.cv_json.cv_doc : null;
+        try {
+          await logProductEvent(env, {
+            customerId: me.customerId,
+            eventType: "activation_cv_tailoring_completed",
+            jobId,
+            actor: "customer_api",
+            meta: {
+              source: activationSource,
+              entry_source: activationEntrySource,
+              template: cached.template || template,
+              strength: cached.strength || strength,
+              cached: true,
+              model: cached.model || null,
+              desc_cache_status: descCacheStatus,
+              cv_clean_status: cvCleanStatus,
+              cv_structured_status: cvStructuredStatus
+            }
+          });
+        } catch {
+        }
         return jsonResponse({
           ok: true,
           cached: true,
@@ -5124,6 +5313,26 @@ async function handleMeCvTailor(request, env) {
         { method: "PATCH", body: rowPatch }
       );
     }
+    try {
+      await logProductEvent(env, {
+        customerId: me.customerId,
+        eventType: "activation_cv_tailoring_completed",
+        jobId,
+        actor: "customer_api",
+        meta: {
+          source: activationSource,
+          entry_source: activationEntrySource,
+          template,
+          strength,
+          cached: false,
+          model: usedModel,
+          desc_cache_status: descCacheStatus,
+          cv_clean_status: cvCleanStatus,
+          cv_structured_status: cvStructuredStatus
+        }
+      });
+    } catch {
+    }
     return jsonResponse({
       ok: true,
       cached: false,
@@ -5195,7 +5404,9 @@ async function handleMeCvTailorFromText(request, env) {
       job_id: importedJob.id,
       template: body.template,
       strength: body.strength,
-      force: Boolean(body.force)
+      force: Boolean(body.force),
+      activation_source: "paste",
+      activation_entry_source: body.activation_entry_source || body.source || "manual_paste"
     };
     const forwarded = new Request(request.url, {
       method: "POST",

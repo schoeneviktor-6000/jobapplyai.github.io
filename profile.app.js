@@ -25,6 +25,8 @@ const BILLING_PORTAL_LINK = String(LINKS.CV_STUDIO_PORTAL_URL || "").trim();
 const PLAN_PAGE_URL = "./plan.html#cv-pricing";
 const CV_STUDIO_CHOOSER_URL = "/cv?entry=chooser";
 const CV_REALITY_CHECK_CACHE_KEY = "jm_cv_reality_check_v1";
+const PRODUCT_EVENT_QUEUE_KEY = "jm_product_event_queue_v1";
+const PRODUCT_EVENT_QUEUE_LIMIT = 40;
 const ENABLE_MATCHED_JOBS_ASSISTS = false;
 const CV_PLAN_META = Object.freeze({
   free: { label:"Free", quota:"5 free CVs" },
@@ -55,6 +57,9 @@ let shouldFocusPostUploadCard=false;
 let realityCheckResult=null;
 let realityCheckKey="";
 let realityCheckInFlight=false;
+let realityCheckShownTrackKey="";
+let productEventFlushTimer=0;
+let productEventFlushInFlight=false;
 
 let backendAiTitles=[];
 let aiAutoStarted=false;
@@ -343,6 +348,82 @@ async function apiPostForm(path,formData){
   try{json=JSON.parse(text);}catch{json={raw:text};}
   if(!res.ok) throw new Error(toErrorMessage(path, res, json, text));
   return json;
+}
+
+function readProductEventQueue(){
+  try{
+    const raw=sessionStorage.getItem(PRODUCT_EVENT_QUEUE_KEY);
+    if(!raw) return [];
+    const parsed=JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  }catch(_){
+    return [];
+  }
+}
+
+function writeProductEventQueue(items){
+  try{
+    const clean=Array.isArray(items) ? items.slice(-PRODUCT_EVENT_QUEUE_LIMIT) : [];
+    sessionStorage.setItem(PRODUCT_EVENT_QUEUE_KEY, JSON.stringify(clean));
+  }catch(_){}
+}
+
+function queueProductEvent(eventType, meta){
+  const type=String(eventType||"").trim().toLowerCase();
+  if(!type) return;
+  const queue=readProductEventQueue();
+  queue.push({
+    event_type:type,
+    occurred_at:new Date().toISOString(),
+    meta:{
+      ...(meta && typeof meta === "object" ? meta : {}),
+      page:"profile",
+      path:String(window.location.pathname || "") + String(window.location.search || "")
+    }
+  });
+  writeProductEventQueue(queue);
+  scheduleProductEventFlush(120);
+}
+
+async function flushProductEventQueue(){
+  if(productEventFlushInFlight) return;
+  if(!session || !session.access_token) return;
+  const queue=readProductEventQueue();
+  if(!queue.length) return;
+
+  productEventFlushInFlight=true;
+  try{
+    const remaining=[...queue];
+    while(remaining.length){
+      const item=remaining[0];
+      const res=await fetchWithTimeout(API_BASE+"/me/product-events",{
+        method:"POST",
+        headers:{
+          Authorization:"Bearer "+session.access_token,
+          "content-type":"application/json"
+        },
+        body:JSON.stringify({
+          event_type:item.event_type,
+          occurred_at:item.occurred_at,
+          meta:item.meta || {}
+        })
+      }, 5000);
+      if(!res.ok) break;
+      remaining.shift();
+      writeProductEventQueue(remaining);
+    }
+  }catch(_){
+  }finally{
+    productEventFlushInFlight=false;
+  }
+}
+
+function scheduleProductEventFlush(delayMs=0){
+  if(productEventFlushTimer) clearTimeout(productEventFlushTimer);
+  productEventFlushTimer=setTimeout(()=>{
+    productEventFlushTimer=0;
+    flushProductEventQueue().catch(()=>{});
+  }, Math.max(0, Number(delayMs)||0));
 }
 
 async function ensureCustomer(email, accessToken){
@@ -1270,6 +1351,13 @@ function wireCvDropzone(){
   });
 }
 
+function updateBrowseCvCta(hasCv){
+  const btn=$("browseCvBtn");
+  if(!btn) return;
+  btn.classList.toggle("primary", !hasCv);
+  btn.textContent = hasCv ? "Replace CV" : "Choose file";
+}
+
 async function maybeAutoGenerateAiTitles(reason){
   if(!ENABLE_MATCHED_JOBS_ASSISTS) return;
   try{
@@ -1820,22 +1908,67 @@ function renderRealityCheckFindings(findings){
   )).join("");
 }
 
+function renderRealityCheckSkeleton(){
+  const host=$("postUploadFindings");
+  if(!host) return;
+  host.innerHTML=
+    '<div class="realityLoadingCallout">'
+      + '<div class="realityLoadingTitle">Analyzing your CV...</div>'
+      + '<div class="realityLoadingText">We are checking ATS readiness and key weaknesses. The first findings will appear here automatically.</div>'
+    + '</div>'
+    + '<div class="realityFindingsLoading" aria-hidden="true">'
+      + Array.from({ length:3 }).map(() => (
+        '<div class="realityFinding realityFindingSkeleton">'
+          + '<div class="realitySkeletonLine title"></div>'
+          + '<div class="realitySkeletonLine long"></div>'
+          + '<div class="realitySkeletonLine mid"></div>'
+          + '<div class="realitySkeletonLine short"></div>'
+        + '</div>'
+      )).join("")
+    + '</div>';
+}
+
+function maybeTrackRealityCheckShown(cv){
+  if(!cv || !cv.cv_path) return;
+  const key=cvMetaKey(cv);
+  if(!key || realityCheckShownTrackKey === key) return;
+  realityCheckShownTrackKey=key;
+  queueProductEvent("activation_cv_reality_check_shown", {
+    cv_status:String(cv?.cv_ocr_status || "").trim().toLowerCase() || "unknown",
+    has_ready_text:storedCvHasReadyText(cv) ? "yes" : "no"
+  });
+}
+
 function renderRealityCheckPending(cv){
   const card=$("postUploadCard");
   if(!card) return;
   const ready=storedCvHasReadyText(cv);
   const ocrStatus=String(cv?.cv_ocr_status || "").trim().toLowerCase();
+  const fallback=buildRealityCheckFallback(cv);
   card.style.display="";
-  setBadge("postUploadBadge", ready ? "warn" : "warn", ready ? "Analyzing" : (ocrStatus === "failed" ? "Needs OCR" : "Preparing"));
-  setText("postUploadTitle", ready ? "Your current CV should not be sent yet." : "Your CV was uploaded. The reality check is still loading.");
-  setText("postUploadBody", ready
-    ? "We are scoring the baseline first. This is the version recruiters and ATS systems would see before you tailor it."
-    : "We need readable CV text before the full AI reality check can load. Either way, do not apply with this version as-is.");
+  setText("postUploadTitle", "Analyzing your CV...");
+  setText("postUploadBody", "We are checking ATS readiness and key weaknesses. You do not need to do anything. The first findings will appear automatically.");
   const scores=$("postUploadScores");
-  if(scores) scores.style.display="none";
-  renderRealityCheckFindings([]);
-  setText("postUploadBridge", "These issues significantly reduce your chances if you apply as-is. The fastest way to fix this is to tailor your CV to a specific job.");
-  setText("postUploadSecondary", "One next step: move into CV Studio and tailor this CV to a specific job.");
+  if(!ready){
+    setBadge("postUploadBadge", "warn", ocrStatus === "failed" ? "Needs text" : "Analyzing");
+    if(scores) scores.style.display="none";
+    renderRealityCheckSkeleton();
+    setText("postUploadBridge", "These issues significantly reduce your chances if you apply as-is. The fastest way to fix this is to tailor your CV to a specific job.");
+    setText("postUploadSecondary", ocrStatus === "failed"
+      ? "We still need readable CV text before the full reality check can load. Upload a PDF or retry OCR."
+      : "We are extracting readable text and building the first findings now.");
+    return;
+  }
+
+  setBadge("postUploadBadge", "warn", "Analyzing");
+  if(scores) scores.style.display="";
+  setText("postUploadScoreValue", String(fallback.ats_readiness_score || 44) + "/100");
+  setText("postUploadReadabilityValue", String(fallback.machine_readability || "Low"));
+  setText("postUploadScoreMeta", "Preliminary baseline while the full AI review finishes.");
+  setText("postUploadReadabilityMeta", "We already have enough CV text to estimate parsing quality. The detailed review is still loading.");
+  renderRealityCheckFindings(fallback.findings);
+  setText("postUploadBridge", "These first issues already reduce your chances if you apply as-is. The fastest way to fix this is to tailor your CV to a specific job.");
+  setText("postUploadSecondary", "The full AI review is still loading, but the next step is already clear: tailor this CV to one real job.");
 }
 
 function renderRealityCheckResult(result){
@@ -1912,10 +2045,12 @@ if(!cv || !cv.cv_path){
   realityCheckResult=null;
   realityCheckKey="";
   realityCheckInFlight=false;
+  realityCheckShownTrackKey="";
   return;
 }
 
 card.style.display="";
+maybeTrackRealityCheckShown(cv);
 renderRealityCheckPending(cv);
 loadRealityCheckForCv(cv).catch(()=>{});
 }
@@ -1971,6 +2106,7 @@ async function loadCvStatusAndUpdateUx(){
 
     if(cv && cv.cv_path){
       lastCvMeta=cvMetaFromCv(cv);
+      updateBrowseCvCta(true);
 
       const fileLabel = cv.cv_filename || cv.cv_path;
       const fileLower = String(fileLabel||"").toLowerCase();
@@ -2045,6 +2181,7 @@ async function loadCvStatusAndUpdateUx(){
 
     // No CV on backend
     lastCvMeta=null;
+    updateBrowseCvCta(false);
     syncPostUploadCard(null);
     stopOcrPollingAndCleanup();
     showRetryOcr(false);
@@ -2057,6 +2194,7 @@ async function loadCvStatusAndUpdateUx(){
     markStep1DoneVisual(false);
   }catch(e){
     lastCvMeta=null;
+    updateBrowseCvCta(false);
     syncPostUploadCard(null);
     stopOcrPollingAndCleanup();
     showRetryOcr(false);
@@ -2605,6 +2743,11 @@ async function openCvStudioFromProfile(btn){
   }
 
   const label = btn ? String(btn.textContent || "").trim() : "";
+  queueProductEvent("activation_tailor_cta_clicked", {
+    source:btn && btn.id ? String(btn.id) : "profile_cta",
+    has_ready_text:(lastCvMeta && storedCvHasReadyText(lastCvMeta)) ? "yes" : "no"
+  });
+  scheduleProductEventFlush(0);
   try{
     if(btn){
       btn.disabled = true;
@@ -2829,6 +2972,7 @@ return;
 
 resetLocalStateForNewUser(email);
 try{sessionStorage.setItem("sb_access_token",session.access_token);}catch{}
+scheduleProductEventFlush(0);
 setText("subLine","Signed in as "+email+".");
 rememberGoogleProviderTokens();
 refreshGmailVerifyUi();

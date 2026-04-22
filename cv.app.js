@@ -53,6 +53,8 @@
     const CV_FREE_LIMIT_DEFAULT = 5;
     const CV_ACCESS_CACHE_KEY = "jm_cv_access_cache_v1";
     const CV_UPSELL_AUTO_KEY = "jm_cv_upsell_auto_v1";
+    const PRODUCT_EVENT_QUEUE_KEY = "jm_product_event_queue_v1";
+    const PRODUCT_EVENT_QUEUE_LIMIT = 40;
     const CV_FONT_KEY = "jmj_cv_font_v1";
     const CV_SECTION_PREFS_KEY = "jmj_cv_section_prefs_v1";
     const CV_CUSTOM_SECTION_PREFIX = "custom:";
@@ -124,8 +126,11 @@ let setupAutoCollapsedOnce = false;
 // UI: generation steps modal (auto-open while generating)
 let genModalAuto = false;
 let genStepsState = "idle";
-let previewProgressTimer = 0;
-let previewProgressStartedAt = 0;
+    let previewProgressTimer = 0;
+    let previewProgressStartedAt = 0;
+    let chooserShownTracked = false;
+    let productEventFlushTimer = 0;
+    let productEventFlushInFlight = false;
 
 
     let lastCvText = "";
@@ -1602,6 +1607,17 @@ let gateActive = false;
 
 let gateView = "choose"; // "choose" | "form"
 
+function maybeTrackChooserShown(){
+  if(chooserShownTracked) return;
+  if(!gateActive || gateView !== "choose") return;
+  chooserShownTracked = true;
+  queueProductEvent("activation_cv_chooser_shown", {
+    entry: String(qs("entry") || "").trim() || null,
+    job_source: String(jobSource || "queue"),
+    has_pending_extension_import: pendingExtensionImport ? "yes" : "no"
+  });
+}
+
 function setGateView(view){
   gateView = (view === "form") ? "form" : "choose";
 
@@ -1645,6 +1661,7 @@ function setGateView(view){
       ? "Importiere direkt von einer Jobseite fuer den schnellsten Flow oder fuege sie manuell ein."
       : "Import from a job page for the fastest flow, or paste it manually.";
     try{ renderGateStepper(1); }catch(_){ }
+    maybeTrackChooserShown();
     return;
   }
 
@@ -2821,6 +2838,81 @@ function updatePasteQuality(){
         throw err;
       }
       return json;
+    }
+
+    function readProductEventQueue(){
+      try{
+        const raw = sessionStorage.getItem(PRODUCT_EVENT_QUEUE_KEY);
+        if(!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+      }catch(_){
+        return [];
+      }
+    }
+
+    function writeProductEventQueue(items){
+      try{
+        const clean = Array.isArray(items) ? items.slice(-PRODUCT_EVENT_QUEUE_LIMIT) : [];
+        sessionStorage.setItem(PRODUCT_EVENT_QUEUE_KEY, JSON.stringify(clean));
+      }catch(_){}
+    }
+
+    function queueProductEvent(eventType, meta){
+      const type = String(eventType || "").trim().toLowerCase();
+      if(!type) return;
+      const queue = readProductEventQueue();
+      queue.push({
+        event_type: type,
+        occurred_at: new Date().toISOString(),
+        meta: {
+          ...(meta && typeof meta === "object" ? meta : {}),
+          page: "cv",
+          path: String(window.location.pathname || "") + String(window.location.search || "")
+        }
+      });
+      writeProductEventQueue(queue);
+      scheduleProductEventFlush(120);
+    }
+
+    async function flushProductEventQueue(){
+      if(productEventFlushInFlight) return;
+      const currentSession = await getSessionFresh(false);
+      if(!currentSession || !currentSession.access_token) return;
+      const queue = readProductEventQueue();
+      if(!queue.length) return;
+
+      productEventFlushInFlight = true;
+      try{
+        const remaining = [...queue];
+        while(remaining.length){
+          const item = remaining[0];
+          const res = await authFetch("/me/product-events", {
+            method: "POST",
+            headers: { "content-type":"application/json" },
+            body: JSON.stringify({
+              event_type: item.event_type,
+              occurred_at: item.occurred_at,
+              meta: item.meta || {}
+            }),
+            timeoutMs: 5000
+          });
+          if(!res.ok) break;
+          remaining.shift();
+          writeProductEventQueue(remaining);
+        }
+      }catch(_){
+      }finally{
+        productEventFlushInFlight = false;
+      }
+    }
+
+    function scheduleProductEventFlush(delayMs = 0){
+      if(productEventFlushTimer) clearTimeout(productEventFlushTimer);
+      productEventFlushTimer = setTimeout(() => {
+        productEventFlushTimer = 0;
+        flushProductEventQueue().catch(()=>{});
+      }, Math.max(0, Number(delayMs) || 0));
     }
 
 
@@ -6473,7 +6565,8 @@ ${bodyHtml}
         company_name,
         apply_url,
         language_hint,
-        job_description
+        job_description,
+        activation_entry_source: pendingExtensionImport ? String(pendingExtensionImport.source || pendingExtensionImport.source_host || "chrome_extension") : "manual_paste"
       };
     }
 
@@ -9519,6 +9612,7 @@ ${bodyHtml}
       }
 
       setBadge("authBadge","good", uiLang==="de" ? "Angemeldet" : "Signed in");
+      scheduleProductEventFlush(0);
 
       // Ensure customer exists (best effort)
       try{
@@ -9841,7 +9935,19 @@ $("startStrengthList")?.addEventListener("click", async (e) => {
 
 
     // Step 1 chooser cards
+    $("gatePickExtension")?.addEventListener("click", () => {
+      queueProductEvent("activation_cv_chooser_option_selected", {
+        option: "extension",
+        chooser_source: "card"
+      });
+      scheduleProductEventFlush(0);
+    });
+
     $("gatePickPaste")?.addEventListener("click", () => {
+      queueProductEvent("activation_cv_chooser_option_selected", {
+        option: "manual",
+        chooser_source: "card"
+      });
       try{ setJobSource("paste"); }catch(_){}
       setGateView("form");
       setTimeout(() => { try{ $("pasteDesc")?.focus(); }catch(_){ } }, 60);
