@@ -3,9 +3,8 @@
 
   const CHECK_ICON = "\u2713";
 
-  // Edit keyword labels, score deltas, and overlay positions here.
-  // Root position values are tied to the screenshot dimensions.
-  // Slot positions are percentages relative to the clipped CV overlay root.
+  // Edit keyword labels, score deltas, and highlight block positions here.
+  // Block positions are percentages relative to the clipped CV overlay root.
   const CV_STUDIO_PREVIEW_DEMO = Object.freeze({
     screenshotWidth: 1800,
     cvOverlayRoot: Object.freeze({
@@ -29,23 +28,18 @@
           width: "17.5%",
           height: "4.2%"
         }),
-        cvSlotPosition: Object.freeze({
-          top: "41.20%",
-          left: "5.70%",
-          width: "83.10%",
-          height: "7.25%",
-          tone: "selected"
+        cvOverlayPosition: Object.freeze({
+          top: "41.05%",
+          left: "5.6%",
+          width: "83.4%",
+          height: "7.45%"
         }),
-        textStyle: Object.freeze({
-          fontSize: "12.7px",
-          lineHeight: "17.2px",
-          textWidth: "68%",
-          paddingTop: "5.2px",
-          paddingRight: "18px",
-          paddingBottom: "4.2px",
-          paddingLeft: "9.5px",
-          letterSpacing: "-0.013em",
-          fontWeight: "565"
+        insertStyle: Object.freeze({
+          fontSize: "12.35px",
+          lineHeight: "16.9px",
+          paddingX: "13px",
+          paddingY: "6px",
+          fontWeight: "560"
         })
       }),
       Object.freeze({
@@ -60,22 +54,17 @@
           width: "12.4%",
           height: "4.2%"
         }),
-        cvSlotPosition: Object.freeze({
-          top: "75.62%",
-          left: "5.62%",
-          width: "84.20%",
-          height: "7.75%",
-          tone: "paper"
+        cvOverlayPosition: Object.freeze({
+          top: "75.4%",
+          left: "5.45%",
+          width: "83.8%",
+          height: "7.6%"
         }),
-        textStyle: Object.freeze({
-          fontSize: "12.3px",
-          lineHeight: "16.9px",
-          textWidth: "67%",
-          paddingTop: "4.2px",
-          paddingRight: "14px",
-          paddingBottom: "3.6px",
-          paddingLeft: "9px",
-          letterSpacing: "-0.013em",
+        insertStyle: Object.freeze({
+          fontSize: "12.2px",
+          lineHeight: "16.7px",
+          paddingX: "12px",
+          paddingY: "5px",
           fontWeight: "555"
         })
       }),
@@ -91,22 +80,17 @@
           width: "11.3%",
           height: "4.2%"
         }),
-        cvSlotPosition: Object.freeze({
-          top: "89.96%",
-          left: "5.62%",
-          width: "84.00%",
-          height: "7.70%",
-          tone: "paper"
+        cvOverlayPosition: Object.freeze({
+          top: "89.7%",
+          left: "5.45%",
+          width: "83.4%",
+          height: "7.35%"
         }),
-        textStyle: Object.freeze({
-          fontSize: "12.15px",
-          lineHeight: "16.7px",
-          textWidth: "62%",
-          paddingTop: "4.0px",
-          paddingRight: "12px",
-          paddingBottom: "3.4px",
-          paddingLeft: "9px",
-          letterSpacing: "-0.013em",
+        insertStyle: Object.freeze({
+          fontSize: "12.05px",
+          lineHeight: "16.5px",
+          paddingX: "12px",
+          paddingY: "5px",
           fontWeight: "555"
         })
       })
@@ -152,17 +136,14 @@
     if (box.height) element.style.height = box.height;
   }
 
-  function setTextStyles(element, styles) {
+  function setInsertStyles(element, styles) {
     if (!element || !styles) return;
-    if (styles.fontSize) element.style.setProperty("--demo-font-size", styles.fontSize);
-    if (styles.lineHeight) element.style.setProperty("--demo-line-height", styles.lineHeight);
-    if (styles.textWidth) element.style.setProperty("--demo-text-width", styles.textWidth);
-    if (styles.paddingTop) element.style.setProperty("--demo-padding-top", styles.paddingTop);
-    if (styles.paddingRight) element.style.setProperty("--demo-padding-right", styles.paddingRight);
-    if (styles.paddingBottom) element.style.setProperty("--demo-padding-bottom", styles.paddingBottom);
-    if (styles.paddingLeft) element.style.setProperty("--demo-padding-left", styles.paddingLeft);
-    if (styles.letterSpacing) element.style.setProperty("--demo-letter-spacing", styles.letterSpacing);
-    if (styles.fontWeight) element.style.setProperty("--demo-font-weight", styles.fontWeight);
+    if (styles.fontSize) element.style.setProperty("--demo-insert-font-size", styles.fontSize);
+    if (styles.lineHeight) element.style.setProperty("--demo-insert-line-height", styles.lineHeight);
+    if (styles.paddingX) element.style.setProperty("--demo-insert-padding-x", styles.paddingX);
+    if (styles.paddingY) element.style.setProperty("--demo-insert-padding-y", styles.paddingY);
+    if (styles.fontWeight) element.style.setProperty("--demo-insert-font-weight", styles.fontWeight);
+    if (styles.letterSpacing) element.style.setProperty("--demo-insert-letter-spacing", styles.letterSpacing);
   }
 
   function highlightInsertedText(text, highlightText) {
@@ -171,7 +152,14 @@
     if (!needle) return safeText;
     const escapedNeedle = needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const regex = new RegExp(escapedNeedle, "i");
-    return safeText.replace(regex, (match) => `<mark>${match}</mark>`);
+    return safeText.replace(regex, (match) => `<strong>${match}</strong>`);
+  }
+
+  function flashElement(element) {
+    if (!element) return;
+    element.classList.remove("is-flash");
+    void element.offsetWidth;
+    element.classList.add("is-flash");
   }
 
   function buildDesktopChip(keyword) {
@@ -225,15 +213,11 @@
 
   function buildInsert(keyword) {
     const block = document.createElement("div");
-    block.className = "demo-bullet-slot";
+    block.className = "demo-insert";
     block.setAttribute("data-demo-insert", keyword.id);
-    block.setAttribute("data-tone", keyword.cvSlotPosition.tone || "paper");
-    setBoxStyles(block, keyword.cvSlotPosition);
-    setTextStyles(block, keyword.textStyle);
-    const copy = document.createElement("div");
-    copy.className = "demo-bullet-copy";
-    copy.innerHTML = highlightInsertedText(keyword.insertedText, keyword.highlightText);
-    block.appendChild(copy);
+    setBoxStyles(block, keyword.cvOverlayPosition);
+    setInsertStyles(block, keyword.insertStyle);
+    block.innerHTML = highlightInsertedText(keyword.insertedText, keyword.highlightText);
     return block;
   }
 
@@ -254,7 +238,7 @@
     const scoreDelta = root.querySelector("[data-demo-score-delta]");
     const scoreMeter = root.querySelector("[data-demo-score-meter]");
 
-    if (!frame || !chipOverlay || !cvOverlayRoot || !cvOverlay || !mobileRail || !resetButton || !scoreBadge || !scoreValue || !scoreDelta || !scoreMeter) {
+    if (!frame || !screenshot || !chipOverlay || !cvOverlayRoot || !cvOverlay || !mobileRail || !resetButton || !scoreBadge || !scoreValue || !scoreDelta || !scoreMeter) {
       return;
     }
 
@@ -269,8 +253,6 @@
       score: CV_STUDIO_PREVIEW_DEMO.initialScore,
       animatedScore: CV_STUDIO_PREVIEW_DEMO.initialScore,
       addedKeywordIds: new Set(),
-      pendingKeywordIds: new Set(),
-      activationTimers: new Map(),
       scoreFrame: 0
     };
 
@@ -285,10 +267,9 @@
     }
 
     function updateOverlayScale() {
-      const width = screenshot && screenshot.clientWidth ? screenshot.clientWidth : frame.clientWidth;
+      const width = screenshot.clientWidth || frame.clientWidth;
       const rawScale = width > 0 ? width / CV_STUDIO_PREVIEW_DEMO.screenshotWidth : 1;
-      const scale = clamp(rawScale, 0.28, 1);
-      cvOverlayRoot.style.setProperty("--demo-scale", String(scale));
+      cvOverlayRoot.style.setProperty("--demo-scale", String(clamp(rawScale, 0.28, 1)));
     }
 
     function setAnimatedScore(value) {
@@ -339,7 +320,6 @@
         const desktopButton = desktopButtons.get(keyword.id);
         const mobileButton = mobileButtons.get(keyword.id);
         const insert = inserts.get(keyword.id);
-        const isPending = state.pendingKeywordIds.has(keyword.id);
 
         if (desktopButton) {
           desktopButton.classList.toggle("is-added", isAdded);
@@ -364,64 +344,38 @@
         }
 
         if (insert) {
-          insert.classList.toggle("is-activating", isPending);
-          insert.classList.toggle("is-visible", isAdded && !isPending);
+          insert.classList.toggle("is-visible", isAdded);
         }
       }
     }
 
     function addKeyword(keywordId) {
       const keyword = keywordById.get(keywordId);
-      if (!keyword) return;
-
-      if (state.addedKeywordIds.has(keywordId)) {
-        announce(
-          translate(
-            "pages.index.preview.announcements.alreadyAdded",
-            { keyword: keyword.label, score: state.score },
-            `${keyword.label} is already added. ATS match ${state.score}%.`
-          )
-        );
-        return;
-      }
+      if (!keyword || state.addedKeywordIds.has(keywordId)) return;
 
       state.addedKeywordIds.add(keywordId);
-      state.pendingKeywordIds.add(keywordId);
+      state.score = Math.min(
+        CV_STUDIO_PREVIEW_DEMO.maxScore,
+        state.score + Number(keyword.scoreDelta || 0)
+      );
 
       updateUi();
+      animateScore(state.score);
+      flashElement(inserts.get(keywordId));
 
-      const activationTimer = window.setTimeout(() => {
-        state.pendingKeywordIds.delete(keywordId);
-        state.activationTimers.delete(keywordId);
-        state.score = Math.min(
-          CV_STUDIO_PREVIEW_DEMO.maxScore,
-          state.score + Number(keyword.scoreDelta || 0)
-        );
-
-        updateUi();
-        animateScore(state.score);
-
-        announce(
-          translate(
-            "pages.index.preview.announcements.added",
-            { keyword: keyword.label, score: state.score },
-            `${keyword.label} added. ATS match ${state.score}%.`
-          )
-        );
-      }, 300);
-
-      state.activationTimers.set(keywordId, activationTimer);
+      announce(
+        translate(
+          "pages.index.preview.announcements.added",
+          { keyword: keyword.label, score: state.score },
+          `${keyword.label} added. ATS match ${state.score}%.`
+        )
+      );
     }
 
     function resetDemo() {
       if (state.scoreFrame) cancelAnimationFrame(state.scoreFrame);
       state.scoreFrame = 0;
-      for (const activationTimer of state.activationTimers.values()) {
-        try { window.clearTimeout(activationTimer); } catch (_) {}
-      }
-      state.activationTimers.clear();
       state.addedKeywordIds.clear();
-      state.pendingKeywordIds.clear();
       state.score = CV_STUDIO_PREVIEW_DEMO.initialScore;
       updateUi();
       animateScore(state.score);
@@ -462,7 +416,7 @@
     if (typeof ResizeObserver === "function") {
       resizeObserver = new ResizeObserver(updateOverlayScale);
       resizeObserver.observe(frame);
-      if (screenshot) resizeObserver.observe(screenshot);
+      resizeObserver.observe(screenshot);
     } else {
       window.addEventListener("resize", updateOverlayScale, { passive: true });
     }

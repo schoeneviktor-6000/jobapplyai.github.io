@@ -2505,93 +2505,56 @@ color:var(--muted);
 .demo-chip-hit.is-added .demo-chip-icon{
   display:inline-block;
 }
-.demo-bullet-slot{
+.demo-insert{
   position:absolute;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
   overflow:hidden;
-  clip-path:inset(0 round 10px);
-  contain:layout paint;
-  isolation:isolate;
-  transform-origin:left center;
-  transition:transform .3s ease-out;
-}
-.demo-bullet-slot::before,
-.demo-bullet-slot::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius:10px;
-  transition:opacity .3s ease-out, transform .3s ease-out, box-shadow .3s ease-out, background .3s ease-out;
-  pointer-events:none;
-}
-.demo-bullet-slot::before{
-  background:linear-gradient(90deg, rgba(255,255,255,.94), rgba(252,253,253,.985));
-  backdrop-filter:blur(1.8px) saturate(.92) brightness(1.02);
-  opacity:0;
-  transform:scale(1);
-}
-.demo-bullet-slot::after{
-  opacity:0;
-  box-shadow:0 0 0 0 rgba(0,166,63,0);
-}
-.demo-bullet-slot[data-tone="selected"]::before{
-  background:linear-gradient(90deg, rgba(236,248,240,.95), rgba(241,251,244,.985));
-}
-.demo-bullet-slot.is-activating{
-  transform:scale(1.015);
-}
-.demo-bullet-slot.is-activating::before{
-  opacity:.38;
-  transform:scale(1.008);
-}
-.demo-bullet-slot.is-activating::after{
-  opacity:.9;
-  box-shadow:0 0 0 1px rgba(0,166,63,.12), 0 0 18px rgba(0,166,63,.08);
-}
-.demo-bullet-slot.is-visible{
-  transform:scale(1);
-}
-.demo-bullet-slot.is-visible::before{
-  opacity:.995;
-}
-.demo-bullet-copy{
-  position:absolute;
-  top:0;
-  left:0;
-  bottom:0;
-  width:var(--demo-text-width, 100%);
-  max-width:100%;
-  overflow:hidden;
-  visibility:hidden;
-  color:rgba(17,24,39,.985);
-  font-size:calc(var(--demo-font-size, 13px) * var(--demo-scale, 1));
-  line-height:calc(var(--demo-line-height, 18px) * var(--demo-scale, 1));
-  letter-spacing:var(--demo-letter-spacing, -.012em);
-  font-weight:var(--demo-font-weight, 590);
+  border-radius:13px;
+  border:1px solid rgba(136,214,160,.42);
+  background:linear-gradient(180deg, rgba(243,251,246,.84), rgba(249,253,250,.92));
+  box-shadow:0 8px 18px rgba(0,166,63,.05);
+  backdrop-filter:blur(1px);
+  color:rgba(24,55,34,.92);
+  font-size:var(--demo-insert-font-size, 12.3px);
+  line-height:var(--demo-insert-line-height, 16.8px);
+  letter-spacing:var(--demo-insert-letter-spacing, -.011em);
+  font-weight:var(--demo-insert-font-weight, 560);
   padding:
-    calc(var(--demo-padding-top, 0px) * var(--demo-scale, 1))
-    calc(var(--demo-padding-right, 0px) * var(--demo-scale, 1))
-    calc(var(--demo-padding-bottom, 0px) * var(--demo-scale, 1))
-    calc(var(--demo-padding-left, 0px) * var(--demo-scale, 1));
+    var(--demo-insert-padding-y, 6px)
+    var(--demo-insert-padding-x, 13px);
   opacity:0;
-  transform:translateY(calc(6px * var(--demo-scale, 1)));
-  transition:opacity .32s ease-out, transform .32s ease-out;
+  transform:translateY(4px);
+  transition:opacity .22s ease, transform .22s ease, box-shadow .22s ease, background .22s ease;
   text-rendering:optimizeLegibility;
-  text-shadow:0 0 .01em rgba(17,24,39,.10);
   white-space:normal;
   word-break:break-word;
   overflow-wrap:anywhere;
 }
-.demo-bullet-slot.is-visible .demo-bullet-copy{
-  visibility:visible;
+.demo-insert strong{
+  color:#16733c;
+}
+.demo-insert.is-visible{
   opacity:1;
   transform:translateY(0);
 }
-.demo-bullet-copy mark{
-  padding:0 .14em;
-  border-radius:.28em;
-  background:rgba(0,166,63,.14);
-  color:#0e6a2e;
-  font-weight:700;
+.demo-insert.is-flash{
+  animation:demoInsertFlash .42s ease;
+}
+@keyframes demoInsertFlash{
+  0%{
+    box-shadow:0 0 0 0 rgba(0,166,63,.10);
+    background:rgba(244,251,246,.90);
+  }
+  50%{
+    box-shadow:0 0 0 8px rgba(0,166,63,.06);
+    background:rgba(237,248,241,.92);
+  }
+  100%{
+    box-shadow:0 8px 18px rgba(0,166,63,.05);
+    background:rgba(249,253,250,.92);
+  }
 }
 .demo-mobile-chips{
   display:none;
@@ -3863,6 +3826,6 @@ color:var(--muted);
 <script src="./auth.js?v=202604121905"></script>
 <script src="./i18n.js?v=202604181830"></script>
 <script src="./shared.js?v=202604232345"></script>
-<script src="./cv-studio-preview-demo.js?v=202604231910"></script>
+<script src="./cv-studio-preview-demo.js?v=202604232359"></script>
 </body>
 </html>
