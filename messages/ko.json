@@ -113,23 +113,16 @@
       },
       "preview": {
         "kicker": "제품 미리보기",
-        "title": "맞춤 작업을 시작하기 전에 CV Studio를 먼저 확인해 보세요.",
-        "desc": "실제 CV Studio 화면으로 채용 공고, 키워드 안내, CV 미리보기가 편집 중에 어떻게 함께 보이는지 보여줍니다.",
-        "leftTitle": "공고 가져오기",
-        "leftBody": "채용 공고를 붙여 넣거나 확장 프로그램으로 가져오세요. 공고, CV, 편집 흐름이 한 화면에 유지됩니다.",
-        "leftPill1": "Chrome 확장 프로그램",
-        "leftPill2": "직접 붙여넣기",
-        "rightTitle": "빈틈을 빠르게 확인",
-        "rightBody": "실시간 CV 미리보기를 유지한 채 ATS 일치도, 반영된 용어, 부족한 키워드를 바로 볼 수 있습니다.",
-        "rightStat1Value": "43%",
-        "rightStat1Label": "ATS 일치도 예시",
-        "rightStat2Value": "17",
-        "rightStat2Label": "추가할 용어",
-        "stripTitle": "문구를 다듬고, 사실인 용어만 추가한 뒤, 마음에 들면 내보내세요.",
-        "stripPill1": "실시간 CV 미리보기",
-        "stripPill2": "키워드 가이드",
-        "stripPill3": "내보내기용 PDF",
-        "frameTag": "실제 제품 화면"
+        "title": "CV Studio가 CV를 어떻게 개선하는지 확인하세요",
+        "desc": "채용 공고를 넣고, 빠진 관련 용어를 추가한 뒤, 더 강한 CV로 내보내세요.",
+        "cta": "CV Studio 체험하기",
+        "reset": "데모 초기화",
+        "keywordsAria": "추가할 누락 키워드",
+        "announcements": {
+          "added": "{keyword} 추가됨. ATS 일치도 {score}%.",
+          "alreadyAdded": "{keyword}는 이미 추가되었습니다. ATS 일치도 {score}%.",
+          "reset": "데모를 초기화했습니다. ATS 일치도 {score}%."
+        }
       },
       "how": {
         "kicker": "작동 방식",

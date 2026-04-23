@@ -113,23 +113,16 @@
       },
       "preview": {
         "kicker": "Produktvorschau",
-        "title": "So sieht CV Studio aus, bevor du loslegst.",
-        "desc": "Ein echter CV-Studio-Screen zeigt, wie Stellenbeschreibung, Keyword-Hinweise und CV-Vorschau beim Bearbeiten nebeneinander liegen.",
-        "leftTitle": "Bringe die Rolle hinein",
-        "leftBody": "Füge jede Stellenbeschreibung ein oder importiere sie mit der Extension. Stelle, Lebenslauf und Bearbeitung bleiben an einem Ort.",
-        "leftPill1": "Chrome Extension",
-        "leftPill2": "Manuell einfügen",
-        "rightTitle": "Lücken schnell erkennen",
-        "rightBody": "Sieh ATS-Match, abgedeckte Begriffe und fehlende Keywords, ohne die Live-Vorschau deines Lebenslaufs zu verlassen.",
-        "rightStat1Value": "43%",
-        "rightStat1Label": "Beispiel für ATS-Match",
-        "rightStat2Value": "17",
-        "rightStat2Label": "Begriffe zum Ergänzen",
-        "stripTitle": "Passe Formulierungen an, füge nur echte Begriffe hinzu und exportiere, wenn sich dein Lebenslauf richtig anfühlt.",
-        "stripPill1": "Live-CV-Vorschau",
-        "stripPill2": "Keyword-Hinweise",
-        "stripPill3": "Exportfertiges PDF",
-        "frameTag": "Echter Produkt-Screen"
+        "title": "Sieh, wie CV Studio deinen Lebenslauf verbessert",
+        "desc": "Lade eine Stellenbeschreibung hoch, ergänze passende fehlende Begriffe und exportiere einen stärkeren Lebenslauf.",
+        "cta": "CV Studio testen",
+        "reset": "Demo zurücksetzen",
+        "keywordsAria": "Fehlende Keywords zum Ergänzen",
+        "announcements": {
+          "added": "{keyword} hinzugefügt. ATS-Match {score}%.",
+          "alreadyAdded": "{keyword} ist bereits hinzugefügt. ATS-Match {score}%.",
+          "reset": "Demo zurückgesetzt. ATS-Match {score}%."
+        }
       },
       "how": {
         "kicker": "So funktioniert es",

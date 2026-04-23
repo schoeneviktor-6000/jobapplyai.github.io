@@ -2230,200 +2230,427 @@ color:var(--muted);
 }
 
 
-/* Preview */
-.previewBand{
-  padding:28px 0 72px;
+/* Interactive CV Studio preview */
+.cv-studio-demo-section{
+  padding:34px 0 84px;
   background:
-    radial-gradient(900px 460px at 18% 0%, rgba(0,166,63,.12), transparent 62%),
-    radial-gradient(900px 460px at 85% 8%, rgba(0,0,0,.04), transparent 64%),
-    linear-gradient(180deg, rgba(255,255,255,0), rgba(246,247,248,.80) 42%, rgba(255,255,255,1) 100%);
+    radial-gradient(960px 520px at 18% 0%, rgba(0,166,63,.13), transparent 62%),
+    radial-gradient(960px 520px at 84% 6%, rgba(0,0,0,.05), transparent 66%),
+    linear-gradient(180deg, rgba(255,255,255,0), rgba(246,247,248,.82) 38%, rgba(255,255,255,1) 100%);
 }
-.previewBand .sectionHead{
+.cv-studio-demo-section .demo-copy{
   align-items:center;
   text-align:center;
-  margin-bottom:28px;
+  margin-bottom:30px;
 }
-.previewBand .sectionDesc{max-width:76ch}
-.previewWrap{
-  display:grid;
-  grid-template-columns:220px minmax(0, 1fr) 220px;
-  gap:18px;
-  align-items:start;
+.cv-studio-demo-section .sectionDesc{
+  max-width:640px;
 }
-.previewCard{
-  padding:16px;
-  border-radius:24px;
-  border:1px solid rgba(215,218,220,.95);
-  background:rgba(255,255,255,.95);
-  box-shadow:0 18px 42px rgba(15,23,42,.08);
-  display:grid;
-  gap:12px;
-}
-.previewCard--left{
-  grid-column:1;
-  grid-row:1;
-  margin-top:52px;
-}
-.previewCard--right{
-  grid-column:3;
-  grid-row:1;
-  margin-top:88px;
-}
-.previewCard h3{
-  margin:0;
-  font-size:18px;
-  letter-spacing:-.3px;
-  font-weight:1000;
-  color:var(--ink2);
-}
-.previewCard p{
-  margin:0;
-  color:var(--muted);
-  font-size:14px;
-  line-height:1.55;
-}
-.previewPills,
-.previewStripPills{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-}
-.previewPill,
-.previewStripPill,
-.previewMiniTag{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  padding:8px 12px;
-  border-radius:999px;
-  background:rgba(255,255,255,.94);
-  border:1px solid rgba(215,218,220,.95);
-  color:var(--muted);
-  font-size:12px;
-  font-weight:950;
-  letter-spacing:.08px;
-}
-.previewPill{
-  border-color:rgba(0,166,63,.20);
-  background:rgba(233,247,238,.82);
-  color:#0a3a1c;
-}
-.previewStats{
-  display:grid;
-  gap:10px;
-}
-.previewStat{
-  display:flex;
-  align-items:baseline;
-  justify-content:space-between;
-  gap:12px;
-  padding:12px 14px;
-  border-radius:18px;
-  border:1px solid rgba(215,218,220,.9);
-  background:rgba(246,247,248,.88);
-}
-.previewStat strong{
-  font-size:28px;
-  line-height:1;
-  letter-spacing:-.6px;
-  font-weight:1000;
-  color:var(--ink2);
-}
-.previewStat span{
-  color:var(--muted);
-  font-size:13px;
-  font-weight:900;
-  text-align:right;
-}
-.previewFrameWrap{
-  grid-column:2;
-  grid-row:1;
+.demo-shell{
   position:relative;
-  padding:22px;
-  border-radius:30px;
-  border:1px solid rgba(215,218,220,.95);
-  background:linear-gradient(180deg, rgba(255,255,255,.86), rgba(246,247,248,.92));
-  box-shadow:0 24px 60px rgba(15,23,42,.10);
+  max-width:1100px;
+  margin:0 auto;
+  padding:18px;
+  border-radius:32px;
+  border:1px solid rgba(215,218,220,.94);
+  background:linear-gradient(180deg, rgba(255,255,255,.90), rgba(246,247,248,.92));
+  box-shadow:0 28px 72px rgba(15,23,42,.11);
   overflow:hidden;
 }
-.previewFrameWrap:before{
+.demo-shell:before{
   content:"";
   position:absolute;
-  inset:-8% 40% 48% -10%;
-  background:radial-gradient(circle, rgba(0,166,63,.14), transparent 68%);
+  inset:-8% 42% 48% -10%;
+  background:radial-gradient(circle, rgba(0,166,63,.15), transparent 68%);
   pointer-events:none;
 }
-.previewMiniTag{
-  position:absolute;
-  top:16px;
-  left:16px;
-  z-index:2;
-  box-shadow:0 10px 26px rgba(15,23,42,.08);
+.demo-chrome{
+  position:relative;
+  z-index:1;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:2px 6px 14px;
 }
-.previewFrame{
+.demo-chrome-dots{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  min-width:56px;
+}
+.demo-chrome-dots span{
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  background:rgba(148,163,184,.55);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.65);
+}
+.demo-chrome-label{
+  margin:0;
+  font-size:13px;
+  font-weight:950;
+  color:var(--muted2);
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.demo-chrome-spacer{
+  min-width:56px;
+}
+.demo-frame{
   position:relative;
   z-index:1;
   border-radius:24px;
   overflow:hidden;
   border:1px solid rgba(215,218,220,.95);
   background:#fff;
-  box-shadow:0 18px 44px rgba(15,23,42,.12);
+  box-shadow:0 20px 48px rgba(15,23,42,.14);
+  aspect-ratio:1800 / 914;
 }
-.previewFrame img{
+.demo-screenshot{
   display:block;
   width:100%;
   height:auto;
 }
-.previewStrip{
-  grid-column:1 / -1;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:14px;
-  flex-wrap:wrap;
-  padding:18px 20px;
-  border-radius:24px;
-  border:1px solid rgba(215,218,220,.95);
-  background:rgba(255,255,255,.88);
-  box-shadow:0 16px 38px rgba(15,23,42,.07);
+.demo-overlay{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
 }
-.previewStripTitle{
-  flex:1 1 320px;
-  margin:0;
-  font-size:15px;
+.demo-hotspot{
+  position:absolute;
+  border-radius:26px;
+  border:1px solid rgba(0,166,63,.18);
+  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,166,63,.03));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.42);
+  opacity:.56;
+}
+.demo-hotspot--cv{
+  top:4.9%;
+  left:2.6%;
+  width:49.8%;
+  height:88.3%;
+}
+.demo-hotspot--keywords{
+  top:3.3%;
+  left:76.2%;
+  width:21.1%;
+  height:92.2%;
+  border-radius:22px;
+}
+.demo-score-badge{
+  position:absolute;
+  top:4.1%;
+  right:3.4%;
+  min-width:118px;
+  padding:11px 12px;
+  border-radius:18px;
+  border:1px solid rgba(215,218,220,.95);
+  background:rgba(255,255,255,.92);
+  box-shadow:0 14px 32px rgba(15,23,42,.10);
+  backdrop-filter:blur(10px);
+  display:grid;
+  gap:6px;
+}
+.demo-score-label{
+  font-size:11px;
+  line-height:1;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  font-weight:950;
+  color:var(--muted2);
+}
+.demo-score-value-row{
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+}
+.demo-score-value{
+  font-size:30px;
+  line-height:1;
+  letter-spacing:-.05em;
   font-weight:1000;
-  letter-spacing:-.2px;
   color:var(--ink2);
 }
-.previewStripPill{
-  background:#fff;
+.demo-score-delta{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:22px;
+  padding:4px 8px;
+  border-radius:999px;
+  background:rgba(233,247,238,.92);
+  border:1px solid rgba(0,166,63,.14);
+  color:#0d6b2d;
+  font-size:12px;
+  line-height:1;
+  font-weight:950;
+  opacity:0;
+  transform:translateY(4px);
+  transition:opacity .18s ease, transform .18s ease;
+}
+.demo-score-badge[data-has-change="true"] .demo-score-delta{
+  opacity:1;
+  transform:translateY(0);
+}
+.demo-score-meter{
+  display:block;
+  height:6px;
+  border-radius:999px;
+  background:rgba(15,23,42,.08);
+  overflow:hidden;
+}
+.demo-score-meter > span{
+  display:block;
+  height:100%;
+  width:100%;
+  transform-origin:left center;
+  transform:scaleX(.56);
+  border-radius:inherit;
+  background:linear-gradient(90deg, rgba(0,166,63,.72), rgba(102,255,138,.9));
+  transition:transform .26s ease;
+}
+.demo-chip-overlay,
+.demo-cv-overlay{
+  position:absolute;
+  inset:0;
+}
+.demo-chip-hit{
+  position:absolute;
+  pointer-events:auto;
+  border:0;
+  padding:0;
+  margin:0;
+  cursor:pointer;
+  background:none;
+  color:transparent;
+  touch-action:manipulation;
+}
+.demo-chip-hit:before{
+  content:"";
+  position:absolute;
+  inset:-3px;
+  border-radius:999px;
+  border:1.5px solid rgba(0,166,63,.22);
+  background:rgba(255,255,255,.06);
+  opacity:0;
+  transition:opacity .16s ease;
+}
+.demo-chip-hit:hover:before,
+.demo-chip-hit:focus-visible:before{
+  opacity:1;
+}
+.demo-chip-hit:focus-visible{
+  outline:2px solid rgba(0,166,63,.26);
+  outline-offset:3px;
+  border-radius:999px;
+}
+.demo-chip-hit-label{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  padding:0 12px;
+  border-radius:999px;
+  border:1px solid rgba(243,192,95,.54);
+  background:rgba(255,247,232,.94);
+  box-shadow:0 10px 22px rgba(122,75,0,.10);
+  color:#7a4b00;
+  font-size:12px;
+  line-height:1;
+  font-weight:950;
+  opacity:0;
+  transform:translateY(2px);
+  transition:opacity .16s ease, transform .16s ease, border-color .16s ease, background .16s ease, color .16s ease;
+}
+.demo-chip-hit:hover .demo-chip-hit-label,
+.demo-chip-hit:focus-visible .demo-chip-hit-label,
+.demo-chip-hit.is-added .demo-chip-hit-label{
+  opacity:1;
+  transform:translateY(0);
+}
+.demo-chip-hit.is-added .demo-chip-hit-label{
+  border-color:rgba(0,166,63,.24);
+  background:rgba(233,247,238,.96);
+  color:#0f5a2a;
+}
+.demo-chip-icon{
+  display:none;
+  font-size:11px;
+  line-height:1;
+}
+.demo-chip-hit.is-added .demo-chip-icon{
+  display:inline-block;
+}
+.demo-insert{
+  position:absolute;
+  padding:10px 12px;
+  border-radius:14px;
+  border:1px solid rgba(0,166,63,.26);
+  background:rgba(248,255,250,.94);
+  box-shadow:0 12px 26px rgba(0,166,63,.10);
+  color:#183722;
+  font-size:12px;
+  line-height:1.4;
+  letter-spacing:-.01em;
+  opacity:0;
+  transform:translateY(6px);
+  transition:opacity .22s ease, transform .22s ease;
+}
+.demo-insert strong{
+  color:#0d6b2d;
+}
+.demo-insert.is-visible{
+  opacity:1;
+  transform:translateY(0);
+}
+.demo-insert.is-flash{
+  animation:demoInsertFlash .46s ease;
+}
+@keyframes demoInsertFlash{
+  0%{
+    box-shadow:0 0 0 0 rgba(0,166,63,.16);
+    background:rgba(248,255,250,.98);
+  }
+  50%{
+    box-shadow:0 0 0 10px rgba(0,166,63,.10);
+    background:rgba(235,248,239,.98);
+  }
+  100%{
+    box-shadow:0 12px 26px rgba(0,166,63,.10);
+    background:rgba(248,255,250,.94);
+  }
+}
+.demo-mobile-chips{
+  display:none;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:center;
+  margin-top:16px;
+}
+.demo-mobile-chip{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  min-height:44px;
+  padding:10px 14px;
+  border-radius:999px;
+  border:1px solid rgba(243,192,95,.54);
+  background:rgba(255,247,232,.94);
+  color:#7a4b00;
+  font-size:13px;
+  line-height:1;
+  font-weight:950;
+  cursor:pointer;
+  transition:background .16s ease, border-color .16s ease, color .16s ease, transform .12s ease, box-shadow .16s ease;
+}
+.demo-mobile-chip:hover{
+  transform:translateY(-1px);
+  box-shadow:0 10px 22px rgba(122,75,0,.08);
+}
+.demo-mobile-chip.is-added{
+  border-color:rgba(0,166,63,.24);
+  background:rgba(233,247,238,.96);
+  color:#0f5a2a;
+  box-shadow:none;
+}
+.demo-mobile-chip .demo-chip-icon{
+  display:none;
+}
+.demo-mobile-chip.is-added .demo-chip-icon{
+  display:inline-block;
+}
+.demo-actions{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-top:24px;
+}
+.cv-studio-demo-section .btn[disabled]{
+  opacity:.55;
+  cursor:not-allowed;
+  transform:none !important;
+  box-shadow:none !important;
 }
 @media (max-width: 980px){
-  .previewBand{
-    padding:22px 0 64px;
+  .cv-studio-demo-section{
+    padding:26px 0 72px;
   }
-  .previewWrap{
-    grid-template-columns:1fr;
-  }
-  .previewCard--left,
-  .previewCard--right,
-  .previewFrameWrap,
-  .previewStrip{
-    grid-column:auto;
-    grid-row:auto;
-    margin-top:0;
-  }
-  .previewFrameWrap{
+  .demo-shell{
     padding:14px;
+    border-radius:28px;
+  }
+}
+@media (max-width: 820px){
+  .cv-studio-demo-section .demo-copy{
+    align-items:flex-start;
+    text-align:left;
+    margin-bottom:22px;
+  }
+  .demo-chrome{
+    padding:0 4px 10px;
+  }
+  .demo-chrome-label{
+    font-size:12px;
+  }
+  .demo-score-badge{
+    top:3.4%;
+    right:3%;
+    min-width:104px;
+    padding:9px 10px;
+    border-radius:16px;
+  }
+  .demo-score-value{
+    font-size:24px;
+  }
+  .demo-score-label{
+    font-size:10px;
+  }
+  .demo-hotspot--keywords{
+    display:none;
+  }
+  .demo-chip-overlay{
+    display:none;
+  }
+  .demo-mobile-chips{
+    display:flex;
+    justify-content:flex-start;
+  }
+  .demo-actions{
+    justify-content:flex-start;
   }
 }
 @media (max-width: 640px){
-  .previewBand .sectionHead{
-    align-items:flex-start;
-    text-align:left;
+  .cv-studio-demo-section{
+    padding:22px 0 64px;
   }
-  .previewStrip{
-    padding:16px;
+  .demo-shell{
+    padding:12px;
+    border-radius:24px;
+  }
+  .demo-score-badge{
+    min-width:92px;
+    padding:8px 9px;
+  }
+  .demo-score-value{
+    font-size:21px;
+  }
+  .demo-score-delta{
+    min-height:20px;
+    padding:3px 7px;
+    font-size:11px;
+  }
+  .demo-insert{
+    padding:8px 9px;
+    font-size:10px;
+  }
+  .demo-mobile-chip{
+    font-size:12px;
   }
 }
 
@@ -2889,55 +3116,53 @@ color:var(--muted);
 </div>
 </section>
 
-<section class="previewBand" aria-labelledby="previewTitle">
+<section class="cv-studio-demo-section" aria-labelledby="previewTitle">
   <div class="container">
-    <div class="sectionHead">
+    <div class="sectionHead demo-copy">
       <div class="kicker" data-i18n="pages.index.preview.kicker">Product preview</div>
-      <h2 id="previewTitle" class="sectionTitle" data-i18n="pages.index.preview.title">See CV Studio before you start tailoring.</h2>
-      <p class="sectionDesc" data-i18n="pages.index.preview.desc">A real CV Studio screen shows how the job description, keyword guidance, and CV preview sit side by side while you edit.</p>
+      <h2 id="previewTitle" class="sectionTitle" data-i18n="pages.index.preview.title">See how CV Studio improves your CV</h2>
+      <p class="sectionDesc" data-i18n="pages.index.preview.desc">Upload a job description, add relevant missing terms, and export a stronger CV.</p>
     </div>
 
-    <div class="previewWrap">
-      <aside class="previewCard previewCard--left" aria-label="Import options">
-        <h3 data-i18n="pages.index.preview.leftTitle">Bring in the role</h3>
-        <p data-i18n="pages.index.preview.leftBody">Paste any job description or import it with the extension. The job, your CV, and the editing flow stay in one place.</p>
-        <div class="previewPills">
-          <span class="previewPill" data-i18n="pages.index.preview.leftPill1">Chrome extension</span>
-          <span class="previewPill" data-i18n="pages.index.preview.leftPill2">Manual paste</span>
-        </div>
-      </aside>
-
-      <div class="previewFrameWrap" aria-label="CV Studio screenshot preview">
-        <span class="previewMiniTag" data-i18n="pages.index.preview.frameTag">Real product screen</span>
-        <div class="previewFrame">
-          <img src="/assets/cv-studio-preview.png" alt="CV Studio screenshot showing a live CV preview, keyword guidance, and ATS score." width="1800" height="914" loading="lazy">
-        </div>
+    <div class="demo-shell">
+      <div class="demo-chrome" aria-hidden="true">
+        <div class="demo-chrome-dots"><span></span><span></span><span></span></div>
+        <p class="demo-chrome-label">CV Studio</p>
+        <div class="demo-chrome-spacer"></div>
       </div>
 
-      <aside class="previewCard previewCard--right" aria-label="ATS insight preview">
-        <h3 data-i18n="pages.index.preview.rightTitle">Spot gaps quickly</h3>
-        <p data-i18n="pages.index.preview.rightBody">See ATS match, covered terms, and missing keywords without losing the live CV preview.</p>
-        <div class="previewStats">
-          <div class="previewStat">
-            <strong data-i18n="pages.index.preview.rightStat1Value">43%</strong>
-            <span data-i18n="pages.index.preview.rightStat1Label">ATS match example</span>
-          </div>
-          <div class="previewStat">
-            <strong data-i18n="pages.index.preview.rightStat2Value">17</strong>
-            <span data-i18n="pages.index.preview.rightStat2Label">terms to add</span>
-          </div>
-        </div>
-      </aside>
+      <div class="demo-frame" data-cv-demo="1">
+        <!-- Replace this asset path if you swap the product screenshot capture. -->
+        <img class="demo-screenshot" src="/assets/cv-studio-preview.png" alt="CV Studio screenshot showing a CV preview, missing ATS keywords, and score guidance." width="1800" height="914" loading="lazy" decoding="async" fetchpriority="low">
+        <div class="demo-overlay">
+          <div class="demo-hotspot demo-hotspot--cv" aria-hidden="true"></div>
+          <div class="demo-hotspot demo-hotspot--keywords" aria-hidden="true"></div>
 
-      <div class="previewStrip">
-        <p class="previewStripTitle" data-i18n="pages.index.preview.stripTitle">Edit the wording, add only true terms, and export when the CV feels right.</p>
-        <div class="previewStripPills">
-          <span class="previewStripPill" data-i18n="pages.index.preview.stripPill1">Live CV preview</span>
-          <span class="previewStripPill" data-i18n="pages.index.preview.stripPill2">Keyword guidance</span>
-          <span class="previewStripPill" data-i18n="pages.index.preview.stripPill3">Export-ready PDF</span>
+          <div class="demo-score-badge" aria-live="polite" data-has-change="false">
+            <span class="demo-score-label">ATS match</span>
+            <div class="demo-score-value-row">
+              <strong class="demo-score-value" data-demo-score-value>43%</strong>
+              <span class="demo-score-delta" data-demo-score-delta>+0</span>
+            </div>
+            <span class="demo-score-meter" aria-hidden="true"><span data-demo-score-meter></span></span>
+          </div>
+
+          <div class="demo-chip-overlay" data-demo-chip-overlay></div>
+          <div class="demo-cv-overlay" data-demo-cv-overlay></div>
         </div>
       </div>
     </div>
+
+    <div class="demo-mobile-chips" data-demo-mobile-chips aria-label="Missing keywords to add"></div>
+
+    <div class="demo-actions">
+      <a class="btn primary" href="signup?entry=cv-studio"><span class="btnLabel" data-i18n="pages.index.preview.cta">Try CV Studio</span></a>
+      <button class="btn" type="button" data-demo-reset data-i18n-aria-label="pages.index.preview.reset" aria-label="Reset demo">
+        <span class="btnLabel" data-i18n="pages.index.preview.reset">Reset demo</span>
+      </button>
+    </div>
+
+    <div class="sr-only" aria-live="polite" data-demo-announcer></div>
   </div>
 </section>
 
@@ -3563,5 +3788,6 @@ color:var(--muted);
 <script src="./auth.js?v=202604121905"></script>
 <script src="./i18n.js?v=202604181830"></script>
 <script src="./shared.js?v=202604232345"></script>
+<script src="./cv-studio-preview-demo.js?v=202604231600"></script>
 </body>
 </html>

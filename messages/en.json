@@ -116,23 +116,16 @@
       },
       "preview": {
         "kicker": "Product preview",
-        "title": "See CV Studio before you start tailoring.",
-        "desc": "A real CV Studio screen shows how the job description, keyword guidance, and CV preview sit side by side while you edit.",
-        "leftTitle": "Bring in the role",
-        "leftBody": "Paste any job description or import it with the extension. The job, your CV, and the editing flow stay in one place.",
-        "leftPill1": "Chrome extension",
-        "leftPill2": "Manual paste",
-        "rightTitle": "Spot gaps quickly",
-        "rightBody": "See ATS match, covered terms, and missing keywords without losing the live CV preview.",
-        "rightStat1Value": "43%",
-        "rightStat1Label": "ATS match example",
-        "rightStat2Value": "17",
-        "rightStat2Label": "terms to add",
-        "stripTitle": "Edit the wording, add only true terms, and export when the CV feels right.",
-        "stripPill1": "Live CV preview",
-        "stripPill2": "Keyword guidance",
-        "stripPill3": "Export-ready PDF",
-        "frameTag": "Real product screen"
+        "title": "See how CV Studio improves your CV",
+        "desc": "Upload a job description, add relevant missing terms, and export a stronger CV.",
+        "cta": "Try CV Studio",
+        "reset": "Reset demo",
+        "keywordsAria": "Missing keywords to add",
+        "announcements": {
+          "added": "{keyword} added. ATS match {score}%.",
+          "alreadyAdded": "{keyword} is already added. ATS match {score}%.",
+          "reset": "Demo reset. ATS match {score}%."
+        }
       },
       "how": {
         "kicker": "How it works",

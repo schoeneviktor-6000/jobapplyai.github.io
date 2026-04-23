@@ -113,23 +113,16 @@
       },
       "preview": {
         "kicker": "Vista previa del producto",
-        "title": "Mira CV Studio antes de empezar a ajustar tu CV.",
-        "desc": "Una pantalla real de CV Studio muestra cómo la oferta, las sugerencias de palabras clave y la vista previa del CV aparecen juntas mientras editas.",
-        "leftTitle": "Trae la oferta",
-        "leftBody": "Pega cualquier descripción del puesto o impórtala con la extensión. La oferta, tu CV y la edición quedan en un mismo lugar.",
-        "leftPill1": "Extensión de Chrome",
-        "leftPill2": "Pegar manualmente",
-        "rightTitle": "Detecta huecos rápido",
-        "rightBody": "Ve el ATS match, los términos cubiertos y las palabras que faltan sin perder la vista previa en vivo del CV.",
-        "rightStat1Value": "43%",
-        "rightStat1Label": "Ejemplo de ATS match",
-        "rightStat2Value": "17",
-        "rightStat2Label": "términos por añadir",
-        "stripTitle": "Ajusta el texto, añade solo términos reales y exporta cuando el CV quede como quieres.",
-        "stripPill1": "Vista previa en vivo",
-        "stripPill2": "Guía de palabras clave",
-        "stripPill3": "PDF listo para exportar",
-        "frameTag": "Pantalla real del producto"
+        "title": "Mira cómo CV Studio mejora tu CV",
+        "desc": "Carga una descripción del puesto, añade términos faltantes relevantes y exporta un CV más fuerte.",
+        "cta": "Probar CV Studio",
+        "reset": "Reiniciar demo",
+        "keywordsAria": "Palabras clave faltantes por añadir",
+        "announcements": {
+          "added": "{keyword} añadido. ATS match {score}%.",
+          "alreadyAdded": "{keyword} ya está añadido. ATS match {score}%.",
+          "reset": "Demo reiniciada. ATS match {score}%."
+        }
       },
       "how": {
         "kicker": "Cómo funciona",
