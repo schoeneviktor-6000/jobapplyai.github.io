@@ -1048,33 +1048,43 @@ Profile reduction pass
 }
 .uploadSuccessCard{
   display:grid;
-  gap:14px;
-  padding:16px;
-  border-radius:20px;
-  border:1px solid rgba(234,88,12,.20);
+  gap:20px;
+  padding:24px;
+  border-radius:24px;
+  border:1px solid rgba(17,19,24,.10);
   background:
-    radial-gradient(620px 180px at 8% 0%, rgba(245,158,11,.12), transparent 58%),
-    radial-gradient(560px 180px at 100% 0%, rgba(239,68,68,.06), transparent 62%),
-    linear-gradient(180deg, rgba(255,255,255,.99), rgba(255,249,243,.97));
-  box-shadow:0 16px 34px rgba(17,19,24,.08);
+    radial-gradient(720px 220px at 0% 0%, rgba(245,158,11,.14), transparent 52%),
+    radial-gradient(640px 240px at 100% 0%, rgba(239,68,68,.10), transparent 58%),
+    linear-gradient(180deg, rgba(255,255,255,.995), rgba(255,251,247,.985));
+  box-shadow:0 24px 52px rgba(17,19,24,.10);
 }
 .uploadSuccessTop{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
+  display:grid;
+  grid-template-columns:minmax(0,1.5fr) minmax(250px,.85fr);
+  gap:18px;
+  align-items:start;
+}
+.uploadSuccessLead{
+  display:grid;
   gap:12px;
+  min-width:0;
+}
+.uploadSuccessLabelRow{
+  display:flex;
+  align-items:center;
+  gap:10px;
   flex-wrap:wrap;
 }
 .uploadSuccessKicker{
   display:inline-flex;
   align-items:center;
   gap:8px;
-  min-height:22px;
-  padding:0 9px;
+  min-height:24px;
+  padding:0 10px;
   border-radius:999px;
-  border:1px solid rgba(234,88,12,.18);
-  background:rgba(234,88,12,.08);
-  color:#9a3412;
+  border:1px solid rgba(17,19,24,.10);
+  background:rgba(255,255,255,.78);
+  color:rgba(17,19,24,.70);
   font-size:10px;
   font-weight:950;
   letter-spacing:.08em;
@@ -1085,36 +1095,94 @@ Profile reduction pass
   width:8px;
   height:8px;
   border-radius:999px;
-  background:rgba(234,88,12,.92);
-  box-shadow:0 0 0 4px rgba(234,88,12,.10);
+  background:rgba(245,158,11,.95);
+  box-shadow:0 0 0 4px rgba(245,158,11,.14);
 }
 .uploadSuccessTitle{
-  margin:8px 0 0;
-  max-width:640px;
-  font-size:24px;
-  line-height:1.08;
-  letter-spacing:-.38px;
+  margin:0;
+  max-width:16ch;
+  font-size:clamp(28px, 3.4vw, 40px);
+  line-height:1.02;
+  letter-spacing:-.04em;
+  font-weight:1000;
+  color:rgba(17,19,24,.96);
 }
 .uploadSuccessBody{
-  margin:8px 0 0;
-  max-width:600px;
+  margin:0;
+  max-width:60ch;
   color:rgba(17,19,24,.72);
-  font-size:13px;
-  line-height:1.5;
-  font-weight:800;
+  font-size:14px;
+  line-height:1.6;
+  font-weight:760;
+}
+.uploadSuccessHeroScore{
+  display:grid;
+  gap:12px;
+  padding:18px;
+  border-radius:22px;
+  border:1px solid rgba(17,19,24,.10);
+  background:rgba(255,255,255,.86);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+}
+.uploadSuccessHeroTop{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+.uploadSuccessHeroLabel{
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:rgba(17,19,24,.50);
+}
+.uploadSuccessHeroValue{
+  font-size:40px;
+  line-height:1;
+  letter-spacing:-.06em;
+  font-weight:1000;
+  color:rgba(17,19,24,.95);
+}
+.uploadSuccessHeroBar{
+  height:12px;
+  border-radius:999px;
+  overflow:hidden;
+  border:1px solid rgba(17,19,24,.08);
+  background:rgba(17,19,24,.07);
+}
+.uploadSuccessHeroBarFill{
+  height:100%;
+  width:0%;
+  border-radius:999px;
+  background:linear-gradient(90deg, #dc2626 0%, #f97316 55%, #22c55e 100%);
+  transition:width .28s ease;
+}
+.uploadSuccessHeroMeta{
+  color:rgba(17,19,24,.64);
+  font-size:12px;
+  line-height:1.45;
+  font-weight:780;
 }
 .realityScoreGrid{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:10px;
+  gap:12px;
 }
 .realityScoreCard{
   border:1px solid rgba(17,19,24,.10);
-  background:rgba(255,255,255,.78);
-  border-radius:16px;
-  padding:12px;
+  background:rgba(255,255,255,.88);
+  border-radius:20px;
+  padding:16px;
   display:grid;
-  gap:6px;
+  gap:10px;
+  box-shadow:0 12px 26px rgba(17,19,24,.05);
+}
+.realityScoreTop{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
 }
 .realityScoreLabel{
   font-size:11px;
@@ -1124,54 +1192,150 @@ Profile reduction pass
   color:rgba(17,19,24,.50);
 }
 .realityScoreValue{
+  margin-top:6px;
   font-size:28px;
   line-height:1;
-  letter-spacing:-.7px;
+  letter-spacing:-.04em;
   font-weight:1000;
   color:rgba(17,19,24,.94);
 }
+.metricPill{
+  display:inline-flex;
+  align-items:center;
+  min-height:28px;
+  padding:0 10px;
+  border-radius:999px;
+  border:1px solid rgba(17,19,24,.10);
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+.metricPillLow{
+  border-color:rgba(220,38,38,.20);
+  background:rgba(220,38,38,.08);
+  color:#991b1b;
+}
+.metricPillMedium{
+  border-color:rgba(249,115,22,.20);
+  background:rgba(249,115,22,.10);
+  color:#9a3412;
+}
+.metricPillHigh{
+  border-color:rgba(34,197,94,.22);
+  background:rgba(34,197,94,.12);
+  color:#166534;
+}
 .realityScoreMeta{
-  color:rgba(17,19,24,.60);
+  color:rgba(17,19,24,.64);
   font-size:12px;
-  line-height:1.45;
+  line-height:1.5;
   font-weight:780;
 }
 .realityFindings{
   display:grid;
-  gap:8px;
+  gap:14px;
+}
+.realityFindingsIntro{
+  font-size:12px;
+  font-weight:950;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:rgba(17,19,24,.52);
+}
+.realityFindingsGrid{
+  display:grid;
+  gap:12px;
 }
 .realityFinding{
   border:1px solid rgba(17,19,24,.08);
-  background:rgba(255,255,255,.74);
-  border-radius:16px;
-  padding:12px;
+  background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.84));
+  border-radius:20px;
+  padding:16px;
   display:grid;
-  gap:5px;
+  gap:12px;
+  box-shadow:0 14px 30px rgba(17,19,24,.05);
+}
+.realityFindingHeader{
+  display:grid;
+  grid-template-columns:36px minmax(0,1fr);
+  gap:12px;
+  align-items:start;
+}
+.realityFindingIcon{
+  width:36px;
+  height:36px;
+  border-radius:14px;
+  border:1px solid rgba(17,19,24,.10);
+  background:linear-gradient(180deg, rgba(255,255,255,.95), rgba(17,19,24,.04));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.82);
+  position:relative;
+}
+.realityFindingIcon::after{
+  content:"";
+  position:absolute;
+  inset:11px;
+  border-radius:999px;
+  background:rgba(245,158,11,.86);
+  box-shadow:0 0 0 4px rgba(245,158,11,.14);
+}
+.realityFindingIcon.is-critical::after{
+  background:rgba(220,38,38,.92);
+  box-shadow:0 0 0 4px rgba(220,38,38,.12);
+}
+.realityFindingIcon.is-positive::after{
+  background:rgba(34,197,94,.92);
+  box-shadow:0 0 0 4px rgba(34,197,94,.12);
+}
+.realityFindingHeading{
+  display:grid;
+  gap:4px;
+  min-width:0;
 }
 .realityFindingTitle{
-  font-size:13px;
+  font-size:14px;
   font-weight:950;
-  letter-spacing:-.16px;
+  letter-spacing:-.02em;
   color:rgba(17,19,24,.92);
 }
-.realityFindingExample,
-.realityFindingImpact{
+.realityFindingSummary{
+  color:rgba(17,19,24,.70);
+  font-size:13px;
+  line-height:1.45;
+  font-weight:780;
+  display:-webkit-box;
+  -webkit-line-clamp:1;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.realityFindingLine{
+  display:flex;
+  align-items:flex-start;
+  gap:6px;
   font-size:12px;
-  line-height:1.48;
-  color:rgba(17,19,24,.66);
+  line-height:1.5;
+  color:rgba(17,19,24,.68);
   font-weight:760;
 }
-.realityFindingExample strong,
-.realityFindingImpact strong{
-  color:rgba(17,19,24,.82);
+.realityFindingLine strong{
+  flex:0 0 auto;
+  color:rgba(17,19,24,.86);
+}
+.realityFindingLine span{
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
 }
 .reviewProgressModule{
   display:grid;
   gap:12px;
-  padding:12px;
-  border-radius:18px;
+  padding:16px;
+  border-radius:22px;
   border:1px solid rgba(17,19,24,.08);
-  background:rgba(255,255,255,.82);
+  background:rgba(255,255,255,.88);
+  box-shadow:0 16px 34px rgba(17,19,24,.05);
 }
 .reviewProgressList{
   display:grid;
@@ -1244,20 +1408,70 @@ Profile reduction pass
   transition:width .28s ease;
 }
 .uploadSuccessBridge{
-  color:rgba(17,19,24,.86);
+  display:grid;
+  gap:12px;
+  padding:16px 18px;
+  border-radius:20px;
+  border:1px solid rgba(34,197,94,.18);
+  background:linear-gradient(180deg, rgba(238,252,242,.92), rgba(255,255,255,.94));
+  box-shadow:0 14px 30px rgba(34,197,94,.07);
+}
+.uploadSuccessBridgeTitle{
   font-size:13px;
-  line-height:1.5;
-  font-weight:860;
+  font-weight:950;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  color:#166534;
+}
+.uploadSuccessBridgeList{
+  display:grid;
+  gap:10px;
+}
+.uploadSuccessBridgeItem{
+  display:grid;
+  grid-template-columns:20px minmax(0,1fr);
+  gap:10px;
+  align-items:start;
+  color:rgba(17,19,24,.80);
+  font-size:13px;
+  line-height:1.45;
+  font-weight:780;
+}
+.uploadSuccessBridgeCheck{
+  width:20px;
+  height:20px;
+  border-radius:999px;
+  display:grid;
+  place-items:center;
+  background:rgba(34,197,94,.14);
+  border:1px solid rgba(34,197,94,.22);
+  color:#166534;
+  font-size:12px;
+  font-weight:1000;
 }
 .uploadSuccessCard .actions{
   margin-top:0;
   align-items:center;
 }
+.uploadSuccessCta{
+  display:grid;
+  gap:10px;
+}
+.uploadSuccessCta .actions{
+  width:100%;
+}
+.uploadSuccessCta .btn.primary{
+  min-height:54px;
+  padding:0 22px;
+  font-size:15px;
+  font-weight:950;
+  box-shadow:0 16px 34px rgba(34,197,94,.18);
+}
 .uploadSuccessSecondary{
-  color:rgba(17,19,24,.58);
+  color:rgba(17,19,24,.62);
   font-size:12px;
   line-height:1.45;
-  font-weight:780;
+  font-weight:820;
 }
 @keyframes reviewPulse{
   0%{ box-shadow:0 0 0 0 rgba(234,88,12,.16); }
@@ -1454,11 +1668,23 @@ Profile reduction pass
   .statusStrip{
     grid-template-columns:1fr;
   }
+  .uploadSuccessCard{
+    padding:18px;
+    gap:16px;
+  }
+  .uploadSuccessTop{
+    grid-template-columns:1fr;
+  }
   .uploadSuccessTitle{
     font-size:24px;
   }
   .realityScoreGrid{
     grid-template-columns:1fr;
+  }
+}
+@media (min-width:960px){
+  .realityFindingsGrid{
+    grid-template-columns:repeat(2, minmax(0,1fr));
   }
 }
 @media (max-width:1320px){
@@ -1784,31 +2010,56 @@ Matched jobs premium polish
 </section>
 <section class="uploadSuccessCard" id="postUploadCard" style="display:none" aria-live="polite">
   <div class="uploadSuccessTop">
-    <div>
-      <div class="uploadSuccessKicker" id="postUploadKicker">AI CV Review</div>
+    <div class="uploadSuccessLead">
+      <div class="uploadSuccessLabelRow">
+        <div class="uploadSuccessKicker" id="postUploadKicker">AI CV Review</div>
+        <span class="badge warn" id="postUploadBadge">Preparing review</span>
+      </div>
       <h3 class="uploadSuccessTitle" id="postUploadTitle">Reviewing your CV</h3>
       <p class="uploadSuccessBody" id="postUploadBody">We’re checking structure, ATS readability, and role relevance. This usually takes a short moment.</p>
     </div>
-    <span class="badge warn" id="postUploadBadge">Preparing review</span>
+    <div class="uploadSuccessHeroScore" id="postUploadHeroScore" style="display:none">
+      <div class="uploadSuccessHeroTop">
+        <div class="uploadSuccessHeroLabel">ATS score</div>
+        <span class="metricPill metricPillLow" id="postUploadHeroScoreLevel">Low</span>
+      </div>
+      <div class="uploadSuccessHeroValue" id="postUploadHeroScoreValue">-- / 100</div>
+      <div class="uploadSuccessHeroBar" aria-hidden="true">
+        <div class="uploadSuccessHeroBarFill" id="postUploadHeroScoreFill"></div>
+      </div>
+      <div class="uploadSuccessHeroMeta" id="postUploadHeroScoreMeta">Current untailored baseline.</div>
+    </div>
   </div>
   <div class="realityScoreGrid" id="postUploadScores" style="display:none">
     <div class="realityScoreCard">
-      <div class="realityScoreLabel">ATS readiness</div>
-      <div class="realityScoreValue" id="postUploadScoreValue">--/100</div>
+      <div class="realityScoreTop">
+        <div>
+          <div class="realityScoreLabel">ATS readiness</div>
+          <div class="realityScoreValue" id="postUploadScoreValue">-- / 100</div>
+        </div>
+        <span class="metricPill metricPillLow" id="postUploadScoreLevel">Low</span>
+      </div>
       <div class="realityScoreMeta" id="postUploadScoreMeta">Baseline before tailoring to a specific job.</div>
     </div>
     <div class="realityScoreCard">
-      <div class="realityScoreLabel">Machine readability</div>
-      <div class="realityScoreValue" id="postUploadReadabilityValue">--</div>
+      <div class="realityScoreTop">
+        <div>
+          <div class="realityScoreLabel">Machine readability</div>
+          <div class="realityScoreValue" id="postUploadReadabilityValue">--</div>
+        </div>
+        <span class="metricPill metricPillLow" id="postUploadReadabilityLevel">Low</span>
+      </div>
       <div class="realityScoreMeta" id="postUploadReadabilityMeta">This checks how clearly ATS systems can parse the document.</div>
     </div>
   </div>
   <div class="realityFindings" id="postUploadFindings"></div>
   <div class="uploadSuccessBridge" id="postUploadBridge" style="display:none"></div>
-  <div class="actions">
-    <button class="btn primary" id="postUploadPrimaryBtn" type="button">Continue to CV Studio</button>
+  <div class="uploadSuccessCta">
+    <div class="actions">
+      <button class="btn primary" id="postUploadPrimaryBtn" type="button">Continue to CV Studio</button>
+    </div>
+    <div class="uploadSuccessSecondary" id="postUploadSecondary">You can continue to CV Studio while the first review prepares.</div>
   </div>
-  <div class="uploadSuccessSecondary" id="postUploadSecondary">You can continue to CV Studio while the first review prepares.</div>
 </section>
 <aside class="card profileRail">
 <div class="sectionBody railStack railTight">
@@ -1956,6 +2207,6 @@ Matched jobs premium polish
   <script src="./auth.js?v=202604121905"></script>
   <script src="./shared.js?v=202604231420"></script>
 
-  <script src="./profile.app.js?v=202604232010"></script>
+  <script src="./profile.app.js?v=202604232145"></script>
 </body>
 </html>

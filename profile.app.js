@@ -2125,17 +2125,141 @@ function normalizeRealityCheckResult(raw, cv){
   };
 }
 
+function getAtsScoreMeta(score){
+  const safe=Math.max(0, Math.min(100, Math.round(Number(score) || 0)));
+  if(safe >= 70){
+    return {
+      level:"High",
+      tone:"High",
+      interpretation:"High: the baseline is solid, but tailoring can still sharpen relevance for one target role."
+    };
+  }
+  if(safe >= 50){
+    return {
+      level:"Medium",
+      tone:"Medium",
+      interpretation:"Medium: the CV is readable, but it is still too generic to compete strongly without tailoring."
+    };
+  }
+  return {
+    level:"Low",
+    tone:"Low",
+    interpretation:"Low: ATS fit is weak before tailoring, so this version is unlikely to match one job tightly enough."
+  };
+}
+
+function getMachineReadabilityMeta(value){
+  const raw=String(value || "").trim().toLowerCase();
+  if(raw === "high"){
+    return {
+      level:"High",
+      tone:"High",
+      interpretation:"High: ATS systems should parse the structure clearly and consistently."
+    };
+  }
+  if(raw === "medium"){
+    return {
+      level:"Medium",
+      tone:"Medium",
+      interpretation:"Medium: most content is readable, but parsing still looks a bit fragile."
+    };
+  }
+  return {
+    level:"Low",
+    tone:"Low",
+    interpretation:"Low: parsing looks fragile, so ATS systems may miss sections, dates, or keywords."
+  };
+}
+
+function setMetricPill(id, meta){
+  const el=$(id);
+  if(!el) return;
+  const tone=meta && meta.tone ? String(meta.tone) : "Low";
+  const label=meta && meta.level ? String(meta.level) : "Low";
+  el.className="metricPill metricPill" + tone;
+  el.textContent=label;
+}
+
+function setPostUploadHeroScore(score, meta){
+  const wrap=$("postUploadHeroScore");
+  const fill=$("postUploadHeroScoreFill");
+  if(!wrap || !fill){
+    return;
+  }
+  if(score === null || score === undefined || score === ""){
+    wrap.style.display="none";
+    fill.style.width="0%";
+    return;
+  }
+  const safe=Math.max(0, Math.min(100, Math.round(Number(score) || 0)));
+  wrap.style.display="";
+  setText("postUploadHeroScoreValue", String(safe) + " / 100");
+  setMetricPill("postUploadHeroScoreLevel", meta);
+  setText("postUploadHeroScoreMeta", meta && meta.interpretation ? meta.interpretation : "Current untailored baseline.");
+  fill.style.width=String(safe) + "%";
+}
+
+function getRealityFindingSummary(item){
+  const title=String(item && item.title ? item.title : "").trim().toLowerCase();
+  if(title.includes("keyword") || title.includes("role relevance")){
+    return "The CV is too broad to match one target role strongly.";
+  }
+  if(title.includes("impact") || title.includes("bullet") || title.includes("result")){
+    return "Results are not specific enough to prove performance quickly.";
+  }
+  if(title.includes("format") || title.includes("readability") || title.includes("ats")){
+    return "ATS parsing looks weaker than it should before tailoring.";
+  }
+  if(title.includes("profile") || title.includes("summary")){
+    return "The opening pitch is not creating enough role-specific momentum.";
+  }
+  const impact=String(item && item.impact ? item.impact : "").trim();
+  if(impact){
+    return impact.replace(/\s+/g," ").split(/(?<=[.!?])\s/)[0];
+  }
+  return "This issue weakens ATS matching and recruiter confidence.";
+}
+
+function getRealityFindingTone(item){
+  const title=String(item && item.title ? item.title : "").trim().toLowerCase();
+  if(title.includes("format") || title.includes("readability") || title.includes("ats") || title.includes("keyword")){
+    return "is-critical";
+  }
+  return "";
+}
+
+function buildTailoringImprovementsHtml(){
+  return (
+    '<div class="uploadSuccessBridgeTitle">What we will improve when tailoring</div>'
+    + '<div class="uploadSuccessBridgeList">'
+      + '<div class="uploadSuccessBridgeItem"><span class="uploadSuccessBridgeCheck" aria-hidden="true">&#10003;</span><span>Add job-specific keywords</span></div>'
+      + '<div class="uploadSuccessBridgeItem"><span class="uploadSuccessBridgeCheck" aria-hidden="true">&#10003;</span><span>Strengthen bullet points with measurable results</span></div>'
+      + '<div class="uploadSuccessBridgeItem"><span class="uploadSuccessBridgeCheck" aria-hidden="true">&#10003;</span><span>Optimize formatting for ATS parsing</span></div>'
+    + '</div>'
+  );
+}
+
 function renderRealityCheckFindings(findings){
   const host=$("postUploadFindings");
   if(!host) return;
   const items=Array.isArray(findings) ? findings : [];
-  host.innerHTML=items.map((item)=>(
-    '<div class="realityFinding">'
-      + '<div class="realityFindingTitle">' + escapeHtml(item.title || "") + '</div>'
-      + '<div class="realityFindingExample"><strong>Example:</strong> ' + escapeHtml(item.example || "") + '</div>'
-      + '<div class="realityFindingImpact"><strong>Why it hurts:</strong> ' + escapeHtml(item.impact || "") + '</div>'
-    + '</div>'
-  )).join("");
+  host.innerHTML=
+    '<div class="realityFindingsIntro">Top issues to fix first</div>'
+    + '<div class="realityFindingsGrid">'
+      + items.map((item)=>(
+        '<div class="realityFinding">'
+          + '<div class="realityFindingHeader">'
+            + '<span class="realityFindingIcon ' + escapeHtml(getRealityFindingTone(item)) + '" aria-hidden="true"></span>'
+            + '<div class="realityFindingHeading">'
+              + '<div class="realityFindingTitle">' + escapeHtml(item.title || "") + '</div>'
+              + '<div class="realityFindingSummary">' + escapeHtml(getRealityFindingSummary(item)) + '</div>'
+            + '</div>'
+          + '</div>'
+          + '<div class="realityFindingLine"><strong>Example:</strong><span>' + escapeHtml(item.example || "") + '</span></div>'
+          + '<div class="realityFindingLine"><strong>Why it matters:</strong><span>' + escapeHtml(item.impact || "") + '</span></div>'
+        + '</div>'
+      )).join("")
+    + '</div>';
 }
 
 function renderRealityCheckProgress(){
@@ -2177,11 +2301,11 @@ function setPostUploadBridge(text){
   if(!bridge) return;
   if(text){
     bridge.style.display="";
-    bridge.textContent=text;
+    bridge.innerHTML=String(text);
     return;
   }
   bridge.style.display="none";
-  bridge.textContent="";
+  bridge.innerHTML="";
 }
 
 function setPostUploadPrimaryCta(label){
@@ -2200,6 +2324,7 @@ function renderRealityCheckPreparing(cv){
   setBadge("postUploadBadge", textStatus === "failed" ? "bad" : "warn", textStatus === "failed" ? "Needs text" : "Preparing review");
   setText("postUploadTitle", "Reviewing your CV");
   setText("postUploadBody", "We’re checking structure, ATS readability, and role relevance. This usually takes a short moment.");
+  setPostUploadHeroScore(null);
   const scores=$("postUploadScores");
   if(scores) scores.style.display="none";
   renderRealityCheckProgress();
@@ -2215,6 +2340,8 @@ function renderRealityCheckBaseline(cv, options){
   if(!card) return;
   const opts=options && typeof options === "object" ? options : {};
   const fallback=buildRealityCheckFallback(cv);
+  const atsMeta=getAtsScoreMeta(fallback.ats_readiness_score || 44);
+  const readabilityMeta=getMachineReadabilityMeta(fallback.machine_readability || "Low");
   card.style.display="";
   setText("postUploadKicker","AI CV Review");
   setBadge("postUploadBadge", "warn", "Baseline review");
@@ -2222,43 +2349,47 @@ function renderRealityCheckBaseline(cv, options){
   setText("postUploadBody", opts.loading
     ? "This is your current untailored baseline. These are the issues ATS systems and recruiters are most likely to notice first."
     : "This is your current untailored baseline. These are the issues ATS systems and recruiters are most likely to notice first.");
+  setPostUploadHeroScore(fallback.ats_readiness_score || 44, atsMeta);
   const scores=$("postUploadScores");
   if(scores) scores.style.display="";
-  setText("postUploadScoreValue", String(fallback.ats_readiness_score || 44) + "/100");
+  setText("postUploadScoreValue", String(fallback.ats_readiness_score || 44) + " / 100");
+  setMetricPill("postUploadScoreLevel", atsMeta);
   setText("postUploadReadabilityValue", String(fallback.machine_readability || "Low"));
-  setText("postUploadScoreMeta", opts.loading
-    ? "Untailored baseline."
-    : "Untailored baseline.");
+  setMetricPill("postUploadReadabilityLevel", readabilityMeta);
+  setText("postUploadScoreMeta", atsMeta.interpretation);
   setText("postUploadReadabilityMeta", opts.loading
-    ? "Early ATS parsing estimate."
-    : "How clearly ATS systems can parse this CV.");
+    ? "Early baseline read while the full review is still finishing."
+    : readabilityMeta.interpretation);
   renderRealityCheckFindings(fallback.findings);
-  setPostUploadBridge("");
-  setPostUploadPrimaryCta("Tailor this CV to a job");
-  setText("postUploadSecondary", "Tailoring this CV to a real job is the fastest way to improve it.");
+  setPostUploadBridge(buildTailoringImprovementsHtml());
+  setPostUploadPrimaryCta("Tailor this CV to a job →");
+  setText("postUploadSecondary", "Takes ~30 seconds • Your original CV stays unchanged");
 }
 
 function renderRealityCheckResult(result){
   const card=$("postUploadCard");
   if(!card) return;
   const normalized=result && typeof result === "object" ? result : buildRealityCheckFallback(lastCvSnapshot || {});
+  const atsMeta=getAtsScoreMeta(normalized.ats_readiness_score || 44);
+  const readabilityMeta=getMachineReadabilityMeta(normalized.machine_readability || "Low");
   card.style.display="";
   setText("postUploadKicker","AI CV Review");
   setBadge("postUploadBadge", "good", "Review ready");
   setText("postUploadTitle", "Your CV is not ready for most job applications yet");
   setText("postUploadBody", "This is your current untailored baseline. These are the issues ATS systems and recruiters are most likely to notice first.");
+  setPostUploadHeroScore(normalized.ats_readiness_score || 44, atsMeta);
   const scores=$("postUploadScores");
   if(scores) scores.style.display="";
-  setText("postUploadScoreValue", String(normalized.ats_readiness_score || 44) + "/100");
+  setText("postUploadScoreValue", String(normalized.ats_readiness_score || 44) + " / 100");
+  setMetricPill("postUploadScoreLevel", atsMeta);
   setText("postUploadReadabilityValue", String(normalized.machine_readability || "Low"));
-  setText("postUploadScoreMeta", "Untailored baseline.");
-  setText("postUploadReadabilityMeta", String(normalized.machine_readability || "Low") === "Low"
-    ? "Low means ATS systems may miss or down-rank parts of this CV."
-    : "How clearly ATS systems can parse this CV.");
+  setMetricPill("postUploadReadabilityLevel", readabilityMeta);
+  setText("postUploadScoreMeta", atsMeta.interpretation);
+  setText("postUploadReadabilityMeta", readabilityMeta.interpretation);
   renderRealityCheckFindings(normalized.findings);
-  setPostUploadBridge("");
-  setPostUploadPrimaryCta("Tailor this CV to a job");
-  setText("postUploadSecondary", "Tailoring this CV to a real job is the fastest way to improve it.");
+  setPostUploadBridge(buildTailoringImprovementsHtml());
+  setPostUploadPrimaryCta("Tailor this CV to a job →");
+  setText("postUploadSecondary", "Takes ~30 seconds • Your original CV stays unchanged");
 }
 
 async function loadRealityCheckForCv(cv){
