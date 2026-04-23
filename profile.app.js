@@ -28,6 +28,23 @@ const CV_REALITY_CHECK_CACHE_KEY = "jm_cv_reality_check_v1";
 const PRODUCT_EVENT_QUEUE_KEY = "jm_product_event_queue_v1";
 const PRODUCT_EVENT_QUEUE_LIMIT = 40;
 const ENABLE_MATCHED_JOBS_ASSISTS = false;
+const REVIEW_PROGRESS_STEPS = Object.freeze([
+  {
+    title:"Reading structure",
+    description:"Extracting sections, dates, titles, and skills"
+  },
+  {
+    title:"Checking ATS readability",
+    description:"Looking for formatting issues that can hurt parsing"
+  },
+  {
+    title:"Checking role relevance",
+    description:"Reviewing keyword strength and evidence of impact"
+  }
+]);
+const REVIEW_PROGRESS_STEP_DELAY_MS = 800;
+const REVIEW_PROGRESS_MIN_MS = REVIEW_PROGRESS_STEP_DELAY_MS * (REVIEW_PROGRESS_STEPS.length - 1);
+const REVIEW_PROGRESS_FINISH_HOLD_MS = 220;
 const CV_PLAN_META = Object.freeze({
   free: { label:"Free", quota:"5 free CVs" },
   cv_starter: { label:"Starter", quota:"10 CVs / month" },
@@ -59,6 +76,11 @@ let realityCheckResult=null;
 let realityCheckKey="";
 let realityCheckInFlight=false;
 let realityCheckShownTrackKey="";
+let reviewProgressKey="";
+let reviewProgressStartedAt=0;
+let reviewProgressActiveIndex=0;
+let reviewProgressCompleted=false;
+let reviewProgressAdvanceTimer=0;
 let productEventFlushTimer=0;
 let productEventFlushInFlight=false;
 
@@ -1966,6 +1988,99 @@ if(textMeta.status === "failed"){
 return { label:"preparing", className:"warn" };
 }
 
+function clearReviewProgressAdvanceTimer(){
+if(reviewProgressAdvanceTimer){
+  clearTimeout(reviewProgressAdvanceTimer);
+  reviewProgressAdvanceTimer=0;
+}
+}
+
+function resetReviewProgressState(){
+clearReviewProgressAdvanceTimer();
+reviewProgressKey="";
+reviewProgressStartedAt=0;
+reviewProgressActiveIndex=0;
+reviewProgressCompleted=false;
+}
+
+function getReviewProgressEntries(){
+return REVIEW_PROGRESS_STEPS.map((step, index)=>({
+  ...step,
+  state: reviewProgressCompleted
+    ? "done"
+    : index < reviewProgressActiveIndex
+      ? "done"
+      : index === reviewProgressActiveIndex
+        ? "active"
+        : "waiting"
+}));
+}
+
+function getReviewProgressFillWidth(){
+if(reviewProgressCompleted) return 100;
+if(reviewProgressActiveIndex <= 0) return 24;
+if(reviewProgressActiveIndex === 1) return 58;
+return 84;
+}
+
+function rerenderPreparingRealityCheckForCurrentCv(){
+const cv=lastCvSnapshot;
+if(!cv || !cv.cv_path) return;
+const key=cvMetaKey(cvMetaFromCv(cv));
+if(!key || key !== reviewProgressKey) return;
+renderRealityCheckPreparing(cv);
+syncCvHeaderWithReviewState(cv);
+setOnboardingUI(state);
+}
+
+function scheduleReviewProgressAdvance(key){
+clearReviewProgressAdvanceTimer();
+if(!key || reviewProgressCompleted || reviewProgressActiveIndex >= REVIEW_PROGRESS_STEPS.length - 1) return;
+reviewProgressAdvanceTimer=setTimeout(()=>{
+  if(reviewProgressKey !== key || reviewProgressCompleted) return;
+  reviewProgressActiveIndex += 1;
+  rerenderPreparingRealityCheckForCurrentCv();
+  scheduleReviewProgressAdvance(key);
+}, REVIEW_PROGRESS_STEP_DELAY_MS);
+}
+
+function ensureReviewProgress(key){
+if(!key) return;
+if(reviewProgressKey === key){
+  if(!reviewProgressCompleted && !reviewProgressAdvanceTimer && reviewProgressActiveIndex < REVIEW_PROGRESS_STEPS.length - 1){
+    scheduleReviewProgressAdvance(key);
+  }
+  return;
+}
+resetReviewProgressState();
+reviewProgressKey=key;
+reviewProgressStartedAt=Date.now();
+reviewProgressActiveIndex=0;
+reviewProgressCompleted=false;
+scheduleReviewProgressAdvance(key);
+}
+
+async function waitForReviewProgressReveal(key, cv){
+ensureReviewProgress(key);
+if(reviewProgressKey !== key) return false;
+const waitMs=Math.max(0, (reviewProgressStartedAt + REVIEW_PROGRESS_MIN_MS) - Date.now());
+if(waitMs > 0){
+  await new Promise((resolve)=>setTimeout(resolve, waitMs));
+}
+if(reviewProgressKey !== key) return false;
+if(!reviewProgressCompleted){
+  reviewProgressCompleted=true;
+  clearReviewProgressAdvanceTimer();
+  renderRealityCheckPreparing(cv);
+}
+await new Promise((resolve)=>setTimeout(resolve, REVIEW_PROGRESS_FINISH_HOLD_MS));
+return reviewProgressKey === key;
+}
+
+function shouldHoldRealityCheckPreparing(key){
+return !!(key && reviewProgressKey === key && !reviewProgressCompleted);
+}
+
 function maybeFocusPostUploadCard(){
 if(!shouldFocusPostUploadCard) return;
 const card=$("postUploadCard");
@@ -2079,23 +2194,25 @@ function renderRealityCheckFindings(findings){
   )).join("");
 }
 
-function renderRealityCheckSkeleton(){
+function renderRealityCheckProgress(){
   const host=$("postUploadFindings");
   if(!host) return;
+  const steps=getReviewProgressEntries();
+  const fillWidth=getReviewProgressFillWidth();
   host.innerHTML=
-    '<div class="realityLoadingCallout">'
-      + '<div class="realityLoadingTitle">Preparing your first CV review</div>'
-      + '<div class="realityLoadingText">We’re extracting readable text and preparing the first ATS and readability baseline now.</div>'
-    + '</div>'
-    + '<div class="realityFindingsLoading" aria-hidden="true">'
-      + Array.from({ length:3 }).map(() => (
-        '<div class="realityFinding realityFindingSkeleton">'
-          + '<div class="realitySkeletonLine title"></div>'
-          + '<div class="realitySkeletonLine long"></div>'
-          + '<div class="realitySkeletonLine mid"></div>'
-          + '<div class="realitySkeletonLine short"></div>'
-        + '</div>'
-      )).join("")
+    '<div class="reviewProgressModule">'
+      + '<div class="reviewProgressList">'
+        + steps.map((step)=>(
+          '<div class="reviewProgressRow">'
+            + '<div class="reviewProgressIcon ' + step.state + '" aria-hidden="true">' + (step.state === "done" ? '&#10003;' : step.state === "active" ? '&#8226;' : '&#8226;') + '</div>'
+            + '<div class="reviewProgressCopy">'
+              + '<div class="reviewProgressTitle">' + escapeHtml(step.title) + '</div>'
+              + '<div class="reviewProgressDesc">' + escapeHtml(step.description) + '</div>'
+            + '</div>'
+          + '</div>'
+        )).join("")
+      + '</div>'
+      + '<div class="reviewProgressBar" aria-hidden="true"><div class="reviewProgressFill" style="width:' + String(fillWidth) + '%"></div></div>'
     + '</div>';
 }
 
@@ -2132,16 +2249,16 @@ function renderRealityCheckPreparing(cv){
   const card=$("postUploadCard");
   if(!card) return;
   const textStatus=getReadableTextStatus(cv);
+  const key=cvMetaKey(cvMetaFromCv(cv));
+  ensureReviewProgress(key);
   card.style.display="";
   setText("postUploadKicker","AI CV Review");
   setBadge("postUploadBadge", textStatus === "failed" ? "bad" : "warn", textStatus === "failed" ? "Needs text" : "Preparing review");
-  setText("postUploadTitle", "Your base CV is ready.");
-  setText("postUploadBody", textStatus === "failed"
-    ? "We couldn’t finish readable text extraction yet, so the first CV review is still waiting on that step."
-    : "We’re extracting readable text and preparing your first CV review. This usually takes a short moment.");
+  setText("postUploadTitle", "Reviewing your CV");
+  setText("postUploadBody", "We’re checking structure, ATS readability, and role relevance. This usually takes a short moment.");
   const scores=$("postUploadScores");
   if(scores) scores.style.display="none";
-  renderRealityCheckSkeleton();
+  renderRealityCheckProgress();
   setPostUploadBridge("");
   setPostUploadPrimaryCta("Continue to CV Studio");
   setText("postUploadSecondary", textStatus === "failed"
@@ -2217,6 +2334,13 @@ async function loadRealityCheckForCv(cv){
 
   const cached=readRealityCheckCache(meta);
   if(cached){
+    if(shouldHoldRealityCheckPreparing(key)){
+      renderRealityCheckPreparing(cv);
+      syncCvHeaderWithReviewState(cv);
+      setOnboardingUI(state);
+      const readyToReveal=await waitForReviewProgressReveal(key, cv);
+      if(!readyToReveal || realityCheckKey !== key) return;
+    }
     realityCheckResult=normalizeRealityCheckResult(cached, cv);
     realityCheckKey=key;
     renderRealityCheckResult(realityCheckResult);
@@ -2232,28 +2356,71 @@ async function loadRealityCheckForCv(cv){
   realityCheckKey=key;
   realityCheckInFlight=true;
   realityCheckResult=null;
-  renderRealityCheckBaseline(cv, { loading:true });
+  renderRealityCheckPreparing(cv);
+  syncCvHeaderWithReviewState(cv);
+  setOnboardingUI(state);
+
+  let fetchSettled=false;
+  let normalizedFromServer=null;
+  const reviewRequestPromise=(async()=>{
+    try{
+      const resp=await apiPostJson("/me/ai/cv-reality-check",{});
+      const normalized=normalizeRealityCheckResult(resp && resp.result ? resp.result : null, cv);
+      normalizedFromServer=normalized;
+      writeRealityCheckCache(meta, normalized);
+      return normalized;
+    }catch(_){
+      return null;
+    }finally{
+      fetchSettled=true;
+    }
+  })();
+
+  const readyToReveal=await waitForReviewProgressReveal(key, cv);
+  if(!readyToReveal || realityCheckKey !== key){
+    return;
+  }
+
+  if(normalizedFromServer){
+    realityCheckResult=normalizedFromServer;
+    renderRealityCheckResult(normalizedFromServer);
+    maybeTrackRealityCheckShown(cv);
+    syncCvHeaderWithReviewState(cv);
+    realityCheckInFlight=false;
+    setOnboardingUI(state);
+    maybeFocusPostUploadCard();
+    return;
+  }
+
+  renderRealityCheckBaseline(cv, { loading:!fetchSettled });
   maybeTrackRealityCheckShown(cv);
   syncCvHeaderWithReviewState(cv);
   setOnboardingUI(state);
 
-  try{
-    const resp=await apiPostJson("/me/ai/cv-reality-check",{});
-    const normalized=normalizeRealityCheckResult(resp && resp.result ? resp.result : null, cv);
-    realityCheckResult=normalized;
-    writeRealityCheckCache(meta, normalized);
-    renderRealityCheckResult(normalized);
+  if(fetchSettled){
+    realityCheckInFlight=false;
+    maybeFocusPostUploadCard();
+    return;
+  }
+
+  reviewRequestPromise.then((normalized)=>{
+    if(realityCheckKey !== key) return;
+    if(normalized){
+      realityCheckResult=normalized;
+      renderRealityCheckResult(normalized);
+    }else{
+      realityCheckResult=null;
+      renderRealityCheckBaseline(cv, { loading:false });
+    }
     maybeTrackRealityCheckShown(cv);
     syncCvHeaderWithReviewState(cv);
-  }catch(_){
-    realityCheckResult=null;
-    renderRealityCheckBaseline(cv, { loading:false });
-    syncCvHeaderWithReviewState(cv);
-  }finally{
-    realityCheckInFlight=false;
     setOnboardingUI(state);
     maybeFocusPostUploadCard();
-  }
+  }).finally(()=>{
+    if(realityCheckKey !== key) return;
+    realityCheckInFlight=false;
+    setOnboardingUI(state);
+  });
 }
 
 function syncPostUploadCard(cv){
@@ -2266,6 +2433,7 @@ if(!cv || !cv.cv_path){
   realityCheckKey="";
   realityCheckInFlight=false;
   realityCheckShownTrackKey="";
+  resetReviewProgressState();
   return;
 }
 
@@ -2274,12 +2442,13 @@ const key=cvMetaKey(cvMetaFromCv(cv));
 if(realityCheckKey && realityCheckKey !== key){
   realityCheckResult=null;
   realityCheckInFlight=false;
+  resetReviewProgressState();
 }
 const stage=getPostUploadReviewStage(cv, realityCheckResult);
-if(stage === "c"){
+if(stage === "c" && !shouldHoldRealityCheckPreparing(key)){
   renderRealityCheckResult(realityCheckResult);
   maybeTrackRealityCheckShown(cv);
-}else if(stage === "b"){
+}else if(stage === "b" && !shouldHoldRealityCheckPreparing(key)){
   renderRealityCheckBaseline(cv, { loading:realityCheckInFlight && realityCheckKey === key });
   maybeTrackRealityCheckShown(cv);
 }else{
