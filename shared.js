@@ -957,11 +957,11 @@ details[data-dd="1"]:not([open]) .navMenu{
   max-width:42ch;
 }
 .jmExtGuideBody{
-  padding:16px 14px 18px;
+  padding:18px 18px 20px;
 }
 .jmExtGuideHero{
   display:grid;
-  gap:12px;
+  gap:14px;
   align-items:stretch;
 }
 .jmExtGuideIntro,
@@ -1069,8 +1069,8 @@ details[data-dd="1"]:not([open]) .navMenu{
 }
 .jmExtGuideGrid{
   display:grid;
-  gap:10px;
-  margin-top:14px;
+  gap:12px;
+  margin-top:16px;
 }
 .jmExtGuideStep{
   padding:15px;
@@ -1178,7 +1178,7 @@ details[data-dd="1"]:not([open]) .navMenu{
 }
 @media (min-width: 720px){
   .jmExtGuideHero{
-    grid-template-columns:minmax(0, 1.35fr) minmax(260px, .95fr);
+    grid-template-columns:minmax(0, 1.5fr) minmax(300px, 1fr);
   }
   .jmExtGuideGrid{
     grid-template-columns:repeat(3, minmax(0, 1fr));
@@ -1265,7 +1265,7 @@ details[data-dd="1"]:not([open]) .navMenu{
       </svg>
     `;
     modal.innerHTML = `
-      <div class="modalCard" style="max-width:760px">
+      <div class="modalCard" style="width:min(900px, calc(100vw - 36px)); max-width:900px">
         <div class="modalHeader jmExtGuideHeader">
           <div style="min-width:0">
             <div class="jmExtGuideTitleWrap">
