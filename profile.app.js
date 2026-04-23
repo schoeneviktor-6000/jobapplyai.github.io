@@ -3459,7 +3459,6 @@ refreshGmailVerifyUi();
 await ensureCustomer(email, session.access_token);
 await refreshState();
 try{ window.JobMeJobShared?.hydrateAccountNav?.({ session, state }); }catch(_){}
-await refreshBillingSummary();
 await loadCvStatusAndUpdateUx();
 await maybeFinishPendingGmailVerify();
 

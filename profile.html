@@ -1524,6 +1524,29 @@ Profile reduction pass
   gap:10px;
   padding:14px;
 }
+.accountCardFooter{
+  display:flex;
+  justify-content:flex-end;
+  padding-top:2px;
+}
+.accountBillingLink{
+  border:0;
+  background:transparent;
+  padding:0;
+  color:#0a5a2a;
+  font-size:13px;
+  font-weight:900;
+  line-height:1.3;
+  cursor:pointer;
+}
+.accountBillingLink:hover{
+  text-decoration:underline;
+}
+.accountBillingLink:disabled{
+  opacity:.56;
+  cursor:wait;
+  text-decoration:none;
+}
 .compactHeadingRow{
   display:flex;
   align-items:center;
@@ -1944,11 +1967,14 @@ Matched jobs premium polish
         <div class="jmAccountHint" id="navPlanMeta">CV Studio free plan</div>
         <div class="jmAccountHint" id="navUsageMeta">Usage updates after each tailored CV.</div>
       </div>
-          <div class="menuLabel">Account</div>
+          <div class="menuLabel">Go to</div>
+          <a class="jmNavItem" href="/cv?entry=chooser" data-nav="1" role="menuitem">CV Studio</a>
           <a class="jmNavItem" href="./profile.html" data-nav="1" role="menuitem">Profile</a>
-          <a class="jmNavItem" href="./profile.html#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Billing</a>
+          <a class="jmNavItem" href="./profile.html#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Manage billing</a>
+          <a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Plans & pricing</a>
+          <button class="jmNavItem" id="navActivity" type="button" role="menuitem">Activity</button>
           <div class="menuSep" role="separator"></div>
-          <button class="jmNavItem jmNavDanger" id="navLogout" type="button" role="menuitem">Sign out</button>
+          <button class="jmNavItem jmNavDanger" id="navLogout" type="button" role="menuitem">Logout</button>
         </div>
       </details>
 
@@ -2086,41 +2112,9 @@ Matched jobs premium polish
         <div class="kpiVal" id="kOcr">…</div>
       </div>
     </div>
-  </div>
-
-  <div class="helpBox billingBox compactBilling" id="billingBox">
-    <div class="compactHeadingRow">
-      <h2>Billing</h2>
-      <span class="badge warn" id="billingStatusBadge">Checking…</span>
+    <div class="accountCardFooter">
+      <button class="accountBillingLink" id="billingManageBtn" type="button">Manage billing →</button>
     </div>
-    <div class="small" id="billingSummaryText">Plan and invoices.</div>
-    <div class="billingStats">
-      <div class="billingStat">
-        <div class="billingStatLabel">Plan</div>
-        <div class="billingStatValue" id="billingPlanValue">—</div>
-      </div>
-      <div class="billingStat">
-        <div class="billingStatLabel">Usage</div>
-        <div class="billingStatValue" id="billingUsageValue">—</div>
-      </div>
-      <div class="billingStat">
-        <div class="billingStatLabel">Status</div>
-        <div class="billingStatValue" id="billingCycleValue">—</div>
-      </div>
-      <div class="billingStat">
-        <div class="billingStatLabel">Invoices</div>
-        <div class="billingStatValue" id="billingInvoiceValue">—</div>
-      </div>
-    </div>
-    <div class="billingInvoices" id="billingInvoicesSection" style="display:none">
-      <div class="small" style="font-weight:850;color:var(--text)">Recent invoices</div>
-      <div class="invoiceList" id="billingInvoicesList"></div>
-    </div>
-    <div class="actions">
-      <button class="btn primary" id="billingManageBtn" type="button">Manage billing</button>
-      <a class="btn" data-nav="1" href="./plan.html#cv-pricing" id="billingPlansBtn">View plans</a>
-    </div>
-    <div class="small" id="billingFooterHint">Open Stripe billing.</div>
   </div>
 
   <details class="helpBox slimDetails">
@@ -2205,7 +2199,7 @@ Matched jobs premium polish
   <!-- Scripts: order matters -->
   <script src="./vendor/supabase-js-2.100.1.js"></script>
   <script src="./auth.js?v=202604121905"></script>
-  <script src="./shared.js?v=202604231420"></script>
+  <script src="./shared.js?v=202604232345"></script>
 
   <script src="./profile.app.js?v=202604232145"></script>
 </body>

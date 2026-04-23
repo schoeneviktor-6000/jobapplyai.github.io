@@ -1,5 +1,5 @@
 /* shared.js — JobMeJob multipage helpers (site-wide)
-   Version: 2026-04-10 (v5)
+   Version: 2026-04-23 (v5)
 
    Safe to include on every page.
    Includes:
@@ -17,7 +17,7 @@
   // Avoid double-init
   if (window.JobMeJobShared && window.JobMeJobShared.__loaded_v5) return;
 
-  const VERSION = "2026-04-10-v5";
+  const VERSION = "2026-04-23-v5";
 
   const $ = (id) => document.getElementById(id);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -1523,37 +1523,6 @@ details[data-dd="1"]:not([open]) .navMenu{
     pruneDeprecatedNavLinks(navAccount);
   }
 
-  function trimProfileAccountMenu(navAccount){
-    const menu = navAccount?.querySelector(".navMenu");
-    if (!menu) return;
-
-    const isProfilePage = /\/profile(?:\.html)?$/i.test(String(window.location.pathname || ""));
-    if (!isProfilePage) return;
-
-    menu.querySelectorAll(".jmNavItem").forEach((item) => {
-      const href = String(item.getAttribute?.("href") || "").toLowerCase();
-      const keepProfile = href.includes("profile");
-      const keepBilling = item.getAttribute?.("data-jm-nav") === "subscription-billing";
-      const keepLogout = item.id === "navLogout";
-      if (keepProfile || keepBilling || keepLogout) return;
-      try{ item.remove(); }catch(_){}
-    });
-
-    menu.querySelectorAll(".menuSep").forEach((sep) => {
-      const hasVisibleBefore = !!sep.previousElementSibling;
-      const hasVisibleAfter = !!sep.nextElementSibling;
-      if (hasVisibleBefore && hasVisibleAfter) return;
-      try{ sep.remove(); }catch(_){}
-    });
-
-    const billingItem = menu.querySelector("[data-jm-nav='subscription-billing']");
-    if (billingItem) billingItem.textContent = "Billing";
-    const profileItem = menu.querySelector("a.jmNavItem[href*='profile']");
-    if (profileItem) profileItem.textContent = "Profile";
-    const logoutItem = menu.querySelector("#navLogout");
-    if (logoutItem) logoutItem.textContent = "Sign out";
-  }
-
   function ensureAccountExtensionNav(navAccount){
     const menu = navAccount?.querySelector(".navMenu");
     if (!menu) return;
@@ -1580,6 +1549,405 @@ details[data-dd="1"]:not([open]) .navMenu{
         menu.appendChild(extensionButton);
       }
     }
+  }
+
+  function ensureSharedActivityStyles(){
+    if (document.getElementById("jmSharedActivityStyles")) return;
+    const style = document.createElement("style");
+    style.id = "jmSharedActivityStyles";
+    style.textContent = `
+.jmSharedActivityBackdrop{
+  align-items:flex-start;
+  justify-content:center;
+  padding:56px 18px 20px;
+  background:rgba(17,19,24,.42);
+}
+.jmSharedActivityCard{
+  width:min(760px, calc(100vw - 28px));
+  max-height:min(78vh, 860px);
+  border-radius:24px;
+  border:1px solid rgba(17,19,24,.10);
+  background:rgba(255,255,255,.985);
+  box-shadow:0 28px 70px rgba(17,19,24,.22), 0 10px 28px rgba(17,19,24,.10);
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr) auto;
+  overflow:hidden;
+}
+.jmSharedActivityHeader{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  padding:18px 20px 14px;
+  border-bottom:1px solid rgba(17,19,24,.08);
+}
+.jmSharedActivityTitle{
+  margin:0;
+  font-size:22px;
+  font-weight:950;
+  letter-spacing:-.03em;
+  line-height:1.05;
+}
+.jmSharedActivitySub{
+  margin:6px 0 0;
+  font-size:13px;
+  line-height:1.5;
+  color:rgba(17,19,24,.60);
+}
+.jmSharedActivityClose{
+  flex:0 0 auto;
+}
+.jmSharedActivityBody{
+  overflow:auto;
+  padding:16px 20px;
+  display:grid;
+  gap:12px;
+}
+.jmSharedActivityError{
+  display:none;
+  padding:11px 12px;
+  border-radius:14px;
+  border:1px solid rgba(216,27,96,.14);
+  background:rgba(216,27,96,.07);
+  color:#8b1d42;
+  font-size:13px;
+  font-weight:780;
+}
+.jmSharedActivityList{
+  display:grid;
+  gap:10px;
+}
+.jmSharedActivityItem{
+  padding:14px;
+  border-radius:18px;
+  border:1px solid rgba(17,19,24,.08);
+  background:linear-gradient(180deg, rgba(255,255,255,.96), rgba(17,19,24,.025));
+  display:grid;
+  gap:8px;
+}
+.jmSharedActivityTop{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+.jmSharedActivityItemTitle{
+  min-width:0;
+  font-size:15px;
+  font-weight:900;
+  line-height:1.35;
+  color:var(--text, #111318);
+}
+.jmSharedActivityItemTitle a{
+  color:inherit;
+  text-decoration:none;
+}
+.jmSharedActivityItemTitle a:hover{
+  text-decoration:underline;
+}
+.jmSharedActivityMeta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  font-size:12px;
+  line-height:1.45;
+  color:rgba(17,19,24,.60);
+}
+.jmSharedActivityDot{
+  opacity:.45;
+}
+.jmSharedActivityBadge{
+  display:inline-flex;
+  align-items:center;
+  min-height:28px;
+  padding:0 10px;
+  border-radius:999px;
+  border:1px solid rgba(17,19,24,.10);
+  background:#fff;
+  color:rgba(17,19,24,.82);
+  font-size:11px;
+  font-weight:900;
+  white-space:nowrap;
+  letter-spacing:.02em;
+  text-transform:uppercase;
+}
+.jmSharedActivityBadge.good{
+  border-color:rgba(34,197,94,.26);
+  background:rgba(34,197,94,.10);
+  color:#0a4a22;
+}
+.jmSharedActivityBadge.warn{
+  border-color:rgba(234,88,12,.24);
+  background:rgba(234,88,12,.10);
+  color:#7a3f00;
+}
+.jmSharedActivityBadge.bad{
+  border-color:rgba(190,24,93,.18);
+  background:rgba(190,24,93,.10);
+  color:#8b1d42;
+}
+.jmSharedActivityBadge.prio{
+  border-color:rgba(59,130,246,.18);
+  background:rgba(59,130,246,.10);
+  color:#1744a7;
+}
+.jmSharedActivityEmpty{
+  padding:14px;
+  border-radius:18px;
+  border:1px dashed rgba(17,19,24,.14);
+  color:rgba(17,19,24,.60);
+  font-size:13px;
+  font-weight:780;
+  text-align:center;
+}
+.jmSharedActivityActions{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:14px 20px 18px;
+  border-top:1px solid rgba(17,19,24,.08);
+}
+.jmSharedActivityActionsLeft,
+.jmSharedActivityActionsRight{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+@media (max-width: 640px){
+  .jmSharedActivityBackdrop{
+    padding:18px 10px 12px;
+  }
+  .jmSharedActivityCard{
+    width:min(100vw - 12px, 760px);
+    max-height:calc(100vh - 20px);
+    border-radius:22px;
+  }
+  .jmSharedActivityHeader,
+  .jmSharedActivityBody,
+  .jmSharedActivityActions{
+    padding-left:14px;
+    padding-right:14px;
+  }
+  .jmSharedActivityHeader{
+    flex-direction:column;
+    align-items:stretch;
+  }
+  .jmSharedActivityActions{
+    flex-direction:column;
+  }
+}
+`;
+    document.head.appendChild(style);
+  }
+
+  function formatSharedActivityWhen(ts){
+    try{
+      if (!ts) return "—";
+      const date = new Date(ts);
+      if (!Number.isFinite(date.getTime())) return String(ts);
+      return date.toLocaleString();
+    }catch(_){
+      return String(ts || "—");
+    }
+  }
+
+  function sharedActivityBadgeInfo(type){
+    const value = String(type || "").trim().toLowerCase();
+    if (value === "applied" || value === "sent") return { cls:"good", label:"Applied" };
+    if (value === "rejected") return { cls:"bad", label:"Rejected" };
+    if (value === "skipped") return { cls:"warn", label:"Skipped" };
+    if (value === "prioritized") return { cls:"prio", label:"Prioritized" };
+    if (value === "queued" || value === "new") return { cls:"", label:"Queued" };
+    return { cls:"", label:(type ? String(type) : "Event") };
+  }
+
+  function renderSharedActivityList(items, kind){
+    const arr = Array.isArray(items) ? items : [];
+    if (!arr.length){
+      return '<div class="jmSharedActivityEmpty">No activity yet.</div>';
+    }
+
+    return (
+      '<div class="jmSharedActivityList">'
+      + arr.slice(0, 20).map((row) => {
+        const evType = kind === "applications" ? String(row?.status || "new") : String(row?.event_type || "");
+        const badge = sharedActivityBadgeInfo(evType);
+        const job = row && row.job ? row.job : {};
+        const title = String(job.title || "Untitled");
+        const company = String(job.company_name || job.company || "—");
+        const location = [job.city || "", job.region || ""].filter(Boolean).join(", ") || "—";
+        const when = kind === "applications" ? (row.updated_at || row.created_at) : row.created_at;
+        const link = job.apply_url ? String(job.apply_url) : "";
+        let meta = "";
+        try{
+          if (kind !== "applications" && row.meta && typeof row.meta === "object"){
+            if (row.meta.channel) meta = "via " + String(row.meta.channel);
+            if (row.meta.reason_code){
+              meta = meta
+                ? `${meta} • reason: ${String(row.meta.reason_code)}`
+                : `reason: ${String(row.meta.reason_code)}`;
+            }
+          }
+        }catch(_){}
+
+        const titleHtml = link
+          ? `<a href="${escapeHtml(link)}" target="_blank" rel="noopener">${escapeHtml(title)}</a>`
+          : escapeHtml(title);
+
+        const metaParts = [
+          `<span>${escapeHtml(company)}</span>`,
+          '<span class="jmSharedActivityDot" aria-hidden="true">•</span>',
+          `<span>${escapeHtml(location)}</span>`,
+          '<span class="jmSharedActivityDot" aria-hidden="true">•</span>',
+          `<span>${escapeHtml(formatSharedActivityWhen(when))}</span>`
+        ];
+        if (meta){
+          metaParts.push('<span class="jmSharedActivityDot" aria-hidden="true">•</span>');
+          metaParts.push(`<span>${escapeHtml(meta)}</span>`);
+        }
+
+        return (
+          '<div class="jmSharedActivityItem">'
+          + '<div class="jmSharedActivityTop">'
+          + `<div class="jmSharedActivityItemTitle">${titleHtml}</div>`
+          + `<span class="jmSharedActivityBadge ${escapeHtml(badge.cls)}">${escapeHtml(badge.label)}</span>`
+          + '</div>'
+          + `<div class="jmSharedActivityMeta">${metaParts.join("")}</div>`
+          + '</div>'
+        );
+      }).join("")
+      + '</div>'
+    );
+  }
+
+  function setSharedActivityError(message){
+    const el = $("jmSharedActivityError");
+    if (!el) return;
+    const text = String(message || "").trim();
+    el.style.display = text ? "block" : "none";
+    el.textContent = text;
+  }
+
+  async function loadSharedActivityLog(){
+    const wrap = $("jmSharedActivityWrap");
+    if (wrap) wrap.innerHTML = '<div class="jmSharedActivityEmpty">Loading…</div>';
+    setSharedActivityError("");
+
+    const auth = getAppAuth();
+    let session = null;
+    try{
+      session = auth && typeof auth.getSession === "function"
+        ? await auth.getSession()
+        : null;
+    }catch(_){
+      session = null;
+    }
+
+    const token = String(session?.access_token || "").trim();
+    if (!token){
+      setSharedActivityError("You are signed out. Please sign in again.");
+      if (wrap) wrap.innerHTML = '<div class="jmSharedActivityEmpty">Activity is unavailable until you sign in.</div>';
+      return;
+    }
+
+    const apiBase = resolveApiBase("https://jobmejob.schoene-viktor.workers.dev").replace(/\/+$/, "");
+    const headers = { Authorization: `Bearer ${token}` };
+
+    try{
+      const res = await fetch(`${apiBase}/me/application-events?limit=20`, { method:"GET", headers });
+      const text = await res.text().catch(() => "");
+      let json = null;
+      try{ json = text ? JSON.parse(text) : null; }catch(_){ json = { raw:text }; }
+
+      if (!res.ok){
+        const msg = json && (json.error || json.message)
+          ? String(json.error || json.message)
+          : (text || (`HTTP ${res.status}`));
+        throw new Error(msg);
+      }
+
+      const items = Array.isArray(json?.data) ? json.data : [];
+      if (wrap) wrap.innerHTML = renderSharedActivityList(items, "events");
+      return;
+    }catch(_){
+      // fallback below
+    }
+
+    try{
+      const res = await fetch(`${apiBase}/me/applications?limit=20`, { method:"GET", headers });
+      const text = await res.text().catch(() => "");
+      let json = null;
+      try{ json = text ? JSON.parse(text) : null; }catch(_){ json = { raw:text }; }
+
+      if (!res.ok){
+        const msg = json && (json.error || json.message)
+          ? String(json.error || json.message)
+          : (text || (`HTTP ${res.status}`));
+        throw new Error(msg);
+      }
+
+      const items = Array.isArray(json?.data) ? json.data : [];
+      if (wrap) wrap.innerHTML = renderSharedActivityList(items, "applications");
+    }catch(e){
+      setSharedActivityError(e?.message || String(e));
+      if (wrap) wrap.innerHTML = '<div class="jmSharedActivityEmpty">Activity failed to load.</div>';
+    }
+  }
+
+  function ensureSharedActivityModal(){
+    ensureSharedActivityStyles();
+    let modal = $("jmSharedActivityModal");
+    if (modal) return modal;
+
+    modal = document.createElement("div");
+    modal.className = "modalBackdrop jmSharedActivityBackdrop";
+    modal.id = "jmSharedActivityModal";
+    modal.style.display = "none";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("aria-labelledby", "jmSharedActivityTitle");
+    modal.innerHTML = `
+      <div class="jmSharedActivityCard">
+        <div class="jmSharedActivityHeader">
+          <div style="min-width:0">
+            <h2 class="jmSharedActivityTitle" id="jmSharedActivityTitle">Activity</h2>
+            <p class="jmSharedActivitySub">Recent CV Studio and application actions across your account.</p>
+          </div>
+          <button class="btn small jmSharedActivityClose" type="button" data-close-modal>Close</button>
+        </div>
+        <div class="jmSharedActivityBody">
+          <div class="jmSharedActivityError" id="jmSharedActivityError"></div>
+          <div id="jmSharedActivityWrap"><div class="jmSharedActivityEmpty">Loading…</div></div>
+        </div>
+        <div class="jmSharedActivityActions">
+          <div class="jmSharedActivityActionsLeft">
+            <a class="btn ghost" href="/cv?entry=chooser" data-nav="1">Open CV Studio</a>
+          </div>
+          <div class="jmSharedActivityActionsRight">
+            <button class="btn" id="jmSharedActivityRefresh" type="button">Refresh</button>
+            <button class="btn ghost" type="button" data-close-modal>Close</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    const refreshBtn = $("jmSharedActivityRefresh");
+    if (refreshBtn && refreshBtn.dataset.jmSharedActivityWired !== "1"){
+      refreshBtn.dataset.jmSharedActivityWired = "1";
+      refreshBtn.addEventListener("click", () => {
+        loadSharedActivityLog().catch((e) => setSharedActivityError(e?.message || String(e)));
+      });
+    }
+
+    return modal;
+  }
+
+  function openSharedActivityModal(navAccount){
+    if (navAccount) navAccount.open = false;
+    ensureSharedActivityModal();
+    showModal("jmSharedActivityModal");
+    loadSharedActivityLog().catch((e) => setSharedActivityError(e?.message || String(e)));
   }
 
   function normalizeCvStudioNavLinks(root = document){
@@ -1635,7 +2003,6 @@ details[data-dd="1"]:not([open]) .navMenu{
       pruneAccountPrimaryNav(navAccount);
       ensureAccountBillingNav(navAccount);
       ensureAccountExtensionNav(navAccount);
-      trimProfileAccountMenu(navAccount);
     }
 
     const handle = (email.split("@")[0] || "Account").trim();
@@ -1672,8 +2039,18 @@ details[data-dd="1"]:not([open]) .navMenu{
     }
 
     const navActivity = $("navActivity");
-    if (navActivity && !document.getElementById("activityModal") && !document.getElementById("activityWrap") && !document.getElementById("activityFilters")){
-      navActivity.style.display = "none";
+    if (
+      navActivity
+      && !document.getElementById("activityModal")
+      && !document.getElementById("activityWrap")
+      && !document.getElementById("activityFilters")
+      && navActivity.dataset.jmSharedActivityWired !== "1"
+    ){
+      navActivity.dataset.jmSharedActivityWired = "1";
+      navActivity.addEventListener("click", (e) => {
+        e.preventDefault();
+        openSharedActivityModal(navAccount);
+      });
     }
 
     return { signedIn:true, session, state, email };
