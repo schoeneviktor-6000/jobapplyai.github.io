@@ -2066,14 +2066,47 @@ function readRealityCheckCache(meta){
   return cache.result;
 }
 
+function clampRealityScore(score, max){
+  const upper=Number.isFinite(Number(max)) ? Number(max) : 99;
+  return Math.max(0, Math.min(upper, Math.round(Number(score) || 0)));
+}
+
+function getRealityVerdictHeadline(score, rawHeadline){
+  const safe=clampRealityScore(score);
+  const headline=String(rawHeadline || "").trim();
+  if(safe >= 90){
+    return "Your CV is already in strong shape for ATS screening";
+  }
+  if(safe >= 75){
+    return "Your CV is in good shape, but still benefits from tailoring";
+  }
+  if(headline === "Your CV is currently not optimized for ATS systems"){
+    return headline;
+  }
+  return "Your CV is not ready for most job applications yet";
+}
+
+function getRealitySupportSentence(score){
+  const safe=clampRealityScore(score);
+  if(safe >= 90){
+    return "This untailored baseline is already structurally strong. Tailoring will mostly sharpen role relevance and keyword match.";
+  }
+  if(safe >= 75){
+    return "This untailored baseline is solid, but tailoring will still improve role match and evidence.";
+  }
+  return "This is your current untailored baseline. These are the issues ATS systems and recruiters are most likely to notice first.";
+}
+
 function buildRealityCheckFallback(cv){
   const ready=storedCvHasReadyText(cv);
   const isPdf=storedCvIsPdf(cv);
   const ocrStatus=String(cv?.cv_ocr_status || "").trim().toLowerCase();
+  const score=ready ? 44 : 41;
+  const readability=ready ? (isPdf ? "Low" : "Medium") : "Low";
   return {
-    headline: "We found issues worth fixing before you apply.",
-    ats_readiness_score: ready ? 44 : 41,
-    machine_readability: ready ? (isPdf ? "Low" : "Medium") : "Low",
+    headline:getRealityVerdictHeadline(score, readability === "Low" ? "Your CV is currently not optimized for ATS systems" : ""),
+    ats_readiness_score: score,
+    machine_readability: readability,
     bridge: "We found issues worth fixing before you apply. Tailoring this CV to a specific job will give you a much stronger result.",
     findings: [
       {
@@ -2097,13 +2130,10 @@ function buildRealityCheckFallback(cv){
 
 function normalizeRealityCheckResult(raw, cv){
   const fallback=buildRealityCheckFallback(cv);
-  const score=Math.max(35, Math.min(55, Math.round(Number(raw && raw.ats_readiness_score ? raw.ats_readiness_score : fallback.ats_readiness_score))));
+  const score=clampRealityScore(raw && raw.ats_readiness_score != null ? raw.ats_readiness_score : fallback.ats_readiness_score);
   const readabilityRaw=String(raw && raw.machine_readability ? raw.machine_readability : fallback.machine_readability).trim().toLowerCase();
   const readability=readabilityRaw === "high" ? "High" : readabilityRaw === "medium" ? "Medium" : "Low";
-  const headlineRaw=String(raw && raw.headline ? raw.headline : fallback.headline).trim();
-  const headline=headlineRaw === "Your CV is currently not optimized for ATS systems"
-    ? headlineRaw
-    : "Your CV is not ready for most job applications yet";
+  const headline=getRealityVerdictHeadline(score, raw && raw.headline ? raw.headline : fallback.headline);
   const findingsRaw=Array.isArray(raw && raw.findings) ? raw.findings : [];
   const findings=findingsRaw.map((item)=>({
     title:String(item && item.title ? item.title : "").trim(),
@@ -2126,25 +2156,57 @@ function normalizeRealityCheckResult(raw, cv){
 }
 
 function getAtsScoreMeta(score){
-  const safe=Math.max(0, Math.min(100, Math.round(Number(score) || 0)));
-  if(safe >= 70){
+  const safe=clampRealityScore(score);
+  if(safe >= 90){
+    return {
+      level:"Strong",
+      tone:"Strong",
+      accent:"#15803d",
+      soft:"rgba(21,128,61,.12)",
+      border:"rgba(21,128,61,.22)",
+      interpretation:"Strong: ATS structure is already clean. Tailoring will mainly sharpen role relevance for one specific job.",
+      readiness:"This baseline is already strong. Tailoring will mostly sharpen role-specific language and keyword match."
+    };
+  }
+  if(safe >= 75){
     return {
       level:"High",
       tone:"High",
-      interpretation:"High: the baseline is solid, but tailoring can still sharpen relevance for one target role."
+      accent:"#16a34a",
+      soft:"rgba(34,197,94,.11)",
+      border:"rgba(34,197,94,.20)",
+      interpretation:"High: ATS structure is solid. Tailoring will mostly improve role-specific relevance.",
+      readiness:"The structure is strong, but the CV still reads broad before one-job tailoring."
     };
   }
   if(safe >= 50){
     return {
       level:"Medium",
       tone:"Medium",
-      interpretation:"Medium: the CV is readable, but it is still too generic to compete strongly without tailoring."
+      accent:"#d97706",
+      soft:"rgba(217,119,6,.12)",
+      border:"rgba(217,119,6,.22)",
+      interpretation:"Medium: the CV is readable, but it is still too generic to compete strongly without tailoring.",
+      readiness:"ATS fit is decent, but this version is still not specific enough for one target role."
     };
   }
   return {
     level:"Low",
     tone:"Low",
-    interpretation:"Low: ATS fit is weak before tailoring, so this version is unlikely to match one job tightly enough."
+    accent:"#dc2626",
+    soft:"rgba(220,38,38,.12)",
+    border:"rgba(220,38,38,.22)",
+    interpretation:"Low: ATS fit is weak before tailoring, so this version is unlikely to match one job tightly enough.",
+    readiness:"ATS fit is weak. This version is still unlikely to match one role tightly enough."
+  };
+}
+
+function getAtsReadinessMeta(score){
+  const meta=getAtsScoreMeta(score);
+  return {
+    level:meta.level,
+    tone:meta.tone,
+    interpretation:meta.readiness
   };
 }
 
@@ -2191,24 +2253,34 @@ function setPostUploadHeroScore(score, meta){
     fill.style.width="0%";
     return;
   }
-  const safe=Math.max(0, Math.min(100, Math.round(Number(score) || 0)));
+  const safe=clampRealityScore(score);
   wrap.style.display="";
-  setText("postUploadHeroScoreValue", String(safe) + " / 100");
+  wrap.style.setProperty("--score-accent", meta && meta.accent ? meta.accent : "#dc2626");
+  wrap.style.setProperty("--score-soft", meta && meta.soft ? meta.soft : "rgba(220,38,38,.12)");
+  wrap.style.setProperty("--score-border", meta && meta.border ? meta.border : "rgba(220,38,38,.22)");
+  setText("postUploadHeroScoreValue", String(safe) + "/100");
   setMetricPill("postUploadHeroScoreLevel", meta);
   setText("postUploadHeroScoreMeta", meta && meta.interpretation ? meta.interpretation : "Current untailored baseline.");
   fill.style.width=String(safe) + "%";
+  fill.style.background=meta && meta.accent ? meta.accent : "#dc2626";
 }
 
 function getRealityFindingSummary(item){
   const title=String(item && item.title ? item.title : "").trim().toLowerCase();
+  if(title.includes("role alignment") || title.includes("keyword")){
+    return "The language is still too broad for one target role.";
+  }
+  if(title.includes("keep the ats-safe structure")){
+    return "The structure is strong, but tailoring should preserve it carefully.";
+  }
   if(title.includes("keyword") || title.includes("role relevance")){
     return "The CV is too broad to match one target role strongly.";
   }
   if(title.includes("impact") || title.includes("bullet") || title.includes("result")){
-    return "Results are not specific enough to prove performance quickly.";
+    return "The strongest outcomes are not obvious fast enough.";
   }
   if(title.includes("format") || title.includes("readability") || title.includes("ats")){
-    return "ATS parsing looks weaker than it should before tailoring.";
+    return "The structure can still hurt clean ATS parsing.";
   }
   if(title.includes("profile") || title.includes("summary")){
     return "The opening pitch is not creating enough role-specific momentum.";
@@ -2222,6 +2294,9 @@ function getRealityFindingSummary(item){
 
 function getRealityFindingTone(item){
   const title=String(item && item.title ? item.title : "").trim().toLowerCase();
+  if(title.includes("keep the ats-safe structure")){
+    return "is-positive";
+  }
   if(title.includes("format") || title.includes("readability") || title.includes("ats") || title.includes("keyword")){
     return "is-critical";
   }
@@ -2341,24 +2416,21 @@ function renderRealityCheckBaseline(cv, options){
   const opts=options && typeof options === "object" ? options : {};
   const fallback=buildRealityCheckFallback(cv);
   const atsMeta=getAtsScoreMeta(fallback.ats_readiness_score || 44);
+  const readinessMeta=getAtsReadinessMeta(fallback.ats_readiness_score || 44);
   const readabilityMeta=getMachineReadabilityMeta(fallback.machine_readability || "Low");
   card.style.display="";
   setText("postUploadKicker","AI CV Review");
   setBadge("postUploadBadge", "warn", "Baseline review");
-  setText("postUploadTitle", "Your CV is not ready for most job applications yet");
-  setText("postUploadBody", opts.loading
-    ? "This is your current untailored baseline. These are the issues ATS systems and recruiters are most likely to notice first."
-    : "This is your current untailored baseline. These are the issues ATS systems and recruiters are most likely to notice first.");
+  setText("postUploadTitle", fallback.headline || "Your CV is not ready for most job applications yet");
+  setText("postUploadBody", getRealitySupportSentence(fallback.ats_readiness_score || 44));
   setPostUploadHeroScore(fallback.ats_readiness_score || 44, atsMeta);
   const scores=$("postUploadScores");
   if(scores) scores.style.display="";
-  setText("postUploadScoreValue", String(fallback.ats_readiness_score || 44) + " / 100");
-  setMetricPill("postUploadScoreLevel", atsMeta);
-  setText("postUploadReadabilityValue", String(fallback.machine_readability || "Low"));
+  setMetricPill("postUploadReadinessLevel", readinessMeta);
   setMetricPill("postUploadReadabilityLevel", readabilityMeta);
-  setText("postUploadScoreMeta", atsMeta.interpretation);
+  setText("postUploadReadinessMeta", readinessMeta.interpretation);
   setText("postUploadReadabilityMeta", opts.loading
-    ? "Early baseline read while the full review is still finishing."
+    ? "Text is ready. The full review is still tightening the final diagnostics."
     : readabilityMeta.interpretation);
   renderRealityCheckFindings(fallback.findings);
   setPostUploadBridge(buildTailoringImprovementsHtml());
@@ -2371,20 +2443,19 @@ function renderRealityCheckResult(result){
   if(!card) return;
   const normalized=result && typeof result === "object" ? result : buildRealityCheckFallback(lastCvSnapshot || {});
   const atsMeta=getAtsScoreMeta(normalized.ats_readiness_score || 44);
+  const readinessMeta=getAtsReadinessMeta(normalized.ats_readiness_score || 44);
   const readabilityMeta=getMachineReadabilityMeta(normalized.machine_readability || "Low");
   card.style.display="";
   setText("postUploadKicker","AI CV Review");
   setBadge("postUploadBadge", "good", "Review ready");
-  setText("postUploadTitle", "Your CV is not ready for most job applications yet");
-  setText("postUploadBody", "This is your current untailored baseline. These are the issues ATS systems and recruiters are most likely to notice first.");
+  setText("postUploadTitle", normalized.headline || "Your CV is not ready for most job applications yet");
+  setText("postUploadBody", getRealitySupportSentence(normalized.ats_readiness_score || 44));
   setPostUploadHeroScore(normalized.ats_readiness_score || 44, atsMeta);
   const scores=$("postUploadScores");
   if(scores) scores.style.display="";
-  setText("postUploadScoreValue", String(normalized.ats_readiness_score || 44) + " / 100");
-  setMetricPill("postUploadScoreLevel", atsMeta);
-  setText("postUploadReadabilityValue", String(normalized.machine_readability || "Low"));
+  setMetricPill("postUploadReadinessLevel", readinessMeta);
   setMetricPill("postUploadReadabilityLevel", readabilityMeta);
-  setText("postUploadScoreMeta", atsMeta.interpretation);
+  setText("postUploadReadinessMeta", readinessMeta.interpretation);
   setText("postUploadReadabilityMeta", readabilityMeta.interpretation);
   renderRealityCheckFindings(normalized.findings);
   setPostUploadBridge(buildTailoringImprovementsHtml());

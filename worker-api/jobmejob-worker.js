@@ -3561,16 +3561,123 @@ function collectCvBulletishLines(lines) {
   return (Array.isArray(lines) ? lines : []).filter((line) => /^[-•*]/.test(line) || /^(managed|led|built|created|developed|implemented|improved|increased|reduced|delivered|supported|maintained|coordinated|assisted|responsible for|worked on|handled|owned)\b/i.test(line)).slice(0, 40);
 }
 __name(collectCvBulletishLines, "collectCvBulletishLines");
+function canonicalCvHeadingKey(line) {
+  const src = String(line || "").trim().toLowerCase().replace(/[:.]\s*$/, "");
+  if (!src) return "";
+  if (/^(professional )?summary$/.test(src) || src === "profile") return "summary";
+  if (/^(work )?experience$/.test(src) || src === "employment" || src === "work history") return "experience";
+  if (/^(technical |core |key )?skills$/.test(src)) return "skills";
+  if (src === "education") return "education";
+  if (/^achievements?$/.test(src) || /^key achievements?$/.test(src)) return "achievements";
+  if (/^languages?$/.test(src)) return "languages";
+  if (/^courses?$/.test(src)) return "courses";
+  if (/^interests?$/.test(src)) return "interests";
+  return "";
+}
+__name(canonicalCvHeadingKey, "canonicalCvHeadingKey");
+function formatCanonicalCvHeading(key) {
+  if (key === "summary") return "Summary";
+  if (key === "experience") return "Experience";
+  if (key === "skills") return "Skills";
+  if (key === "education") return "Education";
+  if (key === "achievements") return "Achievements";
+  if (key === "languages") return "Languages";
+  if (key === "courses") return "Courses";
+  if (key === "interests") return "Interests";
+  return "";
+}
+__name(formatCanonicalCvHeading, "formatCanonicalCvHeading");
+function collectOrderedCvHeadingKeys(lines) {
+  const out = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const line of Array.isArray(lines) ? lines : []) {
+    const key = canonicalCvHeadingKey(line);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(key);
+  }
+  return out;
+}
+__name(collectOrderedCvHeadingKeys, "collectOrderedCvHeadingKeys");
+function resolveCvRealityHeadline(score, rawHeadline) {
+  const safe = clamp(Math.round(Number(score || 0)), 0, 99);
+  const headline = String(rawHeadline || "").trim();
+  if (safe >= 90) return "Your CV is already in strong shape for ATS screening";
+  if (safe >= 75) return "Your CV is in good shape, but still benefits from tailoring";
+  if (headline === "Your CV is currently not optimized for ATS systems") return headline;
+  return "Your CV is not ready for most job applications yet";
+}
+__name(resolveCvRealityHeadline, "resolveCvRealityHeadline");
+function detectStructuredJobmejobCv(lines, bullets, metricBullets, longLines, headers) {
+  const topLines = (Array.isArray(lines) ? lines : []).slice(0, 6);
+  const orderedHeadings = collectOrderedCvHeadingKeys(lines);
+  const roleLine = topLines.find(
+    (line, idx) => idx > 0 && line.length >= 6 && line.length <= 72 && !looksLikeCvSectionHeader(line) && !/@|https?:|www\.|linkedin|^\+?\d|·/.test(line)
+  ) || "";
+  const hasContactLine = topLines.some((line) => /@/.test(line) || /linkedin/i.test(line) || /\b(?:phone|email|location)\b/i.test(line) || / · /.test(line));
+  let fingerprint = 0;
+  if (headers.length >= 4) fingerprint += 2;
+  if (orderedHeadings.length >= 3) fingerprint += 2;
+  if (bullets.length >= 5) fingerprint += 1;
+  if (metricBullets.length >= 4) fingerprint += 1;
+  if (longLines.length <= 1) fingerprint += 1;
+  if (roleLine) fingerprint += 1;
+  if (hasContactLine) fingerprint += 1;
+  const structured = fingerprint >= 7 && orderedHeadings.length >= 3 && headers.length >= 4 && longLines.length <= 1;
+  const clearlyTailored = structured && metricBullets.length >= 5 && orderedHeadings.includes("experience") && orderedHeadings.includes("skills") && !!roleLine;
+  return { fingerprint, structured, clearlyTailored, orderedHeadings, roleLine, hasContactLine };
+}
+__name(detectStructuredJobmejobCv, "detectStructuredJobmejobCv");
+function buildStrongJobmejobRealityCheck(lines, bullets, metricBullets, fingerprintMeta) {
+  const topLines = (Array.isArray(lines) ? lines : []).slice(0, 6);
+  const roleLine = cleanCvRealitySnippet(fingerprintMeta?.roleLine || topLines[1] || "", 88);
+  const strongBullet = cleanCvRealitySnippet(metricBullets[0] || bullets[0] || "", 120);
+  const headingPreview = (Array.isArray(fingerprintMeta?.orderedHeadings) ? fingerprintMeta.orderedHeadings : []).slice(0, 3).map((key) => formatCanonicalCvHeading(key)).filter(Boolean).join('", "');
+  const score = fingerprintMeta?.clearlyTailored ? clamp(96 + Math.min(3, Math.max(0, metricBullets.length - 5)), 96, 99) : clamp(92 + Math.min(5, Math.max(0, Number(fingerprintMeta?.fingerprint || 0) - 7)), 92, 97);
+  return {
+    headline: resolveCvRealityHeadline(score, ""),
+    ats_readiness_score: score,
+    machine_readability: "High",
+    bridge: "This baseline is already strong. Tailoring it to one live job will sharpen relevance without breaking the clean structure.",
+    jobmejob_fingerprint: {
+      structured: true,
+      clearly_tailored: !!fingerprintMeta?.clearlyTailored
+    },
+    findings: [
+      {
+        title: "Role alignment can go further",
+        example: roleLine ? `Current target line: "${roleLine}"` : "The structure is strong, but one live job target would sharpen the language.",
+        impact: "Even strong ATS-friendly CVs convert better when the wording mirrors one specific job description."
+      },
+      {
+        title: "Impact bullets can be tuned to the role",
+        example: strongBullet ? `Strong bullet: "${strongBullet}"` : "The achievements are clear, but the most relevant proof still needs job-specific emphasis.",
+        impact: "Tailoring helps recruiters notice the most relevant results first for this exact role."
+      },
+      {
+        title: "Keep the ATS-safe structure intact",
+        example: headingPreview ? `Clean section flow: "${headingPreview}"` : "The section structure is already clean and readable.",
+        impact: "This format is already ATS-parseable. Tailoring should improve relevance without breaking the clean structure."
+      }
+    ]
+  };
+}
+__name(buildStrongJobmejobRealityCheck, "buildStrongJobmejobRealityCheck");
 function buildCvRealityCheckFallback(cvText) {
   const lines = String(cvText || "").split(/\r?\n/).map((line) => String(line || "").trim()).filter(Boolean);
   const bullets = collectCvBulletishLines(lines);
   const metricBullets = bullets.filter((line) => /\d/.test(line));
   const longLines = lines.filter((line) => line.length > 140);
   const headers = lines.filter((line) => looksLikeCvSectionHeader(line));
+  const fingerprintMeta = detectStructuredJobmejobCv(lines, bullets, metricBullets, longLines, headers);
+  if (fingerprintMeta.structured) {
+    return buildStrongJobmejobRealityCheck(lines, bullets, metricBullets, fingerprintMeta);
+  }
   const firstGeneralLine = cleanCvRealitySnippet(bullets.find((line) => !/\d/.test(line) && line.length > 28) || lines.find((line) => line.length > 28) || "");
   const firstDenseLine = cleanCvRealitySnippet(longLines[0] || lines.find((line) => line.length > 100) || "");
   const firstBroadLine = cleanCvRealitySnippet(lines.find((line) => /(summary|profile|skills|experience|support|operations|customer|sales|marketing|manager|assistant)/i.test(line)) || lines[0] || "");
   let machineReadability = "Medium";
+  if (longLines.length <= 1 && headers.length >= 4 && bullets.length >= 3) machineReadability = "High";
   if (longLines.length >= 3 || headers.length < 3) machineReadability = "Low";
   let score = 43;
   if (metricBullets.length >= 3) score += 4;
@@ -3579,7 +3686,7 @@ function buildCvRealityCheckFallback(cvText) {
   if (!bullets.length) score -= 2;
   score = clamp(score, 35, 55);
   return {
-    headline: machineReadability === "Low" ? "Your CV is currently not optimized for ATS systems" : "Your CV is not ready for most job applications yet",
+    headline: resolveCvRealityHeadline(score, machineReadability === "Low" ? "Your CV is currently not optimized for ATS systems" : ""),
     ats_readiness_score: score,
     machine_readability: machineReadability,
     bridge: "These issues significantly reduce your chances if you apply as-is. The fastest way to fix this is to tailor your CV to a specific job.",
@@ -3605,13 +3712,19 @@ function buildCvRealityCheckFallback(cvText) {
 __name(buildCvRealityCheckFallback, "buildCvRealityCheckFallback");
 function normalizeCvRealityCheckResult(raw, fallback) {
   const base = fallback && typeof fallback === "object" ? fallback : buildCvRealityCheckFallback("");
-  const headlineRaw = String(raw?.headline || "").trim();
-  const headline = headlineRaw === "Your CV is currently not optimized for ATS systems" ? headlineRaw : "Your CV is not ready for most job applications yet";
-  const score = clamp(Math.round(Number(raw?.ats_readiness_score || base.ats_readiness_score || 43)), 35, 55);
-  const readabilityRaw = String(raw?.machine_readability || "").trim().toLowerCase();
+  const structured = !!base?.jobmejob_fingerprint?.structured;
+  const rawScore = raw?.ats_readiness_score != null ? raw.ats_readiness_score : base.ats_readiness_score || 43;
+  let score = clamp(Math.round(Number(rawScore || 0)), 0, structured ? 99 : 55);
+  if (structured) {
+    score = clamp(Math.max(score, Number(base.ats_readiness_score || 92)), Number(base.ats_readiness_score || 92), 99);
+  } else {
+    score = clamp(score, 35, 55);
+  }
+  const headline = resolveCvRealityHeadline(score, raw?.headline || base.headline || "");
+  const readabilityRaw = structured ? "high" : String(raw?.machine_readability || base?.machine_readability || "").trim().toLowerCase();
   const machine_readability = readabilityRaw === "high" ? "High" : readabilityRaw === "medium" ? "Medium" : "Low";
-  const bridge = "These issues significantly reduce your chances if you apply as-is. The fastest way to fix this is to tailor your CV to a specific job.";
-  const findingsRaw = Array.isArray(raw?.findings) ? raw.findings : [];
+  const bridge = structured ? String(base.bridge || "This baseline is already strong. Tailoring it to one live job will sharpen relevance without breaking the clean structure.") : "These issues significantly reduce your chances if you apply as-is. The fastest way to fix this is to tailor your CV to a specific job.";
+  const findingsRaw = structured ? [] : Array.isArray(raw?.findings) ? raw.findings : [];
   const normalizedFindings = findingsRaw.map((item) => ({
     title: cleanCvRealitySnippet(item?.title || "", 58),
     example: cleanCvRealitySnippet(item?.example || "", 140),
@@ -3626,7 +3739,8 @@ function normalizeCvRealityCheckResult(raw, fallback) {
     ats_readiness_score: score,
     machine_readability,
     bridge,
-    findings: normalizedFindings.slice(0, 3)
+    findings: normalizedFindings.slice(0, 3),
+    jobmejob_fingerprint: structured ? base.jobmejob_fingerprint : void 0
   };
 }
 __name(normalizeCvRealityCheckResult, "normalizeCvRealityCheckResult");
@@ -3649,6 +3763,10 @@ async function handleMeAiCvRealityCheck(request, env) {
   const headers = lines.filter((line) => looksLikeCvSectionHeader(line));
   const longLines = lines.filter((line) => line.length > 140);
   const fallback = buildCvRealityCheckFallback(cvText);
+  if (fallback?.jobmejob_fingerprint?.structured) {
+    const result = normalizeCvRealityCheckResult(fallback, fallback);
+    return json(request, { ok: true, customer_id: customerId, source: "jobmejob_structured", model: null, result }, 200);
+  }
   const prompt = [
     "Return ONLY valid JSON. No markdown. No code fences. No commentary.",
     "",

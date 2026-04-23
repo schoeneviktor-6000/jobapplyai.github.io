@@ -1048,25 +1048,22 @@ Profile reduction pass
 }
 .uploadSuccessCard{
   display:grid;
-  gap:20px;
-  padding:24px;
-  border-radius:24px;
-  border:1px solid rgba(17,19,24,.10);
-  background:
-    radial-gradient(720px 220px at 0% 0%, rgba(245,158,11,.14), transparent 52%),
-    radial-gradient(640px 240px at 100% 0%, rgba(239,68,68,.10), transparent 58%),
-    linear-gradient(180deg, rgba(255,255,255,.995), rgba(255,251,247,.985));
-  box-shadow:0 24px 52px rgba(17,19,24,.10);
+  gap:24px;
+  padding:26px;
+  border-radius:28px;
+  border:1px solid rgba(17,19,24,.08);
+  background:linear-gradient(180deg, rgba(255,255,255,.995), rgba(249,250,252,.992));
+  box-shadow:0 24px 56px rgba(17,19,24,.08);
 }
 .uploadSuccessTop{
   display:grid;
-  grid-template-columns:minmax(0,1.5fr) minmax(250px,.85fr);
-  gap:18px;
+  grid-template-columns:minmax(0,1.5fr) minmax(290px,.9fr);
+  gap:24px;
   align-items:start;
 }
 .uploadSuccessLead{
   display:grid;
-  gap:12px;
+  gap:14px;
   min-width:0;
 }
 .uploadSuccessLabelRow{
@@ -1079,12 +1076,12 @@ Profile reduction pass
   display:inline-flex;
   align-items:center;
   gap:8px;
-  min-height:24px;
-  padding:0 10px;
+  min-height:28px;
+  padding:0 11px;
   border-radius:999px;
   border:1px solid rgba(17,19,24,.10);
-  background:rgba(255,255,255,.78);
-  color:rgba(17,19,24,.70);
+  background:rgba(255,255,255,.94);
+  color:rgba(17,19,24,.72);
   font-size:10px;
   font-weight:950;
   letter-spacing:.08em;
@@ -1100,29 +1097,34 @@ Profile reduction pass
 }
 .uploadSuccessTitle{
   margin:0;
-  max-width:16ch;
-  font-size:clamp(28px, 3.4vw, 40px);
-  line-height:1.02;
+  max-width:18ch;
+  font-size:clamp(30px, 3.5vw, 44px);
+  line-height:1.01;
   letter-spacing:-.04em;
   font-weight:1000;
   color:rgba(17,19,24,.96);
 }
 .uploadSuccessBody{
   margin:0;
-  max-width:60ch;
-  color:rgba(17,19,24,.72);
+  max-width:58ch;
+  color:rgba(17,19,24,.68);
   font-size:14px;
-  line-height:1.6;
-  font-weight:760;
+  line-height:1.55;
+  font-weight:780;
 }
 .uploadSuccessHeroScore{
+  --score-accent:#dc2626;
+  --score-soft:rgba(220,38,38,.10);
+  --score-border:rgba(220,38,38,.18);
   display:grid;
-  gap:12px;
-  padding:18px;
-  border-radius:22px;
-  border:1px solid rgba(17,19,24,.10);
-  background:rgba(255,255,255,.86);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+  gap:13px;
+  padding:18px 18px 16px;
+  border-radius:24px;
+  border:1px solid var(--score-border);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.93)),
+    linear-gradient(180deg, var(--score-soft), rgba(255,255,255,0));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.86);
 }
 .uploadSuccessHeroTop{
   display:flex;
@@ -1135,31 +1137,31 @@ Profile reduction pass
   font-weight:950;
   letter-spacing:.08em;
   text-transform:uppercase;
-  color:rgba(17,19,24,.50);
+  color:rgba(17,19,24,.48);
 }
 .uploadSuccessHeroValue{
-  font-size:40px;
+  font-size:42px;
   line-height:1;
   letter-spacing:-.06em;
   font-weight:1000;
   color:rgba(17,19,24,.95);
 }
 .uploadSuccessHeroBar{
-  height:12px;
+  height:10px;
   border-radius:999px;
   overflow:hidden;
   border:1px solid rgba(17,19,24,.08);
-  background:rgba(17,19,24,.07);
+  background:rgba(17,19,24,.06);
 }
 .uploadSuccessHeroBarFill{
   height:100%;
   width:0%;
   border-radius:999px;
-  background:linear-gradient(90deg, #dc2626 0%, #f97316 55%, #22c55e 100%);
+  background:var(--score-accent);
   transition:width .28s ease;
 }
 .uploadSuccessHeroMeta{
-  color:rgba(17,19,24,.64);
+  color:rgba(17,19,24,.66);
   font-size:12px;
   line-height:1.45;
   font-weight:780;
@@ -1167,37 +1169,28 @@ Profile reduction pass
 .realityScoreGrid{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:12px;
+  gap:14px;
 }
 .realityScoreCard{
-  border:1px solid rgba(17,19,24,.10);
-  background:rgba(255,255,255,.88);
+  border:1px solid rgba(17,19,24,.07);
+  background:rgba(255,255,255,.86);
   border-radius:20px;
-  padding:16px;
+  padding:15px 16px;
   display:grid;
   gap:10px;
-  box-shadow:0 12px 26px rgba(17,19,24,.05);
-}
-.realityScoreTop{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:12px;
+  box-shadow:0 10px 24px rgba(17,19,24,.04);
 }
 .realityScoreLabel{
   font-size:11px;
   font-weight:950;
   letter-spacing:.08em;
   text-transform:uppercase;
-  color:rgba(17,19,24,.50);
+  color:rgba(17,19,24,.48);
 }
-.realityScoreValue{
-  margin-top:6px;
-  font-size:28px;
-  line-height:1;
-  letter-spacing:-.04em;
-  font-weight:1000;
-  color:rgba(17,19,24,.94);
+.realityScorePillRow{
+  display:flex;
+  align-items:center;
+  gap:10px;
 }
 .metricPill{
   display:inline-flex;
@@ -1227,15 +1220,20 @@ Profile reduction pass
   background:rgba(34,197,94,.12);
   color:#166534;
 }
+.metricPillStrong{
+  border-color:rgba(21,128,61,.22);
+  background:rgba(21,128,61,.14);
+  color:#166534;
+}
 .realityScoreMeta{
-  color:rgba(17,19,24,.64);
+  color:rgba(17,19,24,.62);
   font-size:12px;
   line-height:1.5;
   font-weight:780;
 }
 .realityFindings{
   display:grid;
-  gap:14px;
+  gap:16px;
 }
 .realityFindingsIntro{
   font-size:12px;
@@ -1246,36 +1244,36 @@ Profile reduction pass
 }
 .realityFindingsGrid{
   display:grid;
-  gap:12px;
+  gap:14px;
 }
 .realityFinding{
-  border:1px solid rgba(17,19,24,.08);
-  background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.84));
+  border:1px solid rgba(17,19,24,.07);
+  background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(250,251,252,.96));
   border-radius:20px;
-  padding:16px;
+  padding:15px;
   display:grid;
-  gap:12px;
-  box-shadow:0 14px 30px rgba(17,19,24,.05);
+  gap:10px;
+  box-shadow:0 10px 22px rgba(17,19,24,.04);
 }
 .realityFindingHeader{
   display:grid;
-  grid-template-columns:36px minmax(0,1fr);
-  gap:12px;
+  grid-template-columns:24px minmax(0,1fr);
+  gap:10px;
   align-items:start;
 }
 .realityFindingIcon{
-  width:36px;
-  height:36px;
-  border-radius:14px;
+  width:24px;
+  height:24px;
+  border-radius:999px;
   border:1px solid rgba(17,19,24,.10);
-  background:linear-gradient(180deg, rgba(255,255,255,.95), rgba(17,19,24,.04));
+  background:rgba(255,255,255,.92);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.82);
   position:relative;
 }
 .realityFindingIcon::after{
   content:"";
   position:absolute;
-  inset:11px;
+  inset:7px;
   border-radius:999px;
   background:rgba(245,158,11,.86);
   box-shadow:0 0 0 4px rgba(245,158,11,.14);
@@ -1301,7 +1299,7 @@ Profile reduction pass
 }
 .realityFindingSummary{
   color:rgba(17,19,24,.70);
-  font-size:13px;
+  font-size:12px;
   line-height:1.45;
   font-weight:780;
   display:-webkit-box;
@@ -1310,16 +1308,14 @@ Profile reduction pass
   overflow:hidden;
 }
 .realityFindingLine{
-  display:flex;
-  align-items:flex-start;
+  display:grid;
   gap:6px;
   font-size:12px;
-  line-height:1.5;
+  line-height:1.45;
   color:rgba(17,19,24,.68);
   font-weight:760;
 }
 .realityFindingLine strong{
-  flex:0 0 auto;
   color:rgba(17,19,24,.86);
 }
 .realityFindingLine span{
@@ -1411,10 +1407,10 @@ Profile reduction pass
   display:grid;
   gap:12px;
   padding:16px 18px;
-  border-radius:20px;
-  border:1px solid rgba(34,197,94,.18);
-  background:linear-gradient(180deg, rgba(238,252,242,.92), rgba(255,255,255,.94));
-  box-shadow:0 14px 30px rgba(34,197,94,.07);
+  border-radius:22px;
+  border:1px solid rgba(34,197,94,.16);
+  background:linear-gradient(180deg, rgba(241,253,245,.98), rgba(251,255,252,.98));
+  box-shadow:0 12px 28px rgba(34,197,94,.06);
 }
 .uploadSuccessBridgeTitle{
   font-size:13px;
@@ -1455,7 +1451,7 @@ Profile reduction pass
 }
 .uploadSuccessCta{
   display:grid;
-  gap:10px;
+  gap:12px;
 }
 .uploadSuccessCta .actions{
   width:100%;
@@ -1465,6 +1461,9 @@ Profile reduction pass
   padding:0 22px;
   font-size:15px;
   font-weight:950;
+  border-color:rgba(34,197,94,.32);
+  background:linear-gradient(180deg, rgba(34,197,94,.22), rgba(22,163,74,.16));
+  color:#0a2f19;
   box-shadow:0 16px 34px rgba(34,197,94,.18);
 }
 .uploadSuccessSecondary{
@@ -1693,7 +1692,7 @@ Profile reduction pass
   }
   .uploadSuccessCard{
     padding:18px;
-    gap:16px;
+    gap:18px;
   }
   .uploadSuccessTop{
     grid-template-columns:1fr;
@@ -2046,10 +2045,10 @@ Matched jobs premium polish
     </div>
     <div class="uploadSuccessHeroScore" id="postUploadHeroScore" style="display:none">
       <div class="uploadSuccessHeroTop">
-        <div class="uploadSuccessHeroLabel">ATS score</div>
+        <div class="uploadSuccessHeroLabel">ATS Score</div>
         <span class="metricPill metricPillLow" id="postUploadHeroScoreLevel">Low</span>
       </div>
-      <div class="uploadSuccessHeroValue" id="postUploadHeroScoreValue">-- / 100</div>
+      <div class="uploadSuccessHeroValue" id="postUploadHeroScoreValue">--/100</div>
       <div class="uploadSuccessHeroBar" aria-hidden="true">
         <div class="uploadSuccessHeroBarFill" id="postUploadHeroScoreFill"></div>
       </div>
@@ -2058,21 +2057,15 @@ Matched jobs premium polish
   </div>
   <div class="realityScoreGrid" id="postUploadScores" style="display:none">
     <div class="realityScoreCard">
-      <div class="realityScoreTop">
-        <div>
-          <div class="realityScoreLabel">ATS readiness</div>
-          <div class="realityScoreValue" id="postUploadScoreValue">-- / 100</div>
-        </div>
-        <span class="metricPill metricPillLow" id="postUploadScoreLevel">Low</span>
+      <div class="realityScoreLabel">ATS readiness</div>
+      <div class="realityScorePillRow">
+        <span class="metricPill metricPillLow" id="postUploadReadinessLevel">Low</span>
       </div>
-      <div class="realityScoreMeta" id="postUploadScoreMeta">Baseline before tailoring to a specific job.</div>
+      <div class="realityScoreMeta" id="postUploadReadinessMeta">Baseline fit before tailoring to one specific job.</div>
     </div>
     <div class="realityScoreCard">
-      <div class="realityScoreTop">
-        <div>
-          <div class="realityScoreLabel">Machine readability</div>
-          <div class="realityScoreValue" id="postUploadReadabilityValue">--</div>
-        </div>
+      <div class="realityScoreLabel">Machine readability</div>
+      <div class="realityScorePillRow">
         <span class="metricPill metricPillLow" id="postUploadReadabilityLevel">Low</span>
       </div>
       <div class="realityScoreMeta" id="postUploadReadabilityMeta">This checks how clearly ATS systems can parse the document.</div>
@@ -2201,6 +2194,6 @@ Matched jobs premium polish
   <script src="./auth.js?v=202604121905"></script>
   <script src="./shared.js?v=202604232345"></script>
 
-  <script src="./profile.app.js?v=202604232145"></script>
+  <script src="./profile.app.js?v=202604232355"></script>
 </body>
 </html>
