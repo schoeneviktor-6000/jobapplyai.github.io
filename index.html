@@ -2306,7 +2306,6 @@ color:var(--muted);
   background:#fff;
   box-shadow:0 20px 48px rgba(15,23,42,.14);
   aspect-ratio:1800 / 914;
-  container-type:inline-size;
 }
 .demo-screenshot{
   display:block;
@@ -2416,21 +2415,6 @@ color:var(--muted);
   position:absolute;
   inset:0;
 }
-.demo-cv-overlay-root{
-  position:absolute;
-  top:4.9%;
-  left:2.6%;
-  width:49.8%;
-  height:88.3%;
-  overflow:hidden;
-  border-radius:24px;
-  pointer-events:none;
-  isolation:isolate;
-}
-.demo-cv-overlay{
-  overflow:hidden;
-  clip-path:inset(0 round 24px);
-}
 .demo-chip-hit{
   position:absolute;
   pointer-events:auto;
@@ -2492,11 +2476,6 @@ color:var(--muted);
   background:rgba(233,247,238,.96);
   color:#0f5a2a;
 }
-.demo-chip-hit.is-added,
-.demo-chip-hit:disabled{
-  cursor:default;
-  opacity:.76;
-}
 .demo-chip-icon{
   display:none;
   font-size:11px;
@@ -2507,54 +2486,41 @@ color:var(--muted);
 }
 .demo-insert{
   position:absolute;
-  display:flex;
-  align-items:center;
-  justify-content:flex-start;
-  overflow:hidden;
-  border-radius:13px;
-  border:1px solid rgba(136,214,160,.42);
-  background:linear-gradient(180deg, rgba(243,251,246,.84), rgba(249,253,250,.92));
-  box-shadow:0 8px 18px rgba(0,166,63,.05);
-  backdrop-filter:blur(1px);
-  color:rgba(24,55,34,.92);
-  font-size:var(--demo-insert-font-size, 12.3px);
-  line-height:var(--demo-insert-line-height, 16.8px);
-  letter-spacing:var(--demo-insert-letter-spacing, -.011em);
-  font-weight:var(--demo-insert-font-weight, 560);
-  padding:
-    var(--demo-insert-padding-y, 6px)
-    var(--demo-insert-padding-x, 13px);
+  padding:10px 12px;
+  border-radius:14px;
+  border:1px solid rgba(0,166,63,.26);
+  background:rgba(248,255,250,.94);
+  box-shadow:0 12px 26px rgba(0,166,63,.10);
+  color:#183722;
+  font-size:12px;
+  line-height:1.4;
+  letter-spacing:-.01em;
   opacity:0;
-  transform:translateY(4px);
-  transition:opacity .22s ease, transform .22s ease, box-shadow .22s ease, background .22s ease;
-  text-rendering:optimizeLegibility;
-  white-space:normal;
-  word-break:normal;
-  overflow-wrap:break-word;
-  hyphens:none;
+  transform:translateY(6px);
+  transition:opacity .22s ease, transform .22s ease;
 }
 .demo-insert strong{
-  color:#16733c;
+  color:#0d6b2d;
 }
 .demo-insert.is-visible{
   opacity:1;
   transform:translateY(0);
 }
 .demo-insert.is-flash{
-  animation:demoInsertFlash .42s ease;
+  animation:demoInsertFlash .46s ease;
 }
 @keyframes demoInsertFlash{
   0%{
-    box-shadow:0 0 0 0 rgba(0,166,63,.10);
-    background:rgba(244,251,246,.90);
+    box-shadow:0 0 0 0 rgba(0,166,63,.16);
+    background:rgba(248,255,250,.98);
   }
   50%{
-    box-shadow:0 0 0 8px rgba(0,166,63,.06);
-    background:rgba(237,248,241,.92);
+    box-shadow:0 0 0 10px rgba(0,166,63,.10);
+    background:rgba(235,248,239,.98);
   }
   100%{
-    box-shadow:0 8px 18px rgba(0,166,63,.05);
-    background:rgba(249,253,250,.92);
+    box-shadow:0 12px 26px rgba(0,166,63,.10);
+    background:rgba(248,255,250,.94);
   }
 }
 .demo-mobile-chips{
@@ -2589,13 +2555,6 @@ color:var(--muted);
   border-color:rgba(0,166,63,.24);
   background:rgba(233,247,238,.96);
   color:#0f5a2a;
-  box-shadow:none;
-  opacity:.78;
-}
-.demo-mobile-chip:disabled{
-  cursor:default;
-  opacity:.78;
-  transform:none;
   box-shadow:none;
 }
 .demo-mobile-chip .demo-chip-icon{
@@ -2685,6 +2644,10 @@ color:var(--muted);
     min-height:20px;
     padding:3px 7px;
     font-size:11px;
+  }
+  .demo-insert{
+    padding:8px 9px;
+    font-size:10px;
   }
   .demo-mobile-chip{
     font-size:12px;
@@ -3170,7 +3133,7 @@ color:var(--muted);
 
       <div class="demo-frame" data-cv-demo="1">
         <!-- Replace this asset path if you swap the product screenshot capture. -->
-        <img class="demo-screenshot" src="/assets/cv-studio-preview.png?v=202604231325" alt="CV Studio screenshot showing a CV preview, missing ATS keywords, and score guidance." width="1800" height="914" loading="lazy" decoding="async" fetchpriority="low">
+        <img class="demo-screenshot" src="/assets/cv-studio-preview.png" alt="CV Studio screenshot showing a CV preview, missing ATS keywords, and score guidance." width="1800" height="914" loading="lazy" decoding="async" fetchpriority="low">
         <div class="demo-overlay">
           <div class="demo-hotspot demo-hotspot--cv" aria-hidden="true"></div>
           <div class="demo-hotspot demo-hotspot--keywords" aria-hidden="true"></div>
@@ -3185,9 +3148,7 @@ color:var(--muted);
           </div>
 
           <div class="demo-chip-overlay" data-demo-chip-overlay></div>
-          <div class="demo-cv-overlay-root" data-demo-cv-overlay-root>
-            <div class="demo-cv-overlay" data-demo-cv-overlay></div>
-          </div>
+          <div class="demo-cv-overlay" data-demo-cv-overlay></div>
         </div>
       </div>
     </div>
@@ -3827,6 +3788,6 @@ color:var(--muted);
 <script src="./auth.js?v=202604121905"></script>
 <script src="./i18n.js?v=202604181830"></script>
 <script src="./shared.js?v=202604232345"></script>
-<script src="./cv-studio-preview-demo.js?v=202604232359"></script>
+<script src="./cv-studio-preview-demo.js?v=202604231600"></script>
 </body>
 </html>

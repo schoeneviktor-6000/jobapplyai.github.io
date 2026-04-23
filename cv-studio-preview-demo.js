@@ -3,16 +3,9 @@
 
   const CHECK_ICON = "\u2713";
 
-  // Edit keyword labels, score deltas, and highlight block positions here.
-  // Block positions are percentages relative to the clipped CV overlay root.
+  // Edit keyword labels, score deltas, and overlay positions here.
+  // Position values are percentages relative to the screenshot dimensions.
   const CV_STUDIO_PREVIEW_DEMO = Object.freeze({
-    screenshotWidth: 1800,
-    cvOverlayRoot: Object.freeze({
-      top: "4.9%",
-      left: "2.6%",
-      width: "49.8%",
-      height: "88.3%"
-    }),
     initialScore: 43,
     maxScore: 50,
     keywords: Object.freeze([
@@ -29,17 +22,9 @@
           height: "4.2%"
         }),
         cvOverlayPosition: Object.freeze({
-          top: "41.05%",
-          left: "5.6%",
-          width: "83.4%",
-          height: "7.45%"
-        }),
-        insertStyle: Object.freeze({
-          fontSize: "12.35px",
-          lineHeight: "16.9px",
-          paddingX: "13px",
-          paddingY: "6px",
-          fontWeight: "560"
+          top: "45.1%",
+          left: "6.1%",
+          width: "42.4%"
         })
       }),
       Object.freeze({
@@ -55,17 +40,9 @@
           height: "4.2%"
         }),
         cvOverlayPosition: Object.freeze({
-          top: "75.4%",
-          left: "5.45%",
-          width: "83.8%",
-          height: "7.6%"
-        }),
-        insertStyle: Object.freeze({
-          fontSize: "12.2px",
-          lineHeight: "16.7px",
-          paddingX: "12px",
-          paddingY: "5px",
-          fontWeight: "555"
+          top: "68.6%",
+          left: "5.9%",
+          width: "40.8%"
         })
       }),
       Object.freeze({
@@ -81,17 +58,9 @@
           height: "4.2%"
         }),
         cvOverlayPosition: Object.freeze({
-          top: "89.7%",
-          left: "5.45%",
-          width: "83.4%",
-          height: "7.35%"
-        }),
-        insertStyle: Object.freeze({
-          fontSize: "12.05px",
-          lineHeight: "16.5px",
-          paddingX: "12px",
-          paddingY: "5px",
-          fontWeight: "555"
+          top: "81.5%",
+          left: "5.8%",
+          width: "39.2%"
         })
       })
     ])
@@ -134,16 +103,6 @@
     if (box.bottom) element.style.bottom = box.bottom;
     if (box.width) element.style.width = box.width;
     if (box.height) element.style.height = box.height;
-  }
-
-  function setInsertStyles(element, styles) {
-    if (!element || !styles) return;
-    if (styles.fontSize) element.style.setProperty("--demo-insert-font-size", styles.fontSize);
-    if (styles.lineHeight) element.style.setProperty("--demo-insert-line-height", styles.lineHeight);
-    if (styles.paddingX) element.style.setProperty("--demo-insert-padding-x", styles.paddingX);
-    if (styles.paddingY) element.style.setProperty("--demo-insert-padding-y", styles.paddingY);
-    if (styles.fontWeight) element.style.setProperty("--demo-insert-font-weight", styles.fontWeight);
-    if (styles.letterSpacing) element.style.setProperty("--demo-insert-letter-spacing", styles.letterSpacing);
   }
 
   function highlightInsertedText(text, highlightText) {
@@ -216,7 +175,6 @@
     block.className = "demo-insert";
     block.setAttribute("data-demo-insert", keyword.id);
     setBoxStyles(block, keyword.cvOverlayPosition);
-    setInsertStyles(block, keyword.insertStyle);
     block.innerHTML = highlightInsertedText(keyword.insertedText, keyword.highlightText);
     return block;
   }
@@ -226,9 +184,7 @@
     root.dataset.demoReady = "true";
 
     const frame = root.querySelector("[data-cv-demo]");
-    const screenshot = root.querySelector(".demo-screenshot");
     const chipOverlay = root.querySelector("[data-demo-chip-overlay]");
-    const cvOverlayRoot = root.querySelector("[data-demo-cv-overlay-root]");
     const cvOverlay = root.querySelector("[data-demo-cv-overlay]");
     const mobileRail = root.querySelector("[data-demo-mobile-chips]");
     const resetButton = root.querySelector("[data-demo-reset]");
@@ -238,11 +194,9 @@
     const scoreDelta = root.querySelector("[data-demo-score-delta]");
     const scoreMeter = root.querySelector("[data-demo-score-meter]");
 
-    if (!frame || !screenshot || !chipOverlay || !cvOverlayRoot || !cvOverlay || !mobileRail || !resetButton || !scoreBadge || !scoreValue || !scoreDelta || !scoreMeter) {
+    if (!frame || !chipOverlay || !cvOverlay || !mobileRail || !resetButton || !scoreBadge || !scoreValue || !scoreDelta || !scoreMeter) {
       return;
     }
-
-    setBoxStyles(cvOverlayRoot, CV_STUDIO_PREVIEW_DEMO.cvOverlayRoot);
 
     mobileRail.setAttribute(
       "aria-label",
@@ -260,16 +214,9 @@
     const desktopButtons = new Map();
     const mobileButtons = new Map();
     const inserts = new Map();
-    let resizeObserver = null;
 
     function announce(message) {
       if (announcer) announcer.textContent = message;
-    }
-
-    function updateOverlayScale() {
-      const width = screenshot.clientWidth || frame.clientWidth;
-      const rawScale = width > 0 ? width / CV_STUDIO_PREVIEW_DEMO.screenshotWidth : 1;
-      cvOverlayRoot.style.setProperty("--demo-scale", String(clamp(rawScale, 0.28, 1)));
     }
 
     function setAnimatedScore(value) {
@@ -323,9 +270,7 @@
 
         if (desktopButton) {
           desktopButton.classList.toggle("is-added", isAdded);
-          desktopButton.disabled = isAdded;
           desktopButton.setAttribute("aria-pressed", isAdded ? "true" : "false");
-          desktopButton.setAttribute("aria-disabled", isAdded ? "true" : "false");
           desktopButton.setAttribute(
             "aria-label",
             isAdded ? `${keyword.label} added` : `Add ${keyword.label}`
@@ -334,9 +279,7 @@
 
         if (mobileButton) {
           mobileButton.classList.toggle("is-added", isAdded);
-          mobileButton.disabled = isAdded;
           mobileButton.setAttribute("aria-pressed", isAdded ? "true" : "false");
-          mobileButton.setAttribute("aria-disabled", isAdded ? "true" : "false");
           mobileButton.setAttribute(
             "aria-label",
             isAdded ? `${keyword.label} added` : `Add ${keyword.label}`
@@ -351,7 +294,19 @@
 
     function addKeyword(keywordId) {
       const keyword = keywordById.get(keywordId);
-      if (!keyword || state.addedKeywordIds.has(keywordId)) return;
+      if (!keyword) return;
+
+      if (state.addedKeywordIds.has(keywordId)) {
+        flashElement(inserts.get(keywordId));
+        announce(
+          translate(
+            "pages.index.preview.announcements.alreadyAdded",
+            { keyword: keyword.label, score: state.score },
+            `${keyword.label} is already added. ATS match ${state.score}%.`
+          )
+        );
+        return;
+      }
 
       state.addedKeywordIds.add(keywordId);
       state.score = Math.min(
@@ -410,16 +365,7 @@
     resetButton.addEventListener("click", resetDemo);
 
     updateUi();
-    updateOverlayScale();
     setAnimatedScore(state.score);
-
-    if (typeof ResizeObserver === "function") {
-      resizeObserver = new ResizeObserver(updateOverlayScale);
-      resizeObserver.observe(frame);
-      resizeObserver.observe(screenshot);
-    } else {
-      window.addEventListener("resize", updateOverlayScale, { passive: true });
-    }
   }
 
   function initAllDemos() {
