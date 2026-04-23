@@ -30,21 +30,22 @@
           height: "4.2%"
         }),
         cvSlotPosition: Object.freeze({
-          top: "41.393%",
-          left: "5.984%",
-          width: "83.032%",
-          height: "7.418%",
+          top: "41.20%",
+          left: "5.70%",
+          width: "83.10%",
+          height: "7.25%",
           tone: "selected"
         }),
         textStyle: Object.freeze({
-          fontSize: "13.2px",
-          lineHeight: "18.0px",
-          paddingTop: "0px",
-          paddingRight: "14px",
+          fontSize: "12.7px",
+          lineHeight: "17.2px",
+          textWidth: "68%",
+          paddingTop: "1.7px",
+          paddingRight: "18px",
           paddingBottom: "0px",
-          paddingLeft: "0px",
-          letterSpacing: "-0.012em",
-          fontWeight: "600"
+          paddingLeft: "9.5px",
+          letterSpacing: "-0.013em",
+          fontWeight: "565"
         })
       }),
       Object.freeze({
@@ -60,21 +61,22 @@
           height: "4.2%"
         }),
         cvSlotPosition: Object.freeze({
-          top: "75.821%",
-          left: "5.863%",
-          width: "83.233%",
-          height: "7.305%",
+          top: "75.62%",
+          left: "5.62%",
+          width: "84.20%",
+          height: "7.75%",
           tone: "paper"
         }),
         textStyle: Object.freeze({
-          fontSize: "13.0px",
-          lineHeight: "17.8px",
-          paddingTop: "0px",
+          fontSize: "12.3px",
+          lineHeight: "16.9px",
+          textWidth: "67%",
+          paddingTop: "1.0px",
           paddingRight: "14px",
           paddingBottom: "0px",
-          paddingLeft: "0px",
-          letterSpacing: "-0.012em",
-          fontWeight: "590"
+          paddingLeft: "9px",
+          letterSpacing: "-0.013em",
+          fontWeight: "555"
         })
       }),
       Object.freeze({
@@ -90,21 +92,22 @@
           height: "4.2%"
         }),
         cvSlotPosition: Object.freeze({
-          top: "90.204%",
-          left: "5.924%",
-          width: "82.129%",
-          height: "6.965%",
+          top: "89.96%",
+          left: "5.62%",
+          width: "84.00%",
+          height: "7.70%",
           tone: "paper"
         }),
         textStyle: Object.freeze({
-          fontSize: "12.8px",
-          lineHeight: "17.4px",
-          paddingTop: "0px",
+          fontSize: "12.15px",
+          lineHeight: "16.7px",
+          textWidth: "62%",
+          paddingTop: "0.8px",
           paddingRight: "12px",
           paddingBottom: "0px",
-          paddingLeft: "0px",
-          letterSpacing: "-0.012em",
-          fontWeight: "590"
+          paddingLeft: "9px",
+          letterSpacing: "-0.013em",
+          fontWeight: "555"
         })
       })
     ])
@@ -153,6 +156,7 @@
     if (!element || !styles) return;
     if (styles.fontSize) element.style.setProperty("--demo-font-size", styles.fontSize);
     if (styles.lineHeight) element.style.setProperty("--demo-line-height", styles.lineHeight);
+    if (styles.textWidth) element.style.setProperty("--demo-text-width", styles.textWidth);
     if (styles.paddingTop) element.style.setProperty("--demo-padding-top", styles.paddingTop);
     if (styles.paddingRight) element.style.setProperty("--demo-padding-right", styles.paddingRight);
     if (styles.paddingBottom) element.style.setProperty("--demo-padding-bottom", styles.paddingBottom);
