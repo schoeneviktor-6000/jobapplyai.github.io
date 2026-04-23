@@ -118,11 +118,8 @@ function go(url){
   setTimeout(()=>{window.location.href=url;},180);
 }
 
-function closeMatchedJobsPanel(){
-  try{
-    const prefsToggle=$("prefsToggle");
-    if(prefsToggle) prefsToggle.open=false;
-  }catch(_){}
+function hasAiRoleUi(){
+  return !!$("aiStatusBadge") && !!$("aiGenerateBtn") && !!$("aiApplyBtn");
 }
 
 function isEmail(s){
@@ -1471,6 +1468,7 @@ function showRetryOcr(show){
 }
 
 function unlockAiWhileOcrRunning(){
+  if(!hasAiRoleUi()) return;
   setBadge("aiStatusBadge","warn","OCR running…");
   $("aiGenerateBtn").disabled=false;
   $("aiApplyBtn").disabled=true;
@@ -1479,6 +1477,7 @@ function unlockAiWhileOcrRunning(){
 }
 
 function unlockAiFallback(msg){
+  if(!hasAiRoleUi()) return;
   setBadge("aiStatusBadge","warn","Try anyway");
   $("aiGenerateBtn").disabled=false;
   $("aiApplyBtn").disabled=true;
@@ -1606,19 +1605,21 @@ card.classList.toggle("stepDone", !!isDone);
 }
 
 function lockAi(msg){
+aiResult=null;
+aiSelectedTitles=new Set();
+aiGeneratedOnce=false;
+aiAppliedOnce=false;
+if(!hasAiRoleUi()) return;
 setBadge("aiStatusBadge","warn","Locked");
 $("aiGenerateBtn").disabled=true;
 $("aiApplyBtn").disabled=true;
 $("aiRegenerateLink").style.display="none";
-aiResult=null;
-aiSelectedTitles=new Set();
 $("aiTitlesWrap").style.display="none";
 setText("aiHint", msg || "Upload a CV first.");
-aiGeneratedOnce=false;
-aiAppliedOnce=false;
 }
 
 function unlockAiReady(){
+if(!hasAiRoleUi()) return;
 setBadge("aiStatusBadge","good","Ready");
 $("aiGenerateBtn").disabled=false;
 $("aiApplyBtn").disabled=true;
@@ -1630,6 +1631,7 @@ aiAppliedOnce=false;
 
 function renderChips(containerId, items, selectedSet){
 const wrap=$(containerId);
+if(!wrap) return;
 wrap.style.display="block";
 wrap.innerHTML="";
 const chips=document.createElement("div");
@@ -1705,74 +1707,16 @@ if(cvSource){
   }else if(ocr==="failed"){
   setText("kOcr","retry needed");
   $("kOcr").className="kpiVal bad";
-  }else{
+}else{
   setText("kOcr","pending");
   $("kOcr").className="kpiVal warn";
   }
-}
-// Next action (keep it simple): CV Studio is the core flow.
-// If something is missing, we guide the user by scrolling to the right section.
-const cvOk2 = cvOk;
-const profOk2 = !!(st && st.profile_complete);
-const reviewMeta=getReviewStageMeta(cvSource, realityCheckResult);
-
-// Keep "Open CV Studio" gated behind CV upload (tailoring needs a base CV).
-try{
-  const openBtn = $("openCvBtn");
-  if(openBtn){
-    openBtn.disabled = !cvOk2;
-    openBtn.textContent = !cvOk2
-      ? "Upload CV first"
-      : reviewMeta.stage === "a"
-        ? "Open CV Studio"
-        : "Tailor this CV to a job";
-  }
-}catch(_){}
-
-if(!cvOk2){
-try{ $("continueBtn")?.classList.add("primary"); }catch(_){}
-setText("continueBtn",reviewMeta.continueLabel);
-setText("continueHint",reviewMeta.continueHint);
-}else if(reviewMeta.stage === "a"){
-try{ $("continueBtn")?.classList.remove("primary"); }catch(_){}
-setText("continueBtn",reviewMeta.continueLabel);
-setText("continueHint",reviewMeta.continueHint);
-}else if(!profOk2){
-try{ $("continueBtn")?.classList.remove("primary"); }catch(_){}
-setText("continueBtn",reviewMeta.continueLabel);
-setText("continueHint","Your profile can stay lightweight for now. The next step that matters is CV tailoring.");
-}else{
-try{ $("continueBtn")?.classList.remove("primary"); }catch(_){}
-setText("continueBtn",reviewMeta.continueLabel);
-setText("continueHint",reviewMeta.continueHint);
 }
 }
 
 async function refreshState(){
 state=await apiGet("/me/state");
 setOnboardingUI(state);
-}
-
-async function loadProfileIntoForm(){
-try{
-const prof=await apiGet("/me/profile");
-const p=prof && prof.profile ? prof.profile : null;
-if(!p) return;
-const desired=Array.isArray(p.desired_titles)?p.desired_titles:[];
-const industries=Array.isArray(p.industries)?p.industries:[];
-const locations=Array.isArray(p.locations)?p.locations:[];
-const countries=Array.isArray(p.countries_allowed)?p.countries_allowed:[];
-const radius=p.radius_km;
-$("jobTitles").value=desired.join(", ");
-$("industries").value=industries.join(", ");
-$("locations").value=locations.join(", ");
-locationsTouched = locations.length ? true : false;
-try{ if(locations.length){ setLocationSuggestionUI([]); } }catch(_){}
-
-if(countries[0]) $("country").value=String(countries[0]);
-if(radius!==null && radius!==undefined) $("radiusKm").value=String(radius);
-setBadge("saveStatusBadge","good","Loaded");
-}catch{}
 }
 
 function getAiCache(){
@@ -2461,7 +2405,7 @@ function applyAiUiFromTitles(titles){
   const clean = Array.isArray(titles)
     ? titles.map(x=>String(x).trim()).filter(Boolean).slice(0,30)
     : [];
-  if(!clean.length) return false;
+  if(!clean.length || !hasAiRoleUi()) return false;
 
   aiResult = { titles: clean };
 
@@ -2491,6 +2435,7 @@ function applyAiUiFromTitles(titles){
 }
 
 function tryLoadCachedAiSuggestions(){
+if(!hasAiRoleUi()) return false;
 const cache=getAiCache();
 if(!cache || !lastCvMeta) return false;
 const currentKey=cvMetaKey(lastCvMeta);
@@ -2637,7 +2582,6 @@ async function uploadCvThenAutoOcr(file){
   await apiPostForm("/me/cv",fd);
 
   await refreshState();
-  closeMatchedJobsPanel();
   shouldFocusPostUploadCard=true;
   await loadCvStatusAndUpdateUx();
 
@@ -2728,6 +2672,7 @@ async function handleRetryOcr(){
 
 
 async function handleAiGenerate({ force=false, background=false } = {}){
+  if(!hasAiRoleUi()) return null;
   if(!background) clearTopError();
 
   // If we already have suggestions, return them.
@@ -2897,11 +2842,13 @@ async function handleAiGenerate({ force=false, background=false } = {}){
 }
 
 function handleAiRegenerate(){
+if(!hasAiRoleUi()) return;
 aiGeneratedOnce=false;
 handleAiGenerate({ force:true });
 }
 
 function handleAiApplyTitles(){
+if(!hasAiRoleUi()) return;
 clearTopError();
 if(!aiSelectedTitles || aiSelectedTitles.size===0){
 showTopError("No titles selected.");
@@ -3383,36 +3330,7 @@ await refreshState();
 try{ window.JobMeJobShared?.hydrateAccountNav?.({ session, state }); }catch(_){}
 await refreshBillingSummary();
 await loadCvStatusAndUpdateUx();
-await loadProfileIntoForm();
 await maybeFinishPendingGmailVerify();
-// Restore any local draft (only fills empty fields)
-try{
-  restoreDraftIfHelpful();
-  const b = $("saveStatusBadge");
-  const t = b ? String(b.textContent||"") : "";
-  if(t !== "Loaded" && t !== "Saved"){
-    const hasAny = !!(String($("jobTitles")?.value||"").trim() || String($("locations")?.value||"").trim());
-    if(hasAny) setBadge("saveStatusBadge","warn","Draft");
-  }
-}catch(_){ }
-
-// If backend already has AI titles (persisted), show them without forcing regeneration
-try{
-  const prof2 = await apiGet("/me/profile");
-  const p2 = prof2 && prof2.profile ? prof2.profile : null;
-  const backendAi = p2 && Array.isArray(p2.ai_titles) ? p2.ai_titles : [];
-  if(Array.isArray(backendAi) && backendAi.length){
-    backendAiTitles = backendAi.slice(0,30);
-
-    // Prefer per-CV cache if available; otherwise show persisted titles
-    if(!tryLoadCachedAiSuggestions()){
-      applyAiUiFromTitles(backendAiTitles);
-    }
-
-    // Best-effort background prefetch (non-blocking)
-    try{ maybePrefetchJobs(backendAiTitles, "boot_ai_titles"); }catch(_){}
-  }
-}catch(_){}
 
 
 $("gmailVerifyBtn")?.addEventListener("click", async ()=>{
@@ -3445,62 +3363,10 @@ $("cvFile").addEventListener("change",handleCvFileSelected);
 wireCvDropzone();
 $("retryOcrBtn").addEventListener("click",handleRetryOcr);
 
-$("aiGenerateBtn").addEventListener("click",()=>handleAiGenerate({ force:false }));
-$("aiRegenerateLink").addEventListener("click",handleAiRegenerate);
-$("aiApplyBtn").addEventListener("click",handleAiApplyTitles);
+$("aiGenerateBtn")?.addEventListener("click",()=>handleAiGenerate({ force:false }));
+$("aiRegenerateLink")?.addEventListener("click",handleAiRegenerate);
+$("aiApplyBtn")?.addEventListener("click",handleAiApplyTitles);
 
-$("jobTitles").addEventListener("input",()=>{
-  jobTitlesTouched=true;
-  renderAiAppliedChips(aiAppliedTitles);
-  markPrefsDirty();
-  scheduleAutoSave();
-});
-
-$("locations").addEventListener("input",()=>{
-  locationsTouched=true;
-  markPrefsDirty();
-  scheduleAutoSave();
-});
-
-// Autosave: other preference fields
-try{
-  $("industries")?.addEventListener("input", ()=>{ markPrefsDirty(); scheduleAutoSave(); });
-  $("country")?.addEventListener("change", ()=>{ markPrefsDirty(); scheduleAutoSave(); });
-  $("radiusKm")?.addEventListener("input", ()=>{ markPrefsDirty(); scheduleAutoSave(); });
-}catch(_){}
-
-
-try{
-  // Popular city quick picks (makes Step 2 fast)
-  const popular = ["Berlin","Hamburg","München","Frankfurt","Köln","Stuttgart","Düsseldorf","Leipzig"];
-  renderClickChips("locQuickChips", popular, (label)=>{
-    applyLocation(label, { append:false });
-  });
-}catch(_){}
-
-try{
-  // Radius quick picks
-  document.querySelectorAll("#radiusQuick .chip[data-radius]").forEach((chip)=>{
-    chip.addEventListener("click", ()=>{
-      const v = Number(chip.getAttribute("data-radius") || "");
-      if(Number.isFinite(v)){
-        $("radiusKm").value = String(v);
-        markPrefsDirty();
-scheduleAutoSave();
-      }
-    });
-  });
-}catch(_){}
-
-const _saveBtn = $("saveProfileBtn");
-if(_saveBtn){ _saveBtn.addEventListener("click", handleSaveProfile); }
-$("continueBtn").addEventListener("click", ()=>openCvStudioFromProfile($("continueBtn")));
-{
-  const b = $("openCvBtn");
-  if(b){
-    b.addEventListener("click", ()=>openCvStudioFromProfile(b));
-  }
-}
 $("postUploadPrimaryBtn")?.addEventListener("click", ()=>openCvStudioFromProfile($("postUploadPrimaryBtn")));
 // Account dropdown actions
 $("navActivity")?.addEventListener("click", openActivityModal);

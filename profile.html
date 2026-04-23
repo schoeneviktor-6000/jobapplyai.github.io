@@ -677,15 +677,11 @@ Profile simplification pass
 }
 
 .grid{
-  grid-template-columns:minmax(0,1.45fr) minmax(300px,.75fr);
+  grid-template-columns:1fr;
   gap:18px;
-}
-@media (max-width:1100px){
-  .grid{grid-template-columns:1fr}
 }
 
 #step1Card,
-#prefsCard,
 .profileRail{
   overflow:hidden;
 }
@@ -695,21 +691,14 @@ Profile simplification pass
     radial-gradient(820px 240px at 0% 0%, rgba(34,197,94,.12), transparent 55%),
     linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.92));
 }
-#prefsCard{
-  background:
-    radial-gradient(560px 200px at 0% 0%, rgba(34,197,94,.08), transparent 55%),
-    linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.94));
-}
 .profileRail{
   background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.92));
 }
 #step1Card .sectionHeader,
-#prefsCard .sectionHeader,
 .profileRail .sectionHeader{
   padding:18px 18px 10px;
 }
 #step1Card .sectionBody,
-#prefsCard .sectionBody,
 .profileRail .sectionBody{
   padding:18px;
 }
@@ -996,12 +985,11 @@ Profile reduction pass
 }
 
 .grid{
-  grid-template-columns:minmax(0,1.45fr) minmax(360px,.88fr);
+  grid-template-columns:1fr;
   gap:18px;
 }
 #step1Card,
-.profileRail,
-#prefsCard{
+.profileRail{
   border:1px solid rgba(17,19,24,.08);
   background:rgba(255,255,255,.92);
 }
@@ -1792,60 +1780,35 @@ Matched jobs premium polish
     </div>
   </div>
 
-  <div class="uploadSuccessCard" id="postUploadCard" style="display:none" aria-live="polite">
-    <div class="uploadSuccessTop">
-      <div>
-        <div class="uploadSuccessKicker" id="postUploadKicker">AI CV Review</div>
-        <h3 class="uploadSuccessTitle" id="postUploadTitle">Reviewing your CV</h3>
-        <p class="uploadSuccessBody" id="postUploadBody">We’re checking structure, ATS readability, and role relevance. This usually takes a short moment.</p>
-      </div>
-      <span class="badge warn" id="postUploadBadge">Preparing review</span>
-    </div>
-    <div class="realityScoreGrid" id="postUploadScores" style="display:none">
-      <div class="realityScoreCard">
-        <div class="realityScoreLabel">ATS readiness</div>
-        <div class="realityScoreValue" id="postUploadScoreValue">--/100</div>
-        <div class="realityScoreMeta" id="postUploadScoreMeta">Baseline before tailoring to a specific job.</div>
-      </div>
-      <div class="realityScoreCard">
-        <div class="realityScoreLabel">Machine readability</div>
-        <div class="realityScoreValue" id="postUploadReadabilityValue">--</div>
-        <div class="realityScoreMeta" id="postUploadReadabilityMeta">This checks how clearly ATS systems can parse the document.</div>
-      </div>
-    </div>
-    <div class="realityFindings" id="postUploadFindings"></div>
-    <div class="uploadSuccessBridge" id="postUploadBridge" style="display:none"></div>
-    <div class="actions">
-      <button class="btn primary" id="postUploadPrimaryBtn" type="button">Continue to CV Studio</button>
-    </div>
-    <div class="uploadSuccessSecondary" id="postUploadSecondary">You can continue to CV Studio while the first review prepares.</div>
-  </div>
-
-  <div class="helpBox aiCard slimAi" id="aiBox">
-    <div class="stepTitle">
-      <h2 style="margin:0;font-size:18px">Suggested roles</h2>
-      <div class="aiHeaderActions">
-        <button class="linkBtn" id="aiRegenerateLink" style="display:none" type="button">Regenerate</button>
-        <span class="badge" id="aiStatusBadge">Locked</span>
-      </div>
-    </div>
-    <div class="small" id="aiHint">We suggest roles after your CV is ready.</div>
-    <div class="actions" style="margin-top:12px">
-      <button class="btn cta" disabled="" id="aiGenerateBtn" type="button">Generate roles</button>
-      <button class="btn" disabled="" id="aiApplyBtn" type="button">Use below</button>
-    </div>
-    <div id="aiTitlesWrap" style="margin-top:12px;display:none"></div>
-    <div class="hr"></div>
-    <div id="aiAltWrap" style="display:none">
-      <div class="small" style="font-weight:850">Alternative roles</div>
-      <div class="chips" id="aiAltChips" style="margin-top:10px"></div>
-    </div>
-    <div id="aiSkillsWrap" style="display:none;margin-top:14px">
-      <div class="small" style="font-weight:850">Top skills</div>
-      <div class="chips" id="aiSkillsChips" style="margin-top:10px"></div>
-    </div>
-  </div>
 </div>
+</section>
+<section class="uploadSuccessCard" id="postUploadCard" style="display:none" aria-live="polite">
+  <div class="uploadSuccessTop">
+    <div>
+      <div class="uploadSuccessKicker" id="postUploadKicker">AI CV Review</div>
+      <h3 class="uploadSuccessTitle" id="postUploadTitle">Reviewing your CV</h3>
+      <p class="uploadSuccessBody" id="postUploadBody">We’re checking structure, ATS readability, and role relevance. This usually takes a short moment.</p>
+    </div>
+    <span class="badge warn" id="postUploadBadge">Preparing review</span>
+  </div>
+  <div class="realityScoreGrid" id="postUploadScores" style="display:none">
+    <div class="realityScoreCard">
+      <div class="realityScoreLabel">ATS readiness</div>
+      <div class="realityScoreValue" id="postUploadScoreValue">--/100</div>
+      <div class="realityScoreMeta" id="postUploadScoreMeta">Baseline before tailoring to a specific job.</div>
+    </div>
+    <div class="realityScoreCard">
+      <div class="realityScoreLabel">Machine readability</div>
+      <div class="realityScoreValue" id="postUploadReadabilityValue">--</div>
+      <div class="realityScoreMeta" id="postUploadReadabilityMeta">This checks how clearly ATS systems can parse the document.</div>
+    </div>
+  </div>
+  <div class="realityFindings" id="postUploadFindings"></div>
+  <div class="uploadSuccessBridge" id="postUploadBridge" style="display:none"></div>
+  <div class="actions">
+    <button class="btn primary" id="postUploadPrimaryBtn" type="button">Continue to CV Studio</button>
+  </div>
+  <div class="uploadSuccessSecondary" id="postUploadSecondary">You can continue to CV Studio while the first review prepares.</div>
 </section>
 <aside class="card profileRail">
 <div class="sectionBody railStack railTight">
@@ -1942,131 +1905,6 @@ Matched jobs premium polish
   </details>
 </div>
 </aside>
-<section class="card cardNoPad" id="prefsCard" style="grid-column:1/-1">
-<details class="prefsShell" id="prefsToggle">
-  <summary class="prefsSummary">
-    <div class="prefsSummaryMain">
-      <span class="prefsSummaryTag">Optional later</span>
-      <div class="titleBlock">
-        <h2>Match jobs later</h2>
-        <div class="prefsSummaryLead">Only if you also want optional job suggestions after CV Studio.</div>
-      </div>
-    </div>
-  </summary>
-  <div class="sectionBody">
-  <div class="prefsUtilityRow">
-    <div class="small">This section is optional and secondary to CV tailoring.</div>
-    <div class="row" style="gap:8px">
-      <span class="badge" id="jobsPrefetchBadge" style="display:none">Fetching jobs…</span>
-      <span class="badge" id="saveStatusBadge">Not saved</span>
-    </div>
-  </div>
-  <div class="prefsCanvas">
-
-    <div class="row" id="jobsPrefetchRow" style="display:none; gap:10px; margin-bottom:10px">
-      <div class="spinner" aria-hidden="true"></div>
-      <div class="small" id="jobsPrefetchText">Fetching matched jobs in the background…</div>
-    </div>
-
-  <div class="prefsForm" role="form" aria-label="Matched jobs preferences">
-    <!-- Left column: what roles -->
-    <div class="formGroup">
-      <div class="formGroupHeader">
-        <div class="formGroupTitle">Role preferences</div>
-      </div>
-
-      <div class="field fieldCard">
-        <div class="labelRow">
-          <label for="jobTitles">Desired job titles</label>
-          <span class="fieldTag req">Required</span>
-        </div>
-        <textarea id="jobTitles" placeholder="Receptionist, Front Desk Agent, Rezeption"></textarea>
-
-        <div id="aiAppliedWrap" style="display:none;margin-top:10px">
-          <div class="small"><strong>AI-added titles</strong></div>
-          <div id="aiAppliedChips"></div>
-        </div>
-      </div>
-
-      <div class="field fieldCard">
-        <div class="labelRow">
-          <label for="industries">Industries</label>
-          <span class="fieldTag opt">Optional</span>
-        </div>
-        <input id="industries" placeholder="Healthtech, Hospitality, Wellness"/>
-      </div>
-    </div>
-
-    <!-- Right column: where to search -->
-    <div class="formGroup">
-      <div class="formGroupHeader">
-        <div class="formGroupTitle">Location &amp; radius</div>
-      </div>
-
-      <div class="fieldRow">
-        <div class="field fieldCard">
-          <div class="labelRow">
-            <label for="country">Country</label>
-          </div>
-          <select id="country">
-            <option value="DE">Germany (DE)</option>
-            <option value="UK">United Kingdom (UK)</option>
-          </select>
-        </div>
-
-        <div class="field fieldCard">
-          <div class="labelRow">
-            <label for="radiusKm">Radius (km)</label>
-            <span class="fieldTag opt">Optional</span>
-          </div>
-          <input id="radiusKm" inputmode="numeric" placeholder="20"/>
-          <div class="row" id="radiusQuick" style="gap:8px;margin-top:10px;flex-wrap:wrap">
-            <div class="chip quick" data-radius="10">10 km</div>
-            <div class="chip quick" data-radius="20">20 km</div>
-            <div class="chip quick" data-radius="50">50 km</div>
-            <div class="chip quick" data-radius="100">100 km</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="field fieldCard">
-        <div class="labelRow">
-          <div class="row" style="gap:8px; align-items:flex-end; flex-wrap:wrap">
-            <label for="locations" style="margin:0">Main location(s)</label>
-            <span class="fieldTag req">Required</span>
-          </div>
-          <button class="btn small" id="useCvLocationBtn" type="button" style="display:none">Use CV location</button>
-        </div>
-
-        <input id="locations" placeholder="Berlin, Potsdam"/>
-
-        <div id="locSuggestWrap" style="display:none;margin-top:10px">
-          <div class="small"><strong>Suggested from your CV</strong> (click to apply)</div>
-          <div id="locSuggestChips"></div>
-        </div>
-
-        <div id="locQuickWrap" style="margin-top:10px">
-          <div class="small"><strong>Popular in Germany</strong></div>
-          <div id="locQuickChips"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="prefsFooter">
-    <div class="actions">
-      <button class="btn" id="continueBtn" type="button">Tailor this CV to a job</button>
-    </div>
-    <div style="display:grid; gap:8px; min-width:260px">
-      <div class="small" id="autosaveHint">Auto-save is on.</div>
-      <div class="small" id="continueHint"></div>
-    </div>
-  </div>
-
-</div>
-</div>
-</details>
-</section>
 </div>
 </main>
 
