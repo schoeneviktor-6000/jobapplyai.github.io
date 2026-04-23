@@ -4,8 +4,16 @@
   const CHECK_ICON = "\u2713";
 
   // Edit keyword labels, score deltas, and overlay positions here.
-  // Position values are percentages relative to the screenshot dimensions.
+  // Root position values are tied to the screenshot dimensions.
+  // Slot positions are percentages relative to the clipped CV overlay root.
   const CV_STUDIO_PREVIEW_DEMO = Object.freeze({
+    screenshotWidth: 1800,
+    cvOverlayRoot: Object.freeze({
+      top: "4.9%",
+      left: "2.6%",
+      width: "49.8%",
+      height: "88.3%"
+    }),
     initialScore: 43,
     maxScore: 50,
     keywords: Object.freeze([
@@ -21,12 +29,22 @@
           width: "17.5%",
           height: "4.2%"
         }),
-        cvOverlayPosition: Object.freeze({
-          top: "41.45%",
-          left: "5.58%",
-          width: "41.35%",
-          height: "6.55%",
+        cvSlotPosition: Object.freeze({
+          top: "41.393%",
+          left: "5.984%",
+          width: "83.032%",
+          height: "7.418%",
           tone: "selected"
+        }),
+        textStyle: Object.freeze({
+          fontSize: "13.2px",
+          lineHeight: "18.0px",
+          paddingTop: "0px",
+          paddingRight: "14px",
+          paddingBottom: "0px",
+          paddingLeft: "0px",
+          letterSpacing: "-0.012em",
+          fontWeight: "600"
         })
       }),
       Object.freeze({
@@ -41,12 +59,22 @@
           width: "12.4%",
           height: "4.2%"
         }),
-        cvOverlayPosition: Object.freeze({
-          top: "71.85%",
-          left: "5.52%",
-          width: "41.45%",
-          height: "6.45%",
+        cvSlotPosition: Object.freeze({
+          top: "75.821%",
+          left: "5.863%",
+          width: "83.233%",
+          height: "7.305%",
           tone: "paper"
+        }),
+        textStyle: Object.freeze({
+          fontSize: "13.0px",
+          lineHeight: "17.8px",
+          paddingTop: "0px",
+          paddingRight: "14px",
+          paddingBottom: "0px",
+          paddingLeft: "0px",
+          letterSpacing: "-0.012em",
+          fontWeight: "590"
         })
       }),
       Object.freeze({
@@ -61,12 +89,22 @@
           width: "11.3%",
           height: "4.2%"
         }),
-        cvOverlayPosition: Object.freeze({
-          top: "84.55%",
-          left: "5.55%",
-          width: "40.9%",
-          height: "6.15%",
+        cvSlotPosition: Object.freeze({
+          top: "90.204%",
+          left: "5.924%",
+          width: "82.129%",
+          height: "6.965%",
           tone: "paper"
+        }),
+        textStyle: Object.freeze({
+          fontSize: "12.8px",
+          lineHeight: "17.4px",
+          paddingTop: "0px",
+          paddingRight: "12px",
+          paddingBottom: "0px",
+          paddingLeft: "0px",
+          letterSpacing: "-0.012em",
+          fontWeight: "590"
         })
       })
     ])
@@ -109,6 +147,18 @@
     if (box.bottom) element.style.bottom = box.bottom;
     if (box.width) element.style.width = box.width;
     if (box.height) element.style.height = box.height;
+  }
+
+  function setTextStyles(element, styles) {
+    if (!element || !styles) return;
+    if (styles.fontSize) element.style.setProperty("--demo-font-size", styles.fontSize);
+    if (styles.lineHeight) element.style.setProperty("--demo-line-height", styles.lineHeight);
+    if (styles.paddingTop) element.style.setProperty("--demo-padding-top", styles.paddingTop);
+    if (styles.paddingRight) element.style.setProperty("--demo-padding-right", styles.paddingRight);
+    if (styles.paddingBottom) element.style.setProperty("--demo-padding-bottom", styles.paddingBottom);
+    if (styles.paddingLeft) element.style.setProperty("--demo-padding-left", styles.paddingLeft);
+    if (styles.letterSpacing) element.style.setProperty("--demo-letter-spacing", styles.letterSpacing);
+    if (styles.fontWeight) element.style.setProperty("--demo-font-weight", styles.fontWeight);
   }
 
   function highlightInsertedText(text, highlightText) {
@@ -171,10 +221,11 @@
 
   function buildInsert(keyword) {
     const block = document.createElement("div");
-    block.className = "demo-bullet-swap";
+    block.className = "demo-bullet-slot";
     block.setAttribute("data-demo-insert", keyword.id);
-    block.setAttribute("data-tone", keyword.cvOverlayPosition.tone || "paper");
-    setBoxStyles(block, keyword.cvOverlayPosition);
+    block.setAttribute("data-tone", keyword.cvSlotPosition.tone || "paper");
+    setBoxStyles(block, keyword.cvSlotPosition);
+    setTextStyles(block, keyword.textStyle);
     const copy = document.createElement("div");
     copy.className = "demo-bullet-copy";
     copy.innerHTML = highlightInsertedText(keyword.insertedText, keyword.highlightText);
@@ -187,7 +238,9 @@
     root.dataset.demoReady = "true";
 
     const frame = root.querySelector("[data-cv-demo]");
+    const screenshot = root.querySelector(".demo-screenshot");
     const chipOverlay = root.querySelector("[data-demo-chip-overlay]");
+    const cvOverlayRoot = root.querySelector("[data-demo-cv-overlay-root]");
     const cvOverlay = root.querySelector("[data-demo-cv-overlay]");
     const mobileRail = root.querySelector("[data-demo-mobile-chips]");
     const resetButton = root.querySelector("[data-demo-reset]");
@@ -197,9 +250,11 @@
     const scoreDelta = root.querySelector("[data-demo-score-delta]");
     const scoreMeter = root.querySelector("[data-demo-score-meter]");
 
-    if (!frame || !chipOverlay || !cvOverlay || !mobileRail || !resetButton || !scoreBadge || !scoreValue || !scoreDelta || !scoreMeter) {
+    if (!frame || !chipOverlay || !cvOverlayRoot || !cvOverlay || !mobileRail || !resetButton || !scoreBadge || !scoreValue || !scoreDelta || !scoreMeter) {
       return;
     }
+
+    setBoxStyles(cvOverlayRoot, CV_STUDIO_PREVIEW_DEMO.cvOverlayRoot);
 
     mobileRail.setAttribute(
       "aria-label",
@@ -219,9 +274,17 @@
     const desktopButtons = new Map();
     const mobileButtons = new Map();
     const inserts = new Map();
+    let resizeObserver = null;
 
     function announce(message) {
       if (announcer) announcer.textContent = message;
+    }
+
+    function updateOverlayScale() {
+      const width = screenshot && screenshot.clientWidth ? screenshot.clientWidth : frame.clientWidth;
+      const rawScale = width > 0 ? width / CV_STUDIO_PREVIEW_DEMO.screenshotWidth : 1;
+      const scale = clamp(rawScale, 0.28, 1);
+      cvOverlayRoot.style.setProperty("--demo-scale", String(scale));
     }
 
     function setAnimatedScore(value) {
@@ -389,7 +452,16 @@
     resetButton.addEventListener("click", resetDemo);
 
     updateUi();
+    updateOverlayScale();
     setAnimatedScore(state.score);
+
+    if (typeof ResizeObserver === "function") {
+      resizeObserver = new ResizeObserver(updateOverlayScale);
+      resizeObserver.observe(frame);
+      if (screenshot) resizeObserver.observe(screenshot);
+    } else {
+      window.addEventListener("resize", updateOverlayScale, { passive: true });
+    }
   }
 
   function initAllDemos() {

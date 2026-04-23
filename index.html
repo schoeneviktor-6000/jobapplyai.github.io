@@ -2416,6 +2416,21 @@ color:var(--muted);
   position:absolute;
   inset:0;
 }
+.demo-cv-overlay-root{
+  position:absolute;
+  top:4.9%;
+  left:2.6%;
+  width:49.8%;
+  height:88.3%;
+  overflow:hidden;
+  border-radius:24px;
+  pointer-events:none;
+  isolation:isolate;
+}
+.demo-cv-overlay{
+  overflow:hidden;
+  clip-path:inset(0 round 24px);
+}
 .demo-chip-hit{
   position:absolute;
   pointer-events:auto;
@@ -2490,64 +2505,79 @@ color:var(--muted);
 .demo-chip-hit.is-added .demo-chip-icon{
   display:inline-block;
 }
-.demo-bullet-swap{
+.demo-bullet-slot{
   position:absolute;
+  overflow:hidden;
+  clip-path:inset(0 round 10px);
+  contain:layout paint;
+  isolation:isolate;
   transform-origin:left center;
   transition:transform .3s ease-out;
 }
-.demo-bullet-swap::before,
-.demo-bullet-swap::after{
+.demo-bullet-slot::before,
+.demo-bullet-slot::after{
   content:"";
   position:absolute;
-  inset:-1.2% -1.1%;
+  inset:0;
   border-radius:10px;
   transition:opacity .3s ease-out, transform .3s ease-out, box-shadow .3s ease-out, background .3s ease-out;
   pointer-events:none;
 }
-.demo-bullet-swap::before{
+.demo-bullet-slot::before{
   background:linear-gradient(90deg, rgba(255,255,255,.88), rgba(252,253,253,.96));
   backdrop-filter:blur(1.8px) saturate(.92) brightness(1.02);
   opacity:0;
   transform:scale(1);
 }
-.demo-bullet-swap::after{
+.demo-bullet-slot::after{
   opacity:0;
   box-shadow:0 0 0 0 rgba(0,166,63,0);
 }
-.demo-bullet-swap[data-tone="selected"]::before{
+.demo-bullet-slot[data-tone="selected"]::before{
   background:linear-gradient(90deg, rgba(236,248,240,.90), rgba(241,251,244,.96));
 }
-.demo-bullet-swap.is-activating{
+.demo-bullet-slot.is-activating{
   transform:scale(1.015);
 }
-.demo-bullet-swap.is-activating::before{
+.demo-bullet-slot.is-activating::before{
   opacity:.38;
   transform:scale(1.008);
 }
-.demo-bullet-swap.is-activating::after{
+.demo-bullet-slot.is-activating::after{
   opacity:.9;
   box-shadow:0 0 0 1px rgba(0,166,63,.12), 0 0 18px rgba(0,166,63,.08);
 }
-.demo-bullet-swap.is-visible{
+.demo-bullet-slot.is-visible{
   transform:scale(1);
 }
-.demo-bullet-swap.is-visible::before{
+.demo-bullet-slot.is-visible::before{
   opacity:.97;
 }
 .demo-bullet-copy{
   position:absolute;
   inset:0;
+  overflow:hidden;
+  visibility:hidden;
   color:rgba(17,24,39,.96);
-  font-size:clamp(6.3px, 0.96cqw, 10.3px);
-  line-height:1.36;
-  letter-spacing:-.012em;
-  font-weight:590;
+  font-size:calc(var(--demo-font-size, 13px) * var(--demo-scale, 1));
+  line-height:calc(var(--demo-line-height, 18px) * var(--demo-scale, 1));
+  letter-spacing:var(--demo-letter-spacing, -.012em);
+  font-weight:var(--demo-font-weight, 590);
+  padding:
+    calc(var(--demo-padding-top, 0px) * var(--demo-scale, 1))
+    calc(var(--demo-padding-right, 0px) * var(--demo-scale, 1))
+    calc(var(--demo-padding-bottom, 0px) * var(--demo-scale, 1))
+    calc(var(--demo-padding-left, 0px) * var(--demo-scale, 1));
   opacity:0;
-  transform:translateY(6px);
+  transform:translateY(calc(6px * var(--demo-scale, 1)));
   transition:opacity .32s ease-out, transform .32s ease-out;
   text-rendering:optimizeLegibility;
+  white-space:normal;
+  word-break:break-word;
+  overflow-wrap:anywhere;
 }
-.demo-bullet-swap.is-visible .demo-bullet-copy{
+.demo-bullet-slot.is-visible .demo-bullet-copy{
+  visibility:visible;
   opacity:1;
   transform:translateY(0);
 }
@@ -3186,7 +3216,9 @@ color:var(--muted);
           </div>
 
           <div class="demo-chip-overlay" data-demo-chip-overlay></div>
-          <div class="demo-cv-overlay" data-demo-cv-overlay></div>
+          <div class="demo-cv-overlay-root" data-demo-cv-overlay-root>
+            <div class="demo-cv-overlay" data-demo-cv-overlay></div>
+          </div>
         </div>
       </div>
     </div>
