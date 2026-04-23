@@ -22,9 +22,11 @@
           height: "4.2%"
         }),
         cvOverlayPosition: Object.freeze({
-          top: "45.1%",
-          left: "6.1%",
-          width: "42.4%"
+          top: "41.45%",
+          left: "5.58%",
+          width: "41.35%",
+          height: "6.55%",
+          tone: "selected"
         })
       }),
       Object.freeze({
@@ -40,9 +42,11 @@
           height: "4.2%"
         }),
         cvOverlayPosition: Object.freeze({
-          top: "68.6%",
-          left: "5.9%",
-          width: "40.8%"
+          top: "71.85%",
+          left: "5.52%",
+          width: "41.45%",
+          height: "6.45%",
+          tone: "paper"
         })
       }),
       Object.freeze({
@@ -58,9 +62,11 @@
           height: "4.2%"
         }),
         cvOverlayPosition: Object.freeze({
-          top: "81.5%",
-          left: "5.8%",
-          width: "39.2%"
+          top: "84.55%",
+          left: "5.55%",
+          width: "40.9%",
+          height: "6.15%",
+          tone: "paper"
         })
       })
     ])
@@ -111,14 +117,7 @@
     if (!needle) return safeText;
     const escapedNeedle = needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const regex = new RegExp(escapedNeedle, "i");
-    return safeText.replace(regex, (match) => `<strong>${match}</strong>`);
-  }
-
-  function flashElement(element) {
-    if (!element) return;
-    element.classList.remove("is-flash");
-    void element.offsetWidth;
-    element.classList.add("is-flash");
+    return safeText.replace(regex, (match) => `<mark>${match}</mark>`);
   }
 
   function buildDesktopChip(keyword) {
@@ -172,10 +171,14 @@
 
   function buildInsert(keyword) {
     const block = document.createElement("div");
-    block.className = "demo-insert";
+    block.className = "demo-bullet-swap";
     block.setAttribute("data-demo-insert", keyword.id);
+    block.setAttribute("data-tone", keyword.cvOverlayPosition.tone || "paper");
     setBoxStyles(block, keyword.cvOverlayPosition);
-    block.innerHTML = highlightInsertedText(keyword.insertedText, keyword.highlightText);
+    const copy = document.createElement("div");
+    copy.className = "demo-bullet-copy";
+    copy.innerHTML = highlightInsertedText(keyword.insertedText, keyword.highlightText);
+    block.appendChild(copy);
     return block;
   }
 
@@ -207,6 +210,8 @@
       score: CV_STUDIO_PREVIEW_DEMO.initialScore,
       animatedScore: CV_STUDIO_PREVIEW_DEMO.initialScore,
       addedKeywordIds: new Set(),
+      pendingKeywordIds: new Set(),
+      activationTimers: new Map(),
       scoreFrame: 0
     };
 
@@ -267,10 +272,13 @@
         const desktopButton = desktopButtons.get(keyword.id);
         const mobileButton = mobileButtons.get(keyword.id);
         const insert = inserts.get(keyword.id);
+        const isPending = state.pendingKeywordIds.has(keyword.id);
 
         if (desktopButton) {
           desktopButton.classList.toggle("is-added", isAdded);
+          desktopButton.disabled = isAdded;
           desktopButton.setAttribute("aria-pressed", isAdded ? "true" : "false");
+          desktopButton.setAttribute("aria-disabled", isAdded ? "true" : "false");
           desktopButton.setAttribute(
             "aria-label",
             isAdded ? `${keyword.label} added` : `Add ${keyword.label}`
@@ -279,7 +287,9 @@
 
         if (mobileButton) {
           mobileButton.classList.toggle("is-added", isAdded);
+          mobileButton.disabled = isAdded;
           mobileButton.setAttribute("aria-pressed", isAdded ? "true" : "false");
+          mobileButton.setAttribute("aria-disabled", isAdded ? "true" : "false");
           mobileButton.setAttribute(
             "aria-label",
             isAdded ? `${keyword.label} added` : `Add ${keyword.label}`
@@ -287,7 +297,8 @@
         }
 
         if (insert) {
-          insert.classList.toggle("is-visible", isAdded);
+          insert.classList.toggle("is-activating", isPending);
+          insert.classList.toggle("is-visible", isAdded && !isPending);
         }
       }
     }
@@ -297,7 +308,6 @@
       if (!keyword) return;
 
       if (state.addedKeywordIds.has(keywordId)) {
-        flashElement(inserts.get(keywordId));
         announce(
           translate(
             "pages.index.preview.announcements.alreadyAdded",
@@ -309,28 +319,42 @@
       }
 
       state.addedKeywordIds.add(keywordId);
-      state.score = Math.min(
-        CV_STUDIO_PREVIEW_DEMO.maxScore,
-        state.score + Number(keyword.scoreDelta || 0)
-      );
+      state.pendingKeywordIds.add(keywordId);
 
       updateUi();
-      animateScore(state.score);
-      flashElement(inserts.get(keywordId));
 
-      announce(
-        translate(
-          "pages.index.preview.announcements.added",
-          { keyword: keyword.label, score: state.score },
-          `${keyword.label} added. ATS match ${state.score}%.`
-        )
-      );
+      const activationTimer = window.setTimeout(() => {
+        state.pendingKeywordIds.delete(keywordId);
+        state.activationTimers.delete(keywordId);
+        state.score = Math.min(
+          CV_STUDIO_PREVIEW_DEMO.maxScore,
+          state.score + Number(keyword.scoreDelta || 0)
+        );
+
+        updateUi();
+        animateScore(state.score);
+
+        announce(
+          translate(
+            "pages.index.preview.announcements.added",
+            { keyword: keyword.label, score: state.score },
+            `${keyword.label} added. ATS match ${state.score}%.`
+          )
+        );
+      }, 300);
+
+      state.activationTimers.set(keywordId, activationTimer);
     }
 
     function resetDemo() {
       if (state.scoreFrame) cancelAnimationFrame(state.scoreFrame);
       state.scoreFrame = 0;
+      for (const activationTimer of state.activationTimers.values()) {
+        try { window.clearTimeout(activationTimer); } catch (_) {}
+      }
+      state.activationTimers.clear();
       state.addedKeywordIds.clear();
+      state.pendingKeywordIds.clear();
       state.score = CV_STUDIO_PREVIEW_DEMO.initialScore;
       updateUi();
       animateScore(state.score);
