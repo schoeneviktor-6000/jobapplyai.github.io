@@ -4131,12 +4131,23 @@ async function handleMeJobsFetch(request, env) {
   } catch (_) {
   }
   const fetchModeRaw = String(body.fetch_mode || "").trim().toLowerCase();
-  const fetchMode = ["profile", "profile_plus_ai", "ai_only"].includes(fetchModeRaw) ? fetchModeRaw : "";
+  const allowedFetchModes = /* @__PURE__ */ new Set([
+    "",
+    "profile",
+    "profile_plus_ai",
+    "extra_roles",
+    "profile_plus_extra_roles",
+    "profile_plus_ai_plus_extra_roles"
+  ]);
+  if (!allowedFetchModes.has(fetchModeRaw)) {
+    return json(request, { ok: false, error: "Invalid fetch_mode" }, 400);
+  }
+  const fetchMode = fetchModeRaw;
   const includeAi = Boolean(body.include_ai_titles);
   const aiTitlesRaw = Array.isArray(body.ai_titles) ? body.ai_titles : [];
   const extraTitlesRaw = Array.isArray(body.extra_titles) ? body.extra_titles : Array.isArray(body.desired_titles) ? body.desired_titles : [];
   const mode = fetchMode || (includeAi ? "profile_plus_ai" : "profile");
-  const aiOnly = mode === "ai_only";
+  const shouldIncludeAiTitles = includeAi || mode === "profile_plus_ai" || mode === "profile_plus_ai_plus_extra_roles";
   const qProfile = new URLSearchParams();
   qProfile.set("select", "customer_id,desired_titles,ai_titles,locations,radius_km,countries_allowed,exclude_titles");
   qProfile.set("customer_id", `eq.${customerId}`);
@@ -4160,8 +4171,8 @@ async function handleMeJobsFetch(request, env) {
     merged.push(s);
   }, "pushTitle");
   cleanedExtraTitles.forEach(pushTitle);
-  if (!aiOnly) desired.forEach(pushTitle);
-  if (includeAi || aiOnly) {
+  desired.forEach(pushTitle);
+  if (shouldIncludeAiTitles) {
     const aiSource = cleanedAiTitles.length ? cleanedAiTitles : profileAiTitles.slice(0, maxAiTitles);
     aiSource.forEach(pushTitle);
   }
