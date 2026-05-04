@@ -305,7 +305,7 @@
       <div class="navlinks">
         <a class="pill" href="./dashboard.html" data-nav="1">Dashboard</a>
         <a class="pill" href="./cv.html" data-nav="1">CV Studio</a>
-        <a class="pill active" href="./jobs.html" data-nav="1">Jobs</a>
+        <a class="pill active" href="./jobs.html" data-nav="1">Jobs 🇩🇪</a>
         <a class="pill" href="./plan.html" data-nav="1">Pricing</a>
       </div>
       <div class="navcta">
@@ -331,7 +331,7 @@
             <div class="menuLabel">Go to</div>
             <a class="jmNavItem" href="./dashboard.html" data-nav="1" role="menuitem">Dashboard</a>
             <a class="jmNavItem" href="./cv.html" data-nav="1" role="menuitem">CV Studio</a>
-            <a class="jmNavItem" href="./jobs.html" data-nav="1" role="menuitem">Jobs</a>
+            <a class="jmNavItem" href="./jobs.html" data-nav="1" role="menuitem">Jobs 🇩🇪</a>
             <a class="jmNavItem" href="./profile.html" data-nav="1" role="menuitem">Profile</a>
             <a class="jmNavItem" href="./profile.html#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Manage billing</a>
             <a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Plans & pricing</a>
@@ -350,7 +350,7 @@
     <div class="row" style="align-items:flex-end; justify-content:space-between">
       <div>
         <h1 class="h1">Jobs</h1>
-        <p class="sub">Fetch jobs into your queue, then open any job in CV Studio to tailor your CV.</p>
+        <p class="sub">Fetch German-market jobs into your queue, then open any role in CV Studio to tailor your CV.</p>
       </div>
       <span class="badge warn" id="authBadge">Checking…</span>
     </div>
@@ -368,9 +368,9 @@
             </div>
 
             <div class="row" style="justify-content:flex-end">
-              <span class="badge warn">Germany only</span>
+              <span class="badge warn">🇩🇪 Germany only</span>
               <span class="badge" id="badgeQueue">—</span>
-              <button class="btn primary" id="btnFetchJobsNow" type="button">Fetch new jobs</button>
+              <button class="btn primary" id="btnFetchJobsNow" type="button">Fetch more jobs</button>
               <button class="btn" id="btnRefresh" type="button">Refresh</button>
               <button class="btn ghost" type="button" data-extension-modal-open>Chrome extension</button>
             </div>
@@ -389,17 +389,21 @@
 
 
           <details class="advanced" id="fetchAdvanced">
-            <summary>Fetch options</summary>
+            <summary>Roles</summary>
+
+            <div class="field" style="margin-top:10px">
+              <input id="extraRoleInput" class="textInput" type="text" placeholder="Extra roles, comma separated" autocomplete="off"/>
+            </div>
 
             <div class="toggleRow">
               <label class="switch">
                 <input id="toggleAiOnly" type="checkbox"/>
-                AI titles only
+                Include AI roles
               </label>
               <span class="badge" id="badgeAi">—</span>
             </div>
             <div class="small" id="aiSwitchHint" style="display:none">Generate AI suggestions in Profile to unlock this.</div>
-            <div class="small">If enabled, we use your AI-recommended role titles (from Profile) to fetch jobs. Otherwise we fetch based on your profile settings.</div>
+            <div class="small">Uses your Profile roles, plus anything typed here.</div>
           </details>
 
           <div class="hr"></div>
@@ -810,7 +814,7 @@ function goToCvStudio(jobId){
                 + '<div class="jobRowTitle">No jobs in your queue yet</div>'
                 + '<div class="badgeGroup"><span class="badge warn">Empty</span></div>'
               + '</div>'
-              + '<div class="jobRowMeta"><span>Tip:</span><span>Complete your Profile and click “Fetch new jobs”.</span></div>'
+              + '<div class="jobRowMeta"><span>Tip:</span><span>Complete your Profile and click “Fetch more jobs”.</span></div>'
               + '<div class="detailActions" style="margin-top:12px">'
                 + '<a class="btn" href="./profile.html" data-nav="1">Open Profile</a>'
                 + '<button class="btn primary" id="btnFetchInline" type="button">Fetch now</button>'
@@ -1636,41 +1640,97 @@ function renderDetailLoading(baseJob){
     /* -------------------------
        Fetch new jobs
        ------------------------- */
-    const FETCH_COOLDOWN_MS = 10 * 60 * 1000;
+    const FETCH_CURSOR_KEY = "jm_jobs_fetch_cursor_v2";
+    const EXTRA_ROLES_KEY = "jm_jobs_extra_roles";
+    const FETCH_PAGE_SIZE = 50;
+    const FETCH_PAGE_COUNT = 1;
 
-    function getNextFetchAllowedAt(){
+    function parseRoleTitles(text){
+      const out = [];
+      const seen = new Set();
+      String(text || "")
+        .split(/[\n,;]+/)
+        .map((t) => t.trim())
+        .filter(Boolean)
+        .forEach((title) => {
+          const key = title.toLowerCase();
+          if(seen.has(key)) return;
+          seen.add(key);
+          out.push(title.slice(0, 80));
+        });
+      return out.slice(0, 25);
+    }
+
+    function getExtraRolesForFetch(){
+      return parseRoleTitles($("extraRoleInput")?.value || "");
+    }
+
+    function hydrateExtraRoleInput(){
+      const input = $("extraRoleInput");
+      if(!input) return;
+      try{ input.value = localStorage.getItem(EXTRA_ROLES_KEY) || ""; }catch(_){ }
+    }
+
+    function saveExtraRoleInput(){
+      try{ localStorage.setItem(EXTRA_ROLES_KEY, String($("extraRoleInput")?.value || "").trim()); }catch(_){ }
+    }
+
+    function fetchSignature(includeAi, extraRoles){
+      return JSON.stringify({
+        market: "DE",
+        ai: !!includeAi,
+        extra: (extraRoles || []).map((t) => String(t || "").trim().toLowerCase()).filter(Boolean)
+      });
+    }
+
+    function readFetchCursor(){
       try{
-        const raw = localStorage.getItem("jm_last_manual_fetch_ts") || "";
-        const v = Number(raw || "0");
-        if(!v || !Number.isFinite(v)) return 0;
-        return v + FETCH_COOLDOWN_MS;
+        const raw = localStorage.getItem(FETCH_CURSOR_KEY) || "";
+        return raw ? JSON.parse(raw) : null;
       }catch(_){
-        return 0;
+        return null;
       }
+    }
+
+    function nextFetchPageFor(signature){
+      const cur = readFetchCursor();
+      if(!cur || cur.signature !== signature) return 1;
+      const n = Number(cur.nextPage || 1);
+      return Number.isFinite(n) && n > 0 ? Math.min(1000, Math.round(n)) : 1;
+    }
+
+    function rememberFetchCursor(signature, nextPage){
+      const lastTs = Date.now();
+      try{
+        localStorage.setItem(FETCH_CURSOR_KEY, JSON.stringify({
+          signature,
+          nextPage: Math.max(1, Math.min(1000, Math.round(Number(nextPage || 1)))),
+          lastTs
+        }));
+        localStorage.setItem("jm_last_manual_fetch_ts", String(lastTs));
+      }catch(_){ }
+    }
+
+    function totalFetchedFromResponse(resp){
+      const direct = Number(resp?.total_fetched);
+      if(Number.isFinite(direct)) return direct;
+      const details = Array.isArray(resp?.details) ? resp.details : [];
+      return details.reduce((sum, d) => sum + (Number(d?.fetched) || 0), 0);
     }
 
     function updateFetchMetaUI(){
       const meta = $("fetchMeta");
       if(!meta) return;
       try{
-        const raw = localStorage.getItem("jm_last_manual_fetch_ts") || "";
-        const lastTs = Number(raw || "0");
+        const cur = readFetchCursor();
+        const lastTs = Number(cur?.lastTs || localStorage.getItem("jm_last_manual_fetch_ts") || "0");
         if(!lastTs){
-          meta.textContent = "Tip: fetch jobs after your Profile is complete.";
+          meta.textContent = "";
           return;
         }
         const last = new Date(lastTs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-        const next = lastTs + FETCH_COOLDOWN_MS;
-        const now = Date.now();
-
-        if(now < next){
-          const sec = Math.ceil((next - now) / 1000);
-          const min = Math.floor(sec / 60);
-          const s = sec % 60;
-          meta.textContent = "Last fetch: " + last + " · Next fetch in " + min + ":" + String(s).padStart(2, "0");
-        }else{
-          meta.textContent = "Last fetch: " + last + " · You can fetch again now";
-        }
+        const batch = Number(cur?.nextPage || 1);
+        meta.textContent = "Last fetch " + last + (batch > 1 ? (" · next batch " + batch) : "");
       }catch(_){
         meta.textContent = "";
       }
@@ -1720,7 +1780,7 @@ function renderDetailLoading(baseJob){
       }
 
       if(hint) hint.style.display = available ? "none" : "block";
-      if(badge) H.setBadge("badgeAi", available ? "good" : "warn", available ? (titles.length + " titles") : "Locked");
+      if(badge) H.setBadge("badgeAi", available ? "good" : "warn", available ? (titles.length + " roles") : "Locked");
     }
 
     async function manualFetchJobs(){
@@ -1731,37 +1791,34 @@ function renderDetailLoading(baseJob){
       const setState = (loading, msg) => {
         if(btn){
           btn.disabled = !!loading;
-          btn.textContent = loading ? "Fetching…" : "Fetch new jobs";
+          btn.textContent = loading ? "Fetching…" : "Fetch more jobs";
         }
         if(status) status.textContent = msg || "";
       };
 
       try{
-        const next = getNextFetchAllowedAt();
-        if(next && Date.now() < next){
-          const sec = Math.ceil((next - Date.now()) / 1000);
-          setState(false, "Please wait " + sec + "s before fetching again.");
-          updateFetchMetaUI();
-          return;
-        }
-
         if(!lastSessionToken){
           throw new Error("No session token. Please sign in again.");
         }
 
-        // Start cooldown immediately (avoid double-click spamming)
-        try{ localStorage.setItem("jm_last_manual_fetch_ts", String(Date.now())); }catch(_){ }
-        updateFetchMetaUI();
+        saveExtraRoleInput();
 
-        const aiOnly = !!(toggle && toggle.checked);
-        const titles = aiOnly ? getAiTitlesForFetch() : [];
+        const includeAi = !!(toggle && toggle.checked);
+        const aiTitlesForFetch = includeAi ? getAiTitlesForFetch() : [];
+        const extraRoles = getExtraRolesForFetch();
+        const signature = fetchSignature(includeAi, extraRoles);
+        const page = nextFetchPageFor(signature);
 
-        setState(true, aiOnly ? "Fetching (AI titles only)…" : "Fetching…");
+        setState(true, "Fetching German jobs…");
 
         const resp = await apiPost("/me/jobs/fetch", lastSessionToken, {
-          include_ai_titles: aiOnly,
-          ai_titles: titles,
-          fetch_mode: aiOnly ? "ai_only" : "profile"
+          include_ai_titles: includeAi,
+          ai_titles: aiTitlesForFetch,
+          extra_titles: extraRoles,
+          fetch_mode: includeAi ? "profile_plus_ai" : "profile",
+          fetch_page: page,
+          page_count: FETCH_PAGE_COUNT,
+          page_size: FETCH_PAGE_SIZE
         });
 
         if(resp && resp.skipped){
@@ -1776,10 +1833,11 @@ function renderDetailLoading(baseJob){
 
         const added = (typeof resp.jobs_added === "number") ? resp.jobs_added : 0;
         const q = (typeof resp.queue_new_count === "number") ? resp.queue_new_count : "—";
-        const rad = (resp.used_radius !== undefined && resp.used_radius !== null) ? resp.used_radius : "—";
-        const ml = (resp.match_level !== undefined && resp.match_level !== null) ? resp.match_level : "—";
+        const totalFetched = totalFetchedFromResponse(resp);
+        const nextPage = totalFetched > 0 || added > 0 ? page + FETCH_PAGE_COUNT : 1;
+        rememberFetchCursor(signature, nextPage);
 
-        setState(false, "Added " + added + " · Queue new: " + q + " · Radius " + rad + "km · Match " + ml);
+        setState(false, added ? ("Added " + added + " · Queue " + q) : "No new jobs in this batch");
 
         await refreshQueue();
       }catch(e){
@@ -2066,6 +2124,7 @@ function renderDetailLoading(baseJob){
       await loadStateAndNav();
       if(!session) return;
 
+      hydrateExtraRoleInput();
       await loadAccountHints();
       wireQueueClicks();
       wireDetailClicks();
@@ -2102,6 +2161,10 @@ function renderDetailLoading(baseJob){
     $("toggleAiOnly")?.addEventListener("change", () => {
       // Keep the badge fresh
       updateAiSwitchState();
+    });
+
+    $("extraRoleInput")?.addEventListener("input", () => {
+      saveExtraRoleInput();
     });
 
     // Description modal wiring
