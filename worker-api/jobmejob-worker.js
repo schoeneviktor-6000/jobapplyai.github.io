@@ -4130,7 +4130,8 @@ async function handleMeJobsFetch(request, env) {
     body = await request.json();
   } catch (_) {
   }
-  const fetchMode = String(body.fetch_mode || "").trim().toLowerCase();
+  const fetchModeRaw = String(body.fetch_mode || "").trim().toLowerCase();
+  const fetchMode = ["profile", "profile_plus_ai", "ai_only"].includes(fetchModeRaw) ? fetchModeRaw : "";
   const includeAi = Boolean(body.include_ai_titles);
   const aiTitlesRaw = Array.isArray(body.ai_titles) ? body.ai_titles : [];
   const extraTitlesRaw = Array.isArray(body.extra_titles) ? body.extra_titles : Array.isArray(body.desired_titles) ? body.desired_titles : [];
@@ -4147,6 +4148,10 @@ async function handleMeJobsFetch(request, env) {
   const desired = Array.isArray(p.desired_titles) ? p.desired_titles.filter(Boolean) : [];
   const locations = Array.isArray(p.locations) ? p.locations.filter(Boolean) : [];
   if (!locations.length) return json(request, { error: "Profile incomplete: add at least 1 location first." }, 400);
+  const maxExtraTitles = clampInt(env.MAX_MANUAL_EXTRA_TITLES || "8", 0, 25, 8);
+  const maxAiTitles = clampInt(env.MAX_MANUAL_AI_TITLES || "12", 0, 25, 12);
+  const cleanedExtraTitles = extraTitlesRaw.slice(0, maxExtraTitles);
+  const cleanedAiTitles = aiTitlesRaw.slice(0, maxAiTitles);
   const merged = [];
   const pushTitle = /* @__PURE__ */ __name((t) => {
     const s = String(t || "").trim().slice(0, 80);
@@ -4154,20 +4159,23 @@ async function handleMeJobsFetch(request, env) {
     if (merged.some((x) => x.toLowerCase() === s.toLowerCase())) return;
     merged.push(s);
   }, "pushTitle");
-  extraTitlesRaw.forEach(pushTitle);
+  cleanedExtraTitles.forEach(pushTitle);
   if (!aiOnly) desired.forEach(pushTitle);
   if (includeAi || aiOnly) {
-    const aiSource = aiTitlesRaw.length ? aiTitlesRaw : profileAiTitles;
+    const aiSource = cleanedAiTitles.length ? cleanedAiTitles : profileAiTitles.slice(0, maxAiTitles);
     aiSource.forEach(pushTitle);
   }
-  const maxTitles = clampInt(env.MAX_FETCH_TITLES || "40", 1, 100, 40);
+  const maxTitles = clampInt(env.MAX_FETCH_TITLES || "24", 1, 40, 24);
   const overrideTitles = merged.slice(0, maxTitles);
   if (!overrideTitles.length) {
     return json(request, { error: "Add a desired title in Profile or type an extra role first." }, 400);
   }
-  const pageStart = clampInt(body.fetch_page || body.page || "1", 1, 1000, 1);
-  const pageCount = clampInt(body.page_count || "1", 1, 3, 1);
-  const pageSize = clampInt(body.page_size || "50", 1, 100, 50);
+  const maxManualPage = clampInt(env.MAX_MANUAL_FETCH_PAGE || "50", 1, 1000, 50);
+  const maxManualPageCount = clampInt(env.MAX_MANUAL_FETCH_PAGE_COUNT || "1", 1, 3, 1);
+  const maxManualPageSize = clampInt(env.MAX_MANUAL_FETCH_PAGE_SIZE || "50", 1, 100, 50);
+  const pageStart = clampInt(body.fetch_page || body.page || "1", 1, maxManualPage, 1);
+  const pageCount = clampInt(body.page_count || "1", 1, maxManualPageCount, 1);
+  const pageSize = clampInt(body.page_size || "50", 1, maxManualPageSize, 50);
   const result = await fetchJobsForCustomerCore(customerId, env, "manual", true, overrideTitles, {
     mode,
     pageStart,
@@ -4187,11 +4195,13 @@ async function handleMeJobsFetch(request, env) {
     market: "DE",
     fetched_by: "manual",
     include_ai_titles: includeAi,
-    extra_titles: extraTitlesRaw,
+    extra_titles: cleanedExtraTitles,
     titles_used: overrideTitles,
     fetch_page: pageStart,
     page_count: pageCount,
     page_size: pageSize,
+    next_fetch_page: pageStart >= maxManualPage ? 1 : pageStart + pageCount,
+    max_fetch_page: maxManualPage,
     jobs_added: result.queued_count,
     used_radius: result.radius_km_used,
     match_level: result.match_level,

@@ -7,7 +7,7 @@
   <meta name="description" content="Fetch and review your job queue, then open a job in CV Studio."/>
 
   <!-- Shared styles -->
-  <link rel="stylesheet" href="./shared.css?v=202603301635"/>
+  <link rel="stylesheet" href="./shared.css?v=202605030225"/>
 
   <style>
     /* =========================================================
@@ -294,7 +294,7 @@
 </style>
 </head>
 
-<body data-mobile-cv-redirect="app">
+<body class="jmj-app-shell jmj-page-jobs" data-mobile-cv-redirect="app">
   <header class="topbar">
     <nav class="nav">
       <a class="brand" href="./dashboard.html" data-nav="1" aria-label="Dashboard">
@@ -303,9 +303,10 @@
       </a>
 
       <div class="navlinks">
-        <a class="pill" href="./dashboard.html" data-nav="1">Dashboard</a>
-        <a class="pill" href="./cv.html" data-nav="1">CV Studio</a>
-        <a class="pill active" href="./jobs.html" data-nav="1">Jobs 🇩🇪</a>
+        <a class="pill" href="./dashboard.html" data-nav="1" data-auth-required="1">Dashboard</a>
+        <a class="pill" href="./cv.html?entry=chooser" data-nav="1">CV Studio</a>
+        <a class="pill active" href="./jobs.html" data-nav="1" data-auth-required="1">Jobs 🇩🇪</a>
+        <a class="pill" href="./profile.html" data-nav="1" data-auth-required="1">Profile</a>
         <a class="pill" href="./plan.html" data-nav="1">Pricing</a>
       </div>
       <div class="navcta">
@@ -330,7 +331,7 @@
             </div>
             <div class="menuLabel">Go to</div>
             <a class="jmNavItem" href="./dashboard.html" data-nav="1" role="menuitem">Dashboard</a>
-            <a class="jmNavItem" href="./cv.html" data-nav="1" role="menuitem">CV Studio</a>
+            <a class="jmNavItem" href="./cv.html?entry=chooser" data-nav="1" role="menuitem">CV Studio</a>
             <a class="jmNavItem" href="./jobs.html" data-nav="1" role="menuitem">Jobs 🇩🇪</a>
             <a class="jmNavItem" href="./profile.html" data-nav="1" role="menuitem">Profile</a>
             <a class="jmNavItem" href="./profile.html#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Manage billing</a>
@@ -347,12 +348,21 @@
   </header>
 
   <main class="main">
-    <div class="row" style="align-items:flex-end; justify-content:space-between">
-      <div>
+    <div class="appPageTopbar">
+      <div class="appPageTitle">
+        <span class="appEyebrow">Job radar</span>
         <h1 class="h1">Jobs</h1>
         <p class="sub">Fetch German-market jobs into your queue, then open any role in CV Studio to tailor your CV.</p>
       </div>
-      <span class="badge warn" id="authBadge">Checking…</span>
+      <div class="appPageActions" aria-label="Jobs actions">
+        <label class="appSearch" aria-label="Search jobs">
+          <svg class="appSearchIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          <input type="search" placeholder="Search jobs on this page…" autocomplete="off" data-app-search-sync="queueSearch">
+          <kbd>/</kbd>
+        </label>
+        <a class="btn primary cta" href="./cv.html?entry=chooser" data-nav="1">Open CV Studio</a>
+        <span class="badge warn" id="authBadge">Checking…</span>
+      </div>
     </div>
 
     <div class="errorTop" id="errorTop"></div>
@@ -364,7 +374,7 @@
           <div class="row" style="justify-content:space-between">
             <div style="min-width:220px">
               <div style="font-weight:950">Your queue</div>
-              <div class="small" id="queueHint">Browse your queue on the left. Click a job to see details on the right.</div>
+              <div class="small" id="queueHint">Browse your queue and select a job to see details.</div>
             </div>
 
             <div class="row" style="justify-content:flex-end">
@@ -419,7 +429,7 @@
           <div class="row" style="justify-content:space-between">
             <div>
               <div style="font-weight:950">Job details</div>
-              <div class="small" id="detailHint">Select a job on the left.</div>
+              <div class="small" id="detailHint">Select a job from the queue.</div>
             </div>
             <span class="badge" id="detailBadge">—</span>
           </div>
@@ -434,7 +444,7 @@
               <div class="hr"></div>
 
               <div class="row" style="justify-content:flex-start">
-                <a class="btn" href="./cv.html" data-nav="1">Open CV Studio</a>
+                <a class="btn" href="./cv.html?entry=chooser" data-nav="1">Open CV Studio</a>
                 <a class="btn ghost" href="./profile.html" data-nav="1">Open Profile</a>
               </div>
             </div>
@@ -550,7 +560,7 @@
       </div>
 
       <div class="modalActions">
-        <a class="btn ghost" href="./cv.html" data-nav="1">Open CV Studio</a>
+        <a class="btn ghost" href="./cv.html?entry=chooser" data-nav="1">Open CV Studio</a>
         <button class="btn" id="activityClose" type="button">Close</button>
       </div>
     </div>
@@ -559,7 +569,7 @@
   <!-- Scripts: order matters -->
   <script src="./vendor/supabase-js-2.100.1.js"></script>
   <script src="./auth.js?v=202604121905"></script>
-  <script src="./shared.js?v=202604232345"></script>
+  <script src="./shared.js?v=202605041300"></script>
 
   <script>
   (() => {
@@ -985,7 +995,7 @@ const row = e.target && e.target.closest ? e.target.closest(".jobRow[data-select
        Details pane (right)
        ------------------------- */
     function renderDetailEmpty(){
-      setText("detailHint", "Select a job on the left.");
+      setText("detailHint", "Select a job from the queue.");
       H.setBadge("detailBadge", "", "—");
 
       setHtml("detailWrap", (
@@ -994,7 +1004,7 @@ const row = e.target && e.target.closest ? e.target.closest(".jobRow[data-select
           + '<div class="small" style="margin-top:6px">Pick a job from the list to see its full description and tailor your CV.</div>'
           + '<div class="hr"></div>'
           + '<div class="row" style="justify-content:flex-start">'
-            + '<a class="btn" href="./cv.html" data-nav="1">Open CV Studio</a>'
+            + '<a class="btn" href="./cv.html?entry=chooser" data-nav="1">Open CV Studio</a>'
             + '<a class="btn ghost" href="./profile.html" data-nav="1">Open Profile</a>'
           + '</div>'
         + '</div>'
@@ -1644,6 +1654,7 @@ function renderDetailLoading(baseJob){
     const EXTRA_ROLES_KEY = "jm_jobs_extra_roles";
     const FETCH_PAGE_SIZE = 50;
     const FETCH_PAGE_COUNT = 1;
+    const FETCH_MAX_PAGE = 50;
 
     function parseRoleTitles(text){
       const out = [];
@@ -1658,7 +1669,7 @@ function renderDetailLoading(baseJob){
           seen.add(key);
           out.push(title.slice(0, 80));
         });
-      return out.slice(0, 25);
+      return out.slice(0, 8);
     }
 
     function getExtraRolesForFetch(){
@@ -1696,7 +1707,7 @@ function renderDetailLoading(baseJob){
       const cur = readFetchCursor();
       if(!cur || cur.signature !== signature) return 1;
       const n = Number(cur.nextPage || 1);
-      return Number.isFinite(n) && n > 0 ? Math.min(1000, Math.round(n)) : 1;
+      return Number.isFinite(n) && n > 0 ? Math.min(FETCH_MAX_PAGE, Math.round(n)) : 1;
     }
 
     function rememberFetchCursor(signature, nextPage){
@@ -1704,7 +1715,7 @@ function renderDetailLoading(baseJob){
       try{
         localStorage.setItem(FETCH_CURSOR_KEY, JSON.stringify({
           signature,
-          nextPage: Math.max(1, Math.min(1000, Math.round(Number(nextPage || 1)))),
+          nextPage: Math.max(1, Math.min(FETCH_MAX_PAGE, Math.round(Number(nextPage || 1)))),
           lastTs
         }));
         localStorage.setItem("jm_last_manual_fetch_ts", String(lastTs));
@@ -1834,7 +1845,10 @@ function renderDetailLoading(baseJob){
         const added = (typeof resp.jobs_added === "number") ? resp.jobs_added : 0;
         const q = (typeof resp.queue_new_count === "number") ? resp.queue_new_count : "—";
         const totalFetched = totalFetchedFromResponse(resp);
-        const nextPage = totalFetched > 0 || added > 0 ? page + FETCH_PAGE_COUNT : 1;
+        const serverNextPage = Number(resp?.next_fetch_page);
+        const nextPage = Number.isFinite(serverNextPage) && serverNextPage > 0
+          ? serverNextPage
+          : (totalFetched > 0 || added > 0 ? page + FETCH_PAGE_COUNT : 1);
         rememberFetchCursor(signature, nextPage);
 
         setState(false, added ? ("Added " + added + " · Queue " + q) : "No new jobs in this batch");
