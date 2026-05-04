@@ -7,7 +7,7 @@
   <meta name="description" content="Tailor your CV per role with ATS-safe formatting."/>
 
   <!-- Shared styles -->
-  <link rel="stylesheet" href="./shared.css?v=202603301635"/>
+  <link rel="stylesheet" href="./shared.css?v=202605030225"/>
 
   <style>
     /* =========================================================
@@ -3103,16 +3103,19 @@ body.fromJobsLink #settingsDetails{
 </style>
 </head>
 
-<body data-mobile-cv-redirect="app">
+<body class="jmj-app-shell jmj-page-studio" data-mobile-cv-redirect="app">
   <header class="topbar">
     <nav class="nav">
-      <a class="brand" href="./cv.html" data-nav="1" aria-label="CV Studio">
+      <a class="brand" href="./dashboard.html" data-nav="1" aria-label="Dashboard">
         <span class="logo" aria-hidden="true"></span>
         <span>jobmejob</span>
       </a>
 
       <div class="navlinks">
-        <a class="pill active" href="/cv?entry=chooser" data-nav="1">CV Studio</a>
+        <a class="pill" href="./dashboard.html" data-nav="1" data-auth-required="1">Dashboard</a>
+        <a class="pill active" href="./cv.html?entry=chooser" data-nav="1">CV Studio</a>
+        <a class="pill" href="./jobs.html" data-nav="1" data-auth-required="1">Jobs 🇩🇪</a>
+        <a class="pill" href="./profile.html" data-nav="1" data-auth-required="1">Profile</a>
         <a class="pill" href="./plan.html" data-nav="1">Pricing</a>
       </div>
       <div class="navcta">
@@ -3136,7 +3139,9 @@ body.fromJobsLink #settingsDetails{
               <div class="jmAccountHint" id="navUsageMeta">Usage updates after each tailored CV.</div>
             </div>
             <div class="menuLabel">Go to</div>
-            <a class="jmNavItem" href="/cv?entry=chooser" data-nav="1" role="menuitem">CV Studio</a>
+            <a class="jmNavItem" href="./dashboard.html" data-nav="1" role="menuitem">Dashboard</a>
+            <a class="jmNavItem" href="./cv.html?entry=chooser" data-nav="1" role="menuitem">CV Studio</a>
+            <a class="jmNavItem" href="./jobs.html" data-nav="1" role="menuitem">Jobs 🇩🇪</a>
             <a class="jmNavItem" href="./profile.html" data-nav="1" role="menuitem">Profile</a>
             <a class="jmNavItem" href="./profile.html#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Manage billing</a>
             <a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Plans & pricing</a>
@@ -3152,8 +3157,22 @@ body.fromJobsLink #settingsDetails{
   </header>
 
   <main class="main mainWide">
-    <h1 class="h1">CV Studio</h1>
-    <p class="sub" id="subTitle">Import from a job page for the fastest flow, or paste the job description manually when you need a fallback. CV Studio handles the tailoring, ATS gaps, and export.</p>
+    <div class="appPageTopbar">
+      <div class="appPageTitle">
+        <span class="appEyebrow">Professional CV Studio</span>
+        <h1 class="h1">CV Studio</h1>
+        <p class="sub" id="subTitle">Import from a job page for the fastest flow, or paste the job description manually when you need a fallback. CV Studio handles the tailoring, ATS gaps, and export.</p>
+      </div>
+      <div class="appPageActions" aria-label="CV Studio actions">
+        <label class="appSearch" aria-label="Search inside CV Studio">
+          <svg class="appSearchIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          <input type="search" placeholder="Search jobs, keywords, sections…" autocomplete="off">
+          <kbd>/</kbd>
+        </label>
+        <button class="btn primary cta" id="appTopbarNewCv" type="button" data-app-shell-click-target="btnNewCv">New CV</button>
+        <button class="btn ghost" type="button" data-extension-modal-open>Chrome extension</button>
+      </div>
+    </div>
 
     <div class="errorTop" id="errorTop"></div>
     <div class="upgradeBanner" id="cvUpgradeBanner" style="display:none" role="status" aria-live="polite">
@@ -4187,8 +4206,8 @@ body.fromJobsLink #settingsDetails{
   <script src="./vendor/supabase-js-2.100.1.js"></script>
   <script src="./vendor/pdf-lib-1.17.1.min.js"></script>
   <script src="./auth.js?v=202604121905"></script>
-  <script src="./shared.js?v=202604232345"></script>
+  <script src="./shared.js?v=202605041300"></script>
 
-  <script src="./cv.app.js?v=202604230030"></script>
+  <script src="./cv.app.js?v=202605041125"></script>
 </body>
 </html>

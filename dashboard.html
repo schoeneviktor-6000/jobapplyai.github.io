@@ -6,7 +6,7 @@
 <title>jobmejob • Dashboard</title>
 
 
-<link rel="stylesheet" href="./shared.css?v=202603301635" />
+<link rel="stylesheet" href="./shared.css?v=202605030225" />
 <style>
 /* Dashboard-specific UI (kept local; shared.css covers the base UI) */
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
@@ -548,14 +548,15 @@ html{
 
 </style>
 </head>
-<body data-mobile-cv-redirect="app">
+<body class="jmj-app-shell jmj-page-dashboard" data-mobile-cv-redirect="app">
 <header class="topbar" id="topbar">
 <nav class="nav">
 <a class="brand" href="./dashboard.html" data-nav="1"><span class="logo" aria-hidden="true"></span><span>jobmejob</span></a>
 <div class="navlinks">
-<a class="pill active" href="./dashboard.html" data-nav="1">Dashboard</a>
-<a class="pill" href="./cv.html" data-nav="1">CV Studio</a>
-<a class="pill" href="./jobs.html" data-nav="1">Jobs</a>
+        <a class="pill active" href="./dashboard.html" data-nav="1" data-auth-required="1">Dashboard</a>
+        <a class="pill" href="./cv.html?entry=chooser" data-nav="1">CV Studio</a>
+        <a class="pill" href="./jobs.html" data-nav="1" data-auth-required="1">Jobs 🇩🇪</a>
+        <a class="pill" href="./profile.html" data-nav="1" data-auth-required="1">Profile</a>
 <a class="pill" href="./plan.html" data-nav="1">Pricing</a>
 </div>
 <div class="navcta">
@@ -580,8 +581,8 @@ html{
     </div>
     <div class="menuLabel">Go to</div>
     <a class="jmNavItem" href="./dashboard.html" data-nav="1" role="menuitem">Dashboard</a>
-    <a class="jmNavItem" href="./cv.html" data-nav="1" role="menuitem">CV Studio</a>
-    <a class="jmNavItem" href="./jobs.html" data-nav="1" role="menuitem">Jobs</a>
+    <a class="jmNavItem" href="./cv.html?entry=chooser" data-nav="1" role="menuitem">CV Studio</a>
+    <a class="jmNavItem" href="./jobs.html" data-nav="1" role="menuitem">Jobs 🇩🇪</a>
     <a class="jmNavItem" href="./profile.html" data-nav="1" role="menuitem">Profile</a>
     <a class="jmNavItem" href="./profile.html#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Manage billing</a>
     <a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Plans & pricing</a>
@@ -597,8 +598,21 @@ html{
 </header>
 
 <main class="main">
-<h1 class="h1">Dashboard</h1>
-<p class="sub" id="subLine">Loading…</p>
+<div class="appPageTopbar">
+  <div class="appPageTitle">
+    <span class="appEyebrow">JobMeJob workspace</span>
+    <h1 class="h1">Dashboard</h1>
+    <p class="sub" id="subLine">Loading…</p>
+  </div>
+  <div class="appPageActions" aria-label="Dashboard actions">
+    <label class="appSearch" aria-label="Search workspace">
+      <svg class="appSearchIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+      <input type="search" placeholder="Search jobs, companies, activity…" autocomplete="off">
+      <kbd>/</kbd>
+    </label>
+    <a class="btn primary cta" href="./cv.html?entry=chooser" data-nav="1">New tailored CV</a>
+  </div>
+</div>
 <div class="errorTop" id="errorTop"></div>
 
 <div class="dashHeaderRow">
@@ -619,11 +633,11 @@ html{
     <div class="kpi">
       <div>
         <div class="value" id="kpiTodaySent">–</div>
-        <div class="label" id="kpiTodaySentLabel">sent today</div>
+        <div class="label" id="kpiTodaySentLabel">CV actions today</div>
       </div>
       <span class="badge" id="badgeTodaySent">Loading</span>
     </div>
-    <div class="small" id="kpiTodaySentMeta">Cap: –/day</div>
+    <div class="small" id="kpiTodaySentMeta">Open CV Studio to tailor your next role</div>
     <div class="meter mini"><div id="todayMeterFill"></div></div>
   </div>
 
@@ -631,7 +645,7 @@ html{
     <div class="kpi">
       <div>
         <div class="value" id="kpiWeekSent">–</div>
-        <div class="label">sent last 7 days</div>
+        <div class="label">CV actions last 7 days</div>
       </div>
       <span class="badge" id="badgeWeekSent">Loading</span>
     </div>
@@ -642,7 +656,7 @@ html{
     <div class="kpi">
       <div>
         <div class="value" id="kpiQueue">–</div>
-        <div class="label">jobs ready</div>
+        <div class="label">jobs ready for tailoring</div>
       </div>
       <span class="badge" id="badgeQueue">Loading</span>
     </div>
@@ -654,7 +668,7 @@ html{
     <div class="kpi">
       <div>
         <div class="value" id="kpiTailorCoverage">–</div>
-        <div class="label">tailored coverage</div>
+        <div class="label">queue tailored</div>
       </div>
       <span class="badge" id="badgeTailor">Loading</span>
     </div>
@@ -665,7 +679,7 @@ html{
     <div class="kpi">
       <div>
         <div class="value" id="kpiResponseRate">–</div>
-        <div class="label">responses (30d)</div>
+        <div class="label">response signal (30d)</div>
       </div>
       <span class="badge" id="badgeResponse">Loading</span>
     </div>
@@ -680,7 +694,7 @@ html{
       </div>
       <span class="badge" id="badgePlan">Loading</span>
     </div>
-    <div class="small" id="kpiPlanHint">Total applications: <span id="kpiAppsTotal">–</span></div>
+    <div class="small" id="kpiPlanHint">Saved application records: <span id="kpiAppsTotal">–</span></div>
   </div>
 </div>
 
@@ -688,8 +702,8 @@ html{
 <div class="grid">
 <section class="card cardNoPad">
 <div class="sectionHeader">
-<h2>Performance</h2>
-<p class="small" id="queueHint">Throughput, bottlenecks, and supply health. Manage individual jobs in the Jobs tab.</p>
+<h2>CV tailoring workspace</h2>
+<p class="small" id="queueHint">Review job supply, tailoring coverage, and next actions before opening CV Studio.</p>
 <div class="dashActions" id="dashActions">
   <div class="dashActionsLeft">
     <button class="btn primary" id="btnRefresh" type="button">Refresh</button>
@@ -712,7 +726,7 @@ html{
   <div class="item">
     <div class="itemTop">
       <div>
-        <div class="itemTitle">Applications trend</div>
+        <div class="itemTitle">Activity trend</div>
         <div class="small" id="trendMeta" style="margin-top:6px">Loading…</div>
       </div>
       <div class="badgeGroup"><span class="badge" id="badgeTrend">Loading</span></div>
@@ -725,7 +739,7 @@ html{
   <div class="item">
     <div class="itemTop">
       <div>
-        <div class="itemTitle">Pipeline funnel</div>
+        <div class="itemTitle">Tailoring funnel</div>
         <div class="small" id="funnelMeta" style="margin-top:6px">Loading…</div>
       </div>
       <div class="badgeGroup"><span class="badge" id="badgeFunnel">Loading</span></div>
@@ -743,8 +757,8 @@ html{
 <div class="hr"></div>
 
 <div class="sectionHeader" style="border-radius:0;border-left:0;border-right:0">
-  <h2 style="margin:0">Application activity log</h2>
-  <p class="small">Latest timeline events (queued, prioritized, skipped, applied…).</p>
+  <h2 style="margin:0">Recent activity</h2>
+  <p class="small">Latest CV Studio, job, and application events.</p>
   <div class="chips" id="activityFilters">
     <button class="chip active" type="button" data-etype="">All</button>
     <button class="chip" type="button" data-etype="queued">Queued</button>
@@ -765,18 +779,18 @@ html{
 </section>
 
 <aside class="card" id="rightRail">
-  <h2>Now</h2>
-  <div class="small" id="nowHint">Recommended next actions based on your activity and supply.</div>
+  <h2>Next best step</h2>
+  <div class="small" id="nowHint">What to do next to tailor a stronger CV.</div>
   <div class="hr"></div>
 
   <div id="nextActions">
     <div class="actionsStack">
       <button class="btn primary cta" id="qaFetchJobs" type="button">Fetch jobs</button>
-      <button class="btn" id="qaViewQueue" type="button">Open Jobs</button>
+      <button class="btn" id="qaViewQueue" type="button">Open Job radar</button>
       <button class="btn" id="qaTailorTop" type="button">Tailor top job</button>
 
-      <a class="btn ghost" id="qaSettings" href="./profile.html" data-nav="1">Profile setup</a>
-      <a class="btn" id="qaAutoApply" href="./plan.html" data-nav="1">Auto-apply (upgrade)</a>
+      <a class="btn ghost" id="qaSettings" href="./profile.html" data-nav="1">Base CV / profile</a>
+      <a class="btn" id="qaAutoApply" href="./plan.html" data-nav="1">Plans & pricing</a>
     </div>
 
     <div class="small" style="margin-top:10px" id="qaStatus"></div>
@@ -789,7 +803,7 @@ html{
 
   <div class="item" style="padding:12px">
     <div class="itemTop">
-      <div class="itemTitle">Automation health</div>
+      <div class="itemTitle">Job radar health</div>
       <div class="badgeGroup"><span class="badge" id="badgeAutomation">Loading</span></div>
     </div>
     <div class="small" id="automationHealthMeta" style="margin-top:8px">Loading…</div>
@@ -798,7 +812,7 @@ html{
 
   <div class="hr"></div>
 
-  <h2 style="margin-top:0">AI recommendations <span class="badge" id="badgeAi">Loading</span></h2>
+  <h2 style="margin-top:0">CV tailoring recommendations <span class="badge" id="badgeAi">Loading</span></h2>
   <div class="small" id="aiRecoHint">Loading…</div>
   <div class="hr"></div>
   <div id="aiRecoList"></div>
@@ -824,7 +838,7 @@ html{
       <div id="onboardingChecks"><div class="skeleton block"></div></div>
 
       <div class="hr"></div>
-      <div class="small">Applications breakdown</div>
+      <div class="small">Application records breakdown</div>
       <div id="appsBreakdown"><div class="skeleton block"></div></div>
 
       <div class="hr"></div>
@@ -835,7 +849,6 @@ html{
       <div class="actions">
         <a class="btn ghost" href="./profile.html" data-nav="1">Edit profile</a>
         <a class="btn ghost" href="./plan.html" data-nav="1">Change plan</a>
-        <button class="btn ghost" id="btnCopyToken" type="button">Copy access token</button>
       </div>
 
       <div class="hr"></div>
@@ -939,9 +952,9 @@ html{
 
 <script src="./vendor/supabase-js-2.100.1.js"></script>
 <script src="./auth.js?v=202604121905"></script>
-<script src="./shared.js?v=202604232345"></script>
-<script src="./dashboard.app.js?v=202604121905"></script>
+<script src="./shared.js?v=202605041300"></script>
+<script src="./dashboard.app.js?v=202605041205"></script>
 
-<script src="./dashboard.bi.override.v3.js"></script>
+<script src="./dashboard.bi.override.v3.js?v=202605041205"></script>
 </body>
 </html>
