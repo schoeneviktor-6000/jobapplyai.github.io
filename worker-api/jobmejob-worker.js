@@ -4028,12 +4028,14 @@ async function handleMeJobsQueue(request, env) {
   if (!customerId) {
     return json(request, { error: "Customer not found for auth user", email: String(user.email || "").toLowerCase() }, 404);
   }
+  const url = new URL(request.url);
+  const queueLimit = clampInt(url.searchParams.get("limit") || env.MAX_QUEUE_VIEW || "500", 1, 1000, 500);
   const qApps = new URLSearchParams();
   qApps.set("select", "job_id,created_at,priority,priority_at");
   qApps.set("customer_id", `eq.${customerId}`);
   qApps.set("status", "eq.new");
   qApps.set("order", "priority.desc,priority_at.desc,created_at.desc");
-  qApps.set("limit", "200");
+  qApps.set("limit", String(queueLimit));
   const apps = await supabaseFetch(env, `/rest/v1/applications?${qApps.toString()}`, { method: "GET" });
   const jobIds = (apps || []).map((a) => a.job_id).filter(Boolean);
   if (!jobIds.length) {
@@ -4123,37 +4125,20 @@ async function handleMeJobsFetch(request, env) {
   const cust = custRows.length ? custRows[0] : null;
   if (!cust || !cust.id) return json(request, { error: "Customer not found" }, 404);
   const customerId = cust.id;
-  const cooldownMinutes = 10;
-  const sinceIso = new Date(Date.now() - cooldownMinutes * 60 * 1e3).toISOString();
-  try {
-    const qRl = new URLSearchParams();
-    qRl.set("select", "id,created_at");
-    qRl.set("customer_id", `eq.${customerId}`);
-    qRl.set("fetched_by", `eq.manual`);
-    qRl.set("created_at", `gte.${sinceIso}`);
-    qRl.set("order", "created_at.desc");
-    qRl.set("limit", "1");
-    const recent = await supabaseFetch(env, `/rest/v1/customer_fetch_logs?${qRl.toString()}`, { method: "GET" });
-    if (Array.isArray(recent) && recent.length) {
-      return json(request, {
-        error: "Too many requests",
-        message: "You can fetch again in a few minutes.",
-        retry_after_seconds: cooldownMinutes * 60
-      }, 429);
-    }
-  } catch (e) {
-  }
   let body = {};
   try {
     body = await request.json();
   } catch (_) {
   }
-  const fetchMode = String(body.fetch_mode || "").trim().toLowerCase();
+  const fetchModeRaw = String(body.fetch_mode || "").trim().toLowerCase();
+  const fetchMode = ["profile", "profile_plus_ai", "ai_only"].includes(fetchModeRaw) ? fetchModeRaw : "";
   const includeAi = Boolean(body.include_ai_titles);
   const aiTitlesRaw = Array.isArray(body.ai_titles) ? body.ai_titles : [];
+  const extraTitlesRaw = Array.isArray(body.extra_titles) ? body.extra_titles : Array.isArray(body.desired_titles) ? body.desired_titles : [];
   const mode = fetchMode || (includeAi ? "profile_plus_ai" : "profile");
+  const aiOnly = mode === "ai_only";
   const qProfile = new URLSearchParams();
-  qProfile.set("select", "customer_id,desired_titles,locations,radius_km,countries_allowed,exclude_titles");
+  qProfile.set("select", "customer_id,desired_titles,ai_titles,locations,radius_km,countries_allowed,exclude_titles");
   qProfile.set("customer_id", `eq.${customerId}`);
   const resProfile = await supabaseFetch(env, `/rest/v1/customer_profiles?${qProfile.toString()}`, { method: "GET" });
   const profiles = Array.isArray(resProfile) ? resProfile : [];
@@ -4162,50 +4147,65 @@ async function handleMeJobsFetch(request, env) {
   if (!p) return json(request, { error: "Customer profile not found" }, 404);
   const desired = Array.isArray(p.desired_titles) ? p.desired_titles.filter(Boolean) : [];
   const locations = Array.isArray(p.locations) ? p.locations.filter(Boolean) : [];
-  if (!desired.length) return json(request, { error: "Profile incomplete: add at least 1 desired title first." }, 400);
   if (!locations.length) return json(request, { error: "Profile incomplete: add at least 1 location first." }, 400);
-  const maxQueueNew = clampInt(env.MAX_QUEUE_NEW || "50", 1, 500);
-  const qCount = new URLSearchParams();
-  qCount.set("select", "id");
-  qCount.set("customer_id", `eq.${customerId}`);
-  qCount.set("status", "eq.new");
-  qCount.set("limit", String(maxQueueNew + 1));
-  const resCount = await supabaseFetch(env, `/rest/v1/applications?${qCount.toString()}`, { method: "GET" });
-  const rows = Array.isArray(resCount) ? resCount : [];
-  const newCount = Array.isArray(rows) ? rows.length : 0;
-  if (newCount >= maxQueueNew) {
-    return json(request, {
-      ok: true,
-      skipped: true,
-      reason: "queue_full",
-      queue_new_count: newCount,
-      max_queue_new: maxQueueNew,
-      message: "You already have many jobs in your queue. Please review them first."
-    }, 200);
-  }
+  const maxExtraTitles = clampInt(env.MAX_MANUAL_EXTRA_TITLES || "8", 0, 25, 8);
+  const maxAiTitles = clampInt(env.MAX_MANUAL_AI_TITLES || "12", 0, 25, 12);
+  const cleanedExtraTitles = extraTitlesRaw.slice(0, maxExtraTitles);
+  const cleanedAiTitles = aiTitlesRaw.slice(0, maxAiTitles);
   const merged = [];
   const pushTitle = /* @__PURE__ */ __name((t) => {
-    const s = String(t || "").trim();
+    const s = String(t || "").trim().slice(0, 80);
     if (!s) return;
     if (merged.some((x) => x.toLowerCase() === s.toLowerCase())) return;
     merged.push(s);
   }, "pushTitle");
-  desired.forEach(pushTitle);
-  if (includeAi) aiTitlesRaw.forEach(pushTitle);
-  const maxTitles = clampInt(env.MAX_FETCH_TITLES || "25", 5, 100);
+  cleanedExtraTitles.forEach(pushTitle);
+  if (!aiOnly) desired.forEach(pushTitle);
+  if (includeAi || aiOnly) {
+    const aiSource = cleanedAiTitles.length ? cleanedAiTitles : profileAiTitles.slice(0, maxAiTitles);
+    aiSource.forEach(pushTitle);
+  }
+  const maxTitles = clampInt(env.MAX_FETCH_TITLES || "24", 1, 40, 24);
   const overrideTitles = merged.slice(0, maxTitles);
-  const result = await fetchJobsForCustomerCore(customerId, env, "manual", true, overrideTitles);
+  if (!overrideTitles.length) {
+    return json(request, { error: "Add a desired title in Profile or type an extra role first." }, 400);
+  }
+  const maxManualPage = clampInt(env.MAX_MANUAL_FETCH_PAGE || "50", 1, 1000, 50);
+  const maxManualPageCount = clampInt(env.MAX_MANUAL_FETCH_PAGE_COUNT || "1", 1, 3, 1);
+  const maxManualPageSize = clampInt(env.MAX_MANUAL_FETCH_PAGE_SIZE || "50", 1, 100, 50);
+  const pageStart = clampInt(body.fetch_page || body.page || "1", 1, maxManualPage, 1);
+  const pageCount = clampInt(body.page_count || "1", 1, maxManualPageCount, 1);
+  const pageSize = clampInt(body.page_size || "50", 1, maxManualPageSize, 50);
+  const result = await fetchJobsForCustomerCore(customerId, env, "manual", true, overrideTitles, {
+    mode,
+    pageStart,
+    pageCount,
+    pageSize
+  });
+  const qCount = new URLSearchParams();
+  qCount.set("select", "id");
+  qCount.set("customer_id", `eq.${customerId}`);
+  qCount.set("status", "eq.new");
+  qCount.set("limit", "1000");
   const resCount2 = await supabaseFetch(env, `/rest/v1/applications?${qCount.toString()}`, { method: "GET" });
   const rows2 = Array.isArray(resCount2) ? resCount2 : [];
   const newCount2 = Array.isArray(rows2) ? rows2.length : 0;
   return json(request, {
     ok: true,
+    market: "DE",
     fetched_by: "manual",
     include_ai_titles: includeAi,
+    extra_titles: cleanedExtraTitles,
     titles_used: overrideTitles,
+    fetch_page: pageStart,
+    page_count: pageCount,
+    page_size: pageSize,
+    next_fetch_page: pageStart >= maxManualPage ? 1 : pageStart + pageCount,
+    max_fetch_page: maxManualPage,
     jobs_added: result.queued_count,
     used_radius: result.radius_km_used,
     match_level: result.match_level,
+    total_fetched: result.total_fetched,
     queue_new_count: newCount2,
     details: result.details
   }, 200);
@@ -6831,7 +6831,10 @@ async function fetchJobsForCustomerCore(customerId, env, fetchedBy = "team", for
   const p = profiles[0];
   const queuedMeta = {
     source: fetchedBy,
-    fetch_mode: options && options.mode ? options.mode : null
+    fetch_mode: options && options.mode ? options.mode : null,
+    fetch_page_start: options && options.pageStart ? options.pageStart : null,
+    fetch_page_count: options && options.pageCount ? options.pageCount : null,
+    fetch_page_size: options && options.pageSize ? options.pageSize : null
   };
   const desiredTitlesAll = Array.isArray(overrideDesiredTitles) && overrideDesiredTitles.length ? overrideDesiredTitles.filter(Boolean) : Array.isArray(p.desired_titles) ? p.desired_titles.filter(Boolean) : [];
   const excludeTitles = Array.isArray(p.exclude_titles) ? p.exclude_titles.filter(Boolean) : [];
@@ -6839,8 +6842,11 @@ async function fetchJobsForCustomerCore(customerId, env, fetchedBy = "team", for
   const radiusKmBase = Number.isFinite(Number(p.radius_km)) ? Number(p.radius_km) : 50;
   if (!desiredTitlesAll.length) throw new Error("Customer has no desired_titles");
   if (!locations.length) throw new Error("Customer has no locations");
-  const BA_TITLE_LIMIT = 5;
-  const baseDesiredForBA = desiredTitlesAll.slice(0, BA_TITLE_LIMIT);
+  const baTitleLimit = clampInt(options && options.titleLimit || env.BA_TITLE_LIMIT || "8", 1, 40, 8);
+  const pageStart = clampInt(options && options.pageStart || "1", 1, 1000, 1);
+  const pageCount = clampInt(options && options.pageCount || "1", 1, 3, 1);
+  const pageSize = clampInt(options && options.pageSize || "50", 1, 100, 50);
+  const baseDesiredForBA = desiredTitlesAll.slice(0, baTitleLimit);
   const _normT = /* @__PURE__ */ __name((s) => String(s || "").trim().toLowerCase(), "_normT");
   const excludeSet = new Set(excludeTitles.map(_normT).filter(Boolean));
   const baseSet = new Set(baseDesiredForBA.map(_normT).filter(Boolean));
@@ -6875,7 +6881,7 @@ async function fetchJobsForCustomerCore(customerId, env, fetchedBy = "team", for
   } catch (e) {
     expandedTitles = baseDesiredForBA.slice();
   }
-  const desiredTitlesForBA = expandedTitles.slice(0, BA_TITLE_LIMIT + 1);
+  const desiredTitlesForBA = expandedTitles.slice(0, baTitleLimit);
   const wo = String(locations[0]).trim();
   const sourceId = await getSourceId(env, "BA Jobsuche", "DE");
   const MIN_QUEUE_BEFORE_EXPAND = 20;
@@ -6897,28 +6903,32 @@ async function fetchJobsForCustomerCore(customerId, env, fetchedBy = "team", for
     const matchLevel = pass.match_level;
     const passExternalIdSet = /* @__PURE__ */ new Set();
     for (const title of desiredTitlesForBA) {
-      const r = await ingestBaOnce({ was: String(title).trim(), wo, umkreis: radiusUsed, page: 1, size: 25, veroeffentlichtseit: 365 }, env, null);
-      totalFetched += r.fetched;
-      totalInsertedRaw += r.inserted_raw;
-      totalUpsertedNormalized += r.upserted_normalized;
-      if (Array.isArray(r.external_ids)) {
-        for (const eid of r.external_ids) passExternalIdSet.add(String(eid || "").trim());
+      for (let page = pageStart; page < pageStart + pageCount; page += 1) {
+        const r = await ingestBaOnce({ was: String(title).trim(), wo, umkreis: radiusUsed, page, size: pageSize, veroeffentlichtseit: 365 }, env, null);
+        totalFetched += r.fetched;
+        totalInsertedRaw += r.inserted_raw;
+        totalUpsertedNormalized += r.upserted_normalized;
+        if (Array.isArray(r.external_ids)) {
+          for (const eid of r.external_ids) passExternalIdSet.add(String(eid || "").trim());
+        }
+        details.push({
+          pass: matchLevel,
+          page: r.page,
+          size: r.size,
+          was: r.was,
+          wo: r.wo,
+          umkreis: r.umkreis,
+          fetched: r.fetched,
+          inserted_raw: r.inserted_raw,
+          upserted_normalized: r.upserted_normalized
+        });
       }
-      details.push({
-        pass: matchLevel,
-        was: r.was,
-        wo: r.wo,
-        umkreis: r.umkreis,
-        fetched: r.fetched,
-        inserted_raw: r.inserted_raw,
-        upserted_normalized: r.upserted_normalized
-      });
     }
     let matchedJobIds = [];
     const passExternalIds = Array.from(passExternalIdSet).filter(Boolean);
     if (passExternalIds.length) {
-      const jobs = await queryJobsByExternalIds(env, { sourceId, externalIds: passExternalIds, limit: 400 });
-      matchedJobIds = pickTopJobsByLocationAndScore(jobs, locations, desiredTitlesAll, excludeTitles, 200);
+      const jobs = await queryJobsByExternalIds(env, { sourceId, externalIds: passExternalIds, limit: 500 });
+      matchedJobIds = pickTopJobsByLocationAndScore(jobs, locations, desiredTitlesAll, excludeTitles, 300);
     } else {
       const candidates = await queryCandidateJobsByTitle(env, { desiredTitles: desiredTitlesAll, limit: 400 });
       matchedJobIds = pickTopJobsByLocationAndScore(candidates, locations, desiredTitlesAll, excludeTitles, 200);
@@ -6942,7 +6952,11 @@ async function fetchJobsForCustomerCore(customerId, env, fetchedBy = "team", for
     location_used: wo,
     radius_km_used: finalRadiusUsed,
     match_level: finalMatchLevel,
-    searches_run: desiredTitlesForBA.length,
+    fetch_page_start: pageStart,
+    fetch_page_count: pageCount,
+    fetch_page_size: pageSize,
+    titles_searched: desiredTitlesForBA.length,
+    searches_run: details.length,
     total_fetched: totalFetched,
     total_inserted_raw: totalInsertedRaw,
     total_upserted_normalized: totalUpsertedNormalized,

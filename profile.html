@@ -7,7 +7,7 @@
   <meta name="description" content="Upload your base CV, then go straight into CV Studio to tailor it to a real job."/>
 
   <!-- Shared styles -->
-  <link rel="stylesheet" href="./shared.css?v=202604231255"/>
+  <link rel="stylesheet" href="./shared.css?v=202605030225"/>
 
   <style>
 
@@ -1928,18 +1928,19 @@ Matched jobs premium polish
 </style>
 </head>
 
-<body data-mobile-cv-redirect="app">
+<body class="jmj-app-shell jmj-page-profile" data-mobile-cv-redirect="app">
 <header class="topbar">
   <nav class="nav">
-    <a class="brand" href="./index.html" data-nav="1" aria-label="Home">
+    <a class="brand" href="./dashboard.html" data-nav="1" aria-label="Dashboard">
       <span class="logo" aria-hidden="true"></span>
       <span>jobmejob</span>
     </a>
 
     <div class="navlinks">
-<a class="pill" href="./dashboard.html" data-nav="1">Dashboard</a>
-      <a class="pill" href="/cv?entry=chooser" data-nav="1">CV Studio</a>
-      <a class="pill" href="./jobs.html" data-nav="1">Jobs</a>
+      <a class="pill" href="./dashboard.html" data-nav="1" data-auth-required="1">Dashboard</a>
+      <a class="pill" href="./cv.html?entry=chooser" data-nav="1">CV Studio</a>
+      <a class="pill" href="./jobs.html" data-nav="1" data-auth-required="1">Jobs</a>
+      <a class="pill active" href="./profile.html" data-nav="1" data-auth-required="1">Profile</a>
       <a class="pill" href="./plan.html" data-nav="1">Pricing</a>
     </div>
     <div class="navcta">
@@ -1963,7 +1964,9 @@ Matched jobs premium polish
         <div class="jmAccountHint" id="navUsageMeta">Usage updates after each tailored CV.</div>
       </div>
           <div class="menuLabel">Go to</div>
-          <a class="jmNavItem" href="/cv?entry=chooser" data-nav="1" role="menuitem">CV Studio</a>
+          <a class="jmNavItem" href="./dashboard.html" data-nav="1" role="menuitem">Dashboard</a>
+          <a class="jmNavItem" href="./cv.html?entry=chooser" data-nav="1" role="menuitem">CV Studio</a>
+          <a class="jmNavItem" href="./jobs.html" data-nav="1" role="menuitem">Jobs</a>
           <a class="jmNavItem" href="./profile.html" data-nav="1" role="menuitem">Profile</a>
           <a class="jmNavItem" href="./profile.html#billingBox" data-nav="1" role="menuitem" data-jm-nav="subscription-billing">Manage billing</a>
           <a class="jmNavItem" href="./plan.html#cv-pricing" data-nav="1" role="menuitem">Plans & pricing</a>
@@ -1978,9 +1981,16 @@ Matched jobs premium polish
   </nav>
 </header>
 <main class="main profileMain">
-<div class="profileTop">
-  <h1 class="h1">Profile</h1>
-  <p class="sub" id="subLine">Loading…</p>
+<div class="appPageTopbar profileTop">
+  <div class="appPageTitle">
+    <span class="appEyebrow">Account settings</span>
+    <h1 class="h1">Profile</h1>
+    <p class="sub" id="subLine">Loading…</p>
+  </div>
+  <div class="appPageActions" aria-label="Profile actions">
+    <a class="btn primary cta" href="./cv.html?entry=chooser" data-nav="1">Open CV Studio</a>
+    <button class="btn ghost" id="profileTopBillingBtn" type="button" data-app-shell-click-target="billingManageBtn">Manage billing</button>
+  </div>
 </div>
 <div class="errorTop" id="errorTop"></div>
 <div class="grid">
@@ -2179,7 +2189,7 @@ Matched jobs premium polish
       </div>
 
       <div class="modalActions">
-        <a class="btn ghost" href="/cv?entry=chooser" data-nav="1">Open CV Studio</a>
+        <a class="btn ghost" href="./cv.html?entry=chooser" data-nav="1">Open CV Studio</a>
         <button class="btn" id="activityClose" type="button">Close</button>
       </div>
     </div>
@@ -2188,7 +2198,7 @@ Matched jobs premium polish
   <!-- Scripts: order matters -->
   <script src="./vendor/supabase-js-2.100.1.js"></script>
   <script src="./auth.js?v=202604121905"></script>
-  <script src="./shared.js?v=202604232345"></script>
+  <script src="./shared.js?v=202605041300"></script>
 
   <script src="./profile.app.js?v=202604232355"></script>
 </body>

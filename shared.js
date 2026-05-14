@@ -773,8 +773,8 @@ details[data-dd="1"] > summary::-webkit-details-marker{
 }
 details.navDrop[open] > .jmNavTrigger,
 details[data-dd="1"][open] > .jmNavTrigger{
-  border-color:rgba(34,197,94,.40);
-  background:rgba(34,197,94,.12);
+  border-color:rgba(0,166,63,.40);
+  background:rgba(0,166,63,.12);
 }
 .navMenu{
   position:absolute;
@@ -843,9 +843,9 @@ details[data-dd="1"]:not([open]) .navMenu{
   letter-spacing:.01em;
 }
 .jmNavMetaPill.good{
-  border-color:rgba(34,197,94,.30);
-  background:rgba(34,197,94,.12);
-  color:#0a4a22;
+  border-color:rgba(0,166,63,.30);
+  background:rgba(0,166,63,.12);
+  color:#0a3a1c;
 }
 .jmAccountHint{
   font-size:12px;
@@ -916,9 +916,9 @@ details[data-dd="1"]:not([open]) .navMenu{
   min-height:28px;
   padding:0 10px;
   border-radius:999px;
-  border:1px solid rgba(34,197,94,.28);
-  background:rgba(34,197,94,.12);
-  color:#0a4a22;
+  border:1px solid rgba(0,166,63,.28);
+  background:rgba(0,166,63,.12);
+  color:#0a3a1c;
   font-size:11px;
   font-weight:900;
   letter-spacing:.02em;
@@ -1007,14 +1007,14 @@ details[data-dd="1"]:not([open]) .navMenu{
 }
 .jmExtGuideMiniCard{
   background:linear-gradient(145deg, rgba(226,247,232,.92), rgba(255,255,255,.98));
-  border-color:rgba(34,197,94,.18);
+  border-color:rgba(0,166,63,.18);
 }
 .jmExtGuideMiniEyebrow{
   font-size:11px;
   font-weight:900;
   letter-spacing:.08em;
   text-transform:uppercase;
-  color:#0d5a2b;
+  color:#0a3a1c;
 }
 .jmExtGuideMiniChips{
   display:flex;
@@ -1055,8 +1055,8 @@ details[data-dd="1"]:not([open]) .navMenu{
   width:20px;
   height:20px;
   border-radius:8px;
-  background:rgba(34,197,94,.16);
-  color:#0a5a2a;
+  background:rgba(0,166,63,.16);
+  color:#0a3a1c;
 }
 .jmExtGuideMiniMetaIco svg,
 .jmExtGuideBenefitIco svg,
@@ -1135,7 +1135,7 @@ details[data-dd="1"]:not([open]) .navMenu{
 .jmExtGuideBenefitIco{
   width:18px;
   height:18px;
-  color:#0f6b32;
+  color:#0a3a1c;
 }
 .jmExtGuideNote{
   margin-top:14px;
@@ -1388,7 +1388,7 @@ details[data-dd="1"]:not([open]) .navMenu{
 
   function buildBillingSettingsHref(navAccount){
     try{
-      const pricingLink = navAccount?.querySelector("a.jmNavItem[href*='plan.html'], a.jmNavItem[href*='plan#'], a.jmNavItem[href$='plan']");
+      const pricingLink = navAccount?.querySelector("a.jmNavItem:not([data-jm-nav='subscription-billing'])[href*='plan.html'], a.jmNavItem:not([data-jm-nav='subscription-billing'])[href*='plan#'], a.jmNavItem:not([data-jm-nav='subscription-billing'])[href$='plan']");
       const rawHref = String(pricingLink?.getAttribute("href") || "/plan.html#cv-pricing").trim() || "/plan.html#cv-pricing";
       const url = new URL(rawHref, window.location.href);
       return `${url.pathname}${url.search}${url.hash}`;
@@ -1463,11 +1463,154 @@ details[data-dd="1"]:not([open]) .navMenu{
     }
   }
 
+  function appAwareNavItems(){
+    return [
+      { section:"dashboard", href:"/dashboard", label:tt("common.nav.dashboard", {}, "Dashboard") },
+      { section:"cv", href:"/cv?entry=chooser", label:tt("common.nav.cvStudio", {}, "CV Studio") },
+      { section:"jobs", href:"/jobs", label:tt("common.nav.jobs", {}, "Jobs") },
+      { section:"profile", href:"/profile", label:tt("common.nav.profile", {}, "Profile") },
+      { section:"plan", href:"/plan#cv-pricing", label:tt("common.nav.pricing", {}, "Pricing") }
+    ];
+  }
+
+  function appAwarePrimaryMenuItems(){
+    return appAwareNavItems().filter((item) => item.section !== "plan");
+  }
+
+  function renderAppAwareNavLinks(){
+    const activeSection = currentAppShellSection();
+    return appAwareNavItems().map((item) => {
+      const active = item.section === activeSection;
+      return (
+        `<a class="pill${active ? " active" : ""}" href="${escapeHtml(item.href)}" data-nav="1"${active ? ' aria-current="page"' : ""}>`
+        + escapeHtml(item.label)
+        + "</a>"
+      );
+    }).join("");
+  }
+
+  function isSignedInAppShellPublicPage(){
+    const page = trimLower(document.body?.dataset?.page || basenamePath(window.location.pathname));
+    const section = currentAppShellSection();
+    return page === "plan" || page === "pricing" || section === "plan";
+  }
+
+  function normalizePublicNavLinks(root = document){
+    if (document.body?.classList?.contains("jmj-app-shell")) return;
+    const section = currentAppShellSection();
+    if (!section) return;
+    const scope = root && typeof root.querySelectorAll === "function" ? root : document;
+    scope.querySelectorAll(".navlinks a.pill, .topActions a.pill").forEach((link) => {
+      const isActive = appShellSectionFromUrl(link.getAttribute("href")) === section;
+      link.classList.toggle("active", isActive);
+      if (isActive) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
+    });
+  }
+
+  function setPublicBrandForAuth(signedIn){
+    if (document.body?.dataset?.jmjInitialAppShell === "1") return;
+    const brand = document.querySelector(".topbar .brand");
+    if (!brand || String(brand.tagName || "").toLowerCase() !== "a") return;
+    if (!brand.dataset.jmjPublicBrandHref){
+      brand.dataset.jmjPublicBrandHref = brand.getAttribute("href") || "";
+    }
+    if (signedIn){
+      brand.setAttribute("href", "/dashboard");
+      brand.setAttribute("aria-label", "Dashboard");
+    }else{
+      brand.setAttribute("href", brand.dataset.jmjPublicBrandHref || "./");
+      if (!brand.getAttribute("aria-label")) brand.setAttribute("aria-label", "jobmejob");
+    }
+  }
+
+  function syncPublicNavForAuth(signedIn){
+    const body = document.body;
+    if (!body) return;
+    if (!body.dataset.jmjInitialAppShell){
+      body.dataset.jmjInitialAppShell = body.classList.contains("jmj-app-shell") ? "1" : "0";
+    }
+
+    const canBecomeAppShell = body.dataset.jmjInitialAppShell !== "1" && isSignedInAppShellPublicPage();
+    body.classList.toggle("jmj-public-app-shell", !!(signedIn && canBecomeAppShell));
+    if (canBecomeAppShell){
+      body.classList.toggle("jmj-app-shell", !!signedIn);
+    }
+
+    const navContainers = $$(".topbar .navlinks, .topbar .topActions");
+    navContainers.forEach((nav) => {
+      if (!nav.dataset.jmjPublicNavHtml){
+        nav.dataset.jmjPublicNavHtml = nav.innerHTML;
+      }
+      if (signedIn){
+        if (nav.dataset.jmjPublicNavState !== "app"){
+          nav.innerHTML = renderAppAwareNavLinks();
+          nav.dataset.jmjPublicNavState = "app";
+        }
+      }else if (nav.dataset.jmjPublicNavState === "app"){
+        nav.innerHTML = nav.dataset.jmjPublicNavHtml || "";
+        nav.dataset.jmjPublicNavState = "public";
+      }
+    });
+
+    setPublicBrandForAuth(!!signedIn);
+    if (signedIn) normalizeCvStudioNavLinks(document);
+    else pruneDeprecatedNavLinks(document);
+    normalizeAppShellNav(document);
+    normalizePublicNavLinks(document);
+  }
+
+  function removeAccountActivityNav(navAccount){
+    const root = navAccount || document;
+    try{
+      root.querySelectorAll?.("#navActivity, [data-jm-nav='activity']").forEach((el) => el.remove());
+    }catch(_){}
+  }
+
+  function ensureAccountPrimaryNav(navAccount){
+    const menu = navAccount?.querySelector(".navMenu");
+    if (!menu) return;
+
+    const label = menu.querySelector(".menuLabel");
+    const desired = appAwarePrimaryMenuItems();
+    const bySection = {};
+
+    menu.querySelectorAll("a.jmNavItem").forEach((link) => {
+      const section = appShellSectionFromUrl(link.getAttribute("href"));
+      if (!desired.some((item) => item.section === section)) return;
+      if (bySection[section]){
+        try{ link.remove(); }catch(_){}
+        return;
+      }
+      bySection[section] = link;
+    });
+
+    let ref = label || menu.querySelector(".jmAccountCard");
+    desired.forEach((item) => {
+      let link = bySection[item.section];
+      if (!link){
+        link = document.createElement("a");
+        link.className = "jmNavItem";
+        link.setAttribute("role", "menuitem");
+      }
+      link.setAttribute("href", item.href);
+      link.setAttribute("data-nav", "1");
+      link.textContent = item.label;
+
+      if (ref){
+        menu.insertBefore(link, ref.nextSibling);
+      }else{
+        menu.insertBefore(link, menu.firstChild);
+      }
+      ref = link;
+    });
+  }
+
   function ensureAccountBillingNav(navAccount){
     const menu = navAccount?.querySelector(".navMenu");
     if (!menu) return;
 
-    const pricingLink = menu.querySelector("a.jmNavItem[href*='plan.html'], a.jmNavItem[href*='plan#'], a.jmNavItem[href$='plan']");
+    const pricingLink = menu.querySelector("a.jmNavItem:not([data-jm-nav='subscription-billing'])[href*='plan.html'], a.jmNavItem:not([data-jm-nav='subscription-billing'])[href*='plan#'], a.jmNavItem:not([data-jm-nav='subscription-billing'])[href$='plan']");
     const profileLink = menu.querySelector("a.jmNavItem[href*='profile.html'], a.jmNavItem[href*='profile#'], a.jmNavItem[href*='profile?'], a.jmNavItem[href$='profile']");
     let billingButton = menu.querySelector("[data-jm-nav='subscription-billing']");
 
@@ -1492,6 +1635,7 @@ details[data-dd="1"]:not([open]) .navMenu{
     if (String(billingButton.tagName || "").toLowerCase() === "a"){
       billingButton.setAttribute("href", buildBillingSettingsHref(navAccount));
     }
+    billingButton.textContent = tt("common.nav.manageBilling", {}, "Manage billing");
 
     if (billingButton.dataset.jmPortalWired !== "1"){
       billingButton.dataset.jmPortalWired = "1";
@@ -1505,10 +1649,17 @@ details[data-dd="1"]:not([open]) .navMenu{
 
     if (pricingLink){
       pricingLink.textContent = tt("common.nav.plansAndPricing", {}, "Plans & pricing");
+      if (profileLink){
+        menu.insertBefore(pricingLink, profileLink.nextSibling);
+      }
+    }
+    if (pricingLink && billingButton){
+      menu.insertBefore(billingButton, pricingLink.nextSibling);
     }
   }
 
   function pruneDeprecatedNavLinks(root = document){
+    if (document.body?.classList?.contains("jmj-app-shell")) return;
     const scope = root && typeof root.querySelectorAll === "function" ? root : document;
     if (!scope || typeof scope.querySelectorAll !== "function") return;
 
@@ -1519,16 +1670,110 @@ details[data-dd="1"]:not([open]) .navMenu{
     });
   }
 
-  function pruneAccountPrimaryNav(navAccount){
-    pruneDeprecatedNavLinks(navAccount);
+  function appShellSectionFromUrl(rawHref){
+    try{
+      const url = new URL(String(rawHref || ""), window.location.href);
+      const page = basenamePath(url.pathname);
+      if (page === "dashboard.html" || page === "dashboard") return "dashboard";
+      if (page === "jobs.html" || page === "jobs") return "jobs";
+      if (page === "profile.html" || page === "profile") return "profile";
+      if (page === "plan.html" || page === "plan") return "plan";
+      if (page === "cv.html" || page === "cv" || page === "cv-studio") return "cv";
+    }catch(_){}
+    return "";
+  }
+
+  function currentAppShellSection(){
+    const page = basenamePath(window.location.pathname);
+    if (page === "dashboard.html" || page === "dashboard") return "dashboard";
+    if (page === "jobs.html" || page === "jobs") return "jobs";
+    if (page === "profile.html" || page === "profile") return "profile";
+    if (page === "plan.html" || page === "plan") return "plan";
+    if (page === "cv.html" || page === "cv" || page === "cv-studio") return "cv";
+    return appShellSectionFromUrl(window.location.href);
+  }
+
+  function normalizeAppShellNav(root = document){
+    if (!document.body?.classList?.contains("jmj-app-shell")) return;
+    const section = currentAppShellSection();
+    if (!section) return;
+    const scope = root && typeof root.querySelectorAll === "function" ? root : document;
+    if (!scope || typeof scope.querySelectorAll !== "function") return;
+
+    scope.querySelectorAll(".navlinks a.pill").forEach((link) => {
+      const isActive = appShellSectionFromUrl(link.getAttribute("href")) === section;
+      link.classList.toggle("active", isActive);
+      if (isActive) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
+    });
+
+    scope.querySelectorAll(".navMenu a.jmNavItem").forEach((link) => {
+      const isActive = appShellSectionFromUrl(link.getAttribute("href")) === section;
+      if (isActive) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
+    });
+  }
+
+  function setAppShellAuthState(signedIn){
+    if (!document.body?.classList?.contains("jmj-app-shell")) return;
+    document.body.classList.toggle("jmj-auth-signed-in", !!signedIn);
+    document.body.classList.toggle("jmj-auth-signed-out", !signedIn);
+  }
+
+  function wireAppShellSearchShortcut(){
+    if (wireAppShellSearchShortcut.__wired) return;
+    wireAppShellSearchShortcut.__wired = true;
+    if (!document.body?.classList?.contains("jmj-app-shell")) return;
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
+      const tag = String(e.target?.tagName || "").toLowerCase();
+      if (tag === "input" || tag === "textarea" || e.target?.isContentEditable) return;
+      const input = document.querySelector(".appSearch input:not([disabled])");
+      if (!input) return;
+      e.preventDefault();
+      try{ input.focus(); }catch(_){}
+    });
+  }
+
+  function wireAppShellControls(){
+    if (wireAppShellControls.__wired) return;
+    wireAppShellControls.__wired = true;
+    if (!document.body?.classList?.contains("jmj-app-shell")) return;
+
+    document.addEventListener("click", (e) => {
+      const trigger = e.target && e.target.closest ? e.target.closest("[data-app-shell-click-target]") : null;
+      if (!trigger) return;
+      const targetId = String(trigger.getAttribute("data-app-shell-click-target") || "").trim();
+      if (!targetId) return;
+      const target = $(targetId);
+      if (!target || typeof target.click !== "function") return;
+      e.preventDefault();
+      target.click();
+    });
+
+    document.addEventListener("input", (e) => {
+      const input = e.target && e.target.matches && e.target.matches("[data-app-search-sync]")
+        ? e.target
+        : null;
+      if (!input) return;
+      const targetId = String(input.getAttribute("data-app-search-sync") || "").trim();
+      if (!targetId) return;
+      const target = $(targetId);
+      if (!target) return;
+      target.value = input.value;
+      try{ target.dispatchEvent(new Event("input", { bubbles:true })); }catch(_){}
+    });
   }
 
   function ensureAccountExtensionNav(navAccount){
     const menu = navAccount?.querySelector(".navMenu");
     if (!menu) return;
 
-    const cvLink = menu.querySelector("a.jmNavItem[href*='cv.html'], a.jmNavItem[href*='cv?'], a.jmNavItem[href$='cv']");
     const profileLink = menu.querySelector("a.jmNavItem[href*='profile.html'], a.jmNavItem[href*='profile#'], a.jmNavItem[href*='profile?'], a.jmNavItem[href$='profile']");
+    const pricingLink = menu.querySelector("a.jmNavItem:not([data-jm-nav='subscription-billing'])[href*='plan.html'], a.jmNavItem:not([data-jm-nav='subscription-billing'])[href*='plan#'], a.jmNavItem:not([data-jm-nav='subscription-billing'])[href$='plan']");
+    const billingLink = menu.querySelector("[data-jm-nav='subscription-billing']");
+    const menuSep = menu.querySelector(".menuSep");
     let extensionButton = menu.querySelector("[data-jm-nav='chrome-extension']");
 
     if (!extensionButton){
@@ -1539,15 +1784,15 @@ details[data-dd="1"]:not([open]) .navMenu{
       extensionButton.setAttribute("data-jm-nav", "chrome-extension");
       extensionButton.setAttribute("data-extension-modal-open", "1");
       extensionButton.textContent = "Chrome extension";
+    }
 
-      const anchor = cvLink || profileLink;
-      if (anchor && anchor.nextSibling){
-        menu.insertBefore(extensionButton, anchor.nextSibling);
-      } else if (profileLink){
-        menu.insertBefore(extensionButton, profileLink);
-      } else {
-        menu.appendChild(extensionButton);
-      }
+    const anchor = billingLink || pricingLink || profileLink;
+    if (anchor && anchor.nextSibling){
+      menu.insertBefore(extensionButton, anchor.nextSibling);
+    } else if (menuSep){
+      menu.insertBefore(extensionButton, menuSep);
+    } else {
+      menu.appendChild(extensionButton);
     }
   }
 
@@ -1672,9 +1917,9 @@ details[data-dd="1"]:not([open]) .navMenu{
   text-transform:uppercase;
 }
 .jmSharedActivityBadge.good{
-  border-color:rgba(34,197,94,.26);
-  background:rgba(34,197,94,.10);
-  color:#0a4a22;
+  border-color:rgba(0,166,63,.26);
+  background:rgba(0,166,63,.10);
+  color:#0a3a1c;
 }
 .jmSharedActivityBadge.warn{
   border-color:rgba(234,88,12,.24);
@@ -1991,17 +2236,20 @@ details[data-dd="1"]:not([open]) .navMenu{
     const email = String(session?.user?.email || state?.email || safeLocalGet("jm_user_email") || "").trim().toLowerCase();
     const signedIn = !!(session && session.user && email);
 
+    syncPublicNavForAuth(signedIn);
+
     if (navAccount) navAccount.style.display = signedIn ? "" : "none";
     if (navSignIn) navSignIn.style.display = signedIn ? "none" : "";
     if (navStartFree) navStartFree.style.display = signedIn ? "none" : "";
-    pruneDeprecatedNavLinks(document);
+    setAppShellAuthState(signedIn);
     normalizeCvStudioNavLinks(document);
 
     if (!signedIn) return { signedIn:false, session:null, state:null };
 
     if (navAccount){
-      pruneAccountPrimaryNav(navAccount);
+      ensureAccountPrimaryNav(navAccount);
       ensureAccountBillingNav(navAccount);
+      removeAccountActivityNav(navAccount);
       ensureAccountExtensionNav(navAccount);
     }
 
@@ -2119,6 +2367,9 @@ details[data-dd="1"]:not([open]) .navMenu{
     wireDetailsDropdowns,
     wireNavDropdowns,
     wireExtensionGuideTriggers,
+    normalizeAppShellNav,
+    wireAppShellSearchShortcut,
+    wireAppShellControls,
     hydrateAccountNav,
 
     showTopError,
@@ -2161,6 +2412,9 @@ details[data-dd="1"]:not([open]) .navMenu{
     wireDetailsDropdowns();
     wireExtensionGuideTriggers();
     wireModalDismiss();
+    normalizeAppShellNav(document);
+    wireAppShellSearchShortcut();
+    wireAppShellControls();
     hydrateExtensionLinks();
     hydrateAccountNav().catch(() => {});
   });
