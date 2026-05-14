@@ -1719,6 +1719,28 @@ state=await apiGet("/me/state");
 setOnboardingUI(state);
 }
 
+async function loadProfileIntoForm(){
+try{
+if(!$("jobTitles") || !$("locations")) return;
+const prof=await apiGet("/me/profile");
+const p=prof && prof.profile ? prof.profile : null;
+if(!p) return;
+const desired=Array.isArray(p.desired_titles)?p.desired_titles:[];
+const industries=Array.isArray(p.industries)?p.industries:[];
+const locations=Array.isArray(p.locations)?p.locations:[];
+const countries=Array.isArray(p.countries_allowed)?p.countries_allowed:[];
+const radius=p.radius_km;
+$("jobTitles").value=desired.join(", ");
+if($("industries")) $("industries").value=industries.join(", ");
+$("locations").value=locations.join(", ");
+locationsTouched = locations.length ? true : false;
+try{ if(locations.length){ setLocationSuggestionUI([]); } }catch(_){}
+if(countries[0] && $("country")) $("country").value=String(countries[0]);
+if(radius!==null && radius!==undefined && $("radiusKm")) $("radiusKm").value=String(radius);
+setBadge("saveStatusBadge","good","Loaded");
+}catch(_){}
+}
+
 function getAiCache(){
 try{
 let raw=localStorage.getItem(AI_CACHE_KEY);
@@ -3531,7 +3553,17 @@ await ensureCustomer(email, session.access_token);
 await refreshState();
 try{ window.JobMeJobShared?.hydrateAccountNav?.({ session, state }); }catch(_){}
 await loadCvStatusAndUpdateUx();
+await loadProfileIntoForm();
 await maybeFinishPendingGmailVerify();
+try{
+  restoreDraftIfHelpful();
+  const b = $("saveStatusBadge");
+  const t = b ? String(b.textContent||"") : "";
+  if(t !== "Loaded" && t !== "Saved"){
+    const hasAny = !!(String($("jobTitles")?.value||"").trim() || String($("locations")?.value||"").trim());
+    if(hasAny) setBadge("saveStatusBadge","warn","Draft");
+  }
+}catch(_){ }
 
 
 $("gmailVerifyBtn")?.addEventListener("click", async ()=>{
@@ -3568,6 +3600,27 @@ $("aiGenerateBtn")?.addEventListener("click",()=>handleAiGenerate({ force:false 
 $("aiRegenerateLink")?.addEventListener("click",handleAiRegenerate);
 $("aiApplyBtn")?.addEventListener("click",handleAiApplyTitles);
 
+try{
+  $("jobTitles")?.addEventListener("input",()=>{
+    jobTitlesTouched=true;
+    renderAiAppliedChips(aiAppliedTitles);
+    markPrefsDirty();
+    scheduleAutoSave();
+  });
+  $("locations")?.addEventListener("input",()=>{
+    locationsTouched=true;
+    markPrefsDirty();
+    scheduleAutoSave();
+  });
+  $("industries")?.addEventListener("input", ()=>{ markPrefsDirty(); scheduleAutoSave(); });
+  $("country")?.addEventListener("change", ()=>{ markPrefsDirty(); scheduleAutoSave(); });
+  $("radiusKm")?.addEventListener("input", ()=>{ markPrefsDirty(); scheduleAutoSave(); });
+}catch(_){}
+
+const saveBtn = $("saveProfileBtn");
+if(saveBtn){ saveBtn.addEventListener("click", handleSaveProfile); }
+const continueBtn = $("continueBtn");
+if(continueBtn){ continueBtn.addEventListener("click", ()=>openCvStudioFromProfile(continueBtn)); }
 $("postUploadPrimaryBtn")?.addEventListener("click", ()=>openCvStudioFromProfile($("postUploadPrimaryBtn")));
 // Account dropdown actions
 $("navActivity")?.addEventListener("click", openActivityModal);

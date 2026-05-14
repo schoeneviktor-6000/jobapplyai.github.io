@@ -2149,6 +2149,103 @@ Matched jobs premium polish
   </details>
 </div>
 </aside>
+<section class="card cardNoPad" id="prefsCard" style="grid-column:1/-1">
+<details class="prefsShell" id="prefsToggle">
+  <summary class="prefsSummary">
+    <div class="prefsSummaryMain">
+      <span class="prefsSummaryTag">Profile data</span>
+      <div class="titleBlock">
+        <h2>Profile preferences</h2>
+        <div class="prefsSummaryLead">Used for job matching and lightweight CV Studio context.</div>
+      </div>
+    </div>
+    <span class="badge" id="saveStatusBadge">Not saved</span>
+  </summary>
+  <div class="sectionBody">
+    <div class="prefsCanvas">
+      <div class="prefsForm" role="form" aria-label="Profile preferences">
+        <div class="formGroup">
+          <div class="formGroupHeader">
+            <div class="formGroupTitle">Target roles</div>
+          </div>
+
+          <div class="field fieldCard">
+            <div class="labelRow">
+              <label for="jobTitles">Desired job titles</label>
+              <span class="fieldTag req">Required</span>
+            </div>
+            <textarea id="jobTitles" placeholder="Customer Success Manager, Operations Coordinator"></textarea>
+            <div id="aiAppliedWrap" style="display:none;margin-top:10px">
+              <div class="small"><strong>AI-added titles</strong></div>
+              <div id="aiAppliedChips"></div>
+            </div>
+          </div>
+
+          <div class="field fieldCard">
+            <div class="labelRow">
+              <label for="industries">Industries</label>
+              <span class="fieldTag opt">Optional</span>
+            </div>
+            <input id="industries" placeholder="SaaS, Healthcare, Hospitality"/>
+          </div>
+        </div>
+
+        <div class="formGroup">
+          <div class="formGroupHeader">
+            <div class="formGroupTitle">Location</div>
+          </div>
+
+          <div class="fieldRow">
+            <div class="field fieldCard">
+              <div class="labelRow">
+                <label for="country">Country</label>
+              </div>
+              <select id="country">
+                <option value="DE">Germany (DE)</option>
+                <option value="UK">United Kingdom (UK)</option>
+              </select>
+            </div>
+
+            <div class="field fieldCard">
+              <div class="labelRow">
+                <label for="radiusKm">Radius (km)</label>
+                <span class="fieldTag opt">Optional</span>
+              </div>
+              <input id="radiusKm" inputmode="numeric" placeholder="20"/>
+            </div>
+          </div>
+
+          <div class="field fieldCard">
+            <div class="labelRow">
+              <div class="row" style="gap:8px; align-items:flex-end; flex-wrap:wrap">
+                <label for="locations" style="margin:0">Main location(s)</label>
+                <span class="fieldTag req">Required</span>
+              </div>
+              <button class="btn small" id="useCvLocationBtn" type="button" style="display:none">Use CV location</button>
+            </div>
+            <input id="locations" placeholder="Berlin, Potsdam"/>
+            <div id="locSuggestWrap" style="display:none;margin-top:10px">
+              <div class="small"><strong>Suggested from your CV</strong></div>
+              <div id="locSuggestChips"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prefsFooter">
+        <div class="actions">
+          <button class="btn primary" id="saveProfileBtn" type="button">Save preferences</button>
+          <button class="btn" id="continueBtn" type="button">Open CV Studio</button>
+        </div>
+        <div style="display:grid; gap:8px; min-width:260px">
+          <div class="small" id="autosaveHint">Auto-save keeps completed preferences synced.</div>
+          <div class="small" id="continueHint"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</details>
+</section>
 </div>
 </main>
 
@@ -2200,6 +2297,6 @@ Matched jobs premium polish
   <script src="./auth.js?v=202604121905"></script>
   <script src="./shared.js?v=202605041300"></script>
 
-  <script src="./profile.app.js?v=202604232355"></script>
+  <script src="./profile.app.js?v=202605141200"></script>
 </body>
 </html>

@@ -3393,6 +3393,30 @@ function markSteps(state){
       renderKeywords();
     }
 
+    function reconcileKeywordCoverageWithCurrentText(){
+      const text = $("cvText").value || "";
+      const all = Array.isArray(atsKeywordsAll) && atsKeywordsAll.length
+        ? atsKeywordsAll
+        : Array.from(new Set([...(lastUsed||[]), ...(lastMissing||[])].map(x=>String(x||"").trim()).filter(Boolean)));
+
+      if(!text.trim() || !all.length) return false;
+
+      const used = [];
+      const miss = [];
+      for(const kw of all){
+        if(keywordInText(kw, text)) used.push(kw);
+        else miss.push(kw);
+      }
+
+      lastUsed = used;
+      lastMissing = miss;
+      if(lastAtsScore === null || lastAtsScore === undefined){
+        lastAtsScore = null;
+      }
+      renderKeywords();
+      return true;
+    }
+
     /* -------------------------
        CV doc formatting (ported from dashboard)
        ------------------------- */
@@ -6426,6 +6450,7 @@ ${bodyHtml}
             renderKeywords();
 
             setCvOutput({ text: obj.cv_text || "", doc: obj.cv_doc || null, lang: obj.lang || obj.language || "en" });
+            reconcileKeywordCoverageWithCurrentText();
             setBadge("outStatus","good", uiLang==="de" ? "Bereit" : "Ready");
             setText("outModel","Model: —");
             setText("outHint", uiLang==="de"
@@ -6529,6 +6554,7 @@ ${bodyHtml}
 
         renderKeywords();
         setCvOutput({ text, doc, lang });
+        reconcileKeywordCoverageWithCurrentText();
 
         // Reset edit history on each new generation
         baseSnapshot = snapshotCurrent();
@@ -6766,6 +6792,7 @@ ${bodyHtml}
 
         renderKeywords();
         setCvOutput({ text, doc, lang });
+        reconcileKeywordCoverageWithCurrentText();
 
         // Reset edit history on each new generation
         baseSnapshot = snapshotCurrent();
