@@ -694,7 +694,7 @@
       if(pid === "starter") return { id:"starter", name:"Starter", daily:1, short:"Starter (1/day)" };
       if(pid === "pro") return { id:"pro", name:"Growth", daily:5, short:"Growth (5/day)" };
       if(pid === "max") return { id:"max", name:"Max", daily:10, short:"Max (10/day)" };
-      return { id:null, name:"Auto-apply off", daily:0, short:"Off" };
+      return { id:null, name:"CV Studio Free", daily:0, short:"Free" };
     }
 
     function normalizeKeywordList(x){
@@ -712,12 +712,33 @@
       return [];
     }
 
-    function computeAtsMatchPercent(used, missing){
+    function normalizeAtsScoreValue(score){
+      if(score === null || score === undefined || score === "") return null;
+      const n = Number(score);
+      if(!Number.isFinite(n)) return null;
+      return Math.max(0, Math.min(99, Math.round(n)));
+    }
+
+    function computeAtsMatchPercent(used, missing, explicitScore){
+      const normalizedExplicit = normalizeAtsScoreValue(explicitScore);
+      if(normalizedExplicit !== null) return normalizedExplicit;
       const u = normalizeKeywordList(used);
       const m = normalizeKeywordList(missing);
-      const denom = u.length + m.length;
+      const ul = u.length;
+      const ml = m.length;
+      const denom = ul + ml;
       if(denom <= 0) return null;
-      return Math.round((u.length / denom) * 100);
+      const raw = Math.round((ul / denom) * 100);
+      if(ml === 0) return ul >= 8 ? Math.min(99, Math.max(raw, 96)) : Math.min(raw, 89);
+      if(ul >= 10 && ml <= 2 && raw >= 80) return Math.min(99, Math.max(raw, 92));
+      if(ul >= 8 && ml <= 1 && raw >= 85) return Math.min(99, Math.max(raw, 90));
+      return Math.min(99, raw);
+    }
+
+    function atsBadgeClass(score){
+      if(score >= 75) return "good";
+      if(score >= 60) return "warn";
+      return "bad";
     }
 
     async function loadTailorSummariesForJobs(jobIds){
@@ -883,9 +904,9 @@ const renderRow = (j) => {
   const tSum = tailorSummaryMap.get(String(jobId));
   let atsBadge = "";
   if(tSum){
-    const pct = computeAtsMatchPercent(tSum.ats_keywords_used, tSum.ats_keywords_missing);
+    const pct = computeAtsMatchPercent(tSum.ats_keywords_used, tSum.ats_keywords_missing, tSum.ats_score);
     if(pct !== null){
-      const cls = (pct >= 80) ? "good" : (pct >= 60 ? "warn" : "bad");
+      const cls = atsBadgeClass(pct);
       atsBadge = "<span class='badge " + H.escapeHtml(cls) + "'>ATS " + H.escapeHtml(pct) + "%</span>";
     }else{
       atsBadge = "<span class='badge'>tailored</span>";

@@ -48,6 +48,19 @@ function setBadge(id,type,text){
   el.className="badge"+(type?(" "+type):"");
   el.textContent=text;
 }
+function bindIfPresent(id,eventName,handler,options){
+  const el=document.getElementById(id);
+  if(!el) return false;
+  el.addEventListener(eventName,handler,options);
+  return true;
+}
+function bindRequired(id,eventName,handler,options){
+  const bound=bindIfPresent(id,eventName,handler,options);
+  if(!bound){
+    console.warn("[dashboard] Missing expected element #" + id + " for " + eventName + " binding");
+  }
+  return bound;
+}
 function showTopError(msg){
   if(window.JobMeJobShared && typeof window.JobMeJobShared.showTopError==="function"){
     return window.JobMeJobShared.showTopError("errorTop", msg);
@@ -300,11 +313,10 @@ async function generateTailoredCv(jobId, force){
     currentTailorText = String(r.cv_text||"");
     currentTailorDoc = (r.cv_doc && typeof r.cv_doc === "object") ? r.cv_doc : null;
 
-    const score = (typeof r.ats_score === "number") ? r.ats_score : null;
-    setText("tailorStatus", score!==null ? `Done · ATS ${score}%` : "Done");
-
     const used = Array.isArray(r.ats_keywords_used) ? r.ats_keywords_used : [];
     const missing = Array.isArray(r.ats_keywords_missing) ? r.ats_keywords_missing : [];
+    const score = computeAtsMatchPercent(used, missing, r.ats_score);
+    setText("tailorStatus", score!==null ? `Done · ATS ${score}%` : "Done");
 
     const explain = `<div class="small" style="margin-top:6px; color:rgba(17,19,24,.72)">ATS match is a keyword-based indicator (not a guarantee). Best results combine a good match with truthful content and clean formatting.</div>`;
 
@@ -772,12 +784,27 @@ function normalizeKeywordList(x){
   return [];
 }
 
-function computeAtsMatchPercent(used, missing){
+function normalizeAtsScoreValue(score){
+  if(score===null || score===undefined || score==="") return null;
+  const n=Number(score);
+  if(!Number.isFinite(n)) return null;
+  return Math.max(0, Math.min(99, Math.round(n)));
+}
+
+function computeAtsMatchPercent(used, missing, explicitScore){
+  const normalizedExplicit=normalizeAtsScoreValue(explicitScore);
+  if(normalizedExplicit!==null) return normalizedExplicit;
   const u=normalizeKeywordList(used);
   const m=normalizeKeywordList(missing);
-  const denom=u.length + m.length;
+  const ul=u.length;
+  const ml=m.length;
+  const denom=ul + ml;
   if(denom<=0) return null;
-  return Math.round((u.length/denom)*100);
+  const raw=Math.round((ul/denom)*100);
+  if(ml===0) return ul>=8 ? Math.min(99,Math.max(raw,96)) : Math.min(raw,89);
+  if(ul>=10 && ml<=2 && raw>=80) return Math.min(99,Math.max(raw,92));
+  if(ul>=8 && ml<=1 && raw>=85) return Math.min(99,Math.max(raw,90));
+  return Math.min(99,raw);
 }
 
 async function loadTailorSummariesForJobs(jobIds){
@@ -813,7 +840,7 @@ const pid=String(planId||"").trim().toLowerCase();
 if(pid==="starter") return {id:"starter",name:"Starter",daily:1,meta:"1 application/day",short:"Starter (1/day)"};
 if(pid==="pro") return {id:"pro",name:"Growth",daily:5,meta:"5 applications/day",short:"Growth (5/day)"};
 if(pid==="max") return {id:"max",name:"Max",daily:10,meta:"10 applications/day",short:"Max (10/day)"};
-return {id:null,name:"Auto-apply off",daily:0,meta:"Request Auto-apply when you want daily sourcing",short:"Off"};
+return {id:null,name:"CV Studio Free",daily:0,meta:"Free CV tailoring plan",short:"Free"};
 }
 function planFallbackFromLocalStorage(){
 const raw=(localStorage.getItem("jm_plan")||localStorage.getItem("ja_plan")||"").trim().toLowerCase();
@@ -828,7 +855,7 @@ let recommendedCap=1;
 if(queueCount>=25){healthLabel="Healthy";badgeType="good";recommendedCap=10;}
 else if(queueCount>=5){healthLabel="Medium";badgeType="";recommendedCap=5;}
 let note="";
-if(!planDaily) note="CV Studio is ready. Request Auto-apply if you also want daily job sourcing.";
+if(!planDaily) note="CV Studio is ready. Use Jobs to find roles and tailor a CV when you have a good match.";
 else if(queueCount===0) note="No jobs in your queue yet. Broaden titles or increase radius.";
 else if(queueCount<planDaily) note="Your queue is below your plan. Increase titles/radius to avoid running out.";
 else note="You have enough supply for today.";
@@ -841,7 +868,7 @@ function renderHealth(queueCount,plan){
 const s=computeSupply(queueCount,plan.daily);
 setBadge("badgeHealth",s.badgeType,s.healthLabel);
 setText("kpiHealthLabel",s.healthLabel);
-setBadge("badgeHealthPlan",plan.daily?"":"warn","Auto-apply: "+plan.short);
+setBadge("badgeHealthPlan",plan.daily?"":"warn","Plan: "+plan.short);
 setBadge("badgeHealthQueue",queueCount>0?"good":"warn","Queue: "+queueCount);
 setBadge("badgeHealthCap","","Today cap: "+(plan.daily?plan.daily:0)+"/day");
 const meter=document.getElementById("healthMeterFill");
@@ -924,7 +951,7 @@ function renderQueueCards(queue){
         </div>
         <div class="itemMeta">
           <span><b>${qCount}</b> jobs ready</span><span>•</span>
-          <span>Auto-apply: ${escapeHtml(planTxt)}</span><span>•</span>
+          <span>Plan: ${escapeHtml(planTxt)}</span><span>•</span>
           <span>Coverage: ${escapeHtml(cover)}</span>
         </div>
         <div class="tagRow">
@@ -1617,8 +1644,8 @@ const plan=state&&state.plan_id?planFromState(state.plan_id):planFallbackFromLoc
 currentPlanDaily=plan.daily;
 
 setText("kpiPlanName",plan.name);
-setText("kpiPlanMeta",plan.daily?plan.meta:"no plan selected");
-setBadge("badgePlan",plan.daily?"good":"warn",plan.daily?"Selected":"Not selected");
+setText("kpiPlanMeta",plan.daily?plan.meta:"free plan");
+setBadge("badgePlan",plan.daily?"good":"",plan.daily?"Selected":"Free");
 
 if(state&&state.customer_id){ setText("meCustomerId",state.customer_id); }
 if(state){ setHtml("onboardingChecks",renderOnboardingChecks(state)); }
@@ -1677,12 +1704,12 @@ if(lastSessionToken) await loadActivity(lastSessionToken);
 }
 
 function wireEvents(){
-document.getElementById("btnRefresh").addEventListener("click",async()=>{
+bindRequired("btnRefresh","click",async()=>{
 try{ await loadDashboard();
 updateFetchButtonCooldownUI();
 updateFetchMetaUI(); }catch(e){ showTopError(e.message); setText("errorBox",e.message); }
 });
-document.getElementById("btnFetchJobsNow").addEventListener("click",async()=>{
+bindRequired("btnFetchJobsNow","click",async()=>{
 await manualFetchJobs();
 });
 
@@ -1735,7 +1762,7 @@ if(qaTailor){
   });
 }
 
-document.getElementById("btnCopyToken").addEventListener("click",async()=>{
+bindIfPresent("btnCopyToken","click",async()=>{
 try{
 const {data}=await supabaseClient.auth.getSession();
 const token=data&&data.session?data.session.access_token:"";
@@ -1809,27 +1836,27 @@ wireQueueClicks();
 wireActivityFilters();
 wireActivityClicks();
 
-document.getElementById("skipCancel").addEventListener("click",()=>closeSkipModal());
-document.getElementById("skipConfirm").addEventListener("click",()=>submitSkip());
+bindRequired("skipCancel","click",()=>closeSkipModal());
+bindRequired("skipConfirm","click",()=>submitSkip());
 
-document.getElementById("skipModal").addEventListener("click",(e)=>{
+bindRequired("skipModal","click",(e)=>{
 if(e.target && e.target.id==="skipModal") closeSkipModal();
 });
 
 // Job description modal
-document.getElementById("descClose").addEventListener("click",()=>closeDescModal());
-document.getElementById("descCopy").addEventListener("click",()=>copyDesc());
-document.getElementById("descModal").addEventListener("click",(e)=>{
+bindRequired("descClose","click",()=>closeDescModal());
+bindRequired("descCopy","click",()=>copyDesc());
+bindRequired("descModal","click",(e)=>{
 if(e.target && e.target.id==="descModal") closeDescModal();
 });
 
 // Tailored CV modal
-document.getElementById("tailorClose").addEventListener("click",()=>closeTailorModal());
-document.getElementById("tailorCopy").addEventListener("click",()=>copyTailor());
-document.getElementById("tailorDownload").addEventListener("click",()=>downloadTailor());
-document.getElementById("tailorPrint").addEventListener("click",()=>printTailor());
-document.getElementById("tailorRegenerate").addEventListener("click",()=>regenerateTailor());
-document.getElementById("tailorModal").addEventListener("click",(e)=>{
+bindRequired("tailorClose","click",()=>closeTailorModal());
+bindRequired("tailorCopy","click",()=>copyTailor());
+bindRequired("tailorDownload","click",()=>downloadTailor());
+bindRequired("tailorPrint","click",()=>printTailor());
+bindRequired("tailorRegenerate","click",()=>regenerateTailor());
+bindRequired("tailorModal","click",(e)=>{
 if(e.target && e.target.id==="tailorModal") closeTailorModal();
 });
 
@@ -1867,7 +1894,7 @@ updateTailorStrengthHelp();
 
 }
 
-window.addEventListener("load",async()=>{
+async function bootDashboardApp(){
 try{
 if(!window.supabase) throw new Error("Supabase library did not load. Check adblockers / network.");
 supabaseClient=(APP_AUTH && APP_AUTH.supabaseClient)
@@ -1885,4 +1912,18 @@ setBadge("badgeApps","bad","Error");
 setBadge("badgePlan","bad","Error");
 setBadge("badgeHealth","bad","Error");
 }
-});
+}
+
+let dashboardBootStarted = false;
+function startDashboardBoot(){
+if(dashboardBootStarted) return;
+dashboardBootStarted = true;
+bootDashboardApp();
+}
+
+if(document.readyState==="loading"){
+document.addEventListener("DOMContentLoaded", startDashboardBoot, { once:true });
+}else{
+setTimeout(startDashboardBoot, 0);
+}
+window.addEventListener("load", startDashboardBoot, { once:true });

@@ -15,7 +15,7 @@
   <meta name="twitter:title" data-i18n-content="meta.plan.title" content="jobmejob • CV Tailoring Plans & Pricing">
   <meta name="twitter:description" data-i18n-content="meta.plan.description" content="Compare CV Studio plans for CV tailoring, ATS match checks, missing keyword guidance, and export-ready PDFs.">
   <meta name="twitter:image" content="https://jobmejob.com/logo-512.png">
-  <link rel="stylesheet" href="./shared.css?v=202603301635"/>
+  <link rel="stylesheet" href="./shared.css?v=202605030225"/>
   <style>
     .heroCard,
     .priceCard,
@@ -31,6 +31,12 @@
     .infoGrid{
       display:grid;
       gap:16px;
+    }
+
+    .heroGrid > *,
+    .pricingGrid > *,
+    .infoGrid > *{
+      min-width:0;
     }
 
     .heroGrid{
@@ -353,6 +359,9 @@
 
     .statusStrip .badge{
       font-size:13px;
+      max-width:100%;
+      white-space:normal;
+      border-radius:16px;
     }
 
     .footNote{
@@ -498,7 +507,7 @@
       <article class="heroCard heroCopy">
         <div class="eyebrow" id="heroEyebrow" data-i18n="pages.plan.heroEyebrow">CV tailoring pricing</div>
         <h1 id="heroTitle" data-i18n="pages.plan.heroTitle">Start free. Upgrade when CV tailoring becomes part of your weekly search.</h1>
-        <p class="sub" id="heroSub" data-i18n="pages.plan.heroSub">Use one monthly CV quota across the Chrome extension and pasted job descriptions. CV Studio keeps CV tailoring simple to buy and easy to understand. Auto-apply remains a separate, request-only beta for users who need more than tailoring.</p>
+        <p class="sub" id="heroSub" data-i18n="pages.plan.heroSub">Use one monthly CV quota across the Chrome extension and pasted job descriptions. CV Studio keeps CV tailoring simple to buy and easy to understand.</p>
 
         <div class="heroActions">
           <a class="btn primary" href="./signup?entry=cv-studio" data-nav="1" id="heroPrimaryAction" data-i18n="pages.plan.heroPrimary">Start free</a>
@@ -511,7 +520,7 @@
           <span data-i18n="pages.plan.heroProof3">Manage billing later</span>
         </div>
 
-        <p class="heroSupport" id="heroSupport" data-i18n="pages.plan.heroSupport">Best for job seekers who want a clearer CV tailoring workflow first and only need sourcing or Auto-apply later.</p>
+        <p class="heroSupport" id="heroSupport" data-i18n="pages.plan.heroSupport">Best for job seekers who want a clearer CV tailoring workflow before they pay for higher monthly usage.</p>
 
         <div class="cardBullets">
           <div class="bulletCard">
@@ -525,14 +534,14 @@
             <div class="bulletNum">2</div>
             <div>
               <strong data-i18n="pages.plan.bullet2Title">Simple pricing, low friction</strong>
-              <div class="small" data-i18n="pages.plan.bullet2Body">You pay for a monthly CV quota, not for a complicated bundle of automations you may not need yet.</div>
+              <div class="small" data-i18n="pages.plan.bullet2Body">You pay for a monthly CV quota, not for a complicated bundle you may not need yet.</div>
             </div>
           </div>
           <div class="bulletCard">
             <div class="bulletNum">3</div>
             <div>
-              <strong data-i18n="pages.plan.bullet3Title">Auto-apply stays optional</strong>
-              <div class="small" data-i18n="pages.plan.bullet3Body">Start with tailoring first, then request the higher-touch Auto-apply beta only if you want sourcing and outbound help too.</div>
+              <strong data-i18n="pages.plan.bullet3Title">Upgrade only when usage is clear</strong>
+              <div class="small" data-i18n="pages.plan.bullet3Body">Start with tailoring first, then move up only when CV Studio becomes part of your real weekly routine.</div>
             </div>
           </div>
         </div>
@@ -552,7 +561,7 @@
           <div class="featureList" id="billingFeatureList" style="margin-top:10px">
             <span data-i18n="pages.plan.billingFeature1">Secure Stripe checkout</span>
             <span data-i18n="pages.plan.billingFeature2">Self-serve billing portal</span>
-            <span data-i18n="pages.plan.billingFeature3">Auto-apply reviewed on request</span>
+            <span data-i18n="pages.plan.billingFeature3">Transparent monthly usage</span>
           </div>
           <p class="footNote" id="billingSummary" style="margin:12px 0 0" data-i18n="pages.plan.billingSummary">Paid CV Studio plans open in Stripe checkout. Signed-in customers can later manage or cancel in the billing portal.</p>
         </div>
@@ -562,7 +571,7 @@
           <ul class="planFeatures" id="nextStepsList" style="margin-top:12px">
             <li data-i18n="pages.plan.nextStep1">A clear start with no commitment</li>
             <li data-i18n="pages.plan.nextStep2">A paid plan that matches real application volume</li>
-            <li data-i18n="pages.plan.nextStep3">A separate path for Auto-apply instead of hidden complexity</li>
+            <li data-i18n="pages.plan.nextStep3">Billing that matches your CV tailoring volume</li>
           </ul>
           <p class="footNote" id="nextStepsNote" style="margin:12px 0 0;display:none"></p>
         </div>
@@ -692,7 +701,7 @@
           <li data-i18n="pages.plan.workflowPoint1">One quota covers both Chrome extension imports and pasted job descriptions</li>
           <li data-i18n="pages.plan.workflowPoint2">Start free, then upgrade only when CV Studio becomes part of your real routine</li>
           <li data-i18n="pages.plan.workflowPoint3">Keep using the same stored base CV and tailoring flow as you move up plans</li>
-          <li data-i18n="pages.plan.workflowPoint4">Auto-apply stays separate so pricing remains simple and globally usable</li>
+          <li data-i18n="pages.plan.workflowPoint4">Pricing stays focused on CV tailoring so each plan is easy to compare</li>
         </ul>
       </article>
 
@@ -705,8 +714,8 @@
             <div class="small" data-i18n="pages.plan.faq1Body">Each successful tailored CV generation counts once, whether it starts from the extension or from pasted job text.</div>
           </div>
           <div class="faqItem">
-            <strong data-i18n="pages.plan.faq2Title">Do I need Auto-apply to use CV Studio?</strong>
-            <div class="small" data-i18n="pages.plan.faq2Body">No. CV Studio is the main product. Auto-apply is optional and handled separately for users who want more than tailoring.</div>
+            <strong data-i18n="pages.plan.faq2Title">Can I use extension imports and pasted jobs on the same plan?</strong>
+            <div class="small" data-i18n="pages.plan.faq2Body">Yes. Both entry points use the same CV Studio quota, so your plan stays simple whichever workflow you use.</div>
           </div>
           <div class="faqItem">
             <strong data-i18n="pages.plan.faq3Title">What if self-serve billing is still being finalized?</strong>
@@ -716,31 +725,31 @@
       </aside>
     </section>
 
-    <section class="infoGrid" id="auto-apply-request" style="margin-top:18px">
+    <section class="infoGrid" id="plan-support" style="margin-top:18px">
       <article class="infoCard">
-        <div class="tag" data-i18n="pages.plan.requestTag">Request beta</div>
-        <h3 style="margin-top:14px" data-i18n="pages.plan.requestTitle">Add Auto-apply only if you need more than CV tailoring</h3>
-        <p data-i18n="pages.plan.requestBody">Auto-apply is a guided beta for users who also want sourcing and outbound support. Keeping it separate makes the main product simpler, more honest, and easier to buy.</p>
+        <div class="tag" data-i18n="pages.plan.requestTag">Need help?</div>
+        <h3 style="margin-top:14px" data-i18n="pages.plan.requestTitle">Need help choosing a CV Studio plan?</h3>
+        <p data-i18n="pages.plan.requestBody">Start free when you are unsure. If you already tailor several roles each week, Starter or Plus gives you a cleaner monthly quota without changing the workflow.</p>
 
         <div class="featureList" style="margin-top:18px">
-          <span data-i18n="pages.plan.requestChip1">Best for supported markets</span>
-          <span data-i18n="pages.plan.requestChip2">Higher-touch onboarding</span>
-          <span data-i18n="pages.plan.requestChip3">Request before access</span>
+          <span data-i18n="pages.plan.requestChip1">Start with 5 free CVs</span>
+          <span data-i18n="pages.plan.requestChip2">Upgrade when usage is real</span>
+          <span data-i18n="pages.plan.requestChip3">Manage billing later</span>
         </div>
 
         <div style="margin-top:18px">
-          <button class="btn primary" id="btnAutoApplyRequest" type="button" data-i18n="pages.plan.requestCta">Request Auto-apply beta</button>
+          <a class="btn primary" href="mailto:team@jobmejob.com?subject=CV%20Studio%20plan%20question" data-i18n="pages.plan.requestCta">Ask about plans</a>
         </div>
       </article>
 
       <aside class="infoCard">
-        <h3 data-i18n="pages.plan.whoTitle">Who should request it</h3>
-        <p data-i18n="pages.plan.whoBody">Request Auto-apply if you already know you want help beyond tailoring and you are comfortable with a more guided, higher-touch setup.</p>
+        <h3 data-i18n="pages.plan.whoTitle">Good next step</h3>
+        <p data-i18n="pages.plan.whoBody">Open CV Studio, upload your base CV, and tailor one real job before choosing a paid plan. The result will make the right quota obvious.</p>
 
         <ul class="planFeatures" style="margin-top:18px">
-          <li data-i18n="pages.plan.whoPoint1">CV Studio already works without job fetching</li>
-          <li data-i18n="pages.plan.whoPoint2">Auto-apply depends on sourcing quality and market support</li>
-          <li data-i18n="pages.plan.whoPoint3">The higher-touch product starts with a request flow on purpose</li>
+          <li data-i18n="pages.plan.whoPoint1">CV Studio works with pasted job descriptions</li>
+          <li data-i18n="pages.plan.whoPoint2">The Chrome extension speeds up job import where supported</li>
+          <li data-i18n="pages.plan.whoPoint3">Each successful tailored CV uses one quota credit</li>
         </ul>
       </aside>
     </section>
@@ -773,8 +782,8 @@
 
   <script src="./vendor/supabase-js-2.100.1.js"></script>
   <script src="./auth.js?v=202604121905"></script>
-  <script src="./i18n.js?v=202604181830"></script>
-  <script src="./shared.js?v=202604232345"></script>
+  <script src="./i18n.js?v=202605041119"></script>
+  <script src="./shared.js?v=202605041300"></script>
   <script>
   (() => {
     "use strict";
@@ -813,7 +822,6 @@
       plus: String(LINKS.CV_STUDIO_PLUS_URL || "").trim()
     };
     const BILLING_PORTAL = String(LINKS.CV_STUDIO_PORTAL_URL || "").trim();
-    const AUTO_APPLY_REQUEST_URL = String(LINKS.AUTO_APPLY_REQUEST_URL || "").trim() || "mailto:team@jobmejob.com?subject=Auto-apply%20beta%20request";
     const SUPPORT_EMAIL = "team@jobmejob.com";
     const PLAN_META = Object.freeze({
       free: { labelKey: "common.plans.free", quotaKey: "pages.plan.freeQuotaTitle", limit: 5 },
@@ -1131,7 +1139,7 @@
       chips.push(portalReady
         ? T("pages.plan.dynamic.selfServePortal", {}, "Self-serve billing portal")
         : T("pages.plan.dynamic.directBillingSupport", {}, "Direct billing support"));
-      chips.push(T("pages.plan.dynamic.autoApplyReviewed", {}, "Auto-apply reviewed on request"));
+      chips.push(T("pages.plan.dynamic.transparentUsage", {}, "Transparent monthly usage"));
 
       const featureWrap = $("billingFeatureList");
       if (featureWrap) {
@@ -1413,7 +1421,6 @@
           if (btn) btn.disabled = false;
         }
       });
-      $("btnAutoApplyRequest")?.addEventListener("click", () => { window.location.href = AUTO_APPLY_REQUEST_URL; });
     }
 
     window.addEventListener("load", () => {

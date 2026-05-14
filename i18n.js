@@ -3,6 +3,7 @@
 
   const SUPPORTED_LOCALES = ["en", "de", "es", "ko"];
   const DEFAULT_LOCALE = "en";
+  const MESSAGE_BUNDLE_VERSION = "202605041119";
   const LOCALE_COOKIE = "jm_locale";
   const LOCALE_STORAGE_KEY = "jm_locale_pref";
   const MARKET_COOKIE = "jm_market";
@@ -183,7 +184,7 @@
 
   async function loadMessages(locale = getCurrentLocale()) {
     const normalized = normalizeLocale(locale);
-    const res = await fetch(`/messages/${normalized}.json`, { cache: "force-cache" });
+    const res = await fetch(`/messages/${normalized}.json?v=${MESSAGE_BUNDLE_VERSION}`, { cache: "force-cache" });
     if (!res.ok) throw new Error(`Failed to load messages for ${normalized}`);
     return await res.json();
   }

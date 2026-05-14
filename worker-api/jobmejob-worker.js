@@ -4135,6 +4135,7 @@ async function handleMeJobsFetch(request, env) {
     "",
     "profile",
     "profile_plus_ai",
+    "ai_only",
     "extra_roles",
     "profile_plus_extra_roles",
     "profile_plus_ai_plus_extra_roles"
@@ -4147,7 +4148,8 @@ async function handleMeJobsFetch(request, env) {
   const aiTitlesRaw = Array.isArray(body.ai_titles) ? body.ai_titles : [];
   const extraTitlesRaw = Array.isArray(body.extra_titles) ? body.extra_titles : Array.isArray(body.desired_titles) ? body.desired_titles : [];
   const mode = fetchMode || (includeAi ? "profile_plus_ai" : "profile");
-  const shouldIncludeAiTitles = includeAi || mode === "profile_plus_ai" || mode === "profile_plus_ai_plus_extra_roles";
+  const aiOnly = mode === "ai_only";
+  const shouldIncludeAiTitles = includeAi || aiOnly || mode === "profile_plus_ai" || mode === "profile_plus_ai_plus_extra_roles";
   const qProfile = new URLSearchParams();
   qProfile.set("select", "customer_id,desired_titles,ai_titles,locations,radius_km,countries_allowed,exclude_titles");
   qProfile.set("customer_id", `eq.${customerId}`);
@@ -4171,7 +4173,7 @@ async function handleMeJobsFetch(request, env) {
     merged.push(s);
   }, "pushTitle");
   cleanedExtraTitles.forEach(pushTitle);
-  desired.forEach(pushTitle);
+  if (!aiOnly) desired.forEach(pushTitle);
   if (shouldIncludeAiTitles) {
     const aiSource = cleanedAiTitles.length ? cleanedAiTitles : profileAiTitles.slice(0, maxAiTitles);
     aiSource.forEach(pushTitle);

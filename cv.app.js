@@ -142,6 +142,7 @@ let genStepsState = "idle";
     let atsKeywordsAll = [];     // full list from server (union)
     let lastUsed = [];
     let lastMissing = [];
+    let lastAtsScore = null;
     let lastDebug = {};
 
     // Edits
@@ -3266,11 +3267,65 @@ function markSteps(state){
     /* -------------------------
        ATS score rendering
        ------------------------- */
-    function computeAtsScore(used, missing){
+    function normalizeAtsScoreValue(score){
+      if(score === null || score === undefined || score === "") return null;
+      const n = Number(score);
+      if(!Number.isFinite(n)) return null;
+      return Math.max(0, Math.min(99, Math.round(n)));
+    }
+
+    function computeAtsScore(used, missing, explicitScore = null){
+      const normalizedExplicit = normalizeAtsScoreValue(explicitScore);
+      if(normalizedExplicit !== null) return normalizedExplicit;
+
       const u = Array.isArray(used) ? used.length : 0;
       const m = Array.isArray(missing) ? missing.length : 0;
       if(u + m <= 0) return null;
-      return Math.round((u / (u + m)) * 100);
+      const raw = Math.round((u / (u + m)) * 100);
+
+      // A tailored CV with broad coverage and only one or two residual terms
+      // should read as a strong/excellent match, not a mediocre raw fraction.
+      if(m === 0) return u >= 8 ? Math.min(99, Math.max(raw, 96)) : Math.min(raw, 89);
+      if(u >= 10 && m <= 2 && raw >= 80) return Math.min(99, Math.max(raw, 92));
+      if(u >= 8 && m <= 1 && raw >= 85) return Math.min(99, Math.max(raw, 90));
+
+      return Math.min(99, raw);
+    }
+
+    function atsScoreMeta(score){
+      if(score === null || score === undefined) {
+        return { tone:"unknown", cls:"", label:"Live", hint:t("atsHint") };
+      }
+      if(score >= 90) {
+        return {
+          tone:"excellent",
+          cls:"good",
+          label:"Excellent",
+          hint:"Excellent ATS match. Review the final details, then export when the CV is truthful and ready."
+        };
+      }
+      if(score >= 75) {
+        return {
+          tone:"strong",
+          cls:"good",
+          label:"Strong",
+          hint:"Strong ATS match. A few truthful keyword or wording improvements may still help."
+        };
+      }
+      if(score >= 60) {
+        return {
+          tone:"needs",
+          cls:"warn",
+          label:"Needs improvement",
+          hint:"Needs improvement. Add only the missing terms that honestly match your experience."
+        };
+      }
+      return {
+        tone:"weak",
+        cls:"bad",
+        label:"Weak",
+        hint:"Weak match. The role may need a different CV angle or stronger real experience coverage."
+      };
     }
 
     function renderKeywords(){
@@ -3301,14 +3356,22 @@ function markSteps(state){
       setText("kwUsedCount", used.length ? String(used.length) : "0");
       setText("kwMissCount", miss.length ? String(miss.length) : "0");
 
-      const score = computeAtsScore(used, miss);
+      const score = computeAtsScore(used, miss, lastAtsScore);
+      const scoreMeta = atsScoreMeta(score);
+      const atsBar = $("atsBar");
       if(score == null){
         setText("atsScore", "—");
-        $("atsBar").style.width = "0%";
+        if(atsBar) atsBar.style.width = "0%";
       }else{
         setText("atsScore", score + "%");
-        $("atsBar").style.width = score + "%";
+        if(atsBar) atsBar.style.width = score + "%";
       }
+      if(atsBar){
+        atsBar.classList.remove("score-excellent", "score-strong", "score-needs", "score-weak");
+        if(scoreMeta.tone && scoreMeta.tone !== "unknown") atsBar.classList.add("score-" + scoreMeta.tone);
+      }
+      setText("atsHint", scoreMeta.hint);
+      setBadge("inspectorBadge", scoreMeta.cls, scoreMeta.label);
       updateStudioFlowUi();
     }
 
@@ -3326,6 +3389,7 @@ function markSteps(state){
       }
       lastUsed = used;
       lastMissing = miss;
+      lastAtsScore = null;
       renderKeywords();
     }
 
@@ -4670,6 +4734,7 @@ function markSteps(state){
           lang: lastLang,
           used: lastUsed,
           missing: lastMissing,
+          ats_score: lastAtsScore,
           all: atsKeywordsAll,
           debug: lastDebug,
           sections: getCvSectionPrefsSnapshot(),
@@ -5863,8 +5928,8 @@ ${bodyHtml}
       $("btnUndoFromChanges").disabled = $("btnUndoEdit")?.disabled ?? false;
       $("btnResetFromChanges").disabled = $("btnResetEdits")?.disabled ?? false;
 
-      const baseAts = computeAtsScore(baseSnapshot.used, baseSnapshot.missing);
-      const curAts = computeAtsScore(lastUsed, lastMissing);
+      const baseAts = computeAtsScore(baseSnapshot.used, baseSnapshot.missing, baseSnapshot.ats_score);
+      const curAts = computeAtsScore(lastUsed, lastMissing, lastAtsScore);
 
       const baseMiss = Array.isArray(baseSnapshot.missing) ? baseSnapshot.missing.length : 0;
       const curMiss = Array.isArray(lastMissing) ? lastMissing.length : 0;
@@ -6106,8 +6171,8 @@ ${bodyHtml}
 
     async function copyChangeSummary(){
       if(!baseSnapshot) return;
-      const baseAts = computeAtsScore(baseSnapshot.used, baseSnapshot.missing);
-      const curAts = computeAtsScore(lastUsed, lastMissing);
+      const baseAts = computeAtsScore(baseSnapshot.used, baseSnapshot.missing, baseSnapshot.ats_score);
+      const curAts = computeAtsScore(lastUsed, lastMissing, lastAtsScore);
 
       const baseMiss = Array.isArray(baseSnapshot.missing) ? baseSnapshot.missing.length : 0;
       const curMiss = Array.isArray(lastMissing) ? lastMissing.length : 0;
@@ -6228,6 +6293,7 @@ ${bodyHtml}
         lang: lastLang,
         used: Array.isArray(lastUsed) ? [...lastUsed] : [],
         missing: Array.isArray(lastMissing) ? [...lastMissing] : [],
+        ats_score: lastAtsScore,
         all: Array.isArray(atsKeywordsAll) ? [...atsKeywordsAll] : [],
         sections: getCvSectionPrefsSnapshot()
       };
@@ -6243,6 +6309,7 @@ ${bodyHtml}
       $("cvText").value = String(snap.cv_text || "");
       lastUsed = Array.isArray(snap.used) ? snap.used : [];
       lastMissing = Array.isArray(snap.missing) ? snap.missing : [];
+      lastAtsScore = normalizeAtsScoreValue(snap.ats_score);
       atsKeywordsAll = Array.isArray(snap.all) ? snap.all : atsKeywordsAll;
       cvSectionPrefs = normalizeCvSectionPrefs(snap.sections || cvSectionPrefs || readCvSectionPrefs(lastCvDoc), lastCvDoc);
       cvFontTheme = normalizeCvFontTheme(snap.font || cvFontTheme || readCvFontTheme());
@@ -6353,6 +6420,7 @@ ${bodyHtml}
             writeCvSectionPrefs();
             lastUsed = Array.isArray(obj.used) ? obj.used : [];
             lastMissing = Array.isArray(obj.missing) ? obj.missing : [];
+            lastAtsScore = normalizeAtsScoreValue(obj.ats_score);
             atsKeywordsAll = Array.isArray(obj.all) ? obj.all : Array.from(new Set([...(lastUsed||[]), ...(lastMissing||[])]));
 
             renderKeywords();
@@ -6443,6 +6511,7 @@ ${bodyHtml}
 
         lastUsed = Array.isArray(r.ats_keywords_used) ? r.ats_keywords_used : [];
         lastMissing = Array.isArray(r.ats_keywords_missing) ? r.ats_keywords_missing : [];
+        lastAtsScore = normalizeAtsScoreValue(r.ats_score);
         atsKeywordsAll = Array.from(new Set([...(lastUsed||[]), ...(lastMissing||[])].map(x=>String(x||"").trim()).filter(Boolean)));
 
         lastDebug = {
@@ -6500,6 +6569,7 @@ ${bodyHtml}
             lang: lastLang,
             used: lastUsed,
             missing: lastMissing,
+            ats_score: lastAtsScore,
             all: atsKeywordsAll,
             debug: lastDebug,
             sections: getCvSectionPrefsSnapshot(),
@@ -6676,6 +6746,7 @@ ${bodyHtml}
 
         lastUsed = Array.isArray(r.ats_keywords_used) ? r.ats_keywords_used : [];
         lastMissing = Array.isArray(r.ats_keywords_missing) ? r.ats_keywords_missing : [];
+        lastAtsScore = normalizeAtsScoreValue(r.ats_score);
         atsKeywordsAll = Array.from(new Set([...(lastUsed||[]), ...(lastMissing||[])].map(x=>String(x||"").trim()).filter(Boolean)));
 
         lastDebug = {
@@ -6736,6 +6807,7 @@ ${bodyHtml}
             lang: lastLang,
             used: lastUsed,
             missing: lastMissing,
+            ats_score: lastAtsScore,
             all: atsKeywordsAll,
             debug: lastDebug,
             sections: getCvSectionPrefsSnapshot(),
@@ -9570,6 +9642,7 @@ ${bodyHtml}
             lang: lastLang,
             used: lastUsed,
             missing: lastMissing,
+            ats_score: lastAtsScore,
             all: atsKeywordsAll,
             debug: lastDebug,
             sections: getCvSectionPrefsSnapshot(),

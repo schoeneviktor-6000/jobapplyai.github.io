@@ -418,8 +418,8 @@ white-space:pre-wrap;
 
 <script src="./vendor/supabase-js-2.100.1.js"></script>
 <script src="./auth.js?v=202604121905"></script>
-<script src="./i18n.js?v=202604181830"></script>
-<script src="./shared.js?v=202604232345"></script>
+<script src="./i18n.js?v=202605041119"></script>
+<script src="./shared.js?v=202605041300"></script>
 <script>
 "use strict";
 
@@ -673,6 +673,12 @@ if(row) row.style.display="";
 if(em) em.textContent=String(email||"");
 try{ window.JobMeJobShared?.hydrateAccountNav?.({ fetchState:true }); }catch(_){}
 }
+function showAlreadySignedIn(session){
+const email=String(session?.user?.email||"").trim().toLowerCase();
+showSignedIn(email);
+setGoogleButton(false,T("pages.signup.openCvStudio", {}, "Open CV Studio"));
+setHint(T("pages.signup.alreadySignedIn", {}, "You’re already signed in. Open CV Studio to tailor a CV, or switch accounts if this is not the right profile."));
+}
 function showSignedOut(){
 setTopState(T("pages.shared.notSignedIn", {}, "Not signed in"));
 const row=$("statusRow");
@@ -711,10 +717,10 @@ completing=false;
 }
 
 async function hydrate(){
+const fromOauth=window.location.search.includes("code=") || window.location.search.includes("state=");
 await tryExchangeOAuthCode();
 let session=await getSession();
 if(!session){
-const fromOauth=window.location.search.includes("code=") || window.location.search.includes("state=");
 if(fromOauth){
 setGoogleButton(true,T("pages.shared.finishingSignIn", {}, "Finishing sign-in…"));
 setHint(T("pages.shared.finishingSignIn", {}, "Finishing sign-in…"));
@@ -722,7 +728,8 @@ setHint(T("pages.shared.finishingSignIn", {}, "Finishing sign-in…"));
 session=await waitForSession(6000);
 }
 if(session && session.user && session.user.email){
-await completeAndRedirect(session);
+if(fromOauth) await completeAndRedirect(session);
+else showAlreadySignedIn(session);
 }else{
 showSignedOut();
 }

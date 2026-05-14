@@ -42,6 +42,17 @@ function labelFromDayKey(key){
   }
 }
 
+setTimeout(()=>{
+  try{
+    const trendBadge = document.getElementById("badgeTrend");
+    if(trendBadge && /loading/i.test(trendBadge.textContent || "") && typeof loadDashboard === "function"){
+      loadDashboard().catch((e)=>{
+        try{ showTopError(e && e.message ? e.message : "Dashboard failed to load"); }catch(_){}
+      });
+    }
+  }catch(_){}
+}, 600);
+
 function getType(it){
   return String((it && (it.event_type || it.status)) || "").toLowerCase();
 }
@@ -180,7 +191,12 @@ function getTailorStatsFromMap(rangeDays){
 
   if(tailorSummaryMap && typeof tailorSummaryMap.forEach === "function"){
     tailorSummaryMap.forEach((row)=>{
-      const score = (row && typeof row.ats_score === "number") ? row.ats_score : computeAtsMatchPercent(row?.ats_keywords_used, row?.ats_keywords_missing);
+      const explicitScore = row && row.ats_score !== null && typeof row.ats_score !== "undefined"
+        ? (typeof normalizeAtsScoreValue === "function" ? normalizeAtsScoreValue(row.ats_score) : Math.max(0, Math.min(99, Math.round(Number(row.ats_score)))))
+        : null;
+      const score = explicitScore !== null
+        ? explicitScore
+        : computeAtsMatchPercent(row?.ats_keywords_used, row?.ats_keywords_missing);
       if(score!==null && score!==undefined && isFinite(Number(score))){
         scored++;
         sumScore += Number(score);
@@ -200,9 +216,14 @@ function updateKpiStrip({ planDaily, queueCount, appsTotal, supply, eventsItems,
   const endNow = Date.now() + 1;
   const today = countTypeBetween(eventsItems, primaryType, startToday, endNow);
 
-  setText("kpiTodaySent", `${today}/${planDaily||0}`);
-  setText("kpiTodaySentLabel", (primaryType==="applied") ? "applied today" : "sent today");
-  setText("kpiTodaySentMeta", `Cap: ${planDaily||0}/day • ${today >= (planDaily||0) && planDaily ? "On track" : "Remaining: " + Math.max(0, (planDaily||0)-today)}`);
+  setText("kpiTodaySent", planDaily ? `${today}/${planDaily}` : fmtInt(today));
+  setText("kpiTodaySentLabel", "CV actions today");
+  setText(
+    "kpiTodaySentMeta",
+    planDaily
+      ? `Daily plan: ${planDaily}/day • ${today >= planDaily ? "On track" : "Remaining: " + Math.max(0, planDaily-today)}`
+      : "Open CV Studio to tailor your next role"
+  );
 
   const pct = (planDaily && planDaily>0) ? Math.min(1, today/planDaily) : (today>0 ? 1 : 0);
   const fill = document.getElementById("todayMeterFill");
@@ -215,14 +236,14 @@ function updateKpiStrip({ planDaily, queueCount, appsTotal, supply, eventsItems,
   const last7 = countTypeSince(eventsItems, primaryType, since7);
   const prev7 = countTypeBetween(eventsItems, primaryType, since14, since7);
   setText("kpiWeekSent", fmtInt(last7));
-  setText("kpiWeekSentMeta", `vs prev 7d: ${fmtSigned(last7 - prev7)}`);
+  setText("kpiWeekSentMeta", `Recent CV/job activity • vs prev 7d: ${fmtSigned(last7 - prev7)}`);
   setBadge("badgeWeekSent", (last7>0 ? "good" : "warn"), (last7>0 ? "Active" : "Low"));
 
   // Queue supply
   animateNumber(document.getElementById("kpiQueue"), queueCount);
   const coverDays = (planDaily && planDaily>0) ? (queueCount/planDaily) : null;
   const coverTxt = (coverDays===null) ? "—" : (coverDays<1 ? "today" : `${Math.floor(coverDays)} day${Math.floor(coverDays)===1?"":"s"}`);
-  setText("kpiQueueMeta", `Coverage: ${coverTxt} • Fresh ≤2d: ${supply.freshCount ?? "—"}`);
+  setText("kpiQueueMeta", `Ready jobs: ${fmtInt(queueCount)} • Fresh ≤2d: ${supply.freshCount ?? "—"}`);
   setBadge("badgeQueue", supply.badgeType || "", supply.healthLabel || "—");
   const sfill = document.getElementById("supplyMeterFill");
   if(sfill) sfill.style.width = Math.round((supply.ratio||0)*100) + "%";
@@ -240,7 +261,7 @@ function updateKpiStrip({ planDaily, queueCount, appsTotal, supply, eventsItems,
   const resp30 = countAnyBetween(eventsItems, ["replied","reply","response","responded"], since30, Date.now()+1);
   const rr = sent30>0 ? (resp30/sent30)*100 : null;
   setText("kpiResponseRate", rr===null ? "—" : fmtPct(rr));
-  setText("kpiResponseMeta", `Responses: ${fmtInt(resp30)} • ${primaryType==="applied" ? "Applied" : "Sent"}: ${fmtInt(sent30)}`);
+  setText("kpiResponseMeta", `Responses: ${fmtInt(resp30)} • Activity: ${fmtInt(sent30)}`);
   setBadge("badgeResponse", (rr!==null && rr>=5) ? "good" : (rr!==null && rr>0 ? "" : "warn"), (rr===null ? "No data" : rr>=5 ? "Good" : rr>0 ? "Some" : "None"));
 
   // Plan + total apps
@@ -252,7 +273,7 @@ function updateKpiStrip({ planDaily, queueCount, appsTotal, supply, eventsItems,
     const onTrack = planDaily && today>=planDaily;
     const lowSupply = planDaily && coverDays!==null && coverDays<3;
     statusEl.className = "pill mini" + (onTrack ? " active" : "");
-    statusEl.textContent = onTrack ? "On track today" : lowSupply ? "Queue needs attention" : "Keep going";
+    statusEl.textContent = onTrack ? "On track today" : lowSupply ? "Job radar needs roles" : "Tailor next CV";
   }
 }
 
@@ -261,10 +282,10 @@ function updateTrendAndFunnel({ planDaily, eventsItems, primaryType, rangeDays }
   const series = computeDailySeries(eventsItems, primaryType, rangeDays);
   const cap = (planDaily && planDaily>0) ? planDaily : null;
   setHtml("trendChart", renderTrendBars(series.labels, series.values, cap));
-  setText("trendMeta", `Last ${rangeDays} days · Bars = ${(primaryType==="applied")?"Applied":"Sent"} · Cap line = ${cap===null?"—":cap+"/day"}`);
+  setText("trendMeta", `Last ${rangeDays} days · CV/job activity${cap===null ? "" : " · Daily plan line = " + cap + "/day"}`);
   const totalRange = series.values.reduce((a,b)=>a+(Number(b)||0),0);
   const avgPerDay = totalRange / Math.max(1, rangeDays);
-  setText("trendFoot", `Total: ${fmtInt(totalRange)} • Avg/day: ${fmtInt(avgPerDay)} • Best day: ${fmtInt(Math.max(...series.values))}`);
+  setText("trendFoot", `Activity total: ${fmtInt(totalRange)} • Avg/day: ${fmtInt(avgPerDay)} • Best day: ${fmtInt(Math.max(...series.values))}`);
   setBadge("badgeTrend", totalRange>0 ? "good" : "warn", totalRange>0 ? "Active" : "No activity");
 
   // Funnel (same range as selected)
@@ -337,8 +358,8 @@ function renderNextActionsReco({ planDaily, queueCount, eventsItems, primaryType
 
   if(planDaily && today < planDaily){
     items.push({
-      title: `Finish today’s cap`,
-      desc: `You’re at ${today}/${planDaily} ${(primaryType==="applied")?"applied":"sent"} today. Open Jobs and prioritize 1–3 high-fit roles.`,
+      title: `Choose today's strongest match`,
+      desc: `You’re at ${today}/${planDaily} CV/job actions today. Open Jobs, pick a high-fit role, and tailor the CV before applying.`,
       actions: [
         { label:"Open Jobs", href:"./jobs.html" },
       ],
@@ -347,7 +368,7 @@ function renderNextActionsReco({ planDaily, queueCount, eventsItems, primaryType
   }else if(planDaily){
     items.push({
       title: `You’re on track today`,
-      desc: `Daily cap reached (${today}/${planDaily}). Keep an eye on your queue supply so you don’t run out.`,
+      desc: `Daily activity target reached (${today}/${planDaily}). Keep an eye on your saved jobs so the next CV is ready to tailor.`,
       actions: [{ label:"Open Jobs", href:"./jobs.html" }],
       badge: { cls:"good", text:"On track" },
     });
@@ -355,8 +376,8 @@ function renderNextActionsReco({ planDaily, queueCount, eventsItems, primaryType
 
   if(planDaily && lowSupply){
     items.push({
-      title: `Queue is running low`,
-      desc: `Coverage is under 3 days at your current cap. Fetch jobs now and consider broadening titles or radius.`,
+      title: `Job radar needs fresh roles`,
+      desc: `Saved job coverage is getting thin. Fetch jobs now or broaden titles and location in your profile.`,
       actions: [
         { label:"Fetch jobs", click:"qaFetchJobs" },
         { label:"Adjust search", href:"./profile.html" },
@@ -368,7 +389,7 @@ function renderNextActionsReco({ planDaily, queueCount, eventsItems, primaryType
   if(queueCount>0 && cov < 0.3){
     items.push({
       title: `Increase tailoring coverage`,
-      desc: `Only ~${Math.round(cov*100)}% of queued jobs have a tailored CV saved. Tailoring improves match + consistency.`,
+      desc: `Only ~${Math.round(cov*100)}% of saved jobs have a tailored CV. Open CV Studio to improve match quality before applying.`,
       actions: [
         { label:"Tailor top job", click:"qaTailorTop" },
         { label:"CV Studio", href:"./cv.html" },
@@ -380,7 +401,7 @@ function renderNextActionsReco({ planDaily, queueCount, eventsItems, primaryType
   if(!items.length){
     items.push({
       title:"Next steps",
-      desc:"Fetch jobs, prioritize a few, tailor one CV, then apply consistently.",
+      desc:"Fetch jobs, choose one role, tailor your CV in CV Studio, then export or apply with a stronger match.",
       actions:[{ label:"Open Jobs", href:"./jobs.html" }],
       badge:{ cls:"", text:"Ready" },
     });
@@ -463,11 +484,11 @@ function renderAutomationHealth({ planDaily, queueCount }){
   const rows = [
     `<div class="mono">Last fetch: ${escapeHtml(last)}</div>`,
     `<div class="mono">Next manual fetch: ${escapeHtml(nextTxt)}</div>`,
-    `<div class="mono">Data freshness (≤2d): ${freshPct===null ? "—" : (String(freshPct)+"%")}</div>`,
+    `<div class="mono">Fresh saved jobs (≤2d): ${freshPct===null ? "—" : (String(freshPct)+"%")}</div>`,
   ].join("");
 
   setHtml("automationHealth", rows);
-  setText("automationHealthMeta", planDaily ? `Daily cap: ${planDaily}/day • Queue: ${queueCount}` : `Auto-apply off • Queue: ${queueCount}`);
+  setText("automationHealthMeta", `Job radar: ${fmtInt(queueCount)} ready${planDaily ? " • Daily plan: " + planDaily + "/day" : ""}`);
 
   const badgeCls = (freshPct!==null && freshPct>=60) ? "good" : "";
   const badgeTxt = (freshPct===null) ? "OK" : (freshPct>=60 ? "Fresh" : "OK");
@@ -483,19 +504,19 @@ function renderAiRecommendations(){
     const has = !!(p && (p.job_titles || p.skills));
     if(!has){
       setBadge("badgeAi","warn","Locked");
-      setText("aiRecoHint","Generate suggestions in Profile to unlock AI recommendations.");
+      setText("aiRecoHint","Generate suggestions in Profile to unlock CV tailoring guidance.");
       setHtml("aiRecoList",
         `<div class="recoList">
           <div class="recoItem">
             <div class="recoTop">
               <div>
-                <div class="recoTitle">Unlock AI suggestions</div>
+                <div class="recoTitle">Unlock CV tailoring suggestions</div>
                 <div class="recoDesc">Generate titles and skills from your profile to improve search coverage and tailoring quality.</div>
               </div>
               <div class="badgeGroup"><span class="badge warn">Action</span></div>
             </div>
             <div class="recoActions">
-              <a class="btn small" href="./profile.html" data-nav="1">Go to Profile</a>
+              <a class="btn small" href="./profile.html" data-nav="1">Open Profile</a>
               <a class="btn small ghost" href="./plan.html" data-nav="1">See plans</a>
             </div>
           </div>
@@ -584,6 +605,47 @@ function renderAiRecommendations(){
   }
 }
 
+function renderDashboardLoadingFallback(){
+  const stillLoading = ["badgeTrend","badgeFunnel","badgeAutomation","badgeAi"].some((id)=>{
+    const el = document.getElementById(id);
+    return el && /loading/i.test(el.textContent || "");
+  });
+  if(!stillLoading) return;
+
+  setText("kpiTodaySent", "–");
+  setText("kpiTodaySentLabel", "CV actions today");
+  setText("kpiTodaySentMeta", "Open CV Studio to tailor your next role");
+  setText("kpiWeekSent", "–");
+  setText("kpiWeekSentMeta", "Recent CV/job activity is still loading");
+  setText("kpiQueue", "–");
+  setText("kpiQueueMeta", "Job radar is still loading");
+  setText("kpiTailorCoverage", "–");
+  setText("kpiTailorMeta", "Avg ATS: –");
+  setText("kpiResponseRate", "–");
+  setText("kpiResponseMeta", "Responses: – • Activity: –");
+  setBadge("badgeTodaySent","warn","Pending");
+  setBadge("badgeWeekSent","warn","Pending");
+  setBadge("badgeQueue","warn","Pending");
+  setBadge("badgeTailor","warn","Pending");
+  setBadge("badgeResponse","warn","Pending");
+  setBadge("badgeTrend","warn","Pending");
+  setBadge("badgeFunnel","warn","Pending");
+  setBadge("badgeAutomation","warn","Pending");
+  setBadge("badgeAi","warn","Pending");
+  setText("trendMeta", "Activity data is taking longer than usual");
+  setText("trendFoot", "");
+  setHtml("trendChart", '<div class="emptyState">Dashboard activity is taking longer than usual. CV Studio remains available for manual paste and tailoring.</div>');
+  setText("funnelMeta", "Tailoring funnel is taking longer than usual");
+  setText("funnelBottleneck", "");
+  setHtml("funnelWrap", '<div class="emptyState">Funnel data will appear after activity loads.</div>');
+  setHtml("activityWrap", '<div class="emptyState">Recent activity is still loading. Try refreshing if it does not appear.</div>');
+  setText("automationHealthMeta", "Job radar is still loading");
+  setHtml("automationHealth", '<div class="emptyState">Open Jobs to check saved roles, or open CV Studio to tailor from pasted text.</div>');
+  setHtml("nextActionsReco", '<div class="recoList"><div class="recoItem"><div class="recoTop"><div><div class="recoTitle">Tailor from a pasted job description</div><div class="recoDesc">If dashboard data is slow, CV Studio still works with manual paste.</div></div><div class="badgeGroup"><span class="badge warn">Fallback</span></div></div><div class="recoActions"><a class="btn small" href="./cv.html" data-nav="1">Open CV Studio</a><a class="btn small ghost" href="./jobs.html" data-nav="1">Open Jobs</a></div></div></div>');
+  setText("aiRecoHint", "Suggestions are still loading.");
+  setHtml("aiRecoList", '<div class="emptyState">Profile-based suggestions will appear when available.</div>');
+}
+
 function wireRangeFilters(){
   const wrap = document.getElementById("rangeFilters");
   if(!wrap || wrap._wired) return;
@@ -666,10 +728,6 @@ async function refreshQueueAndActivity(){
   renderAutomationHealth({ planDaily, queueCount: currentQueueCount||0 });
   renderAiRecommendations();
 
-    // Activity log (filters + table). Snapshot KPIs are removed from the HTML.
-    await loadActivity(session.access_token);
-
-
   // Keep the detailed activity log in sync after actions
   await loadActivity(lastSessionToken);
 }
@@ -697,6 +755,7 @@ async function loadDashboard(){
   setHtml("nextActionsReco", '<div class="skeleton block" style="height:120px"></div>');
   setHtml("automationHealth", '<div class="skeleton block" style="height:90px"></div>');
   setHtml("aiRecoList", '');
+  setTimeout(renderDashboardLoadingFallback, 9000);
 
   // Activity log (table)
   setHtml("activityError","");
@@ -750,8 +809,8 @@ async function loadDashboard(){
   currentPlanDaily = plan.daily;
 
   setText("kpiPlanName", plan.name);
-  setText("kpiPlanMeta", plan.daily ? plan.meta : "Auto-apply off");
-  setBadge("badgePlan", plan.daily ? "good" : "warn", plan.daily ? "Selected" : "Not selected");
+  setText("kpiPlanMeta", plan.daily ? plan.meta : "free plan");
+  setBadge("badgePlan", plan.daily ? "good" : "", plan.daily ? "Selected" : "Free");
 
   if(state && state.customer_id){ setText("meCustomerId", state.customer_id); }
   if(state){ setHtml("onboardingChecks", renderOnboardingChecks(state)); }
@@ -813,6 +872,36 @@ async function loadDashboard(){
   }catch(e){
     setHtml("queueWrap", '<span class="badge bad">Queue failed</span>');
     setHtml("queueError", '<div class="error">'+escapeHtml(e.message)+'</div>');
+    setText("kpiTodaySent", "–");
+    setText("kpiTodaySentLabel", "CV actions today");
+    setText("kpiTodaySentMeta", "Open CV Studio to tailor your next role");
+    setText("kpiWeekSent", "–");
+    setText("kpiWeekSentMeta", "Recent CV/job activity unavailable");
+    setText("kpiQueue", "–");
+    setText("kpiQueueMeta", "Job radar unavailable");
+    setText("kpiTailorCoverage", "–");
+    setText("kpiTailorMeta", "Avg ATS: –");
+    setText("kpiResponseRate", "–");
+    setText("kpiResponseMeta", "Responses: – • Activity: –");
+    setBadge("badgeTodaySent","warn","No data");
+    setBadge("badgeWeekSent","warn","No data");
+    setBadge("badgeQueue","bad","Error");
+    setBadge("badgeTailor","warn","No data");
+    setBadge("badgeResponse","warn","No data");
+    setBadge("badgeTrend","warn","Unavailable");
+    setBadge("badgeFunnel","warn","Unavailable");
+    setBadge("badgeAutomation","warn","Unavailable");
+    setText("trendMeta", "Activity trend unavailable");
+    setText("trendFoot", "");
+    setHtml("trendChart", '<div class="emptyState">Could not load recent activity. You can still open CV Studio and tailor from a pasted job description.</div>');
+    setText("funnelMeta", "Tailoring funnel unavailable");
+    setText("funnelBottleneck", "");
+    setHtml("funnelWrap", '<div class="emptyState">No funnel data is available right now.</div>');
+    setHtml("activityWrap", '<div class="emptyState">Recent activity could not be loaded.</div>');
+    setText("automationHealthMeta", "Job radar unavailable");
+    setHtml("automationHealth", '<div class="emptyState">Try refreshing or open Jobs to check saved roles.</div>');
+    setHtml("nextActionsReco", '<div class="recoList"><div class="recoItem"><div class="recoTop"><div><div class="recoTitle">Tailor from a pasted job description</div><div class="recoDesc">Job radar data is unavailable, but CV Studio still works with manual paste.</div></div><div class="badgeGroup"><span class="badge warn">Fallback</span></div></div><div class="recoActions"><a class="btn small" href="./cv.html" data-nav="1">Open CV Studio</a><a class="btn small ghost" href="./jobs.html" data-nav="1">Open Jobs</a></div></div></div>');
+    renderAiRecommendations();
     setText("errorBox", e.message);
     showTopError(e.message);
   }
