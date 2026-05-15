@@ -70,8 +70,8 @@
   },
   "meta": {
     "index": {
-      "title": "jobmejob — Passe deinen Lebenslauf an jede Stellenanzeige an",
-      "description": "Passe deinen Lebenslauf an jede Stellenanzeige an, finde fehlende Keywords, verbessere den ATS-Match und exportiere ein klares PDF."
+      "title": "jobmejob — Lebenslauf für Bewerbungen in Deutschland optimieren",
+      "description": "Optimiere deinen Lebenslauf für Stellenanzeigen in Deutschland, finde fehlende Keywords, verbessere den ATS-Match und exportiere ein klares PDF."
     },
     "plan": {
       "title": "jobmejob • Preise für Lebenslauf-Anpassung",
@@ -82,22 +82,22 @@
       "description": "Melde dich mit Google an, lade deinen Basis-Lebenslauf einmal hoch und passe deinen Lebenslauf in CV Studio an jede Stellenanzeige an."
     },
     "cvStudio": {
-      "title": "jobmejob CV Studio - Passe deinen Lebenslauf an jede Stellenanzeige an",
-      "description": "Nutze CV Studio, um deinen Lebenslauf an jede Stellenanzeige anzupassen, fehlende Keywords zu finden, den ATS-Match zu verbessern und ein starkes PDF zu exportieren."
+      "title": "jobmejob CV Studio - Lebenslauf für Deutschland optimieren",
+      "description": "Nutze CV Studio, um deinen Lebenslauf für Stellenanzeigen in Deutschland anzupassen, fehlende Keywords zu finden, den ATS-Match zu verbessern und ein starkes PDF zu exportieren."
     }
   },
   "pages": {
     "index": {
       "hero": {
-        "eyebrow": "Für jede Stellenanzeige",
-        "title": "Passe deinen Lebenslauf an jede Stellenanzeige an.",
-        "subtitle": "Übernimm eine Stellenanzeige, passe deinen Lebenslauf an die Anforderungen an, finde fehlende Keywords und exportiere ein ATS-freundliches PDF.",
+        "eyebrow": "Für Bewerbungen in Deutschland",
+        "title": "Optimiere deinen Lebenslauf für deutsche Stellenanzeigen.",
+        "subtitle": "Übernimm eine Stellenanzeige aus Deutschland, passe deinen Lebenslauf an die Anforderungen an, finde fehlende Keywords und exportiere ein ATS-freundliches PDF.",
         "primaryCta": "Mit 5 kostenlosen Lebensläufen starten",
         "secondaryCta": "So funktioniert es",
-        "proof1": "Jede Stellenanzeige online",
+        "proof1": "Deutsche Stellenanzeigen online",
         "proof2": "ATS-Keywords geprüft",
         "proof3": "Vor dem Export bearbeitbar",
-        "status": "Die Extension spart dir nur Zeit beim Import. CV Studio ist das Tool hinter dem Workflow: Es gleicht deinen Lebenslauf mit der Rolle ab, zeigt fehlende Keywords, hält das Format ATS-freundlich und gibt dir ein klares PDF."
+        "status": "Die Extension spart dir Zeit beim Import aus Jobbörsen und Karriereseiten. CV Studio bleibt der Kern: Es gleicht deinen Lebenslauf mit Rollen in Deutschland ab, zeigt fehlende Keywords, hält das Format ATS-freundlich und gibt dir ein klares PDF."
       },
       "overview": {
         "title": "Was dein angepasster Lebenslauf enthält",
@@ -331,7 +331,7 @@
       "navPrivacy": "Datenschutz",
       "heroEyebrow": "Tool zur Lebenslauf-Anpassung",
       "heroTitle": "Passe deinen Lebenslauf an jede Stellenanzeige an.",
-      "heroBody": "Füge eine vollständige Stellenbeschreibung ein oder importiere sie aus LinkedIn und anderen Jobbörsen. CV Studio bewahrt deine echte Erfahrung, verbessert den ATS-Match und erstellt in Minuten einen angepassten Lebenslauf.",
+      "heroBody": "Füge eine vollständige Stellenbeschreibung aus Deutschland ein oder importiere sie aus LinkedIn und anderen Jobbörsen. CV Studio bewahrt deine echte Erfahrung, verbessert den ATS-Match und erstellt in Minuten einen angepassten Lebenslauf.",
       "heroPrimaryCta": "Mit 5 kostenlosen Lebensläufen starten",
       "heroNoteTitle": "Chrome Extension live.",
       "heroNoteBody": "Füge sie im Chrome Web Store hinzu oder nutze jederzeit manuelles Einfügen als Fallback. Sie nutzt dasselbe jobmejob Konto und braucht kein separates Login im Seitenpanel.",
@@ -339,7 +339,7 @@
       "heroProof2": "Basis-Lebenslauf einmal hochladen",
       "heroProof3": "Manueller Paste-Fallback",
       "summaryTitle": "Gebaut, um Lebensläufe an echte Stellenbeschreibungen anzupassen",
-      "summaryBody": "CV Studio ist das Kernprodukt von jobmejob. Es hilft dir, deinen Lebenslauf anzupassen, ATS-Keywords zu prüfen und für jede Rolle ein klares PDF zu exportieren.",
+      "summaryBody": "CV Studio ist das Kernprodukt von jobmejob für Bewerbungen in Deutschland. Es hilft dir, deinen Lebenslauf anzupassen, ATS-Keywords zu prüfen und für jede Rolle ein klares PDF zu exportieren.",
       "summaryStep1Title": "Übernimm die vollständige Stellenbeschreibung",
       "summaryStep1Body": "Hole sie aus dem aktuellen Tab oder füge die vollständige Anzeige selbst ein.",
       "summaryStep2Title": "Nutze deinen gespeicherten Basis-Lebenslauf erneut",

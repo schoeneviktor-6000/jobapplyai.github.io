@@ -8,9 +8,16 @@
  */
 
 const SITE_ORIGIN = "https://jobmejob.com";
-const LASTMOD = "2026-04-21";
+const LASTMOD = "2026-05-15";
 const LOCALES = ["en", "de", "es", "ko"];
-const LOCALIZED_PATHS = ["/", "/cv-studio", "/plan", "/signup"];
+const LOCALIZED_PATHS = ["/", "/cv-studio", "/plan"];
+const GERMAN_SEO_PATHS = [
+  "/lebenslauf-optimieren",
+  "/ki-lebenslauf",
+  "/ats-lebenslauf-check",
+  "/bewerbung-optimieren",
+  "/jobs"
+];
 
 function getEnvString(env, key, fallback = "") {
   const value = env && env[key];
@@ -81,7 +88,7 @@ function renderUrlEntry({ loc, alternates = [], changefreq, priority }) {
 }
 
 function buildSitemapXml(origin) {
-  const localizedEntries = LOCALIZED_PATHS.map((path) => {
+  const localizedEntries = LOCALIZED_PATHS.flatMap((path) => {
     const alternates = LOCALES.map((locale) => ({
       hreflang: locale,
       href: buildLocalizedUrl(origin, locale, path)
@@ -91,13 +98,19 @@ function buildSitemapXml(origin) {
       href: buildLocalizedUrl(origin, "en", path)
     });
 
-    return renderUrlEntry({
-      loc: buildLocalizedUrl(origin, "en", path),
+    return LOCALES.map((locale) => renderUrlEntry({
+      loc: buildLocalizedUrl(origin, locale, path),
       alternates,
-      changefreq: path === "/signup" ? "monthly" : "weekly",
-      priority: path === "/" ? "1.0" : path === "/signup" ? "0.5" : path === "/plan" ? "0.7" : "0.8"
-    });
+      changefreq: "weekly",
+      priority: path === "/" ? "1.0" : path === "/plan" ? "0.7" : "0.8"
+    }));
   });
+
+  const germanSeoEntries = GERMAN_SEO_PATHS.map((path) => renderUrlEntry({
+    loc: buildLocalizedUrl(origin, "de", path),
+    changefreq: "weekly",
+    priority: path === "/jobs" ? "0.7" : "0.75"
+  }));
 
   const privacyEntry = renderUrlEntry({
     loc: `${origin}/privacy`,
@@ -113,6 +126,7 @@ function buildSitemapXml(origin) {
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
     ...localizedEntries,
+    ...germanSeoEntries,
     privacyEntry,
     "</urlset>"
   ].join("\n");
@@ -121,7 +135,7 @@ function buildSitemapXml(origin) {
 function buildRobotsTxt(origin, disallowList) {
   const lines = ["User-agent: *", "Allow: /"];
   for (const path of disallowList) lines.push(`Disallow: ${path}`);
-  lines.push(`Sitemap: ${origin}/sitemap.xml`, "");
+  lines.push("", `Sitemap: ${origin}/sitemap.xml`, "");
   return lines.join("\n");
 }
 

@@ -52,8 +52,17 @@ export const MARKET_CONFIGS = Object.freeze({
 export const LOCALIZED_PUBLIC_PATHS = new Set([
   "/",
   "/plan",
-  "/signup",
   "/cv-studio"
+]);
+export const LOCALIZED_NOINDEX_PATHS = new Set([
+  "/signup"
+]);
+export const GERMAN_SEO_PATHS = new Set([
+  "/lebenslauf-optimieren",
+  "/ki-lebenslauf",
+  "/ats-lebenslauf-check",
+  "/bewerbung-optimieren",
+  "/jobs"
 ]);
 export const NON_INDEXABLE_PATHS = new Set([
   "/dashboard",
@@ -264,8 +273,27 @@ export function isLocalizedPublicPath(strippedPath) {
   return LOCALIZED_PUBLIC_PATHS.has(normalizeLocalizedPagePath(strippedPath));
 }
 
+export function isLocalizedNoindexPath(strippedPath) {
+  return LOCALIZED_NOINDEX_PATHS.has(normalizeLocalizedPagePath(strippedPath));
+}
+
+export function isGermanSeoPath(strippedPath) {
+  return GERMAN_SEO_PATHS.has(normalizeAssetPath(strippedPath));
+}
+
 export function isNoindexPath(strippedPath) {
   return NON_INDEXABLE_PATHS.has(normalizeAssetPath(strippedPath));
+}
+
+export function isKnownHtmlPath(strippedPath) {
+  const normalized = normalizeAssetPath(strippedPath);
+  return (
+    normalized === "/privacy" ||
+    LOCALIZED_PUBLIC_PATHS.has(normalizeLocalizedPagePath(normalized)) ||
+    LOCALIZED_NOINDEX_PATHS.has(normalizeLocalizedPagePath(normalized)) ||
+    NON_INDEXABLE_PATHS.has(normalized) ||
+    GERMAN_SEO_PATHS.has(normalized)
+  );
 }
 
 export function readCookieValue(cookieHeader, name) {

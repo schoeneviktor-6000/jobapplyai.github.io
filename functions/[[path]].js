@@ -7,6 +7,9 @@ import {
   buildLocalizedPath,
   formatPrice,
   getMessage,
+  isGermanSeoPath,
+  isKnownHtmlPath,
+  isLocalizedNoindexPath,
   isNoindexPath,
   isLocalizedPublicPath,
   normalizeAssetPath,
@@ -100,8 +103,101 @@ class HeadHandler {
       .join("");
     const xDefault = `<link rel="alternate" hreflang="x-default" href="${urls.current(DEFAULT_LOCALE)}">`;
     const canonicalLink = `<link rel="canonical" href="${canonical}">`;
-    element.append(`${canonicalLink}${alternates}${xDefault}`, { html: true });
+    const structuredData = buildStructuredDataScripts(this.origin, this.locale, this.strippedPath, canonical);
+    element.append(`${canonicalLink}${alternates}${xDefault}${structuredData}`, { html: true });
   }
+}
+
+function jsonLdScript(data) {
+  return `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, "\\u003c")}</script>`;
+}
+
+function breadcrumbSchema(origin, items) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.item
+    }))
+  };
+}
+
+function buildStructuredDataScripts(origin, locale, strippedPath, canonical) {
+  const normalizedPath = normalizeAssetPath(strippedPath);
+  const inLanguage = locale === "de" ? "de-DE" : locale === "es" ? "es-ES" : locale === "ko" ? "ko-KR" : "en-US";
+  const orgId = `${origin}/#organization`;
+  const websiteId = `${origin}/#website`;
+
+  if (normalizedPath === "/") {
+    return jsonLdScript({
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": orgId,
+          name: "jobmejob",
+          url: `${origin}/`,
+          logo: {
+            "@type": "ImageObject",
+            url: `${origin}/logo-512.png`,
+            contentUrl: `${origin}/logo-512.png`,
+            width: 512,
+            height: 512
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": websiteId,
+          url: `${origin}/`,
+          name: "jobmejob",
+          alternateName: "JobMeJob",
+          inLanguage,
+          publisher: { "@id": orgId }
+        }
+      ]
+    });
+  }
+
+  if (normalizedPath === "/cv-studio") {
+    const description = locale === "de"
+      ? "CV Studio hilft Bewerberinnen und Bewerbern in Deutschland, Lebensläufe an Stellenanzeigen anzupassen, ATS-Keywords zu prüfen und ein PDF zu exportieren."
+      : "CV Studio helps job seekers tailor a CV or resume to a job description, check ATS keywords, and export a polished PDF.";
+    return [
+      jsonLdScript({
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "@id": `${canonical}#webapplication`,
+        name: "jobmejob CV Studio",
+        url: canonical,
+        description,
+        applicationCategory: "BusinessApplication",
+        operatingSystem: "Web browser",
+        inLanguage,
+        publisher: { "@id": orgId },
+        offers: {
+          "@type": "Offer",
+          price: 0,
+          priceCurrency: locale === "de" || locale === "es" ? "EUR" : locale === "ko" ? "KRW" : "USD"
+        }
+      }),
+      jsonLdScript(breadcrumbSchema(origin, [
+        { name: "jobmejob", item: `${origin}${buildLocalizedPath(locale, "/")}` },
+        { name: "CV Studio", item: canonical }
+      ]))
+    ].join("");
+  }
+
+  if (normalizedPath === "/plan") {
+    return jsonLdScript(breadcrumbSchema(origin, [
+      { name: "jobmejob", item: `${origin}${buildLocalizedPath(locale, "/")}` },
+      { name: locale === "de" ? "Preise" : "Pricing", item: canonical }
+    ]));
+  }
+
+  return "";
 }
 
 function appendCookie(headers, name, value) {
@@ -128,6 +224,36 @@ function withRobotsTag(response, value) {
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
+    headers
+  });
+}
+
+function notFoundResponse() {
+  return new Response("<!doctype html><title>Not found</title><h1>Not found</h1>", {
+    status: 404,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "X-Robots-Tag": "noindex, nofollow"
+    }
+  });
+}
+
+async function proxyGermanJobDetail(request, url, env) {
+  const method = request.method;
+  if (method !== "GET" && method !== "HEAD") return notFoundResponse();
+  const upstreamOrigin = String(env.JOB_DETAIL_API_ORIGIN || "https://api.jobmejob.com").replace(/\/+$/, "");
+  const target = new URL(`${url.pathname}${url.search}`, upstreamOrigin);
+  const upstreamRequest = new Request(target.toString(), request);
+  const upstreamResponse = await fetch(upstreamRequest);
+  const headers = new Headers(upstreamResponse.headers);
+  headers.delete("content-encoding");
+  headers.delete("content-length");
+  if (upstreamResponse.status >= 400 && !headers.has("X-Robots-Tag")) {
+    headers.set("X-Robots-Tag", "noindex, nofollow");
+  }
+  return new Response(method === "HEAD" ? null : upstreamResponse.body, {
+    status: upstreamResponse.status,
+    statusText: upstreamResponse.statusText,
     headers
   });
 }
@@ -164,10 +290,18 @@ export async function onRequest(context) {
   const preferredMarket = pickBestMarket(country, cookieMarket, preferredLocale);
   const localePath = parseLocalePath(url.pathname);
 
+  if (url.pathname.startsWith("/jobs/de/")) {
+    return proxyGermanJobDetail(request, url, env);
+  }
+
   if (!localePath.hasLocalePrefix) {
     const normalizedPath = normalizeAssetPath(url.pathname);
 
-    if (isLocalizedPublicPath(normalizedPath)) {
+    if (normalizedPath !== "/jobs" && isGermanSeoPath(normalizedPath)) {
+      return buildRedirectResponse(url, `/de${normalizedPath}`, 308);
+    }
+
+    if (isLocalizedPublicPath(normalizedPath) || isLocalizedNoindexPath(normalizedPath)) {
       const targetPath = buildLocalizedPath(preferredLocale, normalizedPath);
       return withLocalizationState(buildRedirectResponse(url, targetPath, 307), {
         locale: preferredLocale,
@@ -193,6 +327,11 @@ export async function onRequest(context) {
     const assetResponse = await env.ASSETS.fetch(request);
     if (!assetResponse.ok) return assetResponse;
 
+    const contentType = String(assetResponse.headers.get("content-type") || "").toLowerCase();
+    if (contentType.includes("text/html") && !isKnownHtmlPath(normalizedPath)) {
+      return notFoundResponse();
+    }
+
     if (!isNoindexPath(normalizedPath)) {
       return assetResponse;
     }
@@ -203,7 +342,32 @@ export async function onRequest(context) {
   const market = pickBestMarket(country, cookieMarket, localePath.locale);
   const normalizedPath = normalizeAssetPath(localePath.strippedPath);
 
-  if (isLocalizedPublicPath(normalizedPath)) {
+  if (isGermanSeoPath(normalizedPath)) {
+    if (localePath.locale !== "de") {
+      return withLocalizationState(buildRedirectResponse(url, `/de${normalizedPath}`, 308), {
+        locale: "de",
+        market: pickBestMarket(country, cookieMarket, "de"),
+        country
+      });
+    }
+
+    const localizedPath = `/de${normalizedPath}`;
+    if (localizedPath !== url.pathname) {
+      return withLocalizationState(buildRedirectResponse(url, localizedPath, 308), {
+        locale: "de",
+        market,
+        country
+      });
+    }
+
+    const assetUrl = new URL(`${localizedPath}${url.search}`, url.origin);
+    const assetRequest = new Request(assetUrl.toString(), request);
+    const assetResponse = await env.ASSETS.fetch(assetRequest);
+    if (!assetResponse.ok) return withLocalizationState(assetResponse, { locale: "de", market, country });
+    return withLocalizationState(assetResponse, { locale: "de", market, country });
+  }
+
+  if (isLocalizedPublicPath(normalizedPath) || isLocalizedNoindexPath(normalizedPath)) {
     const localizedPath = buildLocalizedPath(localePath.locale, normalizedPath);
     if (localizedPath !== url.pathname) {
       return withLocalizationState(buildRedirectResponse(url, localizedPath, 308), {
@@ -223,13 +387,17 @@ export async function onRequest(context) {
 
     const contentType = String(assetResponse.headers.get("content-type") || "").toLowerCase();
     if (contentType.includes("text/html")) {
-      return rewriteLocalizedHtml(assetResponse, {
+      const localizedResponse = rewriteLocalizedHtml(assetResponse, {
         origin: url.origin,
         locale: localePath.locale,
         strippedPath: normalizedPath,
         market,
         country
       });
+      if (isLocalizedNoindexPath(normalizedPath)) {
+        return withRobotsTag(localizedResponse, "noindex, follow");
+      }
+      return localizedResponse;
     }
 
     return withLocalizationState(assetResponse, { locale: localePath.locale, market, country });
@@ -241,6 +409,11 @@ export async function onRequest(context) {
 
   if (!assetResponse.ok) {
     return withLocalizationState(assetResponse, { locale: localePath.locale, market, country });
+  }
+
+  const contentType = String(assetResponse.headers.get("content-type") || "").toLowerCase();
+  if (contentType.includes("text/html") && !isKnownHtmlPath(normalizedPath)) {
+    return notFoundResponse();
   }
 
   return withLocalizationState(buildRedirectResponse(url, normalizedPath, 308), {

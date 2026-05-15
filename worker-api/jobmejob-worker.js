@@ -7548,6 +7548,8 @@ __name(handleMarkApplication, "handleMarkApplication");
 async function handleDEJobDetails(url, env, request) {
   const refnr = decodeURIComponent(url.pathname.replace("/jobs/de/", "")).trim();
   if (!refnr) return json(request, { error: "Missing refnr" }, 400);
+  const publicBase = getPublicBaseUrl(request, env) || "https://jobmejob.com";
+  const canonicalUrl = `${publicBase}/jobs/de/${encodeURIComponent(refnr)}`;
   const sourceId = await getSourceId(env, "BA Jobsuche", "DE");
   const q1 = new URLSearchParams();
   q1.set("select", "id,title,company_name,country,city,region,employment_type,seniority,description_snippet,description_full,description_full_source,description_full_fetched_at,description_full_error,description_full_error_at,apply_url,posted_at,fetched_at,status,external_job_id");
@@ -7555,7 +7557,11 @@ async function handleDEJobDetails(url, env, request) {
   q1.set("external_job_id", `eq.${refnr}`);
   const jobs = await supabaseFetch(env, `/rest/v1/jobs_normalized?${q1.toString()}`, { method: "GET" });
   if (!Array.isArray(jobs) || jobs.length === 0) {
-    return htmlPage(request, "Job not found", `<div class="card"><h1>Job not found</h1><p>refnr: ${escapeHtml(refnr)}</p></div>`, 404);
+    return htmlPage(request, "Job not found", `<div class="card"><h1>Job not found</h1><p>refnr: ${escapeHtml(refnr)}</p></div>`, 404, {
+      canonicalUrl,
+      robots: "noindex, nofollow",
+      lang: "de"
+    });
   }
   const q2 = new URLSearchParams();
   q2.set("select", "raw_payload,fetched_at,external_job_id");
@@ -7568,14 +7574,34 @@ async function handleDEJobDetails(url, env, request) {
   const rawPayload = Array.isArray(raw) && raw.length ? raw[0].raw_payload : null;
   const format = (url.searchParams.get("format") || "").toLowerCase();
   if (format === "json") return json(request, { job, raw: Array.isArray(raw) && raw.length ? raw[0] : null }, 200);
-  const title = job.title || "Job Details";
-  const company = job.company_name || rawPayload?.arbeitgeber || "";
-  const city = job.city || rawPayload?.arbeitsort?.ort || "";
-  const region = job.region || rawPayload?.arbeitsort?.region || "";
-  const plz = rawPayload?.arbeitsort?.plz || "";
-  const street = rawPayload?.arbeitsort?.strasse || "";
+  const title = cleanOptionalText(job.title) || "Job Details";
+  const company = cleanOptionalText(job.company_name || rawPayload?.arbeitgeber || "");
+  const city = cleanOptionalText(job.city || rawPayload?.arbeitsort?.ort || "");
+  const region = cleanOptionalText(job.region || rawPayload?.arbeitsort?.region || "");
+  const plz = cleanOptionalText(rawPayload?.arbeitsort?.plz || "");
+  const street = cleanOptionalText(rawPayload?.arbeitsort?.strasse || "");
   const postedAt = job.posted_at ? new Date(job.posted_at).toISOString().slice(0, 10) : "";
   const entryDate = rawPayload?.eintrittsdatum || "";
+  const fullDescription = String(job.description_full || "").trim();
+  const isActive = String(job.status || "active").toLowerCase() === "active";
+  const isIndexableJob = !!(title && company && postedAt && fullDescription && isActive);
+  const description = fullDescription || String(job.description_snippet || "").trim() || `${title}${company ? " bei " + company : ""}`;
+  const headHtml = [
+    isIndexableJob ? jsonLdScript(buildJobPostingSchema({
+      canonicalUrl,
+      refnr,
+      title,
+      company,
+      description: fullDescription,
+      postedAt,
+      city,
+      region,
+      plz,
+      street,
+      employmentType: job.employment_type
+    })) : "",
+    jsonLdScript(buildBreadcrumbSchema(canonicalUrl, title))
+  ].filter(Boolean).join("\n");
   const content = `
   <div class="card">
   <div class="meta">Germany \xB7 ${escapeHtml(city)}${region ? ", " + escapeHtml(region) : ""}</div>
@@ -7660,17 +7686,106 @@ async function handleDEJobDetails(url, env, request) {
   });
   <\/script>
   `;
-  return htmlPage(request, title, content, 200);
+  return htmlPage(request, title, content, 200, {
+    canonicalUrl,
+    description,
+    robots: isIndexableJob ? "index, follow, max-image-preview:large" : "noindex, follow",
+    lang: "de",
+    headHtml
+  });
 }
 __name(handleDEJobDetails, "handleDEJobDetails");
-function htmlPage(request, title, bodyHtml, status = 200) {
+function jsonLdScript(data) {
+  return `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, "\\u003c")}</script>`;
+}
+__name(jsonLdScript, "jsonLdScript");
+function textToHtmlDescription(text) {
+  return String(text || "").split(/\n{2,}/).map((block) => {
+    const lines = block.split(/\n/).map((line) => escapeHtml(line.trim())).filter(Boolean);
+    return lines.length ? `<p>${lines.join("<br>")}</p>` : "";
+  }).filter(Boolean).join("");
+}
+__name(textToHtmlDescription, "textToHtmlDescription");
+function cleanOptionalText(value) {
+  const raw = String(value || "").trim();
+  return raw && raw.toLowerCase() !== "null" ? raw : "";
+}
+__name(cleanOptionalText, "cleanOptionalText");
+function mapEmploymentType(value) {
+  const raw = String(value || "").toLowerCase();
+  const out = [];
+  if (/vollzeit|full/.test(raw)) out.push("FULL_TIME");
+  if (/teilzeit|part/.test(raw)) out.push("PART_TIME");
+  if (/praktik|intern/.test(raw)) out.push("INTERN");
+  if (/befrist|temporary|temp/.test(raw)) out.push("TEMPORARY");
+  if (/freiwillig|volunteer/.test(raw)) out.push("VOLUNTEER");
+  return out.length ? Array.from(new Set(out)) : undefined;
+}
+__name(mapEmploymentType, "mapEmploymentType");
+function buildJobPostingSchema({ canonicalUrl, refnr, title, company, description, postedAt, city, region, plz, street, employmentType }) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "JobPosting",
+    title: String(title || "").trim(),
+    description: textToHtmlDescription(description),
+    datePosted: postedAt,
+    identifier: {
+      "@type": "PropertyValue",
+      name: "Bundesagentur für Arbeit",
+      value: String(refnr || "").trim()
+    },
+    hiringOrganization: {
+      "@type": "Organization",
+      name: String(company || "").trim()
+    },
+    jobLocation: {
+      "@type": "Place",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: String(street || "").trim() || undefined,
+        postalCode: String(plz || "").trim() || undefined,
+        addressLocality: String(city || "").trim() || undefined,
+        addressRegion: String(region || "").trim() || undefined,
+        addressCountry: "DE"
+      }
+    },
+    directApply: false,
+    url: canonicalUrl
+  };
+  const mappedEmploymentType = mapEmploymentType(employmentType);
+  if (mappedEmploymentType) schema.employmentType = mappedEmploymentType;
+  return schema;
+}
+__name(buildJobPostingSchema, "buildJobPostingSchema");
+function buildBreadcrumbSchema(canonicalUrl, title) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "jobmejob", item: "https://jobmejob.com/de/" },
+      { "@type": "ListItem", position: 2, name: "Jobs Deutschland", item: "https://jobmejob.com/de/jobs" },
+      { "@type": "ListItem", position: 3, name: String(title || "Job Details").trim(), item: canonicalUrl }
+    ]
+  };
+}
+__name(buildBreadcrumbSchema, "buildBreadcrumbSchema");
+function htmlPage(request, title, bodyHtml, status = 200, options = {}) {
+  const canonicalUrl = String(options.canonicalUrl || "").trim();
+  const description = String(options.description || "").replace(/\s+/g, " ").trim().slice(0, 180);
+  const robots = String(options.robots || (status >= 400 ? "noindex, nofollow" : "index, follow, max-image-preview:large")).trim();
+  const lang = String(options.lang || "en").trim();
+  const headHtml = String(options.headHtml || "").trim();
   const html = `
   <!doctype html>
-  <html lang="en">
+  <html lang="${escapeHtml(lang)}">
   <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>${escapeHtml(title)}</title>
+  ${description ? `<meta name="description" content="${escapeHtml(description)}" />` : ""}
+  <meta name="robots" content="${escapeHtml(robots)}" />
+  ${canonicalUrl ? `<link rel="canonical" href="${escapeHtml(canonicalUrl)}" />` : ""}
+  ${headHtml}
   <style>
   body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; background: #f6f7fb; color: #111; }
   .wrap { max-width: 900px; margin: 0 auto; padding: 24px; }
@@ -7697,7 +7812,9 @@ function htmlPage(request, title, bodyHtml, status = 200) {
   </body>
   </html>
   `.trim();
-  return new Response(html, { status, headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders(request) } });
+  const headers = { "Content-Type": "text/html; charset=utf-8", ...corsHeaders(request) };
+  if (robots) headers["X-Robots-Tag"] = robots;
+  return new Response(html, { status, headers });
 }
 __name(htmlPage, "htmlPage");
 function escapeHtml(s) {
