@@ -3374,6 +3374,270 @@ function renderCvTextFromDoc(cvDoc, lang) {
   return normalizeTailoredCvText(lines.join("\n"), lang);
 }
 __name(renderCvTextFromDoc, "renderCvTextFromDoc");
+
+const ATS_V2_WEIGHTS = {
+  core_requirements: 40,
+  transferable_equivalents: 25,
+  role_context: 15,
+  tools_platforms: 10,
+  nice_to_have: 10
+};
+const ATS_V2_EQUIVALENTS = {
+  "account coordination": ["operations coordination", "stakeholder communication", "coordinating service delivery"],
+  "crm hygiene": ["data hygiene", "record hygiene", "accurate records", "crm like practice management software"],
+  "crm systems": ["crm like practice management software", "practice management software", "theorg practice software", "customer records"],
+  "customer feedback": ["patient feedback", "stakeholder feedback", "customer inquiries", "patient inquiries"],
+  "customer satisfaction": ["patient satisfaction", "service quality", "patient service quality"],
+  "customer support": ["patient support", "patient service", "service delivery", "handled inquiries"],
+  "customer support workflows": ["customer support processes", "patient service workflows", "service delivery workflows", "practice workflows"],
+  "fluent english": ["english fluent", "english"],
+  "healthcare administration": ["healthcare operations", "health and social services", "practice administration", "medical administration"],
+  "internal communication": ["internal communications", "internal teams", "team communication", "team coordination", "team alignment"],
+  "operational dashboards": ["reports", "reporting", "operational reporting", "tracking"],
+  "process improvements": ["process improvement", "process optimization", "improve operational workflows", "enhance operational workflows", "streamline operations"],
+  "reporting": ["reports", "prepared materials", "documented outcomes", "documenting outcomes"],
+  "service focused environment": ["service focused environments", "service delivery", "patient service", "healthcare operations"],
+  "spreadsheets": ["excel", "microsoft office suite"],
+  "structured data": ["data management", "data accuracy", "data hygiene", "prescription data", "digital filing", "record keeping"],
+  "support operations": ["healthcare operations", "practice operations", "service operations"]
+};
+const ATS_V2_TOOL_TERMS = [
+  "crm", "crm systems", "crm hygiene", "hubspot", "salesforce", "zendesk", "intercom", "notion",
+  "google sheets", "excel", "spreadsheets", "jira", "confluence", "sap", "tableau", "power bi",
+  "looker", "snowflake", "sql", "python", "aws", "gcp", "azure"
+];
+const ATS_V2_HARD_TOOL_TERMS = [
+  "hubspot", "salesforce", "zendesk", "intercom", "notion", "google sheets", "jira", "confluence",
+  "sap", "tableau", "power bi", "looker", "snowflake", "sql", "python", "aws", "gcp", "azure"
+];
+const ATS_V2_KNOWN_PHRASES = [
+  "account coordination", "cross functional communication", "customer feedback", "customer satisfaction",
+  "customer success", "customer success operations", "customer success reporting", "customer support",
+  "customer support workflows", "crm hygiene", "crm systems", "documentation", "excel", "fluent english",
+  "google sheets", "healthcare administration", "high value accounts", "hubspot", "intercom",
+  "internal communication", "knowledge bases", "notion", "onboarding", "operational dashboards",
+  "process improvements", "problem solving", "renewal dates", "reporting", "response times",
+  "salesforce", "scheduling", "service focused environment", "service level performance",
+  "spreadsheets", "stakeholder communication", "structured data", "support operations", "support trends",
+  "zendesk"
+];
+function atsV2Norm(s) {
+  return String(s || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim().replace(/\s+/g, " ");
+}
+__name(atsV2Norm, "atsV2Norm");
+function atsV2Pretty(s) {
+  return String(s || "").trim().replace(/\s+/g, " ").slice(0, 80);
+}
+__name(atsV2Pretty, "atsV2Pretty");
+function atsV2Uniq(arr, max = 48) {
+  const out = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const item of Array.isArray(arr) ? arr : []) {
+    const raw = atsV2Pretty(item);
+    const key = atsV2Norm(raw);
+    if (!key || key.length < 3 || key.length > 70) continue;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(raw);
+    if (out.length >= max) break;
+  }
+  return out;
+}
+__name(atsV2Uniq, "atsV2Uniq");
+function atsV2Variants(term) {
+  const key = atsV2Norm(term);
+  const variants = /* @__PURE__ */ new Set();
+  if (key) variants.add(key);
+  for (const v of ATS_V2_EQUIVALENTS[key] || []) {
+    const vv = atsV2Norm(v);
+    if (vv) variants.add(vv);
+  }
+  return Array.from(variants);
+}
+__name(atsV2Variants, "atsV2Variants");
+function atsV2HasExact(textNorm, term) {
+  const key = atsV2Norm(term);
+  return !!key && textNorm.includes(key);
+}
+__name(atsV2HasExact, "atsV2HasExact");
+function atsV2Match(textNorm, term) {
+  for (const variant of atsV2Variants(term)) {
+    if (variant && textNorm.includes(variant)) return { ok: true, matched_by: variant };
+  }
+  return { ok: false, matched_by: "" };
+}
+__name(atsV2Match, "atsV2Match");
+function atsV2NiceSection(jobDescription) {
+  const text = String(jobDescription || "");
+  const low = text.toLowerCase();
+  const m = low.match(/\b(nice to have|preferred|bonus|plus|wuenschenswert|wünschenswert|von vorteil)\b/);
+  if (!m) return "";
+  return text.slice(Math.max(0, m.index)).slice(0, 3e3);
+}
+__name(atsV2NiceSection, "atsV2NiceSection");
+function atsV2TermInText(term, text) {
+  const key = atsV2Norm(term);
+  return !!key && atsV2Norm(text).includes(key);
+}
+__name(atsV2TermInText, "atsV2TermInText");
+function atsV2IsTool(term) {
+  const key = atsV2Norm(term);
+  return ATS_V2_TOOL_TERMS.some((tool) => key === tool || key.includes(tool));
+}
+__name(atsV2IsTool, "atsV2IsTool");
+function atsV2IsHardTool(term) {
+  const key = atsV2Norm(term);
+  return ATS_V2_HARD_TOOL_TERMS.some((tool) => key === tool || key.includes(tool));
+}
+__name(atsV2IsHardTool, "atsV2IsHardTool");
+function atsV2IsRoleContext(term, job) {
+  const key = atsV2Norm(term);
+  const title = atsV2Norm(job?.title || "");
+  if (!key) return false;
+  if (title && (title.includes(key) || key.includes(title))) return true;
+  const titleWords = title.split(" ").filter((w) => w.length >= 5);
+  const termWords = new Set(key.split(" ").filter((w) => w.length >= 5));
+  let hits = 0;
+  for (const w of titleWords) if (termWords.has(w)) hits += 1;
+  return hits >= 2 || /\b(role|operations|administration|administrator|coordinator|manager|customer success|healthcare)\b/.test(key);
+}
+__name(atsV2IsRoleContext, "atsV2IsRoleContext");
+function atsV2ExtractKnownTerms(jobDescription) {
+  const textNorm = atsV2Norm(jobDescription);
+  return ATS_V2_KNOWN_PHRASES.filter((phrase) => textNorm.includes(atsV2Norm(phrase)));
+}
+__name(atsV2ExtractKnownTerms, "atsV2ExtractKnownTerms");
+function atsV2RoleContextScore(tailoredNorm, job) {
+  const title = atsV2Norm(job?.title || "");
+  if (!title) return 75;
+  const words = title.split(" ").filter((w) => w.length >= 5);
+  if (!words.length) return tailoredNorm.includes(title) ? 95 : 75;
+  const hits = words.filter((w) => tailoredNorm.includes(w)).length;
+  const ratio = hits / words.length;
+  return Math.round(55 + ratio * 40);
+}
+__name(atsV2RoleContextScore, "atsV2RoleContextScore");
+function atsV2Average(items, fallback = 75) {
+  const vals = (Array.isArray(items) ? items : []).map(Number).filter((n) => Number.isFinite(n));
+  if (!vals.length) return fallback;
+  return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+}
+__name(atsV2Average, "atsV2Average");
+function buildAtsScoringV2({ job, jobDescription, sourceCvText, tailoredCvText, atsKeywordsUsed, atsKeywordsMissing }) {
+  const tailoredNorm = atsV2Norm(tailoredCvText);
+  const sourceNorm = atsV2Norm(sourceCvText);
+  const niceText = atsV2NiceSection(jobDescription);
+  const rawTerms = atsV2Uniq([
+    ...atsV2ExtractKnownTerms(jobDescription),
+    ...Array.isArray(atsKeywordsUsed) ? atsKeywordsUsed : [],
+    ...Array.isArray(atsKeywordsMissing) ? atsKeywordsMissing : []
+  ], 60);
+  const terms = rawTerms.length ? rawTerms : atsV2Uniq([job?.title || ""], 12);
+  const records = terms.map((term) => {
+    const exactFinal = atsV2HasExact(tailoredNorm, term);
+    const exactSource = atsV2HasExact(sourceNorm, term);
+    const finalMatch = atsV2Match(tailoredNorm, term);
+    const sourceMatch = atsV2Match(sourceNorm, term);
+    const isNice = atsV2TermInText(term, niceText);
+    const isTool = atsV2IsTool(term);
+    const isHardTool = atsV2IsHardTool(term);
+    const isRole = atsV2IsRoleContext(term, job);
+    const supportedBySource = exactSource || sourceMatch.ok;
+    const covered = exactFinal || finalMatch.ok;
+    const equivalent = !exactFinal && finalMatch.ok;
+    const transferable = !exactFinal && !exactSource && (sourceMatch.ok || equivalent) && !isHardTool;
+    const unsupported = isHardTool && !supportedBySource || !supportedBySource && !covered && !isRole;
+    const category = isNice ? "nice_to_have" : isTool ? "tools_platforms" : isRole ? "role_context" : "core_requirements";
+    let finalValue = 0;
+    if (unsupported) finalValue = isNice ? 25 : 0;
+    else if (exactFinal) finalValue = 100;
+    else if (finalMatch.ok) finalValue = transferable ? 82 : 88;
+    else if (supportedBySource) finalValue = 58;
+    else finalValue = 0;
+    let fitValue = 0;
+    if (isHardTool && !supportedBySource) fitValue = 0;
+    else if (exactSource) fitValue = 100;
+    else if (sourceMatch.ok) fitValue = 78;
+    else if (isNice) fitValue = 30;
+    else if (isRole) fitValue = 70;
+    return {
+      term,
+      category,
+      covered,
+      equivalent,
+      transferable,
+      unsupported,
+      matched_by: finalMatch.matched_by || sourceMatch.matched_by || "",
+      finalValue,
+      fitValue
+    };
+  });
+  const core = records.filter((r) => r.category === "core_requirements");
+  const tools = records.filter((r) => r.category === "tools_platforms");
+  const nice = records.filter((r) => r.category === "nice_to_have");
+  const roleScore = atsV2RoleContextScore(tailoredNorm, job);
+  const transferableRecords = records.filter((r) => r.transferable);
+  const transferableScore = transferableRecords.length ? atsV2Average(transferableRecords.map((r) => r.covered ? 88 : 68), 75) : 75;
+  const categoryScores = {
+    core_requirements: atsV2Average(core.map((r) => r.finalValue), records.length ? 65 : 75),
+    transferable_equivalents: transferableScore,
+    role_context: roleScore,
+    tools_platforms: atsV2Average(tools.map((r) => r.finalValue), 82),
+    nice_to_have: atsV2Average(nice.map((r) => r.finalValue), 82)
+  };
+  const overall = Math.round(
+    categoryScores.core_requirements * 0.4 +
+    categoryScores.transferable_equivalents * 0.25 +
+    categoryScores.role_context * 0.15 +
+    categoryScores.tools_platforms * 0.1 +
+    categoryScores.nice_to_have * 0.1
+  );
+  const jobFit = Math.round(
+    atsV2Average(core.map((r) => r.fitValue), 62) * 0.45 +
+    atsV2Average(transferableRecords.map((r) => r.fitValue || 72), 72) * 0.2 +
+    roleScore * 0.15 +
+    atsV2Average(tools.map((r) => r.fitValue), 70) * 0.12 +
+    atsV2Average(nice.map((r) => r.fitValue), 70) * 0.08
+  );
+  const supportable = records.filter((r) => !r.unsupported || r.category === "role_context");
+  const coveredSupportable = supportable.filter((r) => r.covered).length;
+  const unsupportedHardClaims = records.filter((r) => r.unsupported && r.covered && atsV2IsHardTool(r.term)).length;
+  const tailoringQuality = Math.round(clamp(
+    (supportable.length ? coveredSupportable / supportable.length : 0.75) * 78 + roleScore * 0.18 - unsupportedHardClaims * 12,
+    0,
+    99
+  ));
+  const keywordCoverage = Math.round((records.filter((r) => r.covered).length / Math.max(1, records.length)) * 100);
+  const unsupportedGaps = records
+    .filter((r) => r.unsupported)
+    .map((r) => ({
+      term: r.term,
+      category: r.category,
+      reason: r.category === "tools_platforms" || atsV2IsHardTool(r.term) ? "Not found in the original CV/profile." : "Not clearly supported by the original CV/profile."
+    }))
+    .slice(0, 20);
+  const transferableMatches = records
+    .filter((r) => r.transferable && r.covered)
+    .map((r) => ({ term: r.term, matched_by: r.matched_by, category: r.category }))
+    .slice(0, 20);
+  return {
+    version: "ats_scoring_v2",
+    overall_match_score: clamp(Math.round(overall), 0, 99),
+    job_fit_score: clamp(Math.round(jobFit), 0, 99),
+    tailoring_quality_score: clamp(Math.round(tailoringQuality), 0, 99),
+    keyword_coverage_score: clamp(Math.round(keywordCoverage), 0, 99),
+    category_scores: categoryScores,
+    weights: ATS_V2_WEIGHTS,
+    covered_keywords: records.filter((r) => r.covered).map((r) => r.term).slice(0, 60),
+    missing_keywords: records.filter((r) => !r.covered).map((r) => r.term).slice(0, 60),
+    transferable_matches: transferableMatches,
+    unsupported_gaps: unsupportedGaps,
+    explanation: unsupportedGaps.length
+      ? "Your CV was improved, but the job still asks for tools or experience not found in your CV."
+      : "Your tailored CV covers the important job requirements well."
+  };
+}
+__name(buildAtsScoringV2, "buildAtsScoringV2");
 function buildClusterSuggestionPrompt({ roleClusters, aiCvOutput, cvTextSlice }) {
   const clustersSlim = (roleClusters || []).map((c) => ({
     id: c.id,
@@ -5251,6 +5515,16 @@ async function handleMeCvTailor(request, env) {
       if (wantModel && cachedModel && cachedModel !== wantModel) {
       } else {
         const cachedCvDoc = cached?.cv_json && typeof cached.cv_json === "object" && cached.cv_json.cv_doc && typeof cached.cv_json.cv_doc === "object" ? cached.cv_json.cv_doc : null;
+        const cachedAtsScoringV2 = cached?.cv_json && typeof cached.cv_json === "object" && cached.cv_json.ats_scoring_v2 && typeof cached.cv_json.ats_scoring_v2 === "object"
+          ? cached.cv_json.ats_scoring_v2
+          : buildAtsScoringV2({
+            job,
+            jobDescription: descText,
+            sourceCvText: cvTextClean,
+            tailoredCvText: cached.cv_text,
+            atsKeywordsUsed: cached.ats_keywords_used || [],
+            atsKeywordsMissing: cached.ats_keywords_missing || []
+          });
         try {
           await logProductEvent(env, {
             customerId: me.customerId,
@@ -5283,6 +5557,8 @@ async function handleMeCvTailor(request, env) {
             cv_doc: cachedCvDoc,
             ats_keywords_used: cached.ats_keywords_used || [],
             ats_keywords_missing: cached.ats_keywords_missing || [],
+            ats_score: cachedAtsScoringV2?.overall_match_score ?? null,
+            ats_scoring_v2: cachedAtsScoringV2,
             confidence: cached.confidence,
             warnings: cached.warnings || [],
             model: cached.model,
@@ -5399,6 +5675,14 @@ async function handleMeCvTailor(request, env) {
       throw new Error("Model returned an empty or too short CV");
     }
     const outputHash = await sha256Hex(cvTextOut);
+    const atsScoringV2 = buildAtsScoringV2({
+      job,
+      jobDescription: descText,
+      sourceCvText: cvTextClean,
+      tailoredCvText: cvTextOut,
+      atsKeywordsUsed: Array.isArray(parsed?.ats_keywords_used) ? parsed.ats_keywords_used : [],
+      atsKeywordsMissing: Array.isArray(parsed?.ats_keywords_missing) ? parsed.ats_keywords_missing : []
+    });
     const warnSet = /* @__PURE__ */ new Set();
     const warnings = [];
     for (const w of [...Array.isArray(parsed?.warnings) ? parsed.warnings : [], ...cleanWarnings, ...jobDescWarnings]) {
@@ -5422,6 +5706,8 @@ async function handleMeCvTailor(request, env) {
         ...parsed && typeof parsed === "object" ? parsed : {},
         template,
         strength,
+        ats_score: atsScoringV2.overall_match_score,
+        ats_scoring_v2: atsScoringV2,
         cv_doc: outCvDoc,
         meta: {
           cv_clean_status: cvCleanStatus,
@@ -5481,6 +5767,8 @@ async function handleMeCvTailor(request, env) {
         cv_doc: outCvDoc,
         ats_keywords_used: rowPatch.ats_keywords_used,
         ats_keywords_missing: rowPatch.ats_keywords_missing,
+        ats_score: atsScoringV2.overall_match_score,
+        ats_scoring_v2: atsScoringV2,
         confidence: rowPatch.confidence,
         warnings,
         model: usedModel,

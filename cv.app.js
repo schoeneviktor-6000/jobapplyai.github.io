@@ -143,6 +143,7 @@ let genStepsState = "idle";
     let lastUsed = [];
     let lastMissing = [];
     let lastAtsScore = null;
+    let lastAtsScoringV2 = null;
     let lastDebug = {};
 
     // Edits
@@ -2366,7 +2367,7 @@ function updatePasteQuality(){
 
     const KEYWORD_MATCH_EQUIVALENTS = {
       "crm hygiene": ["data hygiene", "crm like practice management software"],
-      "crm systems": ["crm like practice management software", "practice management software"],
+      "crm systems": ["crm like practice management software", "practice management software", "theorg practice software"],
       "customer satisfaction": ["patient satisfaction"],
       "customer support workflows": ["customer support processes", "patient service", "patient support", "service delivery"],
       "fluent english": ["english fluent"],
@@ -3298,6 +3299,42 @@ function markSteps(state){
       return Math.max(0, Math.min(99, Math.round(n)));
     }
 
+    function normalizeAtsScoringV2(raw){
+      if(!raw || typeof raw !== "object") return null;
+      const overall = normalizeAtsScoreValue(raw.overall_match_score ?? raw.overall ?? raw.score);
+      if(overall === null) return null;
+      const arr = (value, max = 40) => Array.isArray(value)
+        ? value.map((item) => {
+            if(item && typeof item === "object"){
+              return {
+                term: String(item.term || item.keyword || "").trim(),
+                category: String(item.category || "").trim(),
+                reason: String(item.reason || "").trim(),
+                matched_by: String(item.matched_by || item.matchedBy || "").trim()
+              };
+            }
+            return { term:String(item || "").trim(), category:"", reason:"", matched_by:"" };
+          }).filter((item) => item.term).slice(0, max)
+        : [];
+      return {
+        version: String(raw.version || "ats_scoring_v2"),
+        overall_match_score: overall,
+        job_fit_score: normalizeAtsScoreValue(raw.job_fit_score),
+        tailoring_quality_score: normalizeAtsScoreValue(raw.tailoring_quality_score),
+        keyword_coverage_score: normalizeAtsScoreValue(raw.keyword_coverage_score),
+        category_scores: raw.category_scores && typeof raw.category_scores === "object" ? raw.category_scores : {},
+        covered_keywords: (Array.isArray(raw.covered_keywords) ? raw.covered_keywords : []).map((x)=>String(x||"").trim()).filter(Boolean).slice(0, 80),
+        missing_keywords: (Array.isArray(raw.missing_keywords) ? raw.missing_keywords : []).map((x)=>String(x||"").trim()).filter(Boolean).slice(0, 80),
+        transferable_matches: arr(raw.transferable_matches, 30),
+        unsupported_gaps: arr(raw.unsupported_gaps, 30),
+        explanation: String(raw.explanation || "").trim()
+      };
+    }
+
+    function setAtsScoringV2(raw){
+      lastAtsScoringV2 = normalizeAtsScoringV2(raw);
+    }
+
     function computeAtsScore(used, missing, explicitScore = null){
       const normalizedExplicit = normalizeAtsScoreValue(explicitScore);
       if(normalizedExplicit !== null) return normalizedExplicit;
@@ -3355,6 +3392,9 @@ function markSteps(state){
     function renderKeywords(){
       const used = Array.isArray(lastUsed) ? lastUsed : [];
       const miss = Array.isArray(lastMissing) ? lastMissing : [];
+      const scoring = lastAtsScoringV2;
+      const unsupported = scoring?.unsupported_gaps || [];
+      const transferable = scoring?.transferable_matches || [];
 
       if(isKwInlineOpen() && activeKeywordRaw){
         const stillMissing = miss.some(k => normForMatch(k) === normForMatch(activeKeywordRaw));
@@ -3363,11 +3403,18 @@ function markSteps(state){
         }
       }
 
-      $("chipsUsed").innerHTML = used.length
-        ? used.slice(0, 120).map(k => `<span class="chip good" title="${H.escapeHtml(k)}">${H.escapeHtml(prettyKeyword(k,lastLang))}</span>`).join("")
+      const coveredTerms = scoring?.covered_keywords?.length ? scoring.covered_keywords : used;
+      $("chipsUsed").innerHTML = coveredTerms.length
+        ? coveredTerms.slice(0, 120).map(k => `<span class="chip good" title="${H.escapeHtml(k)}">${H.escapeHtml(prettyKeyword(k,lastLang))}</span>`).join("")
         : `<span class="hint">—</span>`;
 
-      $("chipsMissing").innerHTML = miss.length
+      if(scoring && unsupported.length){
+        $("chipsMissing").innerHTML = unsupported.slice(0, 80).map((gap) => {
+          const title = [gap.term, gap.reason].filter(Boolean).join(" - ");
+          return `<span class="chip warn" title="${H.escapeHtml(title)}">${H.escapeHtml(prettyKeyword(gap.term,lastLang))}</span>`;
+        }).join("");
+      }else{
+        $("chipsMissing").innerHTML = miss.length
         ? miss.slice(0, 120).map(k => {
             const disp = prettyKeyword(k,lastLang);
             return `<button type="button" class="chip chipBtn warn" data-kw="${H.escapeHtml(k)}" title="${H.escapeHtml(k)}">
@@ -3376,11 +3423,36 @@ function markSteps(state){
             </button>`;
           }).join("")
         : `<span class="hint">No key gaps left. Nice work.</span>`;
+      }
 
-      setText("kwUsedCount", used.length ? String(used.length) : "0");
-      setText("kwMissCount", miss.length ? String(miss.length) : "0");
+      const v2Details = $("atsV2Details");
+      if(v2Details){
+        v2Details.style.display = scoring ? "" : "none";
+        v2Details.hidden = !scoring;
+      }
+      if(scoring){
+        setText("atsV2Summary", "Transferable matches (" + String(transferable.length) + ")");
+        $("chipsTransferable").innerHTML = transferable.length
+          ? transferable.map((item) => `<span class="chip good" title="${H.escapeHtml(item.matched_by || item.term)}">${H.escapeHtml(prettyKeyword(item.term,lastLang))}</span>`).join("")
+          : `<span class="hint">No transferable matches detected.</span>`;
+        setText("atsV2Explain", scoring.explanation || "");
+      }
 
-      const score = computeAtsScore(used, miss, lastAtsScore);
+      setText("kpiAts", scoring ? "Overall Match" : t("kpiAts"));
+      setText("kpiUsed", scoring ? "Tailoring Quality" : t("kpiUsed"));
+      setText("kpiMissing", scoring ? "Missing Requirements" : t("kpiMissing"));
+      setText("kwUsedCount", scoring
+        ? ((scoring.tailoring_quality_score ?? "—") + (scoring.tailoring_quality_score == null ? "" : "%"))
+        : (used.length ? String(used.length) : "0"));
+      setText("kwMissCount", scoring ? String(unsupported.length || 0) : (miss.length ? String(miss.length) : "0"));
+      setText("kpiUsedHint", scoring
+        ? ("Job fit " + String(scoring.job_fit_score ?? "—") + "% · Keywords " + String(scoring.keyword_coverage_score ?? "—") + "%")
+        : "Already present in your tailored CV.");
+      setText("kpiMissingHint", scoring
+        ? "Not found in your CV. Do not add unless true."
+        : "Click a true missing term to place it directly in the preview.");
+
+      const score = scoring?.overall_match_score ?? computeAtsScore(used, miss, lastAtsScore);
       const scoreMeta = atsScoreMeta(score);
       const atsBar = $("atsBar");
       if(score == null){
@@ -3394,7 +3466,7 @@ function markSteps(state){
         atsBar.classList.remove("score-excellent", "score-strong", "score-needs", "score-weak");
         if(scoreMeta.tone && scoreMeta.tone !== "unknown") atsBar.classList.add("score-" + scoreMeta.tone);
       }
-      setText("atsHint", scoreMeta.hint);
+      setText("atsHint", scoring?.explanation || scoreMeta.hint);
       setBadge("inspectorBadge", scoreMeta.cls, scoreMeta.label);
       updateStudioFlowUi();
     }
@@ -4783,6 +4855,7 @@ function markSteps(state){
           used: lastUsed,
           missing: lastMissing,
           ats_score: lastAtsScore,
+          ats_scoring_v2: lastAtsScoringV2,
           all: atsKeywordsAll,
           debug: lastDebug,
           sections: getCvSectionPrefsSnapshot(),
@@ -6342,6 +6415,7 @@ ${bodyHtml}
         used: Array.isArray(lastUsed) ? [...lastUsed] : [],
         missing: Array.isArray(lastMissing) ? [...lastMissing] : [],
         ats_score: lastAtsScore,
+        ats_scoring_v2: lastAtsScoringV2,
         all: Array.isArray(atsKeywordsAll) ? [...atsKeywordsAll] : [],
         sections: getCvSectionPrefsSnapshot()
       };
@@ -6358,6 +6432,7 @@ ${bodyHtml}
       lastUsed = Array.isArray(snap.used) ? snap.used : [];
       lastMissing = Array.isArray(snap.missing) ? snap.missing : [];
       lastAtsScore = normalizeAtsScoreValue(snap.ats_score);
+      setAtsScoringV2(snap.ats_scoring_v2 || null);
       atsKeywordsAll = Array.isArray(snap.all) ? snap.all : atsKeywordsAll;
       cvSectionPrefs = normalizeCvSectionPrefs(snap.sections || cvSectionPrefs || readCvSectionPrefs(lastCvDoc), lastCvDoc);
       cvFontTheme = normalizeCvFontTheme(snap.font || cvFontTheme || readCvFontTheme());
@@ -6469,6 +6544,7 @@ ${bodyHtml}
             lastUsed = Array.isArray(obj.used) ? obj.used : [];
             lastMissing = Array.isArray(obj.missing) ? obj.missing : [];
             lastAtsScore = normalizeAtsScoreValue(obj.ats_score);
+            setAtsScoringV2(obj.ats_scoring_v2 || null);
             atsKeywordsAll = Array.isArray(obj.all) ? obj.all : Array.from(new Set([...(lastUsed||[]), ...(lastMissing||[])]));
 
             renderKeywords();
@@ -6561,6 +6637,7 @@ ${bodyHtml}
         lastUsed = Array.isArray(r.ats_keywords_used) ? r.ats_keywords_used : [];
         lastMissing = Array.isArray(r.ats_keywords_missing) ? r.ats_keywords_missing : [];
         lastAtsScore = normalizeAtsScoreValue(r.ats_score);
+        setAtsScoringV2(r.ats_scoring_v2 || null);
         atsKeywordsAll = Array.from(new Set([...(lastUsed||[]), ...(lastMissing||[])].map(x=>String(x||"").trim()).filter(Boolean)));
 
         lastDebug = {
@@ -6620,6 +6697,7 @@ ${bodyHtml}
             used: lastUsed,
             missing: lastMissing,
             ats_score: lastAtsScore,
+            ats_scoring_v2: lastAtsScoringV2,
             all: atsKeywordsAll,
             debug: lastDebug,
             sections: getCvSectionPrefsSnapshot(),
@@ -6797,6 +6875,7 @@ ${bodyHtml}
         lastUsed = Array.isArray(r.ats_keywords_used) ? r.ats_keywords_used : [];
         lastMissing = Array.isArray(r.ats_keywords_missing) ? r.ats_keywords_missing : [];
         lastAtsScore = normalizeAtsScoreValue(r.ats_score);
+        setAtsScoringV2(r.ats_scoring_v2 || null);
         atsKeywordsAll = Array.from(new Set([...(lastUsed||[]), ...(lastMissing||[])].map(x=>String(x||"").trim()).filter(Boolean)));
 
         lastDebug = {
@@ -6859,6 +6938,7 @@ ${bodyHtml}
             used: lastUsed,
             missing: lastMissing,
             ats_score: lastAtsScore,
+            ats_scoring_v2: lastAtsScoringV2,
             all: atsKeywordsAll,
             debug: lastDebug,
             sections: getCvSectionPrefsSnapshot(),
@@ -7933,13 +8013,18 @@ ${bodyHtml}
       }
 
       // 5) Keyword coverage (from latest tailor call, if available)
-      const miss = Array.isArray(lastMissing) ? lastMissing : [];
+      const unsupported = Array.isArray(lastAtsScoringV2?.unsupported_gaps) ? lastAtsScoringV2.unsupported_gaps : [];
+      const miss = unsupported.length ? unsupported.map((gap) => gap.term).filter(Boolean) : (Array.isArray(lastMissing) ? lastMissing : []);
       if(miss.length){
         add("warn",
-          uiLang==="de" ? "Fehlende Keywords" : "Missing keywords",
-          uiLang==="de"
-            ? ("Noch " + miss.length + " Keywords fehlen. Nutze den Keyword Booster, wenn sie wirklich zutreffen.")
-            : (miss.length + " keywords are still missing. Use the Keyword Booster if they are true.")
+          unsupported.length ? (uiLang==="de" ? "Nicht belegte Anforderungen" : "Unsupported requirements") : (uiLang==="de" ? "Fehlende Keywords" : "Missing keywords"),
+          unsupported.length
+            ? (uiLang==="de"
+              ? (miss.length + " Anforderungen sind nicht klar im CV belegt. Nicht hinzufügen, ausser sie stimmen wirklich.")
+              : (miss.length + " requirements are not clearly supported by the CV. Do not add them unless they are true."))
+            : (uiLang==="de"
+              ? ("Noch " + miss.length + " Keywords fehlen. Nutze den Keyword Booster, wenn sie wirklich zutreffen.")
+              : (miss.length + " keywords are still missing. Use the Keyword Booster if they are true."))
         );
       }else if(lastUsed && Array.isArray(lastUsed)){
         add("pass",
@@ -9694,6 +9779,7 @@ ${bodyHtml}
             used: lastUsed,
             missing: lastMissing,
             ats_score: lastAtsScore,
+            ats_scoring_v2: lastAtsScoringV2,
             all: atsKeywordsAll,
             debug: lastDebug,
             sections: getCvSectionPrefsSnapshot(),
