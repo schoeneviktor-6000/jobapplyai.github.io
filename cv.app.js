@@ -2364,6 +2364,30 @@ function updatePasteQuality(){
       }
     }
 
+    const KEYWORD_MATCH_EQUIVALENTS = {
+      "crm hygiene": ["data hygiene", "crm like practice management software"],
+      "crm systems": ["crm like practice management software", "practice management software"],
+      "customer satisfaction": ["patient satisfaction"],
+      "customer support workflows": ["customer support processes", "patient service", "patient support", "service delivery"],
+      "fluent english": ["english fluent"],
+      "healthcare administration": ["healthcare operations", "health and social services", "practice administration"],
+      "internal communication": ["internal communications", "team alignment"],
+      "process improvements": ["process improvement", "process optimization", "improve operational workflows", "enhance operational workflows"],
+      "service focused environment": ["service focused environments", "service delivery", "patient service"],
+      "spreadsheets": ["excel", "microsoft office suite"],
+      "structured data": ["data management", "data accuracy", "data hygiene", "prescription data", "digital filing"]
+    };
+
+    function keywordMatchVariants(keyword){
+      const k = normForMatch(keyword);
+      if(!k) return [];
+      const out = new Set([k]);
+      (KEYWORD_MATCH_EQUIVALENTS[k] || []).forEach(v => {
+        const vv = normForMatch(v);
+        if(vv) out.add(vv);
+      });
+      return Array.from(out);
+    }
 
     function tokenizeForScore(s){
       const n = normForMatch(s);
@@ -2422,7 +2446,7 @@ function updatePasteQuality(){
       const k = normForMatch(keyword);
       const ttxt = normForMatch(text);
       if(!k) return false;
-      return ttxt.includes(k);
+      return keywordMatchVariants(k).some(v => ttxt.includes(v));
     }
 
     /* Deterministic variation (no randomness across refreshes) */
@@ -10075,11 +10099,11 @@ $("startStrengthList")?.addEventListener("click", async (e) => {
     $("studioActCopy")?.addEventListener("click", () => { closeStudioDownloadMenu(); $("btnCopy")?.click(); });
     $("studioActDownload")?.addEventListener("click", () => { closeStudioDownloadMenu(); $("btnDownload")?.click(); });
     $("studioActPrint")?.addEventListener("click", () => { closeStudioDownloadMenu(); $("btnPrint")?.click(); });
-    $("studioActQa")?.addEventListener("click", () => { closeStudioDownloadMenu(); $("btnQa")?.click(); });
+    $("studioActQa")?.addEventListener("click", () => { closeStudioDownloadMenu(); openQaModal(""); });
 
     // AI Review panel buttons
-    $("btnRunReview")?.addEventListener("click", () => $("btnQa")?.click());
-    $("btnOpenReview")?.addEventListener("click", () => $("btnQa")?.click());
+    $("btnRunReview")?.addEventListener("click", () => openQaModal(""));
+    $("btnOpenReview")?.addEventListener("click", () => openQaModal(""));
 
     // Zoom controls (Preview)
     let zoom = 1.0;

@@ -2788,6 +2788,9 @@ function buildTailoredCvPrompt({ lang, job, jobDescription, cvTextSlice }) {
     "- Keep it concise (roughly 500-900 words). Prefer a 1-page style.",
     "- For missing personal details (phone/address), use placeholders like [Phone].",
     "- ats_keywords_used and ats_keywords_missing must be lowercase, deduplicated, max 30 each, 1-4 words per item.",
+    "- Keyword alignment: use exact job terminology in cv_text when it is truthfully supported by CV_TEXT. Example: if CV_TEXT shows Excel/Microsoft Office, include Excel or spreadsheets; if it shows healthcare/practice administration, include healthcare administration; if it shows patient or stakeholder support, include customer/patient support only without claiming unsupported SaaS tools.",
+    "- Do NOT mark alternate word forms as missing when cv_text already contains the same truthful concept. Keep unsupported named tools or responsibilities in ats_keywords_missing instead of inventing them.",
+    "- ats_keywords_used must be terms that are present in cv_text or clearly represented by the final wording.",
     "- confidence must be between 0.50 and 0.95.",
     "- Output size limits (must follow):",
     "- summary: 3\u20136 bullets (max 6).",
@@ -2924,6 +2927,9 @@ function buildTailoredCvDocPrompt({ lang, template, strength, job, jobDescriptio
     "- If contact details are missing, use placeholders like [Phone], [Email].",
     "- Set template to '" + templateOut + "' and strength to '" + strengthOut + "'.",
     "- ats_keywords_used and ats_keywords_missing must be lowercase, deduplicated, max 30 each, 1-4 words per item.",
+    "- Keyword alignment: use exact job terminology in cv_doc when it is truthfully supported by CV_BASE_DOC. Example: if CV_BASE_DOC shows Excel/Microsoft Office, include Excel or spreadsheets; if it shows healthcare/practice administration, include healthcare administration; if it shows patient or stakeholder support, include customer/patient support only without claiming unsupported SaaS tools.",
+    "- Do NOT mark alternate word forms as missing when cv_doc already contains the same truthful concept. Keep unsupported named tools or responsibilities in ats_keywords_missing instead of inventing them.",
+    "- ats_keywords_used must be terms that are present in cv_doc text or clearly represented by the final wording.",
     "- confidence must be between 0.50 and 0.95.",
     "",
     "Tailoring strength:",
@@ -5204,7 +5210,7 @@ async function handleMeCvTailor(request, env) {
   const modelListForTailor = parseModelList(modelPrefForTailor);
   const primaryTailorModel = modelListForTailor[0] || "gemini-2.0-pro";
   const modelPrefForHash = modelListForTailor.join(",");
-  const promptVersion = "cv_tailor_v3_structured_professional";
+  const promptVersion = "cv_tailor_v4_structured_professional";
   const inputHash = await sha256Hex([
     promptVersion,
     lang,
